@@ -73,7 +73,13 @@ export class GameApp {
     this.root = document.getElementById('app');
     this.ui = new UI(this.root, this.handlers());
     this.sm = new SceneManager(document.getElementById('scene'), {
-      getSafeArea: () => ({ top: this.ui.hud?.offsetHeight || 150, bottom: (this.ui.dock?.offsetHeight || 70) + 6 }),
+      getSafeArea: () => {
+        const bottom = (this.ui.dock?.offsetHeight || 70) + 6;
+        // שורת הפעולות (מרכז / צילום / רמז / כניעה) יושבת מעל הסרגל — הלוח לא יורד מתחתיה
+        const a = this.ui.actions;
+        const clear = a?.offsetHeight ? Math.max(bottom, window.innerHeight - a.getBoundingClientRect().top + 6) : bottom;
+        return { top: this.ui.hud?.offsetHeight || 150, bottom, clear };
+      },
     });
     this.fx = new FX(this.sm);
     this.board = new ChessBoard3D(this.sm, this.fx);

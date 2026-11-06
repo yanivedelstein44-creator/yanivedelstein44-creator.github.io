@@ -267,6 +267,7 @@ export class UI {
     const net = mode === 'online' || mode === 'watch';
     const show = { center: true, share: !net, hint: mode === 'ai' || mode === 'local', draw: mode === 'local' || mode === 'online', resign: mode === 'ai' || mode === 'online', emote: net, leave: net };
     Object.entries(this.actBtns).forEach(([k, b]) => { b.hidden = !show[k]; });
+    this.actions.hidden = !Object.values(show).some(Boolean);
   }
 
   // ---------- הודעות ----------

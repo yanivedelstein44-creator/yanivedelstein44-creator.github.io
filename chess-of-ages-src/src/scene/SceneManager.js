@@ -368,6 +368,8 @@ export class SceneManager {
     const H = this.height, W = this.width;
     const yTop = 1 - (2 * (safe.top + 6)) / H;
     const yBot = -1 + (2 * (safe.bottom + 4)) / H;
+    // הקו שהלוח לא יורד מתחתיו (שורת הפעולות מעל הסרגל התחתון)
+    const yClear = -1 + (2 * (Math.max(safe.bottom, safe.clear || 0) + 4)) / H;
     const P = (x, y, z) => new V3(x * sgn, y, z * sgn);
     // tight: המשבצות ממלאות את רוחב המסך קצה לקצה (המסגרת כמעט נחתכת) והדמויות לא מקטינות את הלוח
     const tight = this.fitTight !== false;
@@ -394,13 +396,14 @@ export class SceneManager {
       for (const p of back) { v.copy(p).project(cam); kMax = Math.max(kMax, v.y); }
       if (tight) for (const p of pieceTops) { v.copy(p).project(cam); bMax = Math.max(bMax, v.y); }
       const sx = maxX / (tight ? 1.0 : 0.985);
-      const sy = (bMax - bMin) / (avail * (tight ? 0.97 : 0.9));
+      const sy = (bMax - bMin) / ((yTop - yClear) * (tight ? 0.97 : 0.9));
       dist *= Math.pow(Math.max(sx, sy), 0.7);
       dist = Math.min(60, Math.max(8, dist));
       // אנכית: כל התמונה (עמדות + לוח) במרכז אם נכנסת; אחרת הלוח והעמדות הקדמיות מעוגנים לתחתית
       const lo = Math.min(fMin, bMin), hi = Math.max(kMax, bMax);
       let dy;
       if (tight) dy = (bMin + bMax) / 2 - (yTop + yBot) / 2 - avail * (this.fitBias ?? 0.04); // הלוח במרכז הרצועה הפנויה (קצת למעלה — לדמויות הקרובות יותר מקום)
+      if (tight) dy = Math.min(dy, bMin - yClear); // אבל אף פעם לא מתחת לשורת הפעולות
       else if (hi - lo <= avail * 0.98) dy = (lo + hi) / 2 - (yTop + yBot) / 2;
       else dy = Math.max(lo - (yBot + 0.01), bMax - (yTop - 0.02));
       off -= dy * dist * 0.3;
