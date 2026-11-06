@@ -4,7 +4,7 @@
   "build": "1.1.1-1793976618976",
   "buildTime": 1793976618976,
   "date": "2026-11-06T14:50:18.976Z",
-  "minNative": "1.0.0",
+  "minNative": "1.1.1",
   "bundle": "update/bundle-1.1.1-1793976618976.zip",
   "checksum": "a986b4c00b6a86773a723acbd0ae0989fc3128b7e40829a734f2abde86f7fbae",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
