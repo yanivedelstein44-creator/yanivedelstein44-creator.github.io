@@ -275,14 +275,23 @@ export class GameApp {
   }
 
   // ======================= עמדות שחקנים =======================
-  placeStations() {
-    // העמדות צמודות יותר ללוח, כדי שהלוח יוכל להיות גדול יותר במסך
-    this.avatars.w.place(-3.0, 6.4, 2.05);
-    this.pets.w.place(3.0, 6.3, -2.0);
-    this.avatars.b.place(3.0, -6.5, -0.34);
-    this.pets.b.place(-3.0, -6.4, 0.38);
-    Object.values(this.avatars).forEach((a) => a.group.scale.setScalar(1.3));
-    Object.values(this.pets).forEach((p) => p.group.scale.setScalar(1.25));
+  placeStations(compact = this.compactStations !== false) {
+    // compact: הדמויות והחיות יושבות צמוד ללוח (מעל ומתחת), כדי שהלוח ימלא את המסך
+    if (compact) {
+      this.avatars.w.place(-2.95, 5.78, 2.05);
+      this.pets.w.place(2.95, 5.7, -2.0);
+      this.avatars.b.place(2.95, -5.86, -0.34);
+      this.pets.b.place(-2.95, -5.76, 0.38);
+      Object.values(this.avatars).forEach((a) => a.group.scale.setScalar(1.12));
+      Object.values(this.pets).forEach((p) => p.group.scale.setScalar(1.08));
+    } else {
+      this.avatars.w.place(-3.0, 6.4, 2.05);
+      this.pets.w.place(3.0, 6.3, -2.0);
+      this.avatars.b.place(3.0, -6.5, -0.34);
+      this.pets.b.place(-3.0, -6.4, 0.38);
+      Object.values(this.avatars).forEach((a) => a.group.scale.setScalar(1.3));
+      Object.values(this.pets).forEach((p) => p.group.scale.setScalar(1.25));
+    }
     this.applyStationMaterials();
   }
 

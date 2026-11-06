@@ -86,6 +86,7 @@ export class SceneManager {
     mq?.addEventListener?.('change', (e) => { this.reducedMotion = e.matches; });
     this.view = { side: 'w', target: new V3(), position: new V3(), radius: 20, polar: THREE.MathUtils.degToRad(55), azimuth: 0 };
     this.panoramaOn = false;
+    this.steadyCamera = true;
     this.animatingCamera = false;
     this.quality = { level: 'high', samples: [], checked: false };
 
@@ -364,9 +365,13 @@ export class SceneManager {
     const yTop = 1 - (2 * (safe.top + 6)) / H;
     const yBot = -1 + (2 * (safe.bottom + 4)) / H;
     const P = (x, y, z) => new V3(x * sgn, y, z * sgn);
-    // הלוח (כולל המסגרת) ממלא כמעט את כל רוחב המסך; העמדות שמסביב נכנסות כשיש מקום
-    const board = [P(-4.85, 0.3, 4.85), P(4.85, 0.3, 4.85), P(-4.85, 0.3, -4.85), P(4.85, 0.3, -4.85)];
+    // tight: המשבצות ממלאות את רוחב המסך קצה לקצה (המסגרת כמעט נחתכת) והדמויות לא מקטינות את הלוח
+    const tight = this.fitTight !== false;
+    const B = tight ? 4.32 : 4.85;
+    const board = [P(-B, 0.3, B), P(B, 0.3, B), P(-B, 0.3, -B), P(B, 0.3, -B)];
     const front = [P(-3.0, 0, 7.0), P(3.0, 0, 7.0)];
+    // ראשי הכלים בשורה הרחוקה — שלא ייחתכו מתחת ללוח המידע (חשוב במסך לרוחב)
+    const pieceTops = [P(-3.6, 1.75, -3.9), P(3.6, 1.75, -3.9)];
     const back = [P(3.0, 3.0, -6.6), P(-3.0, 2.4, -6.6)];
     let dist = 20, off = 0;
     const target = new V3(), offset = new V3(), sph = new THREE.Spherical();
@@ -383,14 +388,16 @@ export class SceneManager {
       for (const p of board) { v.copy(p).project(cam); maxX = Math.max(maxX, Math.abs(v.x)); bMin = Math.min(bMin, v.y); bMax = Math.max(bMax, v.y); }
       for (const p of front) { v.copy(p).project(cam); fMin = Math.min(fMin, v.y); }
       for (const p of back) { v.copy(p).project(cam); kMax = Math.max(kMax, v.y); }
-      const sx = maxX / 0.985;
-      const sy = (bMax - bMin) / (avail * 0.9);
+      if (tight) for (const p of pieceTops) { v.copy(p).project(cam); bMax = Math.max(bMax, v.y); }
+      const sx = maxX / (tight ? 1.0 : 0.985);
+      const sy = (bMax - bMin) / (avail * (tight ? 0.97 : 0.9));
       dist *= Math.pow(Math.max(sx, sy), 0.7);
       dist = Math.min(60, Math.max(8, dist));
       // אנכית: כל התמונה (עמדות + לוח) במרכז אם נכנסת; אחרת הלוח והעמדות הקדמיות מעוגנים לתחתית
       const lo = Math.min(fMin, bMin), hi = Math.max(kMax, bMax);
       let dy;
-      if (hi - lo <= avail * 0.98) dy = (lo + hi) / 2 - (yTop + yBot) / 2;
+      if (tight) dy = (bMin + bMax) / 2 - (yTop + yBot) / 2 - avail * (this.fitBias ?? 0.04); // הלוח במרכז הרצועה הפנויה (קצת למעלה — לדמויות הקרובות יותר מקום)
+      else if (hi - lo <= avail * 0.98) dy = (lo + hi) / 2 - (yTop + yBot) / 2;
       else dy = Math.max(lo - (yBot + 0.01), bMax - (yTop - 0.02));
       off -= dy * dist * 0.3;
       off = Math.min(6, Math.max(-8, off));
@@ -512,7 +519,8 @@ export class SceneManager {
     return this.toGameplay(1.2);
   }
 
-  addShake(amp = 0.25) { if (!this.reducedMotion) this.shake.amp = Math.max(this.shake.amp, amp); }
+  /** רעידות מצלמה כבויות כברירת מחדל: הלוח לא זז בזמן משחק (steadyCamera) */
+  addShake(amp = 0.25) { if (!this.reducedMotion && !this.steadyCamera) this.shake.amp = Math.max(this.shake.amp, amp); }
 
   // ---------- עזרים ----------
   pick(clientX, clientY, objects) {
