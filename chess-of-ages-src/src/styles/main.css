@@ -209,6 +209,10 @@ button:focus-visible, [role='button']:focus-visible, input:focus-visible, select
 .icon-btn.round { width: 46px; height: 46px; border-radius: 50%; padding: 0; }
 #actions .icon-btn.round { width: 42px; height: 42px; }
 
+/* פתיחה קולנועית של אי: הסרגלים נעלמים בעדינות כדי שיראו את כל האי */
+#hud, #dock, #actions, .boost-pill { transition: opacity 0.45s ease; }
+#app.intro #hud, #app.intro #dock, #app.intro #actions, #app.intro .boost-pill { opacity: 0; pointer-events: none; }
+
 /* ---------- Toasts / תוויות צפות / בועות דיבור ---------- */
 #toasts { position: absolute; z-index: 30; left: 50%; transform: translateX(-50%); top: calc(var(--safe-top) + 170px); display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; width: min(92vw, 420px); }
 .toast { display: flex; align-items: center; gap: 8px; padding: 10px 15px; border-radius: 16px; font-size: 13.5px; font-weight: 700; text-align: start; animation: toastIn 0.35s ease-out; max-width: 100%; }
@@ -236,6 +240,7 @@ button:focus-visible, [role='button']:focus-visible, input:focus-visible, select
 .screen-flash { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
 .era-title-card { position: fixed; inset: 0; z-index: 35; display: grid; place-items: center; pointer-events: none; text-align: center; }
 .era-title-card .inner { padding: 18px 26px; border-radius: 24px; }
+.era-title-card.top { align-items: start; padding-top: calc(var(--safe-top) + 7vh); } /* בזמן הפתיחה: השם למעלה, האי נשאר גלוי */
 .era-title-card .kicker { font-size: 14px; letter-spacing: 0.2em; color: var(--gold-2); }
 .era-title-card .title { font-size: 32px; font-weight: 800; margin-top: 6px; background: linear-gradient(180deg, #fff6d6, #f2c94c 55%, #b8862a); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 0 #4a2a0a); }
 .era-title-card .sub { font-size: 14px; color: var(--muted); margin-top: 6px; }
