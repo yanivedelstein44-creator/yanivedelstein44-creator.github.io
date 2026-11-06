@@ -1,5 +1,6 @@
 /**
- * GameApp — מחבר את כל המערכות: סצנה, לוח, ממלכה, חיות ואווטארים, AI, רשת, סאונד, כלכלה, UI ועדכונים.
+ * GameApp — מחבר את כל המערכות: סצנה, לוח, ממלכה, חיות ואווטארים, AI, סאונד, כלכלה, UI ועדכונים.
+ * מסע כיבוש 99 איים: בכל אי בוט ייחודי. האי המרכזי (אי 1) הוא הבית: הבוט הראשון, חנות, מתנה יומית ומשחק נגד חבר.
  */
 import * as THREE from 'three';
 import gsap from 'gsap';
@@ -12,40 +13,57 @@ import { GameController, PIECE_VALUE, GLYPH } from '../game/GameController.js';
 import { ChessAI, classifyMove, moveAccuracy, clampCp } from '../engine/ChessAI.js';
 import { SceneManager } from '../scene/SceneManager.js';
 import { FX } from '../scene/Particles.js';
-import { ChessBoard3D, squareToXZ, BOARD_TOP } from '../scene/ChessBoard3D.js';
+import { ChessBoard3D, squareToXZ } from '../scene/ChessBoard3D.js';
 import { Shockwave, screenFlash } from '../scene/Effects.js';
 import { KingdomBuilder } from '../scene/KingdomBuilder.js';
 import { ArenaLife } from '../scene/ArenaLife.js';
 import { PetCompanion3D } from '../scene/PetCompanion3D.js';
 import { PlayerAvatar3D } from '../scene/PlayerAvatar3D.js';
+import { ThumbRenderer } from '../scene/ThumbRenderer.js';
+import { WorldMap } from '../scene/WorldMap.js';
+import { Weather, climatePalette } from '../scene/Climate.js';
+import { makeMonument } from '../scene/Monuments.js';
+import { HubMuseum } from '../scene/HubMuseum.js';
 import { eraMaterials } from '../scene/Materials.js';
 import { detectSeason, buildSeason } from '../scene/SeasonalEvents.js';
 import { SoundEngine } from '../audio/SoundEngine.js';
-import { MultiplayerManager } from '../network/MultiplayerManager.js';
-import { BotOpponent, createBotProfile } from '../network/BotOpponent.js';
 import { UI, h } from '../ui/UI.js';
-import { t, tn, setLang, getLang, deviceLang, DIFF_PERSONA, PET_EN } from '../ui/i18n.js';
+import { t, tn, setLang, PET_EN, islandName, islandLabel } from '../ui/i18n.js';
 import * as M from '../ui/Modals.js';
+import { buildMapUi } from '../ui/MapPanel.js';
+import * as CloudWipe from '../ui/CloudWipe.js';
+import { openCinema as openCinemaModal } from '../ui/Cinema.js';
 import { openKingdomShop } from '../ui/KingdomShopModal.js';
 import { openDailyRewards } from '../ui/DailyRewardsModal.js';
 import { shareKingdom } from '../ui/ShareCard.js';
 import { Tutorial } from '../ui/Tutorial.js';
 import { Updater } from '../update/Updater.js';
-import { ERAS, getEra } from '../config/Eras.js';
+import { getEra } from '../config/Eras.js';
 import { PETS } from '../config/Pets.js';
 import { ECONOMY } from '../config/EconomyConfig.js';
 import { TIME_CONTROLS, RULES, APP_VERSION } from '../config/AppConfig.js';
+import { ISLAND_COUNT, HUB_ID, islandDef, regionOf, regionIslands, isBoss, tierOf, conquestGems, repeatGems } from '../config/Islands.js';
+import { botLine, pirateLine } from '../config/BotLines.js';
+import { pirateCrew, pirateGems } from '../config/Pirates.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const HINT_COST = 30;
+// סימני שחמט כטקסט (לא אימוג'י) — בורר התצוגה FE0E
+const TXT = '︎';
+const STAR_MILESTONE = 25;
+/** משך זמן קצר לתצוגה: "3h 20m" */
+const fmtDur = (ms) => { const m = Math.max(1, Math.ceil(ms / 60000)); const hh = Math.floor(m / 60), mm = m % 60; return hh ? `${hh}${t('hShort')} ${mm}${t('mShort')}` : `${mm}${t('mShort')}`; };
+const STAR_MILESTONE_GEMS = 150;
 
 export class GameApp {
   constructor() {
+    // בדיקות במכשירים איטיים: ?fastfx מבטל את החלקת הקפיצות של gsap
+    if (typeof location !== 'undefined' && location.search.includes('fastfx')) gsap.ticker.lagSmoothing(0);
     this.store = new ProgressStore();
     this.economy = new Economy();
     this.progression = new Progression(this.store, this.economy);
     this.achievements = new Achievements(this.store, this.economy);
-    setLang(this.store.get('settings').lang || deviceLang());
+    setLang(this.store.get('settings').lang || 'en'); // ברירת מחדל: אנגלית; עברית בהגדרות
     const s = this.store.get('settings');
     this.sound = new SoundEngine({ sfx: s.sfx, ambience: s.ambience });
     this.root = document.getElementById('app');
@@ -63,18 +81,21 @@ export class GameApp {
     this.kingdom.onEraLeave = () => this.life.leave();
     this.pets = { w: new PetCompanion3D(this.sm, this.fx, this.sound), b: new PetCompanion3D(this.sm, this.fx, this.sound) };
     this.avatars = { w: new PlayerAvatar3D(this.sm, this.fx), b: new PlayerAvatar3D(this.sm, this.fx) };
+    this.thumbs = new ThumbRenderer(this.sm.renderer);
+    this.map = new WorldMap(this);
+    this.weather = new Weather(this.sm, this.sound);
+    this.museum = new HubMuseum(this);
     this.ai = new ChessAI();
     this.game = new GameController();
-    this.net = new MultiplayerManager();
     this.tutorial = new Tutorial(this);
     this.updater = new Updater({
-      isSafe: () => this.isSafe() && !this.ui.modals.length,
+      isSafe: () => this.isSafe() && !this.ui.modals.length && !this.map.isOpen,
       onAvailable: (info, act) => this.showUpdateAvailable(info, act),
-      onUpdating: (v) => this.ui.toast(`✨ ${t('update')} ${v ? `(v${v})` : ''}`, { kind: 'gold', duration: 3000 }),
+      onUpdating: (v) => this.ui.toast(`${t('update')} ${v ? `(v${v})` : ''}`, { kind: 'gold', duration: 3000, icon: 'refresh' }),
       onNativeRequired: (info) => this.ui.modal({
-        title: `📲 ${t('updateNative')}`, center: true,
+        title: t('updateNative'), titleIcon: 'device', center: true,
         body: `${t('updateNativeBody')}${info.version ? ` (v${info.version})` : ''}`,
-        actions: [{ label: t('later'), onClick: (c) => c.close() }, { label: `⬇️ ${t('download')}`, primary: true, onClick: () => { if (info.apk) location.href = info.apk; } }],
+        actions: [{ label: t('later'), onClick: (c) => c.close() }, { label: t('download'), icon: 'download', primary: true, onClick: () => { if (info.apk) location.href = info.apk; } }],
       }),
     });
     this.mode = 'ai';
@@ -83,31 +104,33 @@ export class GameApp {
     this.selected = null;
     this.cursor = 'e2';
     this.opponent = null;
-    this.hostView = null;
-    this.lastEmote = 0;
+    this.lastSay = 0;
     this.reviewQueue = Promise.resolve();
   }
 
   eraDef(id) { return getEra(id); }
   currentEraMaterials() { return eraMaterials(getEra(this.kingdom.eraId || 1).key); }
+  get islandId() { return this.progression.currentIsland(); }
+  get atHub() { return this.islandId === HUB_ID; }
 
   handlers() {
     return {
       onCenter: () => { this.sound.ui(); if (this.sm.panoramaOn) { this.sm.panoramaOn = false; this.ui.setPanorama(false); } this.sm.toGameplay(1.0, this.viewSide()); },
+      onMap: () => this.openMap(),
       onShop: () => { this.sound.ui(); this.openShop(); },
-      onModes: () => { this.sound.ui(); M.openModes(this); },
-      onBuild: () => { this.sound.ui(); this.buildNextStage({ demo: true }); },
+      onFriend: () => { this.sound.ui(); M.openFriend(this); },
+      onHome: () => { this.sound.ui(); this.travelTo(HUB_ID); },
+      onBattle: () => { this.sound.ui(); this.newBattle(); },
       onSfx: () => { const v = !this.store.get('settings').sfx; this.store.setSetting('sfx', v); this.sound.setSfx(v); this.ui.setAudio(v, this.store.get('settings').ambience); },
       onAmb: () => { const v = !this.store.get('settings').ambience; this.store.setSetting('ambience', v); this.sound.setAmbience(v); this.ui.setAudio(this.store.get('settings').sfx, v); },
-      onEraTour: () => { this.sound.ui(); if (this.isOnlineMode() || this.busy) { this.ui.toast(t('locked')); return; } M.openEraTour(this); },
       onPanorama: () => { const on = !this.sm.panoramaOn; this.ui.setPanorama(on); this.sm.setPanorama(on); },
-      onGemsPlus: () => { this.sound.ui(); this.openShop('gems'); },
       onHint: () => this.hint(),
-      onEmote: (e) => this.sendEmote(e),
       onDraw: () => this.offerDraw(),
       onResign: () => this.resign(),
       onShare: () => this.shareKingdom(),
       onSettings: () => { this.sound.ui(); M.openSettings(this); },
+      onTutorial: () => { this.sound.ui(); this.startTutorial(); },
+      onAlbum: () => { this.sound.ui(); M.openAlbum(this); },
       onMuteAll: () => {
         const st = this.store.get('settings'); const on = !(st.sfx || st.ambience);
         this.store.setSetting('sfx', on); this.store.setSetting('ambience', on);
@@ -125,29 +148,33 @@ export class GameApp {
     this.ui.setAudio(s.sfx, s.ambience);
     this.ui.setGems(this.economy.gems, false);
     this.economy.onChange((evt) => { if (evt.type === 'gems' || evt.type === 'buy' || evt.type === 'daily') this.ui.setGems(this.economy.gems); this.refreshBadges(); });
-    this.achievements.onUnlock((a) => { this.ui.toast(`${a.icon} ${t('achievementUnlocked')} ${tn(a.he, a.en)} · +${a.gems}💎`, { kind: 'gold', duration: 3800 }); this.sound.notify(); });
+    this.achievements.onUnlock((a) => { this.ui.toast(`${t('achievementUnlocked')} ${tn(a.he, a.en)} · +${a.gems}`, { kind: 'gold', duration: 3800, icon: a.icon }); this.sound.notify(); });
 
-    const era = this.progression.displayEra();
-    this.kingdom.show(era, this.progression.progressOf(era));
-    this.sound.setEra(era);
-    this.placeStations();
-
+    // משחק שמור (באמצע) → חוזרים לאותו אי; אחרת מתחילים בבית — האי המרכזי
     const saved = this.store.get('savedGame');
-    if (saved && (saved.mode === 'ai' || saved.mode === 'local') && Array.isArray(saved.uci)) {
+    const resumable = saved && (saved.mode === 'ai' || saved.mode === 'local') && Array.isArray(saved.uci) && saved.uci.length > 0;
+    if (resumable && saved.island && this.progression.canPlay(saved.island)) this.progression.setCurrent(saved.island);
+    else if (!resumable) this.progression.setCurrent(HUB_ID);
+    this.showIsland(this.islandId);
+    this.ui.setDock(this.atHub);
+
+    let resumed = false;
+    if (resumable && (saved.mode === 'local' ? this.atHub : true)) {
       this.mode = saved.mode;
       this.myColor = 'w';
       this.game.loadUci(saved.uci);
       if (saved.tc) { const tc = TIME_CONTROLS.find((x) => x.id === saved.tc); if (tc) this.game.startClock(tc.ms, tc.inc); }
-      this.setupOpponentForMode();
-      this.board.setPosition(this.game.board);
-      const lm = this.game.lastMove();
-      if (lm) this.board.setLastMove(lm.from, lm.to);
+      resumed = this.game.ply > 0 && !this.game.result;
     } else {
       this.mode = 'ai';
       this.game.reset();
-      this.setupOpponentForMode();
-      this.board.setPosition(this.game.board);
     }
+    this.placeStations();
+    this.setupOpponentForMode();
+    this.applyLoadout();
+    this.board.setPosition(this.game.board);
+    const lm = this.game.lastMove();
+    if (lm) this.board.setLastMove(lm.from, lm.to);
     this.sm.initView(this.viewSide());
     this.bindInput();
     this.refreshHud();
@@ -156,17 +183,16 @@ export class GameApp {
     this.startClockLoop();
     requestAnimationFrame(() => requestAnimationFrame(() => this.hideSplash()));
     this.updater.init();
-    if (!this.economy.s.welcomed) { this.economy.s.welcomed = true; this.economy.save(); setTimeout(() => this.ui.toast(`🎁 ${tn(`קיבלת ${ECONOMY.welcomeGems} 💎 מתנת פתיחה!`, `You got ${ECONOMY.welcomeGems} 💎 as a welcome gift!`)}`, { kind: 'gold', duration: 4000 }), 1600); }
-    const room = new URLSearchParams(location.search).get('room');
-    if (room && /^\d{4}$/.test(room)) {
-      history.replaceState(null, '', location.pathname);
-      setTimeout(() => this.joinRoom(room), 900);
-    } else if (!this.store.get('seenTutorial')) {
-      setTimeout(() => this.startTutorial(), 1400);
-    } else if (this.economy.hasDailyBadge()) {
-      setTimeout(() => this.ui.toast(`🎁 ${t('dailyGift')}`, { kind: 'gold' }), 2400);
-    }
+    if (!this.economy.s.welcomed) { this.economy.s.welcomed = true; this.economy.save(); setTimeout(() => this.ui.toast(tn(`קיבלת ${ECONOMY.welcomeGems} יהלומים מתנת פתיחה!`, `You got ${ECONOMY.welcomeGems} gems as a welcome gift!`), { kind: 'gold', duration: 4000, icon: 'gift' }), 1600); }
+    if (location.search.includes('room=')) history.replaceState(null, '', location.pathname);
+    if (!this.store.get('seenCinemaHint')) { this.store.set({ seenCinemaHint: true }); setTimeout(() => this.ui.toast(t('cinemaHint'), { icon: 'play', duration: 4200 }), 1600); }
+    else if (resumed) setTimeout(() => this.ui.toast(t('gameResumed'), { icon: 'knight' }), 1200);
+    else setTimeout(() => this.botSay('intro', true), 1500);
+    if (this.economy.hasDailyBadge() && this.store.get('seenTutorial')) setTimeout(() => this.ui.toast(t('dailyGift'), { kind: 'gold', icon: 'gift' }), 3200);
     if (this.isAITurn()) setTimeout(() => this.opponentMove(), 800);
+    // תמונות ממוזערות לכרטיסי השחקנים — ברקע, אחרי שהסצנה עלתה
+    setTimeout(() => { this.thumbsReady = true; this.refreshPetThumbs(); }, 2500);
+    if (this.atHub && !resumed) setTimeout(() => this.dockPending(), 2200);
     window.__chessOfAges = this;
     window.__gsap = gsap;
     window.__appVersion = APP_VERSION;
@@ -181,10 +207,10 @@ export class GameApp {
       notes ? h('p', { style: { textAlign: 'start', fontSize: '13px', color: 'var(--muted)' } }, `${t('whatsNew')}: ${notes}`) : null,
       h('p', { style: { fontSize: '12px', color: 'var(--muted)' } }, t('updateLaterNote')));
     this.ui.modal({
-      title: `🎉 ${t('updateAvailable')}`, center: true, body,
+      title: t('updateAvailable'), titleIcon: 'sparkle', center: true, body,
       actions: [
         { label: t('later'), onClick: (c) => { c.close(); act.later(); } },
-        { label: `✨ ${t('updateNow')}`, primary: true, onClick: (c) => { c.close(); act.now(); } },
+        { label: t('updateNow'), icon: 'refresh', primary: true, onClick: (c) => { c.close(); act.now(); } },
       ],
     });
   }
@@ -209,9 +235,11 @@ export class GameApp {
     const mm = /^(מלך|King) (\d{3})$/.exec(prof.name || '');
     if (mm) this.store.set({ profile: { ...prof, name: `${t('defaultName')} ${mm[2]}` } });
     this.ui.render();
+    this.ui.setDock(this.atHub);
     this.ui.setAudio(this.store.get('settings').sfx, this.store.get('settings').ambience);
     this.ui.setGems(this.economy.gems, false);
     this.ui.setActions(this.mode);
+    this.setupOpponentForMode();
     this.refreshHud();
   }
 
@@ -222,7 +250,7 @@ export class GameApp {
     if (this.season) {
       this.sm.world.add(this.season.group);
       this.sm.onUpdate((dt, tt) => this.season.update(dt, tt));
-      setTimeout(() => this.ui.toast(tn(season.he, season.en), { kind: 'gold', duration: 4200 }), 2000);
+      setTimeout(() => this.ui.toast(tn(season.he, season.en), { kind: 'gold', duration: 4200, icon: season.icon }), 2000);
     }
   }
 
@@ -236,7 +264,6 @@ export class GameApp {
     Object.values(this.avatars).forEach((a) => a.group.scale.setScalar(1.3));
     Object.values(this.pets).forEach((p) => p.group.scale.setScalar(1.25));
     this.applyStationMaterials();
-    this.applyLoadout();
   }
 
   applyStationMaterials() {
@@ -245,79 +272,112 @@ export class GameApp {
     Object.values(this.pets).forEach((p) => p.setEraMaterials(mats));
   }
 
-  /** הלבשת האווטאר והחיה של השחקן המקומי (ושל היריב) */
+  /** אווטאר אחד וחיה אחת שמטיילים איתך; מולך — הבוט של האי (לבוש, מראה וחיה בגוון משלו) או שחקן 2 */
   applyLoadout() {
     this.economy.expireTrials();
-    const myLoad = this.economy.loadout, myPet = this.economy.pet;
-    if (this.mode === 'local') {
-      this.avatars.w.setLoadout(myLoad); this.pets.w.setPet(myPet);
-      const e = getEra(this.kingdom.eraId).opponent;
-      this.avatars.b.setLoadout(e); this.pets.b.setPet(e.pet);
-    } else {
-      const me = this.myColor, op = me === 'w' ? 'b' : 'w';
-      this.avatars[me].setLoadout(myLoad); this.pets[me].setPet(myPet);
-      const o = this.opponent || {};
-      this.avatars[op].setLoadout(o.loadout || getEra(this.kingdom.eraId).opponent);
-      this.pets[op].setPet(o.pet || getEra(this.kingdom.eraId).opponent.pet);
-    }
+    this.avatars.w.setLoadout(this.economy.loadout);
+    this.pets.w.setPet(this.economy.pet, { hue: this.economy.petHue });
+    const o = this.opponent || {};
+    this.avatars.b.setLoadout(o.loadout || getEra(this.kingdom.eraId || 1).opponent);
+    this.avatars.b.setLook(o.look || {});
+    this.pets.b.setPet(o.pet || 'wolf_cub', { hue: o.petHue || 0, scale: o.petScale || 1 });
     this.refreshHud();
+    this.refreshPetThumbs();
   }
 
+  /** תמונה ממוזערת תלת-ממדית של חיות המחמד בכרטיסי השחקנים */
+  refreshPetThumbs() {
+    if (!this.thumbsReady) return;
+    const o = this.opponent || {};
+    this.thumbs.pet(this.economy.pet, 96, { hue: this.economy.petHue }).then(() => this.refreshHud()).catch(() => {});
+    if (o.pet) this.thumbs.pet(o.pet, 96, { hue: o.petHue }).then(() => this.refreshHud()).catch(() => {});
+  }
+  petThumb(id, hue = 0) { const hh = Math.round(hue * 100) / 100; return this.thumbs.get(`pet:${id}${hh ? `:${hh}` : ''}`); }
+
+  /** היריב: הבוט של האי הנוכחי, או "שחקן 2" במשחק נגד חבר */
   setupOpponentForMode() {
-    if (this.mode === 'ai') {
-      const d = this.store.get('difficulty') || 'easy';
-      const ep = getEra(this.kingdom.eraId).opponent;
-      this.opponent = { name: tn(DIFF_PERSONA[d].he, DIFF_PERSONA[d].en), avatar: DIFF_PERSONA[d].icon, pet: ep.pet, loadout: ep, rating: { easy: 800, medium: 1300, hard: 1800 }[d], isAI: true };
-    } else if (this.mode === 'local') {
-      this.opponent = { name: tn('שחקן 2', 'Player 2'), avatar: '♚', pet: getEra(this.kingdom.eraId).opponent.pet, loadout: getEra(this.kingdom.eraId).opponent };
+    if (this.mode === 'local') {
+      const ep = getEra(this.kingdom.eraId || 1).opponent;
+      this.opponent = { name: tn('שחקן 2', 'Player 2'), avatar: 'knight', pet: ep.pet, loadout: ep, look: {} };
+      return;
     }
+    if (this.residentOpp && this.atHub) {
+      // בוט שגר באי המרכזי והוזמן למשחק ליד השולחן (משחק אימון)
+      const rd = islandDef(this.residentOpp), rb = rd.bot;
+      this.opponent = {
+        name: tn(rb.name.he, rb.name.en), title: tn(rb.title.he, rb.title.en), avatar: rb.emblem, islandId: rd.id,
+        pet: rb.pet, petHue: rb.petHue, petScale: rb.petScale, loadout: rb.loadout, look: rb.look,
+        rating: rb.rating, strength: rb.strength, isAI: true, boss: rd.boss, resident: true,
+      };
+      return;
+    }
+    const d = islandDef(this.islandId);
+    if (d.id !== HUB_ID && this.progression.isConquered(d.id)) {
+      // הבוט עבר לאי המרכזי, והאי נתפס על ידי פיראטי הזמן — באותה רמת קושי.
+      // אחרי שמנצחים אותם הם מתארגנים מחדש: אפשר להתאמן נגדם, והפרס חוזר כשהם נוחתים שוב.
+      const p = pirateCrew(d.id, this.progression.pirateCrewIndex(d.id));
+      const practice = !this.progression.hasPirates(d.id);
+      this.opponent = {
+        name: tn(p.name.he, p.name.en), title: tn(p.title.he, p.title.en), avatar: 'swords', islandId: d.id,
+        pet: p.pet, petHue: p.petHue, petScale: p.petScale, loadout: p.loadout, look: p.look,
+        rating: p.rating, strength: p.strength, isAI: true, boss: d.boss, pirates: true, practice,
+      };
+      return;
+    }
+    const b = d.bot;
+    this.opponent = {
+      name: tn(b.name.he, b.name.en), title: tn(b.title.he, b.title.en), avatar: b.emblem, islandId: d.id,
+      pet: b.pet, petHue: b.petHue, petScale: b.petScale, loadout: b.loadout, look: b.look,
+      rating: b.rating, strength: b.strength, isAI: true, boss: d.boss,
+    };
   }
 
   // ======================= HUD =======================
   refreshHud() {
     if (!this.ui) return;
-    const eraId = this.kingdom.eraId || this.progression.displayEra();
-    const era = getEra(eraId);
-    const next = this.progression.nextStage();
-    this.ui.setEra({
-      eraId, eraName: tn(era.name, era.en), premium: era.premium,
-      stageNum: this.progression.displayStageNumber(eraId) || (eraId - 1) * 2,
-      progress: this.store.get('eraProgress'),
-      next: next ? { eraId: next.eraId, idx: next.idx, name: tn(getEra(next.eraId).stageNames[next.idx], getEra(next.eraId).stageNamesEn[next.idx]) } : null,
-      lock: this.progression.lockReason(),
+    const id = this.islandId;
+    const d = islandDef(id);
+    const pr = this.progression;
+    const front = pr.frontier();
+    const lock = pr.lockReason();
+    let next = '';
+    if (id === HUB_ID) next = `${t('museumPieces')}: ${pr.conqueredCount()}`;
+    else if (this.opponent?.pirates && !this.opponent.practice) next = t('piratesHere');
+    else if (this.opponent?.pirates) next = t('piratesReturn').replace('{t}', fmtDur(pr.pirateReturnIn(id)));
+    else next = t('beatToConquer');
+    this.ui.setIsland({
+      id, name: id === HUB_ID ? t('hubName') : islandLabel(id), regionName: tn(d.era.he, d.era.en), boss: d.boss, region: regionOf(id),
+      conquered: pr.conqueredCount(), total: ISLAND_COUNT, frontier: front, next, lock, pirates: !!this.opponent?.pirates,
     });
     const prof = this.store.get('profile');
     const cap = this.game.captured();
     const turn = this.game.turn;
     const check = this.game.inCheck() && !this.game.result;
-    const capStr = (color) => cap.by[color].map((p) => GLYPH[color === 'w' ? 'b' : 'w'][p]).join('');
-    const advFor = (color) => { const m = color === 'w' ? cap.material : -cap.material; return m > 0 ? m : 0; };
     const me = this.mode === 'local' ? 'w' : this.myColor;
     const op = me === 'w' ? 'b' : 'w';
+    const advFor = (color) => { const m = color === 'w' ? cap.material : -cap.material; return m > 0 ? m : 0; };
+    const capStr = (color) => cap.by[color].map((p) => GLYPH[color === 'w' ? 'b' : 'w'][p] + TXT).join('');
     const o = this.opponent || {};
-    const petIcon = (id) => PETS[id]?.icon || '';
+    const era = getEra(pr.displayEra(id));
     let status = '';
     if (this.game.result) status = this.resultText().title;
-    else if (check) status = `⚠️ ${t('check')}`;
-    else if (this.thinking) status = this.mode === 'ai' ? tn(getEra(eraId).thinking, getEra(eraId).thinkingEn) : t('thinking');
-    else if (this.mode === 'local') status = t('yourTurn');
-    else if (turn === this.myColor) status = `♟ ${t('yourTurn')}`;
-    else status = this.isOnlineMode() ? t('waiting') : t('thinking');
+    else if (check) status = t('check');
+    else if (this.thinking) status = this.mode === 'ai' ? tn(era.thinking, era.thinkingEn) : t('thinking');
+    else status = t('yourTurn');
     this.ui.setPlayer('me', {
-      name: this.mode === 'local' ? tn('שחקן 1', 'Player 1') : prof.name, avatar: prof.avatar, petIcon: petIcon(this.economy.pet),
+      name: this.mode === 'local' ? tn('שחקן 1', 'Player 1') : prof.name, avatar: prof.avatar, petImg: this.petThumb(this.economy.pet, this.economy.petHue),
       sub: `${me === 'w' ? t('white') : t('black')} · ${this.store.get('rating')}`, captured: capStr(me), adv: advFor(me),
       active: turn === me && !this.game.result, check: check && turn === me, status,
     });
     this.ui.setPlayer('opp', {
-      name: o.name || '', avatar: o.avatar || '♚', petIcon: petIcon(o.pet), isBot: !!o.isBot,
-      sub: `${op === 'w' ? t('white') : t('black')}${o.rating ? ` · ${o.rating}` : ''}`, captured: capStr(op), adv: advFor(op),
+      name: o.name || '', avatar: o.avatar || 'knight', petImg: o.pet ? this.petThumb(o.pet, o.petHue) : null, isBot: this.mode === 'ai',
+      sub: o.title ? `${o.title} · ${o.rating}` : `${op === 'w' ? t('white') : t('black')}`, captured: capStr(op), adv: advFor(op),
       active: turn === op && !this.game.result, check: check && turn === op, status,
     });
     const showClock = !!this.game.clock;
     this.ui.setClock('me', this.game.clockLeft(me), showClock);
     this.ui.setClock('opp', this.game.clockLeft(op), showClock);
     this.ui.setStatus(status, check);
-    this.ui.setEraTourEnabled(this.progression.visitableEras().length > 1);
     this.refreshBadges();
   }
 
@@ -331,11 +391,7 @@ export class GameApp {
       this.ui.setClock('me', this.game.clockLeft(me), true);
       this.ui.setClock('opp', this.game.clockLeft(op), true);
       const flag = this.game.tickClock();
-      if (flag) {
-        if (this.isOnlineMode() && flag !== this.myColor && this.mode === 'friend') return; // היריב ידווח על עצמו
-        this.net.send({ t: 'flag', color: flag });
-        this.endGame(this.game.finish(flag === 'w' ? 'b' : 'w', 'timeout'));
-      }
+      if (flag) this.endGame(this.game.finish(flag === 'w' ? 'b' : 'w', 'timeout'));
       const low = this.game.clockLeft(this.game.turn);
       if (low !== null) this.updateTension(low < 20000 ? 0.3 : 0);
     }, 200);
@@ -347,13 +403,25 @@ export class GameApp {
     this.sound.setTension(ten);
   }
 
+  // ======================= בועות דיבור של הבוט =======================
+  botSay(event, force = false) {
+    if (this.mode !== 'ai' || !this.opponent?.islandId) return;
+    const now = performance.now();
+    if (!force && now - this.lastSay < 3800) return;
+    const line = this.opponent.pirates ? pirateLine(event) : botLine(this.opponent.islandId, event);
+    if (!line) return;
+    this.lastSay = now;
+    const p = this.avatars.b.group.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 2.9, 0));
+    this.ui.speech(tn(line[0], line[1]), this.sm.projectToScreen(p), this.opponent.name);
+  }
+
   // ======================= קלט =======================
   bindInput() {
     const canvas = this.sm.canvas;
     let start = null;
     let pointers = 0;
     this.root.addEventListener('pointerdown', (e) => {
-      if (e.target !== canvas) return;
+      if (e.target !== canvas || this.map.isOpen) return;
       pointers++;
       if (pointers === 1) {
         const onBoard = this.board.hitsBoard(e.clientX, e.clientY);
@@ -362,6 +430,7 @@ export class GameApp {
       } else start = null;
     }, { capture: true });
     const end = (e) => {
+      if (this.map.isOpen) { start = null; pointers = 0; return; }
       if (e.target !== canvas && !start) { pointers = Math.max(0, pointers - 1); return; }
       pointers = Math.max(0, pointers - 1);
       if (pointers === 0) this.sm.controls.enableRotate = true;
@@ -375,8 +444,8 @@ export class GameApp {
     this.root.addEventListener('pointercancel', end, { capture: true });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     document.addEventListener('contextmenu', (e) => { if (!(e.target instanceof HTMLInputElement)) e.preventDefault(); });
-    canvas.addEventListener('keydown', (e) => this.onKey(e));
-    canvas.addEventListener('focus', () => { this.board.setCursor(this.cursor); this.ui.announce(t('keyboardHelp')); });
+    canvas.addEventListener('keydown', (e) => { if (!this.map.isOpen) this.onKey(e); });
+    canvas.addEventListener('focus', () => { if (this.map.isOpen) return; this.board.setCursor(this.cursor); this.ui.announce(t('keyboardHelp')); });
     canvas.addEventListener('blur', () => this.board.setCursor(null));
   }
 
@@ -384,13 +453,12 @@ export class GameApp {
     const files = 'abcdefgh';
     let f = files.indexOf(this.cursor[0]), r = parseInt(this.cursor[1], 10) - 1;
     const flip = this.viewSide() === 'b' ? -1 : 1;
-    const rtl = getLang() === 'he' ? 1 : 1;
     let handled = true;
     switch (e.key) {
       case 'ArrowUp': r += flip; break;
       case 'ArrowDown': r -= flip; break;
-      case 'ArrowLeft': f -= flip * rtl; break;
-      case 'ArrowRight': f += flip * rtl; break;
+      case 'ArrowLeft': f -= flip; break;
+      case 'ArrowRight': f += flip; break;
       case 'Enter': case ' ': this.onSquare(this.cursor); break;
       case 'Escape': this.deselect(); break;
       default: handled = false;
@@ -401,23 +469,29 @@ export class GameApp {
     this.cursor = files[f] + (r + 1);
     this.board.setCursor(this.cursor);
     const p = this.game.pieceAt(this.cursor);
-    const names = { p: t('knight') && tn('רגלי', 'pawn'), n: t('knight'), b: t('bishop'), r: t('rook'), q: t('queen'), k: tn('מלך', 'king') };
+    const names = { p: tn('רגלי', 'pawn'), n: t('knight'), b: t('bishop'), r: t('rook'), q: t('queen'), k: tn('מלך', 'king') };
     this.ui.announce(`${this.cursor}${p ? ` — ${p.color === 'w' ? t('white') : t('black')} ${names[p.type]}` : ''}`);
   }
 
+  /** משבצות "מועדפות" לבחירה במגע (עוזר כשהאצבע נוחתת בין משבצות) */
+  preferredSquares() {
+    if (!this.canAct()) return null;
+    if (this.selected) return new Set(this.game.legalFrom(this.selected).map((m) => m.to));
+    return new Set(this.game.chess.moves({ verbose: true }).map((m) => m.from));
+  }
+
   onTap(x, y) {
-    let prefer = null;
-    if (this.canAct()) {
-      if (this.selected) prefer = new Set(this.game.legalFrom(this.selected).map((m) => m.to));
-      else prefer = new Set(this.game.chess.moves({ verbose: true }).map((m) => m.from));
-    }
-    const sq = this.board.pickSquare(x, y, prefer);
+    // באי המרכזי: נגיעה בבית הקולנוע או בחנות
+    const bld = this.atHub && !this.busy ? this.museum.pick(x, y) : null;
+    if (bld === 'cinema') { this.sound.ui(); this.openCinema(); return; }
+    if (bld === 'shop') { this.sound.ui(); this.openShop(); return; }
+    const sq = this.board.pickSquare(x, y, this.preferredSquares());
     if (!sq) { if (this.selected) this.deselect(); return; }
     this.onSquare(sq);
   }
 
   canAct() {
-    if (this.busy || this.game.result || this.ui.modalOpen) return false;
+    if (this.busy || this.game.result || this.ui.modalOpen || this.map.isOpen) return false;
     if (this.mode === 'local') return true;
     return this.game.turn === this.myColor;
   }
@@ -460,14 +534,23 @@ export class GameApp {
   }
 
   viewSide() { return this.mode === 'local' ? this.game.turn : this.myColor; }
+  isAITurn() { return !this.game.result && this.mode === 'ai' && this.game.turn !== this.myColor; }
+  isSafe() { return !(this.busy || this.thinking); }
+  isLocalHuman(color) { return this.mode === 'local' || color === this.myColor; }
 
-  isOnlineMode() { return (this.mode === 'friend' || this.mode === 'quick') && !this.bot; }
-  isAITurn() { return !this.game.result && ((this.mode === 'ai' && this.game.turn !== this.myColor) || (this.mode === 'quick' && this.bot && this.game.turn !== this.myColor)); }
-
-  isSafe() {
-    if (this.busy || this.thinking) return false;
-    if (this.net.connected || (this.mode === 'quick' && !this.game.result)) return false;
-    return true;
+  hopHooks(mover, pan) {
+    const victim = mover === 'w' ? 'b' : 'w';
+    return {
+      onCapture: () => {
+        this.sound.capture(pan);
+        this.life.react('capture');
+        this.pets[mover].react('capture');
+        this.pets[victim].react('lost');
+        if (this.isLocalHuman(mover)) this.achievements.count('captures');
+        if (this.mode === 'ai' && Math.random() < 0.6) setTimeout(() => this.botSay(mover === this.myColor ? 'lost' : 'capture'), 500);
+      },
+      onLand: (cap) => { if (!cap) this.sound.move(pan); },
+    };
   }
 
   // ======================= מהלכים =======================
@@ -483,16 +566,13 @@ export class GameApp {
     this.tutorial.onMove();
   }
 
-  async applyMove(m, { local = false, remote = false } = {}) {
+  async applyMove(m, { local = false } = {}) {
     const before = this.game.fen;
     const histBefore = this.game.beforeFens();
     const mv = this.game.move(m);
-    if (!mv) { if (remote) this.resyncBoard(); return null; }
+    if (!mv) { this.resyncBoard(); return null; }
     this.busy = true;
     this.board.clearHint();
-    if (local && this.isOnlineMode()) {
-      this.net.send({ t: 'move', uci: mv.lan, ply: this.game.ply, clock: this.game.clock ? { w: this.game.clockLeft('w'), b: this.game.clockLeft('b') } : null });
-    }
     const mover = mv.color, victim = mover === 'w' ? 'b' : 'w';
     const pan = this.panOf(mv.to);
     const target = this.board.squareWorld(mv.to);
@@ -500,17 +580,7 @@ export class GameApp {
     Object.values(this.avatars).forEach((a) => a.lookAt(target));
     this.avatars[mover].command();
     if (!local) this.sound.pickup(pan);
-    await this.board.animateMove(mv, {
-      onCapture: () => {
-        this.sound.capture(pan);
-        this.life.react('capture');
-        this.pets[mover].react('capture');
-        this.pets[victim].react('lost');
-        if (this.isLocalHuman(mover)) this.achievements.count('captures');
-        if (this.bot && mover === this.myColor && Math.random() < 0.5) this.botEmote('lostPiece');
-      },
-      onLand: (cap) => { if (!cap) this.sound.move(pan); },
-    });
+    await this.board.animateMove(mv, this.hopHooks(mover, pan));
     this.board.setLastMove(mv.from, mv.to);
     if (mv.promotion) { this.sound.promotion(pan); if (this.isLocalHuman(mover)) this.achievements.unlock('promote'); }
     if (this.game.inCheck()) {
@@ -523,24 +593,28 @@ export class GameApp {
       this.pets[victim].react('checkDefend');
       this.avatars[mover].check();
       this.ui.announce(t('check'));
+      if (this.mode === 'ai' && mover !== this.myColor && !this.game.result) setTimeout(() => this.botSay('check'), 400);
     } else this.board.setCheck(null);
-    this.saveGame();
     this.queueReview(before, histBefore, mv);
+    await this.afterMove();
+    return mv;
+  }
+
+  /** הזנב המשותף של כל מהלך: שמירה, מתח מוזיקלי, HUD, סיום / היפוך מצלמה / תור הבוט */
+  async afterMove() {
+    this.saveGame();
     this.updateTension();
     this.refreshHud();
     if (this.game.result) {
       this.busy = false;
       await this.endGame(this.game.result);
-      return mv;
+      return;
     }
     if (this.mode === 'local') await this.sm.flipTo(this.game.turn);
     this.busy = false;
     this.refreshHud();
     if (this.isAITurn()) this.opponentMove();
-    return mv;
   }
-
-  isLocalHuman(color) { return this.mode === 'local' || color === this.myColor; }
 
   resyncBoard() {
     this.board.setPosition(this.game.board);
@@ -553,28 +627,20 @@ export class GameApp {
     this.thinking = true;
     this.refreshHud();
     const t0 = performance.now();
+    const gameId = this.gameId;
     let res;
     try {
-      if (this.bot) res = await this.bot.play(this.game);
-      else {
-        const hist = this.game.history();
-        res = await this.ai.think({ fen: this.game.fen, history: hist.map((h) => h.before), uci: hist.map((h) => h.lan), level: this.store.get('difficulty') || 'easy' });
-      }
+      const hist = this.game.history();
+      res = await this.ai.think({ fen: this.game.fen, history: hist.map((x) => x.before), uci: hist.map((x) => x.lan), strength: this.opponent?.strength ?? 0 });
     } catch { res = null; }
     const wait = Math.max(0, 450 - (performance.now() - t0));
     await sleep(wait);
     this.thinking = false;
-    if (this.game.result || !this.isAITurn()) { this.refreshHud(); return; }
+    if (gameId !== this.gameId || this.game.result || !this.isAITurn()) { this.refreshHud(); return; }
     let move = res?.move;
     const legal = this.game.chess.moves({ verbose: true });
-    if (!move || !legal.some((m) => m.from === move.from && m.to === move.to)) move = legal[Math.floor(Math.random() * legal.length)];
+    if (!move || !legal.some((x) => x.from === move.from && x.to === move.to)) move = legal[Math.floor(Math.random() * legal.length)];
     if (!move) return;
-    // החלטות "אנושיות" של הבוט
-    if (this.bot && typeof res?.score === 'number') {
-      const d = this.bot.decide(res.score, this.game.ply);
-      if (d === 'resign') { this.ui.toast(`🏳️ ${this.opponent.name} ${t('resign')}`); this.endGame(this.game.finish(this.myColor, 'resign')); return; }
-      this.lastBotEval = res.score;
-    }
     await this.applyMove({ from: move.from, to: move.to, promotion: move.promotion || 'q' });
   }
 
@@ -582,6 +648,7 @@ export class GameApp {
   queueReview(beforeFen, histBefore, mv) {
     const ply = this.game.ply;
     const gameId = this.gameId;
+    const game = this.game;
     this.reviewQueue = this.reviewQueue.then(async () => {
       try {
         const [best, after] = [await this.ai.analyze({ fen: beforeFen, history: histBefore, timeMs: 260, maxDepth: 6 }), await this.ai.analyze({ fen: mv.after, history: [...histBefore, beforeFen], timeMs: 260, maxDepth: 6 })];
@@ -591,16 +658,15 @@ export class GameApp {
         const isBest = !!best.move && best.move.from === mv.from && best.move.to === mv.to;
         const loss = Math.max(0, bestCp - playedCp);
         let sacrifice = false;
-        if (isBest && PIECE_VALUE[mv.piece] >= 3 && !this.game.result) {
+        if (isBest && PIECE_VALUE[mv.piece] >= 3 && !game.result) {
           const opp = mv.color === 'w' ? 'b' : 'w';
-          try { sacrifice = this.game.isAttacked(mv.to, opp) && !this.game.isAttacked(mv.to, mv.color) && loss <= 20 && playedCp > -100; } catch { sacrifice = false; }
+          try { sacrifice = game.isAttacked(mv.to, opp) && !game.isAttacked(mv.to, mv.color) && loss <= 20 && playedCp > -100; } catch { sacrifice = false; }
         }
         const cls = classifyMove(loss, { isBest, sacrifice });
         const acc = moveAccuracy(bestCp, playedCp);
-        this.game.reviews[ply] = { ply, color: mv.color, san: mv.san, loss, cls, acc, bestCp, playedCp };
-        if (this.isLocalHuman(mv.color) && !this.game.result) this.showMoveBadge(cls, mv.to, ply);
+        game.reviews[ply] = { ply, color: mv.color, san: mv.san, loss, cls, acc, bestCp, playedCp };
+        if (this.isLocalHuman(mv.color) && !game.result) this.showMoveBadge(cls, mv.to, ply);
         if (cls === 'brilliant' && this.isLocalHuman(mv.color)) this.achievements.unlock('brilliant');
-        if (this.bot && this.isLocalHuman(mv.color) && (cls === 'brilliant' || cls === 'best') && Math.random() < 0.25) this.botEmote('goodMove');
       } catch { /* ניתוח הוא בונוס */ }
     });
   }
@@ -618,11 +684,19 @@ export class GameApp {
   // ======================= סיום משחק =======================
   resultText() {
     const r = this.game.result;
-    if (!r) return { title: '', emoji: '' };
+    if (!r) return { title: '', icon: '' };
     const reason = t(`reason_${r.reason}`);
-    if (!r.winner) return { title: t('draw'), emoji: '🤝', reason };
-    if (this.mode === 'local') return { title: `${r.winner === 'w' ? t('white') : t('black')} — ${t('victory')}`, emoji: '👑', reason };
-    return r.winner === this.myColor ? { title: t('victory'), emoji: '🏆', reason } : { title: t('defeat'), emoji: '🛡️', reason };
+    if (!r.winner) return { title: t('draw'), icon: 'handshake', reason };
+    if (this.mode === 'local') return { title: `${r.winner === 'w' ? t('white') : t('black')} — ${t('victory')}`, icon: 'crown', reason };
+    return r.winner === this.myColor ? { title: t('victory'), icon: 'trophy', reason } : { title: t('defeat'), icon: 'shield', reason };
+  }
+
+  /** כוכבים: ניצחון = 1 · דיוק 75%+ = 2 · דיוק 85%+ בפחות מ-40 מהלכים = 3 */
+  starsFor(acc, plies) {
+    const moves = Math.ceil(plies / 2);
+    if (acc !== null && acc >= 85 && moves < 40) return 3;
+    if (acc !== null && acc >= 75) return 2;
+    return 1;
   }
 
   async endGame(result) {
@@ -634,8 +708,10 @@ export class GameApp {
     this.store.set({ savedGame: null });
     const winner = result.winner;
     const plies = this.game.ply;
+    const vsBot = this.mode === 'ai';
     const iWon = winner && (this.mode === 'local' || winner === this.myColor);
     const iLost = winner && !iWon;
+    const islandId = this.islandId;
     // מט קולנועי
     if (result.reason === 'checkmate') {
       const loser = winner === 'w' ? 'b' : 'w';
@@ -657,68 +733,118 @@ export class GameApp {
       const loser = winner === 'w' ? 'b' : 'w';
       this.pets[loser].react('defeat'); this.avatars[loser].defeat();
     }
-    if (this.bot && iLost) this.botEmote('win');
+    if (vsBot && winner) setTimeout(() => this.botSay(iWon ? 'lose' : 'win', true), 900);
 
-    // פרסים
-    let gems = 0, stageMsg = '';
-    const stats = { wins: this.store.get('wins'), losses: this.store.get('losses'), draws: this.store.get('draws') };
-    const multiplayer = this.mode !== 'ai';
-    if (iWon) {
-      stats.wins++;
-      const playerMoves = Math.ceil(plies / 2);
-      gems = result.reason === 'checkmate' && playerMoves < ECONOMY.fastMateMaxMoves ? ECONOMY.fastMateGems : ECONOMY.winGems;
-      this.economy.addGems(gems, 'win');
-      this.achievements.unlock('first_win');
-      if (result.reason === 'checkmate' && playerMoves < 20) this.achievements.unlock('fast_mate');
-      if (this.mode === 'ai' && this.store.get('difficulty') === 'hard') this.achievements.unlock('beat_hard');
-      if (multiplayer && this.mode !== 'local') this.achievements.unlock('online_win');
-      this.achievements.count('streak');
-      if (this.achievements.counters.streak >= 3) this.achievements.unlock('streak3');
-    } else if (iLost) { stats.losses++; this.achievements.resetStreak(); } else stats.draws++;
-    if (this.mode === 'local') this.achievements.unlock('pass_play');
-    // דירוג
-    if (this.opponent?.rating && this.mode !== 'local') {
-      const my = this.store.get('rating');
-      const exp = 1 / (1 + Math.pow(10, (this.opponent.rating - my) / 400));
-      const score = iWon ? 1 : iLost ? 0 : 0.5;
-      this.store.set({ rating: Math.round(my + 24 * (score - exp)) });
-    }
-    this.store.set(stats);
-    // בניית שלב
-    let built = false;
-    const allowed = iWon && (!multiplayer || plies >= RULES.antiFarmPlies);
-    if (iWon && multiplayer && plies < RULES.antiFarmPlies) stageMsg = t('antiFarm');
-    await sleep(1600);
-    if (allowed) {
-      if (this.hostView) { this.hostView = null; await this.visitEra(this.progression.displayEra(), { force: true }); this.busy = true; }
-      const next = this.progression.nextStage();
-      if (next) { built = await this.buildNextStage({ demo: false, quiet: true }); if (built) stageMsg = `🏗️ ${t('stageBuilt')}: ${tn(getEra(next.eraId).stageNames[next.idx], getEra(next.eraId).stageNamesEn[next.idx])} (+${ECONOMY.stageGems}💎)`; gems += built ? ECONOMY.stageGems : 0; }
-      else stageMsg = this.progression.lockReason() === 'premium' ? t('premiumLocked') : t('kingdomComplete');
-    }
+    // דיוק (לכוכבים ולסיכום)
     await this.waitReviews();
     const rv = this.game.reviews.filter(Boolean);
     const myColor = this.mode === 'local' ? 'w' : this.myColor;
     const avg = (arr) => (arr.length ? arr.reduce((a, b) => a + b.acc, 0) / arr.length : null);
     const acc = { me: avg(rv.filter((r) => r.color === myColor)), opp: avg(rv.filter((r) => r.color !== myColor)) };
     const keyMoments = rv.filter((r) => ['brilliant', 'blunder', 'mistake'].includes(r.cls)).sort((a, b) => (b.cls === 'brilliant') - (a.cls === 'brilliant') || b.loss - a.loss).slice(0, 4)
-      .map((r) => ({ moveNo: Math.ceil(r.ply / 2), san: r.san, label: `${r.color === 'w' ? '⚪' : '⚫'} ${t(r.cls)}` }));
+      .map((r) => ({ moveNo: Math.ceil(r.ply / 2), san: r.san, color: r.color, label: t(r.cls) }));
+
+    // פרסים
+    let gems = 0, stageMsg = '';
+    const island = vsBot ? { id: islandId, first: false, stars: 0, prevStars: this.progression.starsOf(islandId) } : null;
+    const stats = { wins: this.store.get('wins'), losses: this.store.get('losses'), draws: this.store.get('draws') };
+    if (iWon) {
+      stats.wins++;
+      this.achievements.unlock('first_win');
+      if (result.reason === 'checkmate' && Math.ceil(plies / 2) < 20) this.achievements.unlock('fast_mate');
+      this.achievements.count('streak');
+      if (this.achievements.counters.streak >= 3) this.achievements.unlock('streak3');
+    } else if (iLost) { stats.losses++; this.achievements.resetStreak(); } else stats.draws++;
+    this.store.set(stats);
+    if (this.mode === 'local') {
+      this.achievements.unlock('pass_play');
+      if (winner && plies >= RULES.antiFarmPlies) { gems = ECONOMY.friendWinGems; this.economy.addGems(gems, 'friend'); }
+      else if (winner) stageMsg = t('antiFarm');
+    }
+    await sleep(1400);
+    if (vsBot && iWon) {
+      // דירוג
+      const my = this.store.get('rating');
+      const exp = 1 / (1 + Math.pow(10, ((this.opponent?.rating || 1200) - my) / 400));
+      this.store.set({ rating: Math.round(my + 24 * (1 - exp)) });
+      if (this.opponent?.resident) stageMsg = t('residentPractice');
+      else if (this.opponent?.pirates) {
+        island.pirates = true;
+        if (this.opponent.practice) stageMsg = t('practiceNoGems');
+        else {
+          // הפיראטים בורחים — יהלומים, והאי שקט עד שצוות חדש נוחת
+          gems = pirateGems(islandId);
+          this.economy.addGems(gems, 'pirates');
+          this.progression.defeatPirates(islandId);
+          stageMsg = t('piratesFled');
+          this.achievements.unlock('pirates1');
+          if (this.progression.piratesBeaten() >= 10) this.achievements.unlock('pirates10');
+        }
+      } else {
+        const res = this.progression.conquer(islandId);
+        island.first = res.first;
+        gems = res.first ? conquestGems(islandId) : repeatGems(islandId);
+        this.economy.addGems(gems, res.first ? 'conquest' : 'win');
+        island.stars = this.starsFor(acc.me, plies);
+        const gained = this.progression.setStars(islandId, island.stars);
+        if (gained) this.checkStarMilestones();
+        if (res.first) {
+          this.ui.toast(`${t('islandConquered')}: ${islandLabel(islandId)}`, { kind: 'gold', duration: 3500, icon: 'flag' });
+          if (islandId !== HUB_ID) { stageMsg = t('pieceToMuseum'); this.store.set({ pendingDocks: [...(this.store.get('pendingDocks') || []), islandId] }); }
+          if ((this.opponent?.rating || 0) >= 2050) this.achievements.unlock('beat_hard');
+          this.checkIslandAchievements();
+          // עולם שלם נכבש → תיבת אוצר
+          const r = regionOf(islandId);
+          if (this.progression.regionConquered(r) === regionIslands(r).length) { const chest = this.economy.openRoyalChest(); this.ui.toast(`${t('regionComplete')} · ${t('royalChest')}`, { kind: 'gold', duration: 4200, icon: 'chest' }); if (chest?.id) this.applyLoadout(); }
+          if (isBoss(islandId)) this.achievements.unlock('boss1');
+        }
+      }
+    } else if (vsBot && iLost) {
+      const my = this.store.get('rating');
+      const exp = 1 / (1 + Math.pow(10, ((this.opponent?.rating || 1200) - my) / 400));
+      this.store.set({ rating: Math.max(100, Math.round(my - 24 * exp)) });
+    }
     const rt = this.resultText();
     this.busy = false;
     this.ending = false;
     this.sm.toGameplay(1.2, this.viewSide());
-    M.openSummary(this, { ...rt, reason: rt.reason, gems, stageMsg, acc, keyMoments, canReplay: plies >= 4, isOnline: this.isOnlineMode() || !!this.bot });
+    const front = this.progression.frontier();
+    M.openSummary(this, {
+      ...rt, reason: rt.reason, gems, stageMsg, acc, keyMoments, canReplay: plies >= 4, vsBot, won: !!iWon && vsBot,
+      island, nextId: front && front !== islandId ? front : null,
+    });
     this.refreshHud();
   }
 
-  async rematch() {
-    if (this.isOnlineMode() && this.net.connected) {
-      this.net.send({ t: 'rematch-request' });
-      this.ui.toast(t('waiting'));
-      return;
+  checkIslandAchievements() {
+    const n = this.progression.conqueredCount();
+    if (n >= 5) this.achievements.unlock('island5');
+    if (n >= 25) this.achievements.unlock('island25');
+    if (n >= 50) this.achievements.unlock('island50');
+    if (n >= ISLAND_COUNT) this.achievements.unlock('island99');
+    if (n >= 10) this.achievements.unlock('base_done');
+    const mx = this.progression.maxEraReached();
+    if (mx >= 2) this.achievements.unlock('era2');
+    if (mx >= 3) this.achievements.unlock('era3');
+    if (mx >= 5) this.achievements.unlock('era5');
+  }
+
+  /** כל 25 כוכבים — מענק יהלומים */
+  checkStarMilestones() {
+    const total = this.progression.totalStars();
+    const claimed = this.progression.starRewardsClaimed();
+    const due = Math.floor(total / STAR_MILESTONE);
+    if (due > claimed) {
+      const n = due - claimed;
+      this.progression.setStarRewardsClaimed(due);
+      this.economy.addGems(STAR_MILESTONE_GEMS * n, 'stars');
+      setTimeout(() => this.ui.toast(`${t('starMilestone')} ${due * STAR_MILESTONE} · +${STAR_MILESTONE_GEMS * n}`, { kind: 'gold', duration: 3800, icon: 'star' }), 1800);
     }
-    if (this.mode === 'quick') { this.quickMatch(this.store.get('timeControl')); return; }
-    if (this.mode === 'local') this.startLocal(this.store.get('timeControl'));
-    else this.startAI(this.store.get('difficulty'));
+  }
+
+  rematch() {
+    if (this.mode === 'local') this.startFriendGame(this.store.get('timeControl'));
+    else this.newBattle({ confirm: false });
   }
 
   /** הילוך חוזר קולנועי של 8 המסעים האחרונים */
@@ -728,8 +854,7 @@ export class GameApp {
     const start = hist[hist.length - n];
     if (!start) return;
     this.busy = true;
-    const tmpChess = Chess;
-    const tmp = new tmpChess(start.before);
+    const tmp = new Chess(start.before);
     this.board.setPosition(tmp.board());
     this.board.setCheck(null);
     this.sm.cinematicOrbit({ target: [0, 0.5, 0], radius: this.sm.view.radius * 0.95, polar: 50, fromAz: this.sm.view.azimuth - 0.7, toAz: this.sm.view.azimuth + 0.7, duration: n * 1.1 + 1 });
@@ -748,127 +873,146 @@ export class GameApp {
 
   findKing(c) { for (const row of c.board()) for (const p of row) if (p && p.type === 'k' && p.color === c.turn()) return p.square; return null; }
 
-  // ======================= בניית ממלכה =======================
-  async buildNextStage({ demo = false, quiet = false } = {}) {
-    if (this.busy && demo) return false;
-    const next = this.progression.nextStage();
-    if (!next) {
-      const reason = this.progression.lockReason();
-      if (reason === 'premium') {
-        this.ui.toast(`🔒 ${t('premiumLocked')}`, { kind: 'gold', duration: 3800 });
-        if (demo) this.openShop('eras');
-      } else if (demo && await this.ui.confirm(`${t('kingdomComplete')}\n${t('resetProgress')}`, t('reset'))) {
-        this.progression.resetAll();
-        await this.visitEra(1, { force: true });
-      }
-      return false;
-    }
-    const wasBusy = this.busy;
-    this.busy = true;
+  // ======================= איים: מפה, טיול, קרבות =======================
+  openMap(focus) {
+    if (this.busy) { this.ui.toast(t('waitMove')); return; }
     this.ui.closeAll();
-    if (this.sm.panoramaOn) { this.sm.panoramaOn = false; this.ui.setPanorama(false); }
     this.deselect();
-    const prevEra = this.kingdom.eraId;
-    const prevMax = this.progression.maxEraReached();
-    const info = this.progression.buildNext();
-    const era = getEra(info.eraId);
-    const hooks = { onRiseStart: () => this.sound.structureRise(true) };
-    if (info.eraId !== prevEra) {
-      this.sound.eraEvolution();
-      setTimeout(() => this.ui.eraTitle(`${t('newEra')} · ${t('era')} ${era.id}`, tn(era.name, era.en), tn(era.materials, era.materialsEn)), 2600);
-      await this.kingdom.evolve(info.eraId, info.idx + 1, { raiseFrom: info.idx, hooks: { ...hooks, onShock: () => this.sm.addShake(0.3) } });
-      this.sound.setEra(info.eraId);
-      this.applyStationMaterials();
-    } else {
-      await this.kingdom.raiseStage(info.eraId, info.idx, { hooks });
-    }
-    if (!demo) this.economy.addGems(ECONOMY.stageGems, 'stage');
-    this.fx.confetti([0, 3, -6], 120);
-    this.ui.toast(`🏗️ ${t('stageBuilt')}: ${tn(era.stageNames[info.idx], era.stageNamesEn[info.idx])}`, { kind: 'gold', duration: 3500 });
-    // פתיחת חיות בסיס
-    const newMax = this.progression.maxEraReached();
-    Object.values(PETS).forEach((p) => { if (!p.premium && p.unlockEra > prevMax && p.unlockEra <= newMax) setTimeout(() => this.ui.toast(`${p.icon} ${tn(`נפתחה חיית מחמד: ${p.name}`, `Pet unlocked: ${PET_EN[p.id]}`)}`, { kind: 'good', duration: 3500 }), 1500); });
-    if (!demo) {
-      if (newMax >= 2) this.achievements.unlock('era2');
-      if (newMax >= 3) this.achievements.unlock('era3');
-      if (newMax >= 5) this.achievements.unlock('era5');
-      if (this.progression.baseComplete()) this.achievements.unlock('base_done');
-    }
-    if (this.mode === 'ai') { this.setupOpponentForMode(); }
-    this.applyLoadout();
-    await this.sm.toGameplay(1.4, this.viewSide());
-    this.busy = quiet ? wasBusy : false;
-    this.refreshHud();
-    return true;
+    this.map.open({ focus });
   }
+  buildMapUi(map) { return buildMapUi(this, map); }
 
-  /** סיור בעידנים / מעבר תצוגה לעידן (ללא שינוי התקדמות) */
-  async visitEra(eraId, { force = false, built = null } = {}) {
-    if ((this.busy && !force) || (!this.progression.visitable(eraId) && !force && built === null)) return;
+  /**
+   * מסע לאי: האווטאר רוכב על החיה במפה (בדרך הכניסה של אי היעד), ענני מעבר,
+   * ואז המצלמה צוללת מגובה אל הלוח של האי — והבוט מברך אותך.
+   */
+  async travelTo(id, { battle = true } = {}) {
+    if (this.busy || this.traveling) return;
+    const pr = this.progression;
+    if (!pr.isUnlocked(id)) { this.ui.toast(t('lockedBeatPrev').replace('{n}', String(id - 1)), { kind: 'bad', icon: 'lock' }); return; }
+    if (pr.needsFullGame(id)) { M.openFullGame(this, () => this.travelTo(id, { battle })); return; }
+    const from = pr.currentIsland();
+    if (id !== from && !(await this.confirmLeave())) return;
+    this.traveling = true;
     this.busy = true;
     this.deselect();
-    const b = built ?? this.progression.progressOf(eraId);
-    const era = getEra(eraId);
-    this.sound.eraEvolution();
-    setTimeout(() => this.ui.eraTitle(`${t('era')} ${era.id}`, tn(era.name, era.en), tn(era.materials, era.materialsEn)), 1500);
-    await this.kingdom.evolve(eraId, b, { raiseFrom: 0, speed: 1.35, hooks: { onRiseStart: () => this.sound.structureRise(false) } });
-    if (built === null) this.store.set({ selectedEra: eraId === this.progression.homeEra() ? null : eraId });
-    this.sound.setEra(eraId);
+    try {
+      if (id !== from) {
+        if (!this.map.isOpen) {
+          await CloudWipe.cover(0.5);
+          this.map.open({ focus: from, travel: true });
+          await CloudWipe.reveal(0.55);
+        }
+        await this.map.travel(from, id);
+        await CloudWipe.cover(0.45);
+        this.map.close();
+      } else {
+        await CloudWipe.cover(0.4);
+        if (this.map.isOpen) this.map.close();
+      }
+      pr.setCurrent(id);
+      this.ui.setDock(id === HUB_ID);
+      this.showIsland(id);
+      if (battle) await this.startIslandBattle({ quiet: true });
+      else { this.setupOpponentForMode(); this.applyLoadout(); }
+      this.refreshHud();
+      // מבט מגובה על האי → צלילה אל הלוח
+      this.sm.controls.target.set(0, 0.5, 0);
+      this.sm.camera.position.set(6, 44, 36);
+      this.sm.camera.lookAt(0, 0.5, 0);
+      CloudWipe.reveal(0.75);
+      await this.sm.toGameplay(2.1, this.viewSide());
+      const d = islandDef(id);
+      this.ui.eraTitle(`${t('island')} ${id}${d.boss ? ` · ${t('boss')}` : ''}`, id === HUB_ID ? t('hubName') : islandLabel(id), `${tn(d.bot.title.he, d.bot.title.en)} ${tn(d.bot.name.he, d.bot.name.en)} · ${d.bot.rating}`);
+      setTimeout(() => this.botSay('intro', true), 700);
+    } finally {
+      this.busy = false;
+      this.traveling = false;
+    }
+    if (id === HUB_ID) this.dockPending();
+  }
+
+  /** חלקים של איים שנכבשו מצטרפים לפסיפס של האי המרכזי (אנימציה) */
+  async dockPending() {
+    const list = this.store.get('pendingDocks') || [];
+    if (!list.length || !this.atHub || this.docking) return;
+    this.docking = true;
+    this.busy = true;
+    try {
+      for (const id of list) {
+        const e = islandDef(id).era;
+        this.ui.toast(`${t('pieceArrives')}: ${tn(e.he, e.en)}`, { kind: 'gold', icon: 'flag', duration: 3200 });
+        await this.museum.dock(id);
+        this.store.set({ pendingDocks: (this.store.get('pendingDocks') || []).filter((x) => x !== id) });
+        this.museum.rebuild();
+      }
+      await this.sm.toGameplay(1.3, this.viewSide());
+    } finally {
+      this.docking = false;
+      this.busy = false;
+    }
+  }
+
+  /**
+   * סצנת האי מוצגת מיד (מתחת לעננים של המעבר): ערכת העולם, האקלים של העידן,
+   * המונומנט של האי — ובאי המרכזי: מוזיאון הזמן עם החלקים שנכבשו.
+   */
+  showIsland(id = this.islandId) {
+    const kit = this.progression.displayEra(id);
+    const era = islandDef(id).era;
+    const base = getEra(kit).palette;
+    this.kingdom.show(kit, id === HUB_ID ? 0 : 1, { palette: climatePalette(base, era.climate) });
+    this.sound.setEra(kit);
     this.applyStationMaterials();
-    if (this.mode === 'ai') this.setupOpponentForMode();
-    this.applyLoadout();
-    await this.sm.toGameplay(1.2, this.viewSide());
-    this.busy = false;
-    this.refreshHud();
+    this.weather.set(era.climate, { quality: this.sm.quality?.level });
+    if (this.islandMonument) { this.sm.world.remove(this.islandMonument); this.islandMonument = null; }
+    if (era.monument) {
+      this.islandMonument = makeMonument(era.monument, 2.6);
+      this.islandMonument.position.set(0, 0, -18.5);
+      this.sm.world.add(this.islandMonument);
+    }
+    this.museum?.setActive(id === HUB_ID);
   }
 
-  // ======================= מצבי משחק =======================
-  async confirmLeave() {
-    const inProgress = !this.game.result && this.game.ply > 0;
-    if (!inProgress) return true;
-    const ok = await this.ui.confirm(t('confirmNew'), t('newGame'));
-    if (ok && this.isOnlineMode()) { this.net.send({ t: 'resign' }); }
-    return ok;
+  /** קרב חדש נגד הבוט של האי הנוכחי */
+  async newBattle({ confirm = true } = {}) {
+    if (this.busy) return;
+    if (confirm && !(await this.confirmLeave())) return;
+    await this.startIslandBattle();
+    setTimeout(() => this.botSay('intro', true), 900);
   }
 
-  resetBoardState() {
-    this.gameId = (this.gameId || 0) + 1;
-    this.ending = false;
-    this.thinking = false;
-    this.game.reset();
-    this.board.setPosition(this.game.board);
-    this.board.setLastMove(null);
-    this.board.setCheck(null);
-    Object.values(this.pets).forEach((p) => p.reset());
-    Object.values(this.avatars).forEach((a) => a.reset());
-  }
-
-  async leaveNetwork() {
-    if (this.net.connected || this.net.peer) { this.net.send({ t: 'bye' }); this.net.destroy(); }
-    this.bot = null;
-    if (this.hostView) { this.hostView = null; const era = this.progression.displayEra(); if (era !== this.kingdom.eraId) await this.visitEra(era, { force: true }); }
-  }
-
-  async startAI(level) {
-    await this.leaveNetwork();
+  async startIslandBattle({ quiet = false, keepResident = false } = {}) {
+    if (!keepResident) this.residentOpp = null;
     this.mode = 'ai';
     this.myColor = 'w';
-    this.store.set({ difficulty: level });
     this.game.stopClock();
     this.resetBoardState();
     this.setupOpponentForMode();
     this.applyLoadout();
     this.ui.setActions('ai');
     this.saveGame();
-    this.sm.toGameplay(1.0, 'w');
+    if (!quiet) this.sm.toGameplay(1.0, 'w');
     this.refreshHud();
-    this.ui.toast(`${DIFF_PERSONA[level].icon} ${tn(DIFF_PERSONA[level].he, DIFF_PERSONA[level].en)} — ${t('gameStarted')}`);
+    if (!quiet) this.ui.toast(`${t('battleVs')} ${this.opponent.name} · ${this.opponent.rating}`, { icon: 'swords' });
   }
 
-  async startLocal(tcId) {
-    await this.leaveNetwork();
+  /** משחק ליד השולחן נגד בוט שקנית (גר באי המרכזי) */
+  async playResident(id) {
+    if (!this.atHub) await this.travelTo(HUB_ID, { battle: false });
+    if (!(await this.confirmLeave())) return;
+    this.residentOpp = id;
+    await this.startIslandBattle({ keepResident: true });
+    setTimeout(() => this.botSay('intro', true), 700);
+  }
+
+  /** משחק נגד חבר על אותו מכשיר — באי המרכזי */
+  async startFriendGame(tcId) {
+    if (!this.atHub) { await this.travelTo(HUB_ID, { battle: false }); }
+    this.residentOpp = null;
     this.mode = 'local';
     this.myColor = 'w';
+    this.store.set({ timeControl: tcId ?? 0 });
     const tc = TIME_CONTROLS.find((x) => x.id === tcId);
     if (tc) this.game.startClock(tc.ms, tc.inc); else this.game.stopClock();
     this.resetBoardState();
@@ -878,235 +1022,70 @@ export class GameApp {
     this.saveGame();
     this.sm.toGameplay(1.0, 'w');
     this.refreshHud();
-    this.ui.toast(t('gameStarted'));
+    this.ui.toast(t('gameStarted'), { icon: 'users' });
+  }
+
+  async confirmLeave() {
+    const inProgress = !this.game.result && this.game.ply > 0;
+    if (!inProgress) return true;
+    return this.ui.confirm(t('confirmNew'), t('newGame'));
+  }
+
+  resetBoardState() {
+    this.gameId = (this.gameId || 0) + 1;
+    this.ending = false;
+    this.thinking = false;
+    this.selected = null;
+    this.game.reset();
+    this.board.clearSelection();
+    this.board.clearHint();
+    this.board.setPosition(this.game.board);
+    this.board.setLastMove(null);
+    this.board.setCheck(null);
+    Object.values(this.pets).forEach((p) => p.reset());
+    Object.values(this.avatars).forEach((a) => a.reset());
   }
 
   saveGame() {
     if (this.mode !== 'ai' && this.mode !== 'local') return;
     if (this.game.result) { this.store.set({ savedGame: null }); return; }
-    this.store.set({ savedGame: { mode: this.mode, uci: this.game.uci(), tc: this.mode === 'local' && this.game.clock ? (TIME_CONTROLS.find((x) => x.ms === this.game.clock.initial) || {}).id : null } });
+    this.store.set({ savedGame: { mode: this.mode, island: this.islandId, uci: this.game.uci(), tc: this.mode === 'local' && this.game.clock ? (TIME_CONTROLS.find((x) => x.ms === this.game.clock.initial) || {}).id : null } });
   }
 
-  // ---------- רשת ----------
-  myHello() {
-    const eraId = this.progression.displayEra();
-    return { t: 'hello', v: 1, name: this.store.get('profile').name, avatar: this.store.get('profile').avatar, rating: this.store.get('rating'), pet: this.economy.pet, loadout: this.economy.loadout, eraId, built: this.progression.progressOf(eraId), app: APP_VERSION };
-  }
-
-  bindNet() {
-    this.net.on('message', (msg) => this.onNetMessage(msg));
-    this.net.on('close', () => {
-      if (this.mode !== 'friend' && this.mode !== 'quick') return;
-      if (this.bot) return;
-      this.ui.toast(`⚠️ ${t('disconnected')}`, { kind: 'bad', duration: 4000 });
-      if (!this.game.result && this.game.ply > 0) {
-        clearTimeout(this.abandonT);
-        this.abandonT = setTimeout(() => { if (!this.net.connected && !this.game.result) this.endGame(this.game.finish(this.myColor, 'abandon')); }, 15000);
-      }
-    });
-  }
-
-  async hostRoom(tcId) {
-    if (!(await M.openOnlineNotice(this))) return;
-    await this.leaveNetwork();
-    this.bindNet();
-    let modal;
-    try {
-      const code = await this.net.createRoom(() => {
-        modal?.close();
-        this.net.send(this.myHello());
-        const hostColor = Math.random() < 0.5 ? 'w' : 'b';
-        const tc = TIME_CONTROLS.find((x) => x.id === tcId);
-        this.net.send({ t: 'start', hostColor, tc: tc ? tc.id : 0 });
-        this.beginOnline('friend', hostColor, tc);
-      });
-      modal = M.openHostRoom(this, code, () => { if (!this.net.connected) this.net.destroy(); });
-    } catch {
-      this.ui.toast(t('connError'), { kind: 'bad', duration: 4000 });
-    }
-  }
-
-  async joinRoom(code) {
-    if (!(await M.openOnlineNotice(this))) return;
-    await this.leaveNetwork();
-    this.bindNet();
-    const m = this.ui.modal({ title: `${t('joinRoom')} ${code}`, center: true, body: M.logo('small'), dismissable: false });
-    try {
-      await this.net.joinRoom(code);
-      m.close();
-      this.net.send(this.myHello());
-      this.pendingRole = 'guest';
-    } catch (err) {
-      m.close();
-      this.net.destroy();
-      this.ui.toast(err?.type === 'peer-unavailable' || err?.message === 'busy' ? t('roomNotFound') : t('connError'), { kind: 'bad', duration: 4000 });
-    }
-  }
-
-  async quickMatch(tcId) {
-    if (!(await M.openOnlineNotice(this))) return;
-    await this.leaveNetwork();
-    this.bindNet();
-    let cancelled = false;
-    const modal = M.openSearching(this, () => { cancelled = true; });
-    let found = false;
-    try { found = await this.net.quickMatch(6000); } catch { found = false; }
-    if (cancelled) { this.net.destroy(); return; }
-    modal.close();
-    const tc = TIME_CONTROLS.find((x) => x.id === tcId) || TIME_CONTROLS.find((x) => x.id === 5);
-    if (found) {
-      this.net.send(this.myHello());
-      if (this.net.role === 'host') {
-        const hostColor = Math.random() < 0.5 ? 'w' : 'b';
-        this.net.send({ t: 'start', hostColor, tc: tc.id });
-        this.beginOnline('quick', hostColor, tc);
-      }
-      return;
-    }
-    // יריב גיבוי — בוט מוצהר
-    this.net.destroy();
-    const profile = createBotProfile(this.store.get('rating'));
-    this.bot = new BotOpponent(this.ai, profile);
-    await M.openBotNotice(this, profile);
-    this.mode = 'quick';
-    this.myColor = Math.random() < 0.5 ? 'w' : 'b';
-    this.opponent = { ...profile };
-    this.game.startClock(tc.ms, tc.inc);
-    this.resetBoardState();
-    this.hostView = { eraId: profile.eraId, built: 2 };
-    await this.visitEra(profile.eraId, { force: true, built: 2 });
-    this.applyLoadout();
-    this.ui.setActions('quick');
-    await this.sm.toGameplay(1.0, this.myColor);
-    this.refreshHud();
-    this.ui.toast(this.myColor === 'w' ? t('youPlayWhite') : t('youPlayBlack'));
-    setTimeout(() => this.botEmote('start'), 1500);
-    if (this.isAITurn()) this.opponentMove();
-  }
-
-  async beginOnline(mode, hostColor, tc) {
-    this.mode = mode;
-    this.myColor = this.net.role === 'host' ? hostColor : (hostColor === 'w' ? 'b' : 'w');
-    if (tc) this.game.startClock(tc.ms, tc.inc); else this.game.stopClock();
-    this.resetBoardState();
-    this.ui.setActions(mode);
-    this.ui.closeAll();
-    // אירוח ממלכה: האורח רואה את העידן של המארח
-    if (this.net.role === 'guest' && this.remoteHello) {
-      this.hostView = { eraId: this.remoteHello.eraId, built: this.remoteHello.built };
-      await this.visitEra(this.remoteHello.eraId, { force: true, built: Math.max(0, Math.min(2, this.remoteHello.built | 0)) });
-    }
-    this.applyLoadout();
-    await this.sm.toGameplay(1.0, this.myColor);
-    this.refreshHud();
-    this.ui.toast(`${t('gameStarted')} ${this.myColor === 'w' ? t('youPlayWhite') : t('youPlayBlack')}`);
-  }
-
-  onNetMessage(msg) {
-    switch (msg.t) {
-      case 'hello': {
-        this.remoteHello = msg;
-        const okLoad = (o) => o && typeof o === 'object' ? { head: String(o.head || ''), armor: String(o.armor || ''), weapon: String(o.weapon || ''), aura: String(o.aura || '') } : null;
-        this.opponent = { name: String(msg.name || '').slice(0, 18) || tn('יריב', 'Opponent'), avatar: String(msg.avatar || '♚').slice(0, 4), rating: Number(msg.rating) || 1200, pet: PETS[msg.pet] ? msg.pet : 'wolf_cub', loadout: okLoad(msg.loadout) };
-        this.applyLoadout();
-        break;
-      }
-      case 'start': {
-        const tc = TIME_CONTROLS.find((x) => x.id === msg.tc);
-        this.beginOnline(this.mode === 'quick' || this.net.code === null ? 'quick' : 'friend', msg.hostColor === 'b' ? 'b' : 'w', tc);
-        break;
-      }
-      case 'move': {
-        if (typeof msg.uci !== 'string' || msg.uci.length < 4) return;
-        if (msg.clock) this.game.syncClock(Number(msg.clock.w), Number(msg.clock.b));
-        this.applyMove({ from: msg.uci.slice(0, 2), to: msg.uci.slice(2, 4), promotion: msg.uci[4] }, { remote: true });
-        break;
-      }
-      case 'resign': if (!this.game.result) this.endGame(this.game.finish(this.myColor, 'resign')); break;
-      case 'flag': if (!this.game.result && msg.color !== this.myColor) this.endGame(this.game.finish(this.myColor, 'timeout')); break;
-      case 'draw-offer':
-        this.ui.modal({ title: `🤝 ${t('drawOffered')}`, center: true, actions: [
-          { label: t('decline'), onClick: (c) => { this.net.send({ t: 'draw-decline' }); c.close(); } },
-          { label: t('accept'), primary: true, onClick: (c) => { this.net.send({ t: 'draw-accept' }); c.close(); this.endGame(this.game.finish(null, 'agreement')); } }] });
-        break;
-      case 'draw-accept': if (!this.game.result) this.endGame(this.game.finish(null, 'agreement')); break;
-      case 'draw-decline': this.ui.toast(t('drawDeclined')); break;
-      case 'rematch-request':
-        this.ui.modal({ title: `🔁 ${t('rematchOffered')}`, center: true, actions: [
-          { label: t('decline'), onClick: (c) => c.close() },
-          { label: t('accept'), primary: true, onClick: (c) => { c.close(); this.ui.closeAll(); this.net.send({ t: 'rematch-accept' }); this.startRematch(true); } }] });
-        break;
-      case 'rematch-accept': this.ui.closeAll(); this.startRematch(false); break;
-      case 'emote': if (typeof msg.e === 'string') this.showEmote(this.myColor === 'w' ? 'b' : 'w', msg.e.slice(0, 4)); break;
-      case 'bye': this.ui.toast(t('opponentLeft'), { kind: 'bad' }); if (!this.game.result && this.game.ply > 0) this.endGame(this.game.finish(this.myColor, 'abandon')); break;
-      default:
-    }
-  }
-
-  startRematch(accepted) {
-    const tc = this.game.clock ? TIME_CONTROLS.find((x) => x.ms === this.game.clock.initial) : null;
-    this.myColor = this.myColor === 'w' ? 'b' : 'w';
-    if (tc) this.game.startClock(tc.ms, tc.inc);
-    this.resetBoardState();
-    this.sm.toGameplay(1.0, this.myColor);
-    this.refreshHud();
-    this.ui.toast(`${t('gameStarted')} ${this.myColor === 'w' ? t('youPlayWhite') : t('youPlayBlack')}`);
-    if (!accepted) { /* היוזם */ }
-  }
-
+  /** תיקו בהסכמה — במשחק נגד חבר */
   async offerDraw() {
-    if (this.bot) {
-      if (this.bot.acceptsDraw(this.lastBotEval || 0, this.game.ply)) { this.endGame(this.game.finish(null, 'agreement')); } else this.ui.toast(t('drawDeclined'));
-      return;
-    }
-    if (!this.net.connected || this.game.result) return;
-    this.net.send({ t: 'draw-offer' });
-    this.ui.toast(`🤝 ${t('offerDraw')}…`);
+    if (this.mode !== 'local' || this.game.result || this.game.ply < 2 || this.busy) return;
+    if (await this.ui.confirm(t('confirmDraw'), t('draw'))) this.endGame(this.game.finish(null, 'agreement'));
   }
 
   async resign() {
-    if (this.game.result || this.game.ply === 0) return;
+    if (this.game.result || this.game.ply === 0 || this.busy) return;
     if (!(await this.ui.confirm(t('confirmResign'), t('resign'), { danger: true }))) return;
-    this.net.send({ t: 'resign' });
     const winner = this.mode === 'local' ? (this.game.turn === 'w' ? 'b' : 'w') : (this.myColor === 'w' ? 'b' : 'w');
     this.endGame(this.game.finish(winner, 'resign'));
   }
 
-  sendEmote(e) {
-    if (performance.now() - this.lastEmote < 2500) return;
-    this.lastEmote = performance.now();
-    this.net.send({ t: 'emote', e });
-    this.showEmote(this.mode === 'local' ? this.game.turn : this.myColor, e);
-  }
-
-  botEmote(event) {
-    const e = this.bot?.emoteFor(event);
-    if (e) setTimeout(() => this.showEmote(this.myColor === 'w' ? 'b' : 'w', e), 600 + Math.random() * 900);
-  }
-
-  showEmote(color, e) {
-    const av = this.avatars[color];
-    const p = av.group.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 2.6, 0));
-    this.ui.floatLabel(e, this.sm.projectToScreen(p), 'emote', 1.6);
-    av.emote(e);
-    this.pets[color].react('emote');
-    this.sound.pop();
-  }
-
   // ======================= עוד =======================
   async hint() {
-    if (!(this.mode === 'ai' || this.mode === 'local') || !this.canAct()) return;
-    if (!this.economy.spend(HINT_COST)) { this.ui.toast(t('notEnoughGems'), { kind: 'bad' }); this.openShop('gems'); return; }
-    this.ui.toast(`💡 ${t('hint')}…`);
+    if (!this.canAct()) return;
+    if (!this.economy.spend(HINT_COST)) { this.ui.toast(t('notEnoughGems'), { kind: 'bad', icon: 'gem' }); return; }
+    this.ui.toast(`${t('hint')}…`, { icon: 'bulb' });
     const res = await this.ai.analyze({ fen: this.game.fen, history: this.game.beforeFens(), timeMs: 900, maxDepth: 9 }, 'main');
     if (res?.move) { this.board.showHint(res.move.from, res.move.to); this.sound.notify(); }
   }
 
-  openShop(tab = 'wardrobe') { openKingdomShop(this, { tab }); }
+  /** החנות נמצאת באי המרכזי */
+  openShop(tab = 'wardrobe') {
+    if (!this.atHub) { this.ui.toast(t('shopAtHub'), { icon: 'home' }); return; }
+    openKingdomShop(this, { tab });
+  }
   openDaily() { openDailyRewards(this); }
+  /** בית הקולנוע באי המרכזי: הסיפור / איך משחקים */
+  openCinema() { if (!this.atHub) { this.ui.toast(t('cinemaAtHub'), { icon: 'home' }); return; } openCinemaModal(this); }
   shareKingdom() { shareKingdom(this); }
-  startTutorial() {
-    if (this.mode !== 'ai' || this.game.ply > 0) this.startAI(this.store.get('difficulty') || 'easy');
+  async startTutorial() {
+    if (!this.atHub) await this.travelTo(HUB_ID, { battle: false });
+    if (this.mode !== 'ai' || this.game.ply > 0) await this.startIslandBattle({ quiet: true });
     this.tutorial.start();
   }
 
@@ -1115,3 +1094,5 @@ export class GameApp {
     location.reload();
   }
 }
+
+export { islandName, tierOf };

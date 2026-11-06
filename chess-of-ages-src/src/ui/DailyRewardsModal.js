@@ -2,7 +2,8 @@
  * תיבת האוצר היומית (רצף 7 ימים) + גלגל המזל המלכותי (סיבוב GSAP חלק, קונפטי, סיכויים שקופים).
  */
 import gsap from 'gsap';
-import { h } from './UI.js';
+import { h, withIcon } from './UI.js';
+import { icon, drawIcon } from './icons.js';
 import { t, tn, ITEM_EN, PET_EN } from './i18n.js';
 import { DAILY_STREAK, WHEEL_SEGMENTS, ROYAL_CHEST, ECONOMY } from '../config/EconomyConfig.js';
 
@@ -44,7 +45,12 @@ function drawWheel(canvas) {
     ctx.save(); ctx.rotate(i * a + a / 2 - Math.PI / 2);
     ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
     ctx.font = `700 ${Math.round(size * 0.05)}px Rubik, sans-serif`; ctx.fillStyle = '#fff';
-    ctx.fillText(`${s.icon} ${tn(s.label, s.labelEn)}`, R - 16, 0);
+    ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 3;
+    const label = tn(s.label, s.labelEn);
+    ctx.fillText(label, R - 16, 0);
+    const tw = ctx.measureText(label).width;
+    ctx.shadowBlur = 0;
+    drawIcon(ctx, s.icon, R - 16 - tw - size * 0.045, 0, size * 0.07);
     ctx.restore();
   });
   ctx.beginPath(); ctx.arc(0, 0, R - 4, 0, Math.PI * 2); ctx.lineWidth = 6; ctx.strokeStyle = '#f2c94c'; ctx.stroke();
@@ -52,10 +58,10 @@ function drawWheel(canvas) {
 }
 
 const rewardText = (r) => {
-  if (r.type === 'gems') return `‎+${r.amount} 💎`;
-  if (r.type === 'trial') return `⏳ ${tn(r.name, ITEM_EN[r.id])} (${t('trial24')})`;
-  if (r.type === 'item') return `🎁 ${tn(r.name, ITEM_EN[r.id])}`;
-  if (r.type === 'petTrial') return `🐾 ${tn(r.name, PET_EN[r.id])} (${t('trial24')})`;
+  if (r.type === 'gems') return `‎+${r.amount} ${t('gems')}`;
+  if (r.type === 'trial') return `${tn(r.name, ITEM_EN[r.id])} (${t('trial24')})`;
+  if (r.type === 'item') return tn(r.name, ITEM_EN[r.id]);
+  if (r.type === 'petTrial') return `${tn(r.name, PET_EN[r.id])} (${t('trial24')})`;
   return '';
 };
 
@@ -63,7 +69,7 @@ export function openDailyRewards(app) {
   const { economy, ui, sound } = app;
   const st = economy.dailyStatus();
   const streakEl = h('div', { class: 'streak' });
-  const claimBtn = h('button', { class: 'btn primary shimmer' }, t('claim'));
+  const claimBtn = h('button', { class: 'btn primary shimmer tap' }, t('claim'));
   const msg = h('p', {});
   function renderStreak() {
     const s = economy.dailyStatus();
@@ -72,10 +78,10 @@ export function openDailyRewards(app) {
       const done = s.ready ? d.day < s.day : d.day <= s.day;
       const today = s.ready && d.day === s.day;
       return h('div', { class: `d ${done ? 'done' : ''} ${today ? 'today' : ''} ${d.chest ? 'chest' : ''}`, 'aria-label': `${t('day')} ${d.day}` },
-        h('span', {}, `${t('day')} ${d.day}`), h('span', { class: 'r' }, d.chest ? '👑' : `${d.gems}`), h('span', {}, d.chest ? tn('תיבה', 'Chest') : d.trial ? '💎+🎁' : '💎'));
+        h('span', {}, `${t('day')} ${d.day}`), h('span', { class: 'r' }, icon(d.chest ? 'chest' : d.trial ? 'gift' : 'gem', { size: 22 })), h('span', { class: 'amt' }, d.chest ? tn('תיבה', 'Chest') : `${d.gems}`));
     }));
     claimBtn.disabled = !s.ready;
-    claimBtn.textContent = s.ready ? `${t('claim')} — ${t('day')} ${todayDay}` : `✓ ${t('claimed')}`;
+    claimBtn.replaceChildren(...withIcon(s.ready ? 'gift' : 'check', s.ready ? `${t('claim')} — ${t('day')} ${todayDay}` : t('claimed'), 20));
     msg.textContent = s.ready ? (s.broken ? t('streakBroken') : '') : t('comeBack');
   }
   claimBtn.addEventListener('click', () => {
@@ -83,7 +89,7 @@ export function openDailyRewards(app) {
     if (!res) return;
     sound.jackpot();
     confettiBurst();
-    ui.toast(res.rewards.map(rewardText).join(' · '), { kind: 'gold', duration: 4000 });
+    ui.toast(res.rewards.map(rewardText).join(' · '), { kind: 'gold', duration: 4000, icon: 'gift' });
     if (res.day === 7) app.achievements.unlock('streak7');
     renderStreak();
     app.refreshBadges();
@@ -92,13 +98,13 @@ export function openDailyRewards(app) {
   // גלגל
   const wheelCanvas = h('canvas', { 'aria-label': t('wheelTitle') });
   const wheelInner = h('div', { style: { position: 'absolute', inset: 0 } }, wheelCanvas);
-  const wheel = h('div', { class: 'wheel-wrap' }, h('div', { class: 'wheel-pointer' }), wheelInner, h('div', { class: 'wheel-hub' }, '👑'));
-  const spinBtn = h('button', { class: 'btn primary' });
+  const wheel = h('div', { class: 'wheel-wrap' }, h('div', { class: 'wheel-pointer' }), wheelInner, h('div', { class: 'wheel-hub' }, icon('crown', { size: 30 })));
+  const spinBtn = h('button', { class: 'btn primary tap' });
   const spinInfo = h('p', {});
   let rot = 0, spinning = false;
   function renderSpin() {
     const free = economy.canFreeSpin();
-    spinBtn.textContent = free ? t('spinFree') : t('spinFor');
+    spinBtn.replaceChildren(...(free ? withIcon('wheel', t('spinFree'), 20) : [icon('wheel', { size: 20 }), h('span', {}, t('spinFor')), icon('gem', { size: 16 })]));
     spinBtn.disabled = spinning;
     const ms = economy.freeSpinReadyIn();
     spinInfo.textContent = free ? '' : `${t('nextFreeSpin')} ${Math.floor(ms / 3600000)}:${String(Math.floor((ms % 3600000) / 60000)).padStart(2, '0')}`;
@@ -122,7 +128,7 @@ export function openDailyRewards(app) {
         spinning = false;
         const prize = economy.applyWheelPrize(res.segment);
         if (prize.jackpot) { sound.jackpot(); confettiBurst(3200); } else sound.coin();
-        ui.toast(prize.text, { kind: prize.jackpot ? 'gold' : 'good', duration: 3500 });
+        ui.toast(prize.text, { kind: prize.jackpot ? 'gold' : 'good', duration: 3500, icon: prize.icon });
         if (prize.itemId) app.applyLoadout();
         renderSpin();
         app.refreshBadges();
@@ -130,16 +136,15 @@ export function openDailyRewards(app) {
     });
   });
 
-  const oddsBody = h('table', { class: 'odds-table', hidden: true }, h('tbody', {}, ...WHEEL_SEGMENTS.map((s) => h('tr', {}, h('td', {}, `${s.icon} ${s.type === 'gems' ? `${s.label} 💎` : tn(s.label, s.labelEn)}`), h('td', {}, `${s.weight}%`)))));
+  const oddsBody = h('table', { class: 'odds-table', hidden: true }, h('tbody', {}, ...WHEEL_SEGMENTS.map((s) => h('tr', {}, h('td', {}, icon(s.icon, { size: 16 }), ` ${s.type === 'gems' ? `${s.label} ${t('gems')}` : tn(s.label, s.labelEn)}`), h('td', {}, `${s.weight}%`)))));
   const chestOdds = h('table', { class: 'odds-table', hidden: true }, h('tbody', {}, ...ROYAL_CHEST.map((c) => h('tr', {}, h('td', {}, `${t('royalChest')}: ${tn(c.label, c.labelEn)}`), h('td', {}, `${c.weight}%`)))));
-  const oddsBtn = h('button', { class: 'btn small ghost', onclick: () => { oddsBody.hidden = !oddsBody.hidden; chestOdds.hidden = oddsBody.hidden; } }, `ℹ️ ${t('odds')}`);
+  const oddsBtn = h('button', { class: 'btn small ghost tap', onclick: () => { oddsBody.hidden = !oddsBody.hidden; chestOdds.hidden = oddsBody.hidden; } }, ...withIcon('info', t('odds'), 16));
 
   const body = h('div', {},
-    h('div', { class: 'logo mid', style: { marginBottom: '6px' } }, h('span', { class: 'he' }, t('appTitle')), h('span', { class: 'en' }, t('logoEn'))),
-    h('h3', {}, `🎁 ${tn('רצף התחברות יומי', 'Daily login streak')}`), streakEl, h('div', { class: 'btn-row' }, claimBtn), msg,
-    h('h3', {}, `🎡 ${t('wheelTitle')}`), wheel, h('div', { class: 'btn-row' }, spinBtn, oddsBtn), spinInfo, oddsBody, chestOdds,
-    h('p', { style: { fontSize: '11px' } }, tn(`סיבוב נוסף עולה ${ECONOMY.extraSpinCost} 💎. הסיכויים מוצגים לפני כל סיבוב.`, `Extra spins cost ${ECONOMY.extraSpinCost} 💎. Odds are shown before every spin.`)));
-  const m = ui.modal({ title: t('dailyTitle'), body });
+    h('h3', {}, ...withIcon('calendar', tn('רצף התחברות יומי', 'Daily login streak'), 18)), streakEl, h('div', { class: 'btn-row' }, claimBtn), msg,
+    h('h3', {}, ...withIcon('wheel', t('wheelTitle'), 18)), wheel, h('div', { class: 'btn-row' }, spinBtn, oddsBtn), spinInfo, oddsBody, chestOdds,
+    h('p', { style: { fontSize: '11px' } }, tn(`סיבוב נוסף עולה ${ECONOMY.extraSpinCost} יהלומים. הסיכויים מוצגים לפני כל סיבוב.`, `Extra spins cost ${ECONOMY.extraSpinCost} gems. Odds are shown before every spin.`)));
+  const m = ui.modal({ title: t('dailyTitle'), titleIcon: 'gift', body });
   requestAnimationFrame(() => drawWheel(wheelCanvas));
   renderStreak();
   renderSpin();

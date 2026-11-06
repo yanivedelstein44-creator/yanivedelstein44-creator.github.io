@@ -1,9 +1,9 @@
 /**
- * כלכלת היהלומים: יתרה, בעלות על פריטים/חיות/עידנים, ניסיונות זמניים, שברי פריטים,
- * פרס כניסה יומי, גלגל המזל ורכישת חבילות יהלומים (hook מוכן ל-IAP אמיתי).
+ * כלכלת היהלומים: יתרה, בעלות על פריטים וחיות, ניסיונות זמניים, שברי פריטים, פרס כניסה יומי וגלגל המזל.
+ * יהלומים מרוויחים רק במשחק. הרכישה היחידה בכסף אמיתי: פתיחת המשחק המלא (hook מוכן ל-Google Play Billing).
  */
 import {
-  ECONOMY, GEM_PACKS, ERA_PRICES, ALL_WEARABLES, findWearable, DEFAULT_LOADOUT,
+  ECONOMY, FULL_GAME, ALL_WEARABLES, findWearable, DEFAULT_LOADOUT,
   DAILY_STREAK, ROYAL_CHEST, WHEEL_SEGMENTS, DUPLICATE_ITEM_GEMS, DUPLICATE_FRAGMENT_GEMS,
 } from '../config/EconomyConfig.js';
 import { PETS, PREMIUM_PET_IDS } from '../config/Pets.js';
@@ -28,8 +28,8 @@ function weightedPick(list) {
  * כל עוד אין ספק מחובר (ו-sandbox כבוי) — רכישה בכסף אמיתי לא תאושר.
  */
 export const PaymentProvider = {
-  nativePurchase: null, // async (pack) => ({ ok, transactionId })
-  priceLabel: null, // (pack) => מחיר מקומי מהחנות, למשל ProductDetails.formattedPrice ("$2.49")
+  nativePurchase: null, // async (product) => ({ ok, transactionId })
+  priceLabel: null, // (product) => מחיר מקומי מהחנות, למשל ProductDetails.formattedPrice ("$4.99")
 };
 
 export class Economy {
@@ -38,7 +38,10 @@ export class Economy {
       gems: ECONOMY.welcomeGems,
       items: ALL_WEARABLES.filter((w) => w.price === 0).map((w) => w.id),
       pets: ['wolf_cub'],
+      residents: [],
+      petColors: [],
       eras: [],
+      fullGame: false,
       equipped: { ...DEFAULT_LOADOUT, pet: 'wolf_cub' },
       trials: {},
       fragments: {},
@@ -109,14 +112,49 @@ export class Economy {
     if (!p.premium && maxEraReached >= p.unlockEra) return true;
     return this.s.pets.includes(id) || this.trialLeft(id) > 0;
   }
-  ownsEra(eraId) { const e = ERAS[eraId - 1]; return e && (!e.premium || this.s.eras.includes(eraId)); }
-  get ownedPremiumEras() { return this.s.eras.slice(); }
+  /** אין יותר עידנים בתשלום — כל אזור נפתח בכיבוש האיים שלפניו */
+  ownsEra() { return true; }
+  /** איים 6–99 */
+  ownsFullGame() { return !!this.s.fullGame; }
 
   get loadout() {
     const e = this.s.equipped;
     return { head: e.head, armor: e.armor, weapon: e.weapon, aura: e.aura };
   }
   get pet() { return this.s.equipped.pet; }
+  /** גוון החיה (0 = הצבע המקורי; אחר = הצבע הייחודי של חיית בוט) */
+  get petHue() { return this.s.equipped.petHue || 0; }
+
+  // ---------- בוטים וחיות מכל העידנים (נפתחים אחרי כיבוש האי) ----------
+  ownsResident(id) { return (this.s.residents || []).includes(id); }
+  buyResident(id, price) {
+    if (this.ownsResident(id)) return { ok: false, reason: tn('כבר גר אצלך', 'Already a resident') };
+    if (!this.spend(price)) return { ok: false, reason: tn('אין מספיק יהלומים', 'Not enough gems'), needGems: price - this.s.gems };
+    this.s.residents = [...(this.s.residents || []), id];
+    this.save();
+    this.emit({ type: 'buy', id: `bot${id}` });
+    return { ok: true };
+  }
+  /** צבע ייחודי של חיה (מפתח "petId:hue") — כולל את החיה עצמה */
+  petColorKey(petId, hue) { return `${petId}:${Math.round(hue * 100) / 100}`; }
+  ownsPetColor(petId, hue) { return (this.s.petColors || []).includes(this.petColorKey(petId, hue)); }
+  buyPetColor(petId, hue, price) {
+    const key = this.petColorKey(petId, hue);
+    if ((this.s.petColors || []).includes(key)) return { ok: false, reason: tn('כבר בבעלותך', 'Already owned') };
+    if (!this.spend(price)) return { ok: false, reason: tn('אין מספיק יהלומים', 'Not enough gems'), needGems: price - this.s.gems };
+    this.s.petColors = [...(this.s.petColors || []), key];
+    this.save();
+    this.emit({ type: 'buy', id: key });
+    return { ok: true };
+  }
+  equipPetColor(petId, hue) {
+    if (!this.ownsPetColor(petId, hue)) return false;
+    this.s.equipped.pet = petId;
+    this.s.equipped.petHue = Math.round(hue * 100) / 100;
+    this.save();
+    this.emit({ type: 'equip', slot: 'pet', id: petId });
+    return true;
+  }
 
   equipItem(id) {
     const w = findWearable(id);
@@ -129,6 +167,7 @@ export class Economy {
   equipPet(id, maxEra) {
     if (!this.ownsPet(id, maxEra)) return false;
     this.s.equipped.pet = id;
+    this.s.equipped.petHue = 0;
     this.save();
     this.emit({ type: 'equip', slot: 'pet', id });
     return true;
@@ -159,59 +198,34 @@ export class Economy {
     return { ok: true };
   }
 
-  buyEra(eraId) {
-    const e = ERAS[eraId - 1];
-    if (!e || !e.premium) return { ok: false, reason: tn('עידן לא זמין', 'Era not available') };
-    if (this.s.eras.includes(eraId)) return { ok: false, reason: tn('כבר בבעלותך', 'Already owned') };
-    if (!this.spend(ERA_PRICES.single)) return { ok: false, reason: tn('אין מספיק יהלומים', 'Not enough gems'), needGems: ERA_PRICES.single - this.s.gems };
-    this.s.eras.push(eraId);
-    this.s.eras.sort((a, b) => a - b);
-    this.save();
-    this.emit({ type: 'buy', id: `era_${eraId}` });
-    return { ok: true };
-  }
-
-  buyEraBundle() {
-    const missing = ERAS.filter((e) => e.premium && !this.s.eras.includes(e.id));
-    if (!missing.length) return { ok: false, reason: tn('כל העידנים כבר בבעלותך', 'You already own every era') };
-    if (!this.spend(ERA_PRICES.bundle)) return { ok: false, reason: tn('אין מספיק יהלומים', 'Not enough gems'), needGems: ERA_PRICES.bundle - this.s.gems };
-    missing.forEach((e) => this.s.eras.push(e.id));
-    this.s.eras.sort((a, b) => a - b);
-    this.save();
-    this.emit({ type: 'buy', id: 'era_bundle' });
-    return { ok: true };
-  }
-
-  // ---------- רכישת יהלומים בכסף אמיתי ----------
+  // ---------- רכישה בכסף אמיתי: המשחק המלא ----------
   /**
-   * @param {string} packId
-   * @param {(pack)=>Promise<boolean>} confirmSandbox — מציג קופה מדומה ומחזיר אישור
+   * @param {(product)=>Promise<boolean>} confirmSandbox — מציג קופה מדומה ומחזיר אישור
    */
-  async purchaseGemPack(packId, confirmSandbox) {
-    const pack = GEM_PACKS.find((p) => p.id === packId);
-    if (!pack) throw new Error('Unknown gem pack');
+  async purchaseFullGame(confirmSandbox) {
+    if (this.s.fullGame) return { ok: true, already: true };
     let tx = null;
     if (this.sandbox) {
-      const ok = await confirmSandbox(pack);
+      const ok = await confirmSandbox(FULL_GAME);
       if (!ok) return { ok: false, cancelled: true };
       tx = `sandbox-${Date.now()}`;
     } else if (typeof PaymentProvider.nativePurchase === 'function') {
-      const res = await PaymentProvider.nativePurchase(pack);
+      const res = await PaymentProvider.nativePurchase(FULL_GAME);
       if (!res || !res.ok) return { ok: false, reason: tn('הרכישה לא הושלמה', 'The purchase was not completed') };
       tx = res.transactionId;
     } else {
-      return { ok: false, reason: tn('רכישות בכסף אמיתי יהיו זמינות בקרוב', 'Real-money purchases are coming soon') };
+      return { ok: false, reason: tn('הרכישה תהיה זמינה בקרוב', 'Purchasing will be available soon') };
     }
-    this.s.purchases.push({ id: pack.id, gems: pack.gems, price: pack.price, tx, at: Date.now(), sandbox: this.sandbox });
-    this.addGems(pack.gems, pack.id);
-    return { ok: true, gems: pack.gems };
+    this.s.fullGame = true;
+    this.s.purchases.push({ id: FULL_GAME.id, price: FULL_GAME.price, tx, at: Date.now(), sandbox: this.sandbox });
+    this.save();
+    this.emit({ type: 'buy', id: FULL_GAME.id });
+    return { ok: true };
   }
 
-  /** hook כללי: רכישה לפי מזהה (חבילה / פריט / חיה / עידן) */
+  /** hook כללי: רכישה לפי מזהה (משחק מלא / פריט / חיה) */
   async purchaseItem(itemId, confirmSandbox) {
-    if (itemId.startsWith('pack_')) return this.purchaseGemPack(itemId, confirmSandbox);
-    if (itemId === 'era_bundle') return this.buyEraBundle();
-    if (itemId.startsWith('era_')) return this.buyEra(parseInt(itemId.slice(4), 10));
+    if (itemId === FULL_GAME.id) return this.purchaseFullGame(confirmSandbox);
     if (PETS[itemId]) return this.buyPet(itemId);
     return this.buyItem(itemId);
   }
@@ -320,31 +334,31 @@ export class Economy {
     switch (seg.type) {
       case 'gems':
         this.addGems(seg.amount, 'wheel');
-        return { text: `‎+${seg.amount} 💎`, jackpot: !!seg.jackpot };
+        return { text: `‎+${seg.amount}`, icon: 'gem', jackpot: !!seg.jackpot };
       case 'item': {
         const r = this.grantItem(seg.item);
         const w = findWearable(seg.item);
         const nm = tn(w.name, ITEM_EN[w.id]);
-        return r.duplicate ? { text: tn(`כבר יש לך ${nm} — קיבלת ${r.gems} 💎`, `You already own ${nm} — got ${r.gems} 💎`) } : { text: tn(`נפתח: ${nm}!`, `Unlocked: ${nm}!`), jackpot: true, itemId: seg.item };
+        return r.duplicate ? { text: tn(`כבר יש לך ${nm} — קיבלת ${r.gems}`, `You already own ${nm} — got ${r.gems}`), icon: 'gem' } : { text: tn(`נפתח: ${nm}!`, `Unlocked: ${nm}!`), icon: 'gift', jackpot: true, itemId: seg.item };
       }
       case 'fragment': {
         const pool = ALL_WEARABLES.filter((w) => w.price > 0 && !this.ownsItemPermanently(w.id));
-        if (!pool.length) { this.addGems(DUPLICATE_FRAGMENT_GEMS * 3, 'wheel'); return { text: `‎+${DUPLICATE_FRAGMENT_GEMS * 3} 💎` }; }
+        if (!pool.length) { this.addGems(DUPLICATE_FRAGMENT_GEMS * 3, 'wheel'); return { text: `‎+${DUPLICATE_FRAGMENT_GEMS * 3}`, icon: 'gem' }; }
         const w = pool[Math.floor(Math.random() * pool.length)];
         const r = this.addFragment(w.id);
         const nm = tn(w.name, ITEM_EN[w.id]);
-        return r.unlocked ? { text: tn(`השלמת ${ECONOMY.fragmentsToUnlock} שברים — ${nm} נפתח!`, `${ECONOMY.fragmentsToUnlock} shards collected — ${nm} unlocked!`), jackpot: true, itemId: w.id }
-          : { text: tn(`שבר של ${nm} (${r.count}/${ECONOMY.fragmentsToUnlock})`, `${nm} shard (${r.count}/${ECONOMY.fragmentsToUnlock})`) };
+        return r.unlocked ? { text: tn(`השלמת ${ECONOMY.fragmentsToUnlock} שברים — ${nm} נפתח!`, `${ECONOMY.fragmentsToUnlock} shards collected — ${nm} unlocked!`), icon: 'puzzle', jackpot: true, itemId: w.id }
+          : { icon: 'puzzle', text: tn(`שבר של ${nm} (${r.count}/${ECONOMY.fragmentsToUnlock})`, `${nm} shard (${r.count}/${ECONOMY.fragmentsToUnlock})`) };
       }
       case 'era': {
         const missing = ERAS.filter((e) => e.premium && !this.s.eras.includes(e.id));
-        if (!missing.length) { this.addGems(1000, 'wheel'); return { text: '‎+1,000 💎', jackpot: true }; }
+        if (!missing.length) { this.addGems(1000, 'wheel'); return { text: '‎+1,000', icon: 'gem', jackpot: true }; }
         const e = missing[0];
         this.s.eras.push(e.id);
         this.s.eras.sort((a, b) => a - b);
         this.save();
         this.emit({ type: 'buy', id: `era_${e.id}` });
-        return { text: tn(`ג׳קפוט! נפתח העידן "${e.name}"`, `Jackpot! Era unlocked: "${e.en}"`), jackpot: true, eraId: e.id };
+        return { text: tn(`ג׳קפוט! נפתח האי "${e.name}"`, `Jackpot! Island unlocked: "${e.en}"`), icon: 'temple', jackpot: true, eraId: e.id };
       }
       default:
         return { text: '' };

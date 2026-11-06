@@ -57,9 +57,9 @@ export class ChessAI {
   }
 
   /** @returns {Promise<{move:{from,to,promotion}, score, depth, nodes}>} */
-  think({ fen, history, uci, level }) {
-    const ms = { easy: 400, medium: 1400, hard: 2600 }[level] || 1500;
-    return this.main.run('think', { fen, history, uci, level }, ms);
+  think({ fen, history, uci, level, strength }) {
+    const ms = typeof strength === 'number' ? 300 + strength * 2300 : { easy: 400, medium: 1400, hard: 2600 }[level] || 1500;
+    return this.main.run('think', { fen, history, uci, level, strength }, ms);
   }
 
   analyze({ fen, history, timeMs = 350, maxDepth = 7 }, lane = 'review') {

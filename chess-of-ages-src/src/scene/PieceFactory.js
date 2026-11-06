@@ -139,3 +139,4 @@ export function applyPieceMaterials(piece, mats) {
 }
 
 export const PIECE_HEIGHT = { p: 0.84, r: 0.96, n: 1.04, b: 1.06, q: 1.17, k: 1.38 };
+

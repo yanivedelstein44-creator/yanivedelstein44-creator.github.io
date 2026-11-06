@@ -1,19 +1,25 @@
 /**
- * חנות הממלכה והאווטאר 💎 — מודל מסך מלא עם במת תצוגה תלת-ממדית חיה (סיבוב בגרירה)
- * ו-4 לשוניות: הלבשת אווטאר, חיות מחמד, עידנים חדשים, קניית יהלומים.
+ * החנות (באי המרכזי): במת תצוגה תלת-ממדית חזיתית עם סיבוב איטי (Idle Orbit) ומיקוד מצלמה לפי הפריט,
+ * ורשת כרטיסים (2 בשורה) עם תמונת תלת-ממד לכל פריט, שם קצר וכפתור רכישה ביהלומים.
+ * יהלומים מרוויחים בקרבות — אין קנייה בכסף.
  */
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import { h } from './UI.js';
-import { t, tn, getLang, PET_EN, ITEM_EN } from './i18n.js';
-import { WEARABLES, SLOT_LABELS, SLOT_LABELS_EN, RARITY, GEM_PACKS, ERA_PRICES, ECONOMY, formatPrice, formatGems, packBadges } from '../config/EconomyConfig.js';
-import { PaymentProvider } from '../core/Economy.js';
+import { h, withIcon } from './UI.js';
+import { t, tn, shortName, islandName } from './i18n.js';
+import { icon } from './icons.js';
+import { WEARABLES, RARITY, formatGems } from '../config/EconomyConfig.js';
 import { PETS, PET_IDS } from '../config/Pets.js';
-import { ERAS } from '../config/Eras.js';
 import { PlayerAvatar3D } from '../scene/PlayerAvatar3D.js';
 import { PetCompanion3D } from '../scene/PetCompanion3D.js';
 import { FX } from '../scene/Particles.js';
+import { HUB_ID, islandDef, residentPrice, petColorPrice } from '../config/Islands.js';
 
+const AURA_ICON = { aura_none: 'noAura', aura_golden_sparks: 'sparkle', aura_fire_ring: 'fireRing', aura_cosmic_lightning: 'boltPurple' };
+const SLOT_ICON = { head: 'crown', armor: 'shirt', weapon: 'swords', aura: 'sparkle' };
+const SLOT_SHORT = { head: ['כתרים', 'Crowns'], armor: ['גלימות', 'Armor'], weapon: ['נשקים', 'Weapons'], aura: ['הילות', 'Auras'] };
+
+/** במת התצוגה: מצלמה חזיתית, נדנוד עדין, גרירה מסובבת וחוזרת לחזית, מיקוד לפי הקטגוריה */
 class MiniStage {
   constructor(canvas) {
     this.canvas = canvas;
@@ -25,27 +31,30 @@ class MiniStage {
     const pm = new THREE.PMREMGenerator(this.renderer);
     this.scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
     pm.dispose();
-    this.camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
-    this.camera.position.set(0, 2.1, 6.4);
-    this.camera.lookAt(0, 1.0, 0);
+    this.camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
     this.scene.add(new THREE.HemisphereLight(0xffeedd, 0x2a1a3a, 1.1));
-    const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(3, 5, 4); this.scene.add(key);
-    const rim = new THREE.DirectionalLight(0xb08aff, 1.6); rim.position.set(-4, 3, -4); this.scene.add(rim);
+    const key = new THREE.DirectionalLight(0xffffff, 2.4); key.position.set(2.5, 4.5, 5); this.scene.add(key);
+    const rim = new THREE.DirectionalLight(0xb08aff, 1.8); rim.position.set(-4, 3, -4); this.scene.add(rim);
     this.world = new THREE.Group();
     this.scene.add(this.world);
-    const plat = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.8, 0.2, 48), new THREE.MeshStandardMaterial({ color: 0x2a1f40, metalness: 0.6, roughness: 0.3 }));
+    const plat = new THREE.Mesh(new THREE.CylinderGeometry(2.7, 2.9, 0.2, 48), new THREE.MeshStandardMaterial({ color: 0x2a1f40, metalness: 0.6, roughness: 0.3 }));
     plat.position.y = -0.1;
     this.world.add(plat);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.62, 0.04, 8, 64), new THREE.MeshStandardMaterial({ color: 0xf2c94c, metalness: 1, roughness: 0.2, emissive: 0x6a4a10, emissiveIntensity: 0.5 }));
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.72, 0.045, 8, 64), new THREE.MeshStandardMaterial({ color: 0xf2c94c, metalness: 1, roughness: 0.2, emissive: 0x6a4a10, emissiveIntensity: 0.5 }));
     ring.rotation.x = Math.PI / 2;
     this.world.add(ring);
     this.updaters = new Set();
-    this.rotY = 0; this.vel = 0.25;
-    this.time = 0;
+    this.drag = 0; this.dragVel = 0; this.time = 0;
+    this.focus = { target: new THREE.Vector3(0.15, 1.0, 0), dist: 5.4, height: 0.55 };
+    this.camTarget = this.focus.target.clone();
+    this.camDist = this.focus.dist;
     let dragging = false, lastX = 0;
     canvas.addEventListener('pointerdown', (e) => { dragging = true; lastX = e.clientX; canvas.setPointerCapture(e.pointerId); });
-    canvas.addEventListener('pointermove', (e) => { if (!dragging) return; const dx = e.clientX - lastX; lastX = e.clientX; this.rotY += dx * 0.012; this.vel = dx * 0.6; });
-    canvas.addEventListener('pointerup', () => { dragging = false; });
+    canvas.addEventListener('pointermove', (e) => { if (!dragging) return; const dx = e.clientX - lastX; lastX = e.clientX; this.drag += dx * 0.012; this.dragVel = dx * 0.4; });
+    const up = () => { dragging = false; };
+    canvas.addEventListener('pointerup', up);
+    canvas.addEventListener('pointercancel', up);
+    this.dragging = () => dragging;
     this.loop = this.loop.bind(this);
     this.running = true;
     this.last = performance.now();
@@ -53,162 +62,206 @@ class MiniStage {
   }
   onUpdate(fn) { this.updaters.add(fn); return () => this.updaters.delete(fn); }
   addShake() {}
+  setFocus(target, dist, height = 0.45) { this.focus = { target: new THREE.Vector3(...target), dist, height }; }
   loop(now) {
     if (!this.running) return;
     requestAnimationFrame(this.loop);
     const dt = Math.min(0.05, (now - this.last) / 1000); this.last = now; this.time += dt;
     const w = this.canvas.clientWidth, hh = this.canvas.clientHeight;
     if (w && hh && (this.canvas.width !== Math.floor(w * this.renderer.getPixelRatio()))) { this.renderer.setSize(w, hh, false); this.camera.aspect = w / hh; this.camera.updateProjectionMatrix(); }
-    this.vel *= 0.92; this.rotY += dt * 0.25 + this.vel * dt * 0.02;
-    this.world.rotation.y = this.rotY;
+    // גרירה עם אינרציה, ואז חזרה רכה לחזית + נדנוד איטי שמזמין לגרור
+    if (!this.dragging()) { this.drag += this.dragVel * dt * 0.02; this.dragVel *= 0.9; this.drag *= Math.pow(0.35, dt); }
+    this.world.rotation.y = this.drag + Math.sin(this.time * 0.45) * 0.26;
+    const f = this.focus;
+    const k = 1 - Math.exp(-dt * 5);
+    this.camTarget.lerp(f.target, k);
+    this.camDist += (f.dist - this.camDist) * k;
+    this.camera.position.set(this.camTarget.x, this.camTarget.y + f.height * (this.camDist / 4), this.camTarget.z + this.camDist);
+    this.camera.lookAt(this.camTarget);
     this.updaters.forEach((fn) => fn(dt, this.time));
     this.renderer.render(this.scene, this.camera);
   }
   dispose() { this.running = false; this.renderer.dispose(); try { this.renderer.forceContextLoss(); } catch { /* ok */ } }
 }
 
-const itemName = (it) => tn(it.name, ITEM_EN[it.id]);
-const petName = (id) => tn(PETS[id].name, PET_EN[id]);
-const packName = (pk) => tn(pk.name, pk.nameEn);
-/** מחיר לתצוגה: מחיר רשמי מהחנות (Google Play Billing) אם הספק מחזיר אחד, אחרת מחיר הייחוס מהקונפיג */
-const priceOf = (pk) => (typeof PaymentProvider.priceLabel === 'function' && PaymentProvider.priceLabel(pk)) || formatPrice(pk.price);
+// נקודות מיקוד (במרחב הבמה): האווטאר משמאל, החיה מימין
+const AV = [-0.75, 0, 0.25];
+const FOCUS = {
+  all: [[0.1, 1.0, 0], 5.4, 0.55],
+  head: [[AV[0] + 0.05, 1.5, AV[2]], 2.2, 0.15],
+  armor: [[AV[0] + 0.05, 1.05, AV[2]], 2.9, 0.25],
+  weapon: [[AV[0] + 0.25, 1.0, AV[2] + 0.2], 3.1, 0.25],
+  aura: [[AV[0] + 0.1, 0.95, AV[2]], 4.0, 0.4],
+  pets: [[1.15, 1.0, -0.1], 3.0, 0.3],
+};
 
 export function openKingdomShop(app, { tab = 'wardrobe' } = {}) {
   const { economy, ui, sound } = app;
   const maxEra = app.progression.maxEraReached();
   let preview = { ...economy.loadout };
   let previewPet = economy.pet;
-  let curTab = tab;
+  let curTab = ['pets', 'bots'].includes(tab) ? tab : 'wardrobe';
+  let previewBot = null;
   let slot = 'head';
 
   const canvas = h('canvas', { role: 'img', 'aria-label': t('previewLabel') });
-  const stageBox = h('div', { class: 'shop-stage' }, canvas, h('div', { class: 'stage-hint', 'aria-hidden': 'true' }, t('dragRotate')));
+  const stageBox = h('div', { class: 'shop-stage' }, canvas, h('div', { class: 'stage-hint', 'aria-hidden': 'true' }, icon('chevron', { size: 12, cls: 'flip' }), t('dragRotate'), icon('chevron', { size: 12 })));
   const gemsEl = h('b', {}, formatGems(economy.gems));
-  const head = h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingInlineEnd: '40px' } },
-    h('div', { class: 'logo small' }, h('span', { class: 'he' }, t('appTitle')), h('span', { class: 'en' }, t('logoEn'))),
-    h('div', { style: { fontSize: '15px', fontWeight: 800 } }, t('shopTitle')),
-    h('div', { class: 'gems-pill', style: { paddingInlineEnd: '10px' } }, '💎 ', gemsEl));
-  const giftBanner = h('button', { class: 'banner-gift shimmer', onclick: () => app.openDaily() }, h('span', {}, t('dailyGift')), h('span', {}, economy.hasDailyBadge() ? '✨ !' : '›'));
+  const giftBadge = h('span', { class: 'badge-dot', hidden: !economy.hasDailyBadge() }, '!');
+  const head = h('div', { class: 'shop-head' },
+    h('h2', {}, icon('chest', { size: 26 }), h('span', {}, t('shopTitle'))),
+    h('div', { class: 'head-right' },
+      h('button', { class: 'icon-btn round tap gift', 'aria-label': t('dailyGift'), onclick: () => app.openDaily() }, icon('gift', { size: 24 }), giftBadge),
+      h('div', { class: 'gems-pill', 'aria-label': t('gems') }, icon('gem', { size: 20 }), gemsEl)));
   const tabs = h('div', { class: 'tabs', role: 'tablist' });
   const sub = h('div', { class: 'subtabs' });
-  const list = h('div', { class: 'shop-list', role: 'tabpanel' });
-  const body = h('div', { class: 'shop' }, head, giftBanner, stageBox, tabs, sub, list);
-  const m = ui.modal({ body, full: true, label: t('shopTitle'), onClose: () => { stage.dispose(); unsub(); app.applyLoadout(); } });
+  const grid = h('div', { class: 'shop-grid', role: 'tabpanel' });
+  const body = h('div', { class: 'shop' }, stageBox, tabs, sub, grid, h('p', { class: 'earn-note' }, ...withIcon('swords', tn('יהלומים מרוויחים בניצחונות על בוטים ועל פיראטי הזמן.', 'Gems are earned by beating bots and the Time Pirates.'), 14)));
+  // הסצנה הראשית מוסתרת מאחורי החנות — משהים אותה כדי שהבמה תרוץ חלק
+  const wasPaused = app.sm.paused;
+  app.sm.paused = true;
+  const m = ui.modal({ title: head, label: t('shopTitle'), body, full: true, className: 'shop-modal', onClose: () => { stage.dispose(); unsub(); app.sm.paused = wasPaused; app.applyLoadout(); } });
 
   // במת תצוגה
   const stage = new MiniStage(canvas);
   const miniFx = new FX(stage);
   const avatar = new PlayerAvatar3D(stage, miniFx);
-  avatar.place(-0.9, 0.2, 0.35);
+  avatar.place(AV[0], AV[2], 0.28);
   avatar.setEraMaterials(app.currentEraMaterials());
   const pet = new PetCompanion3D(stage, miniFx, sound);
-  pet.place(1.25, 0.3, -0.4);
+  pet.place(1.15, -0.1, -0.35);
   pet.setEraMaterials(app.currentEraMaterials());
-  const refreshPreview = () => { avatar.setLoadout(preview); pet.setPet(previewPet); };
+  let previewHue = economy.petHue;
+  const refreshPreview = () => {
+    if (previewBot) { const b = islandDef(previewBot).bot; avatar.setLoadout(b.loadout); avatar.setLook(b.look); pet.setPet(b.pet, { hue: b.petHue }); return; }
+    avatar.setLoadout(preview); avatar.setLook({}); pet.setPet(previewPet, { hue: previewHue });
+  };
   refreshPreview();
-  avatar.lookAt(new THREE.Vector3(0, 1.2, 6));
+  avatar.lookAt(new THREE.Vector3(0, 1.3, 6));
   pet.lookAt(new THREE.Vector3(0, 1.0, 6));
+  const focus = (k) => { const [tg, d, hgt] = FOCUS[k] || FOCUS.all; stage.setFocus(tg, d, hgt); };
 
-  const unsub = economy.onChange(() => { gemsEl.textContent = formatGems(economy.gems); renderList(); });
+  const unsub = economy.onChange(() => { gemsEl.textContent = formatGems(economy.gems); giftBadge.hidden = !economy.hasDailyBadge(); render(); });
 
-  const needGems = (res) => {
-    if (res.ok) { sound.coin(); ui.toast(t('purchased'), { kind: 'good' }); return; }
-    ui.toast(res.reason || t('notEnoughGems'), { kind: 'bad' });
-    if (res.needGems) setTab('gems');
+  const result = (res) => {
+    if (res.ok) { sound.coin(); ui.toast(t('purchased'), { kind: 'good', icon: 'check' }); return; }
+    ui.toast(res.needGems ? tn(`חסרים ${formatGems(res.needGems)} יהלומים — נצח עוד קרבות!`, `${formatGems(res.needGems)} more gems needed — win more battles!`) : res.reason, { kind: 'bad', icon: 'gem' });
   };
 
-  const TABS = [['wardrobe', t('tabWardrobe')], ['pets', t('tabPets')], ['eras', t('tabEras')], ['gems', t('tabGems')]];
-  function setTab(id) { curTab = id; renderTabs(); renderList(); }
-  function renderTabs() {
-    tabs.replaceChildren(...TABS.map(([id, label]) => h('button', { role: 'tab', 'aria-selected': String(curTab === id), onclick: () => setTab(id) }, label)));
-    sub.replaceChildren();
+  function setTab(id) { curTab = id; if (id !== 'bots' && previewBot) { previewBot = null; refreshPreview(); } focus(id === 'pets' ? 'pets' : id === 'bots' ? 'all' : slot); render(); }
+  function render() {
+    tabs.replaceChildren(...[['wardrobe', 'shirt', t('tabWardrobe')], ['pets', 'paw', t('tabPets')], ['bots', 'users', t('tabBots')]].map(([id, ic, label]) => h('button', { class: 'tap', role: 'tab', 'aria-selected': String(curTab === id), onclick: () => setTab(id) }, icon(ic, { size: 20 }), h('span', {}, label))));
     sub.hidden = curTab !== 'wardrobe';
-    if (curTab === 'wardrobe') {
-      Object.keys(WEARABLES).forEach((s) => sub.appendChild(h('button', { 'aria-pressed': String(slot === s), onclick: () => { slot = s; renderTabs(); renderList(); } }, tn(SLOT_LABELS[s], SLOT_LABELS_EN[s]))));
+    if (curTab === 'wardrobe') sub.replaceChildren(...Object.keys(WEARABLES).map((s) => h('button', { class: 'tap', 'aria-pressed': String(slot === s), onclick: () => { slot = s; focus(s); render(); } }, icon(SLOT_ICON[s], { size: 18 }), h('span', {}, tn(...SLOT_SHORT[s])))));
+    const won = app.progression.conqueredList().filter((id) => id !== HUB_ID || app.progression.isConquered(HUB_ID)).sort((a, b) => a - b);
+    if (curTab === 'wardrobe') grid.replaceChildren(...WEARABLES[slot].map(itemCard));
+    else if (curTab === 'pets') grid.replaceChildren(...PET_IDS.map(petCard), ...won.filter((id) => islandDef(id).bot.petHue).map(petColorCard));
+    else grid.replaceChildren(...won.map(botCard), h('div', { class: 'card hint-card' }, icon('flag', { size: 34 }), h('small', {}, won.length ? t('moreBotsHint') : t('noBotsHint'))));
+  }
+
+  /** תמונה בכרטיס: תלת-ממד (מרונדר ברקע ונשמר במטמון) או אייקון להילות */
+  function thumb(kind, id) {
+    const box = h('div', { class: 'thumb' });
+    if (kind === 'item' && AURA_ICON[id]) { box.appendChild(icon(AURA_ICON[id], { size: 64 })); return box; }
+    const key = kind === 'item' ? `item:${id}` : `pet:${id}`;
+    const ready = app.thumbs.get(key);
+    if (ready) box.appendChild(h('img', { src: ready, alt: '' }));
+    else {
+      box.appendChild(icon(kind === 'item' ? SLOT_ICON[slot] : 'paw', { size: 40, cls: 'ph' }));
+      (kind === 'item' ? app.thumbs.item(id, 256) : app.thumbs.pet(id, 256)).then((url) => { if (url) box.replaceChildren(h('img', { src: url, alt: '' })); });
     }
+    return box;
+  }
+  const buyBtn = (price, onBuy, label) => h('button', { class: 'buy tap', 'aria-label': `${t('buy')} ${label} ${formatGems(price)}`, onclick: (e) => { e.stopPropagation(); onBuy(); } }, icon('gem', { size: 18 }), h('b', {}, formatGems(price)));
+  const regionTag = (r) => (r ? h('span', { class: 'region-tag' }, islandName(r)) : null);
+
+  function itemCard(it) {
+    const owned = economy.ownsItem(it.id);
+    const equipped = economy.loadout[slot] === it.id;
+    const r = RARITY[it.rarity];
+    const trial = economy.trialLeft(it.id);
+    const frag = economy.s.fragments[it.id];
+    const name = shortName(it.id);
+    let foot;
+    if (equipped) foot = h('span', { class: 'state on' }, icon('check', { size: 16 }), t('equipped'));
+    else if (owned) foot = h('button', { class: 'equip tap', onclick: (e) => { e.stopPropagation(); economy.equipItem(it.id); preview = { ...economy.loadout }; refreshPreview(); app.applyLoadout(); sound.pop(); if (it.price > 0) app.achievements.unlock('dresser'); } }, t('equip'));
+    else foot = buyBtn(it.price, () => result(economy.buyItem(it.id)), name);
+    return h('div', { class: `card rar-${it.rarity} ${preview[slot] === it.id ? 'sel' : ''}`, role: 'button', tabindex: '0', 'aria-label': `${name} — ${tn(r.label, r.labelEn)}`,
+      onclick: () => { preview = { ...preview, [slot]: it.id }; refreshPreview(); focus(slot); sound.ui(); render(); },
+      onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } } },
+      thumb('item', it.id),
+      h('span', { class: 'rar-dot', style: { background: r.color }, title: tn(r.label, r.labelEn) }),
+      regionTag(it.island),
+      trial ? h('span', { class: 'trial' }, icon('hourglass', { size: 12 }), `${Math.ceil(trial / 3600000)}${t('hours')}`) : null,
+      frag ? h('span', { class: 'trial' }, icon('puzzle', { size: 12 }), `${frag}/3`) : null,
+      h('b', { class: 'nm' }, name),
+      h('div', { class: 'card-foot' }, foot));
   }
 
-  function trialBadge(id) {
-    const ms = economy.trialLeft(id);
-    return ms ? h('span', { class: 'rar', style: { color: '#7fd8ff' } }, ` ⏳ ${t('trialLeft')} ${Math.ceil(ms / 3600000)}${t('hours')}`) : null;
+  function petCard(id) {
+    const p = PETS[id];
+    const owned = economy.ownsPet(id, maxEra);
+    const equipped = economy.pet === id && !economy.petHue;
+    const name = shortName(id);
+    let foot;
+    if (equipped) foot = h('span', { class: 'state on' }, icon('check', { size: 16 }), t('equipped'));
+    else if (owned) foot = h('button', { class: 'equip tap', onclick: (e) => { e.stopPropagation(); economy.equipPet(id, maxEra); previewPet = id; refreshPreview(); app.applyLoadout(); } }, t('equip'));
+    else if (p.premium) foot = buyBtn(p.price, () => result(economy.buyPet(id)), name);
+    else foot = h('span', { class: 'state' }, icon('lock', { size: 14 }), `${t('era')} ${p.unlockEra}`);
+    return h('div', { class: `card rar-${p.premium ? 'legendary' : 'common'} ${previewPet === id ? 'sel' : ''}`, role: 'button', tabindex: '0', 'aria-label': name,
+      onclick: () => { previewBot = null; previewPet = id; previewHue = 0; refreshPreview(); focus('pets'); sound.petVoice(p.voice); render(); },
+      onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } } },
+      thumb('pet', id),
+      regionTag(p.island),
+      h('b', { class: 'nm' }, name),
+      h('div', { class: 'card-foot' }, foot));
   }
 
-  function renderList() {
-    list.replaceChildren();
-    if (curTab === 'wardrobe') {
-      for (const it of WEARABLES[slot]) {
-        const owned = economy.ownsItem(it.id);
-        const equipped = economy.loadout[slot] === it.id;
-        const r = RARITY[it.rarity];
-        const acts = h('div', { class: 'acts' },
-          h('button', { class: 'btn small', onclick: () => { preview = { ...preview, [slot]: it.id }; refreshPreview(); sound.ui(); } }, t('tryOn')),
-          !owned ? h('button', { class: 'btn small primary', onclick: () => needGems(economy.buyItem(it.id)) }, `${t('buyFor')}${formatGems(it.price)} 💎`) : null,
-          owned && !equipped ? h('button', { class: 'btn small', onclick: () => { economy.equipItem(it.id); preview = { ...economy.loadout }; refreshPreview(); app.applyLoadout(); sound.pop(); if (it.price > 0) app.achievements.unlock('dresser'); } }, t('equip')) : null,
-          equipped ? h('button', { class: 'btn small', disabled: true }, `✓ ${t('equipped')}`) : null);
-        list.appendChild(h('div', { class: `item ${preview[slot] === it.id ? 'sel' : ''}` },
-          h('div', {}, h('b', {}, itemName(it)), h('span', { class: 'rar', style: { color: r.color } }, tn(r.label, r.labelEn)), trialBadge(it.id), economy.s.fragments[it.id] ? h('span', { class: 'rar' }, ` 🧩 ${economy.s.fragments[it.id]}/${ECONOMY.fragmentsToUnlock}`) : null),
-          acts));
-      }
-    } else if (curTab === 'pets') {
-      for (const id of PET_IDS) {
-        const p = PETS[id];
-        const owned = economy.ownsPet(id, maxEra);
-        const equipped = economy.pet === id;
-        const locked = !p.premium && !owned;
-        const acts = h('div', { class: 'acts' },
-          h('button', { class: 'btn small', onclick: () => { previewPet = id; refreshPreview(); sound.petVoice(p.voice); } }, t('tryOn')),
-          p.premium && !economy.s.pets.includes(id) ? h('button', { class: 'btn small primary', onclick: () => needGems(economy.buyPet(id)) }, `${t('buyFor')}${formatGems(p.price)} 💎`) : null,
-          owned && !equipped ? h('button', { class: 'btn small', onclick: () => { economy.equipPet(id, maxEra); previewPet = id; refreshPreview(); app.applyLoadout(); } }, t('equip')) : null,
-          equipped ? h('button', { class: 'btn small', disabled: true }, `✓ ${t('equipped')}`) : null,
-          locked ? h('button', { class: 'btn small', disabled: true }, `🔒 ${t('unlockAt')} ${p.unlockEra}`) : null);
-        list.appendChild(h('div', { class: `item ${previewPet === id ? 'sel' : ''}` }, h('div', {}, h('b', {}, `${p.icon} ${petName(id)}`), h('span', { class: 'rar', style: { color: p.premium ? '#ffc94d' : '#b9b2a3' } }, p.premium ? tn('בלעדי', 'Exclusive') : tn('בסיסי', 'Base')), trialBadge(id), h('div', { style: { fontSize: '11px', color: 'var(--muted)' } }, tn(p.desc, p.descEn))), acts));
-      }
-    } else if (curTab === 'eras') {
-      const missing = ERAS.filter((e) => e.premium && !economy.ownsEra(e.id));
-      if (missing.length) {
-        list.appendChild(h('div', { class: 'pack' }, h('div', { class: 'gem-ic' }, '🏯'), h('div', {}, h('b', {}, t('bundle')), h('div', { style: { fontSize: '11px', color: 'var(--muted)' } }, ERAS.filter((e) => e.premium).map((e) => tn(e.name, e.en)).join(' · '))),
-          h('button', { class: 'btn primary small', onclick: () => needGems(economy.buyEraBundle()) }, `${formatGems(ERA_PRICES.bundle)} 💎`)));
-      }
-      for (const e of ERAS.filter((x) => x.premium)) {
-        const owned = economy.ownsEra(e.id);
-        const p = e.palette;
-        const sw = h('div', { class: 'sw', style: { width: '52px', height: '52px', borderRadius: '12px', background: `linear-gradient(180deg, #${p.skyTop.toString(16).padStart(6, '0')}, #${p.skyMid.toString(16).padStart(6, '0')} 55%, #${p.skyHorizon.toString(16).padStart(6, '0')})` } });
-        list.appendChild(h('div', { class: 'item', style: { gridTemplateColumns: '52px 1fr auto' } }, sw,
-          h('div', {}, h('b', {}, `${t('era')} ${e.id}: ${tn(e.name, e.en)}`), h('div', { style: { fontSize: '11px', color: 'var(--muted)' } }, `${tn(e.stageNames.join(' · '), e.stageNamesEn.join(' · '))} — ${tn(e.materials, e.materialsEn)}`)),
-          owned ? h('button', { class: 'btn small', disabled: !app.progression.baseComplete(), onclick: () => { m.close(); app.visitEra(e.id); } }, app.progression.baseComplete() ? t('visit') : `✓ ${t('owned')}`)
-            : h('button', { class: 'btn small primary', onclick: () => needGems(economy.buyEra(e.id)) }, `${formatGems(ERA_PRICES.single)} 💎`)));
-      }
-    } else if (curTab === 'gems') {
-      const sandboxSw = h('button', { class: 'switch', role: 'switch', 'aria-checked': String(economy.sandbox), 'aria-label': t('sandbox'), onclick: () => { economy.setSandbox(!economy.sandbox); } });
-      list.appendChild(h('div', { class: 'toggle' }, h('span', {}, `🧪 ${t('sandbox')}`), sandboxSw));
-      const badges = packBadges();
-      for (const pk of GEM_PACKS) {
-        const b = badges[pk.id];
-        const tag = b.best ? `⭐ ${t('bestValue')}` : b.bonusPct > 0 ? `‎+${b.bonusPct}% ${t('bonus')}` : '';
-        list.appendChild(h('div', { class: 'pack' }, h('div', { class: 'gem-ic', 'aria-hidden': 'true' }, pk.gems >= 5000 ? '👑' : pk.gems >= 2000 ? '🏆' : pk.gems >= 750 ? '🧰' : '💎'),
-          h('div', {}, h('b', {}, packName(pk)), tag ? h('span', { class: 'tag' }, tag) : null, h('div', { style: { fontSize: '13px', color: 'var(--gold-2)', direction: 'ltr', textAlign: getLang() === 'en' ? 'left' : 'right' } }, `${formatGems(pk.gems)} 💎`)),
-          h('button', { class: 'btn primary small', 'aria-label': `${packName(pk)}: ${formatGems(pk.gems)} 💎 — ${priceOf(pk)}`, onclick: () => buyPack(pk.id) }, priceOf(pk))));
-      }
-      if (economy.sandbox) list.appendChild(h('button', { class: 'btn', onclick: () => { economy.addGems(ECONOMY.devFreeGems, 'dev'); sound.coin(); } }, t('devGems')));
-      list.appendChild(h('p', { style: { fontSize: '11px' } }, economy.sandbox ? `${t('sandboxNote')} ${t('pricesNote')}` : tn('רכישות מתבצעות דרך חנות האפליקציות.', 'Purchases are processed by the app store.')));
-    }
+  /** בוט שנכבש: קונים → גר באי המרכזי ואפשר להזמין אותו למשחק */
+  function botCard(id) {
+    const d = islandDef(id), b = d.bot;
+    const owned = economy.ownsResident(id);
+    const price = residentPrice(id);
+    const name = tn(b.name.he, b.name.en);
+    const box = h('div', { class: 'thumb portrait-thumb' });
+    const ready = app.thumbs.get(`bot${id}`);
+    if (ready) box.appendChild(h('img', { src: ready, alt: '' }));
+    else { box.appendChild(icon('crown', { size: 40, cls: 'ph' })); app.thumbs.avatar(`bot${id}`, b.loadout, b.look, 220).then((url) => { if (url) box.replaceChildren(h('img', { src: url, alt: '' })); }); }
+    const foot = owned
+      ? h('button', { class: 'equip tap', onclick: (e) => { e.stopPropagation(); m.close(); app.playResident(id); } }, icon('swords', { size: 15 }), t('invitePlay'))
+      : buyBtn(price, () => { const res = economy.buyResident(id, price); result(res); if (res.ok) { app.museum.setResidents?.(economy.s.residents); app.achievements.unlock('dresser'); } }, name);
+    return h('div', { class: `card rar-${d.boss ? 'legendary' : 'rare'} ${previewBot === id ? 'sel' : ''}`, role: 'button', tabindex: '0', 'aria-label': name,
+      onclick: () => { previewBot = id; refreshPreview(); focus('all'); sound.ui(); render(); },
+      onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } } },
+      box, owned ? h('span', { class: 'trial' }, icon('home', { size: 12 }), t('resident')) : null,
+      h('span', { class: 'region-tag' }, tn(d.era.he, d.era.en)),
+      h('b', { class: 'nm' }, name), h('div', { class: 'card-foot' }, foot));
   }
 
-  async function buyPack(id) {
-    const res = await economy.purchaseGemPack(id, (pack) => new Promise((resolve) => {
-      let ok = false;
-      ui.modal({
-        title: t('sandboxCheckout'), center: true,
-        body: h('div', {}, h('p', {}, `${packName(pack)} — ${formatGems(pack.gems)} 💎`), h('p', { style: { fontSize: '22px', color: 'var(--gold-2)', fontWeight: 800 } }, priceOf(pack)), h('p', {}, `🧪 ${t('sandboxNote')}`)),
-        actions: [{ label: t('cancel'), onClick: (c) => c.close() }, { label: t('confirmPurchase'), primary: true, onClick: (c) => { ok = true; c.close(); } }],
-        onClose: () => resolve(ok),
-      });
-    }));
-    if (res.ok) { sound.jackpot(); ui.toast(`‎+${formatGems(res.gems)} 💎`, { kind: 'gold' }); }
-    else if (!res.cancelled) ui.toast(res.reason, { kind: 'bad' });
+  /** הצבע הייחודי של חיית הבוט (כולל החיה עצמה) */
+  function petColorCard(id) {
+    const b = islandDef(id).bot;
+    const hue = b.petHue;
+    const owned = economy.ownsPetColor(b.pet, hue);
+    const equipped = economy.pet === b.pet && Math.abs(economy.petHue - Math.round(hue * 100) / 100) < 0.005;
+    const price = petColorPrice(id);
+    const name = tn(`${shortName(b.pet)} של ${b.name.he}`, `${b.name.en}'s ${shortName(b.pet)}`);
+    const box = h('div', { class: 'thumb' });
+    const key = `pet:${b.pet}:${Math.round(hue * 100) / 100}`;
+    const ready = app.thumbs.get(key);
+    if (ready) box.appendChild(h('img', { src: ready, alt: '' }));
+    else { box.appendChild(icon('paw', { size: 40, cls: 'ph' })); app.thumbs.pet(b.pet, 256, { hue }).then((url) => { if (url) box.replaceChildren(h('img', { src: url, alt: '' })); }); }
+    let foot;
+    if (equipped) foot = h('span', { class: 'state on' }, icon('check', { size: 16 }), t('equipped'));
+    else if (owned) foot = h('button', { class: 'equip tap', onclick: (e) => { e.stopPropagation(); economy.equipPetColor(b.pet, hue); previewPet = b.pet; previewHue = economy.petHue; refreshPreview(); app.applyLoadout(); } }, t('equip'));
+    else foot = buyBtn(price, () => result(economy.buyPetColor(b.pet, hue, price)), name);
+    return h('div', { class: `card rar-epic ${previewPet === b.pet && Math.abs(previewHue - hue) < 0.01 ? 'sel' : ''}`, role: 'button', tabindex: '0', 'aria-label': name,
+      onclick: () => { previewBot = null; previewPet = b.pet; previewHue = hue; refreshPreview(); focus('pets'); sound.ui(); render(); },
+      onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } } },
+      box, h('span', { class: 'region-tag' }, `${t('island')} ${id}`), h('b', { class: 'nm' }, name), h('div', { class: 'card-foot' }, foot));
   }
 
-  renderTabs();
-  renderList();
+  focus(curTab === 'pets' ? 'pets' : curTab === 'bots' ? 'all' : 'head');
+  render();
   return m;
 }

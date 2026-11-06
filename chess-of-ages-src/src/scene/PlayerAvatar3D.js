@@ -231,6 +231,40 @@ export function buildWearable(id, ctx) {
       };
       break;
     }
+    // ---- פיראטי הזמן (לבוש של אויבים, לא נמכר בחנות) ----
+    case 'hat_tricorn': {
+      const g = new THREE.Group();
+      const felt = std(0x1a1620, 0.8);
+      const gold = std(0xf2c14e, 0.25, 1);
+      g.add(mesh(G.cyl(0.22, 0.24, 0.035, 3), felt, { pos: [0, 0.02, 0], rot: [0, Math.PI / 6, 0], cast: true }));
+      g.add(mesh(G.cone(0.14, 0.16, 12), felt, { pos: [0, 0.1, 0], cast: true }));
+      g.add(mesh(G.torus(0.14, 0.012, 6, 20), gold, { pos: [0, 0.04, 0], rot: [Math.PI / 2, 0, 0] }));
+      // סמל שעון החול של פיראטי הזמן
+      g.add(mesh(G.cone(0.03, 0.05, 6), std(0x9ff6ff, 0.2, 0, { emissive: 0x33e8ff, emissiveIntensity: 1.4 }), { pos: [0, 0.1, 0.14], rot: [Math.PI, 0, 0] }));
+      g.add(mesh(G.cone(0.03, 0.05, 6), std(0x9ff6ff, 0.2, 0, { emissive: 0x33e8ff, emissiveIntensity: 1.4 }), { pos: [0, 0.05, 0.14] }));
+      g.position.y = 0.06;
+      out.head = g; break;
+    }
+    case 'coat_pirate': {
+      const coat = new THREE.MeshStandardMaterial({ color: 0x5a1a2a, roughness: 0.8, side: THREE.DoubleSide });
+      const t = new THREE.Group();
+      t.add(mesh(G.capsule(0.175, 0.3, 4, 12), std(0x5a1a2a, 0.8), { pos: [0, 0.22, 0], cast: true }));
+      for (let i = 0; i < 3; i++) t.add(mesh(G.sph(0.018, 6, 4), std(0xf2c14e, 0.25, 1), { pos: [0.05, 0.12 + i * 0.1, 0.17] }));
+      t.add(mesh(G.box(0.36, 0.05, 0.36), std(0x2a1a14, 0.7), { pos: [0, 0.02, 0] }));
+      out.torso = t;
+      out.hips = mesh(new THREE.CylinderGeometry(0.19, 0.34, 0.5, 14, 1, true), coat, { pos: [0, -0.2, 0], cast: true });
+      break;
+    }
+    case 'cutlass': {
+      const g = new THREE.Group();
+      const bg = new THREE.BoxGeometry(0.05, 0.62, 0.012); const pp = bg.attributes.position;
+      for (let i = 0; i < pp.count; i++) { const y = pp.getY(i); pp.setX(i, pp.getX(i) + Math.pow(Math.max(0, y + 0.31), 2) * 0.12); }
+      bg.computeVertexNormals();
+      g.add(mesh(bg, std(0xd8e0ea, 0.15, 1, { emissive: 0x33e8ff, emissiveIntensity: 0.35 }), { pos: [0, 0.42, 0], cast: true }));
+      g.add(mesh(G.torus(0.05, 0.012, 6, 12, Math.PI), std(0xf2c14e, 0.25, 1), { pos: [0, 0.08, 0.0], rot: [0, Math.PI / 2, 0] }));
+      g.add(mesh(G.cyl(0.018, 0.018, 0.14, 8), std(0x2a1a14, 0.7), { pos: [0, 0.03, 0] }));
+      out.hand = g; break;
+    }
     default:
   }
   return out;
@@ -284,6 +318,9 @@ export class PlayerAvatar3D {
     this.body = b;
     this.group.add(b);
     const cloth = std(0x3a3448, 0.85);
+    // חומרים פרטיים לכל דמות — כדי שלכל בוט יהיה גוון עור, שיער ובגד משלו
+    this.skinMat = SKIN.clone(); this.hairMat = std(0x3a2418, 0.9); this.clothMat = cloth;
+    const skin = this.skinMat;
     this.hips = new THREE.Group(); b.add(this.hips);
     this.hips.add(mesh(G.sph(0.17, 12, 10), cloth, { scale: [1, 0.6, 0.9] }));
     this.legs = [-1, 1].map((s) => {
@@ -299,12 +336,12 @@ export class PlayerAvatar3D {
     this.torsoBase = mesh(G.capsule(0.16, 0.28, 4, 12), cloth, { pos: [0, 0.22, 0], cast: true });
     this.torso.add(this.torsoBase);
     this.neck = new THREE.Group(); this.neck.position.y = 0.5; this.torso.add(this.neck);
-    this.neck.add(mesh(G.cyl(0.05, 0.06, 0.08, 8), SKIN, {}));
+    this.neck.add(mesh(G.cyl(0.05, 0.06, 0.08, 8), skin, {}));
     this.head = new THREE.Group(); this.head.position.y = 0.17; this.neck.add(this.head);
-    this.head.add(mesh(G.sph(0.15, 18, 14), SKIN, { scale: [0.95, 1.08, 1], cast: true }));
+    this.head.add(mesh(G.sph(0.15, 18, 14), skin, { scale: [0.95, 1.08, 1], cast: true }));
     for (const s of [-1, 1]) this.head.add(mesh(G.sph(0.02, 8, 6), std(0x1a1210, 0.3), { pos: [s * 0.05, 0.02, 0.135] }));
-    this.head.add(mesh(G.box(0.02, 0.04, 0.03), SKIN, { pos: [0, -0.02, 0.15] }));
-    this.head.add(mesh(G.sph(0.12, 12, 10), std(0x3a2418, 0.9), { pos: [0, 0.04, -0.04], scale: [1.05, 1, 1.05] }));
+    this.head.add(mesh(G.box(0.02, 0.04, 0.03), skin, { pos: [0, -0.02, 0.15] }));
+    this.head.add(mesh(G.sph(0.12, 12, 10), this.hairMat, { pos: [0, 0.04, -0.04], scale: [1.05, 1, 1.05] }));
     this.headSlot = new THREE.Group(); this.headSlot.position.y = 0.07; this.head.add(this.headSlot);
     this.arms = [-1, 1].map((s) => {
       const sh = new THREE.Group(); sh.position.set(s * 0.21, 0.42, 0);
@@ -312,7 +349,7 @@ export class PlayerAvatar3D {
       const el = new THREE.Group(); el.position.y = -0.3; sh.add(el);
       el.add(mesh(G.cyl(0.045, 0.04, 0.28, 8), cloth, { pos: [0, -0.14, 0], cast: true }));
       const hand = new THREE.Group(); hand.position.y = -0.3; el.add(hand);
-      hand.add(mesh(G.sph(0.045, 8, 6), SKIN, {}));
+      hand.add(mesh(G.sph(0.045, 8, 6), skin, {}));
       this.torso.add(sh);
       return { sh, el, hand, s };
     });
@@ -327,26 +364,34 @@ export class PlayerAvatar3D {
     this.group.add(this.auraPulse);
   }
 
-  /** loadout: {head, armor, weapon, aura} */
-  setLoadout(loadout) {
+  /** מראה: { skin, hair, cloth } (צבעים hex) — null = ברירת מחדל */
+  setLook(look = {}) {
+    this.skinMat.color.setHex(look.skin ?? 0xd9a77a);
+    this.hairMat.color.setHex(look.hair ?? 0x3a2418);
+    this.clothMat.color.setHex(look.cloth ?? 0x3a3448);
+  }
+
+  /** loadout: {head, armor, weapon, aura}; instant = בלי אנימציה (לתמונות ממוזערות) */
+  setLoadout(loadout, { instant = false } = {}) {
     for (const slot of ['head', 'armor', 'weapon', 'aura']) {
       const id = loadout[slot];
       if (this.items[slot]?.id === id) continue;
-      this.equip(slot, id);
+      this.equip(slot, id, instant);
     }
   }
 
-  equip(slot, id) {
+  equip(slot, id, instant = false) {
     const prev = this.items[slot];
     if (prev) prev.objects.forEach((o) => o.parent?.remove(o));
     const w = buildWearable(id);
     const objects = [];
-    const attach = (obj, parent) => { if (!obj) return; addCharacterRim(obj); parent.add(obj); objects.push(obj); obj.scale.setScalar(0.01); gsap.to(obj.scale, { x: 1, y: 1, z: 1, duration: 0.45, ease: 'back.out(2)' }); };
+    const attach = (obj, parent) => { if (!obj) return; addCharacterRim(obj); parent.add(obj); objects.push(obj); if (instant) return; obj.scale.setScalar(0.01); gsap.to(obj.scale, { x: 1, y: 1, z: 1, duration: 0.45, ease: 'back.out(2)' }); };
     if (slot === 'head') attach(w.head, this.headSlot);
     if (slot === 'armor') { attach(w.torso, this.bodyArmorSlot); attach(w.hips, this.hipArmorSlot); this.torsoBase.visible = !w.torso; }
     if (slot === 'weapon') attach(w.hand, this.weaponHandSlot);
     if (slot === 'aura') attach(w.aura, this.auraSlot);
     this.items[slot] = { id, objects, w };
+    if (instant) return;
     const p = this.group.getWorldPosition(new THREE.Vector3());
     this.fx?.sparkle([p.x, p.y + 1.2, p.z], 16);
   }
@@ -416,10 +461,10 @@ export class PlayerAvatar3D {
   }
 
   emote(kind) {
-    if (kind === '👑' || kind === '👍') this.command();
-    else if (kind === '😂') gsap.to(this.body.position, { y: 0.1, duration: 0.12, yoyo: true, repeat: 5 });
-    else if (kind === '😡') gsap.fromTo(this.head.rotation, { y: -0.3 }, { y: 0.3, duration: 0.1, yoyo: true, repeat: 5, onComplete: () => { this.head.rotation.y = 0; } });
-    else if (kind === '🤝') this.check();
+    if (kind === 'crown' || kind === 'thumb') this.command();
+    else if (kind === 'laugh') gsap.to(this.body.position, { y: 0.1, duration: 0.12, yoyo: true, repeat: 5 });
+    else if (kind === 'angry') gsap.fromTo(this.head.rotation, { y: -0.3 }, { y: 0.3, duration: 0.1, yoyo: true, repeat: 5, onComplete: () => { this.head.rotation.y = 0; } });
+    else if (kind === 'handshake') this.check();
     else gsap.to(this.head.rotation, { x: -0.25, duration: 0.2, yoyo: true, repeat: 1 });
   }
 

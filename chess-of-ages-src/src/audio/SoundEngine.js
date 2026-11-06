@@ -431,6 +431,12 @@ export class SoundEngine {
   tick() { if (this.ok) this.noise(this.now, 0.015, { type: 'highpass', freq: 3000, gain: 0.25 }); }
   notify() { if (!this.ok) return; const t = this.now; this.tone(880, t, 0.2, { gain: 0.08 }); this.tone(1320, t + 0.1, 0.3, { gain: 0.07 }); }
   pop() { if (this.ok) this.tone(600, this.now, 0.1, { freqEnd: 1200, gain: 0.12 }); }
+  /** משב רוח של מסע על החיה */
+  whoosh(dur = 1.6) { if (!this.ok) return; const t = this.now; this.noise(t, dur, { type: 'bandpass', freq: 260, freqEnd: 1300, q: 0.8, gain: 0.2, attack: dur * 0.45 }); }
+  land() { if (!this.ok) return; const t = this.now; this.noise(t, 0.3, { type: 'lowpass', freq: 600, gain: 0.3 }); this.tone(196, t, 0.28, { type: 'triangle', gain: 0.1, freqEnd: 98 }); }
+  thunder() { if (!this.ok) return; const t = this.now; this.noise(t, 1.8, { type: 'lowpass', freq: 160, gain: 0.5, attack: 0.04 }); this.noise(t + 0.05, 0.5, { type: 'lowpass', freq: 420, gain: 0.22 }); }
+  /** צלצול טבעת אור / שער (גובה עולה בכל טבעת) */
+  chime(i = 0) { if (!this.ok) return; const t = this.now; const f = [988, 1175, 1397, 1568][i % 4]; this.tone(f, t, 0.4, { gain: 0.07 }); this.tone(f * 2, t + 0.02, 0.3, { gain: 0.025 }); }
 
   jackpot() {
     if (!this.ok) return;

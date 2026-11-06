@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <title>שחמט העידנים | Chess of Ages</title>
-    <meta name="description" content="Chess of Ages: Kingdom Builder — 3D chess where every victory builds your kingdom across 10 eras. | שחמט העידנים: בוני הממלכה" />
+    <title>Chess of Ages: Island Realms</title>
+    <meta name="description" content="Chess of Ages: Island Realms — 3D chess across 99 islands, each with its own era. Ride your pet between islands, beat their bots and the Time Pirates. | שחמט העידנים: ממלכות האיים" />
     <meta name="theme-color" content="#0b0912" />
     <meta name="color-scheme" content="dark" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -15,7 +15,7 @@
     <!-- OpenGraph — תצוגת קישור בוואטסאפ -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="שחמט העידנים | Chess of Ages" />
-    <meta property="og:title" content="Chess of Ages: Kingdom Builder | שחמט העידנים: בוני הממלכה" />
+    <meta property="og:title" content="Chess of Ages: Island Realms | שחמט העידנים: ממלכות האיים" />
     <meta property="og:description" content="Come play against me in my kingdom! | בוא לשחק נגדי בממלכה שלי!" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:locale:alternate" content="he_IL" />
@@ -26,7 +26,7 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:url" content="%PUBLIC_URL%" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Chess of Ages: Kingdom Builder | שחמט העידנים" />
+    <meta name="twitter:title" content="Chess of Ages: Island Realms | שחמט העידנים" />
     <meta name="twitter:description" content="Come play against me in my kingdom! | בוא לשחק נגדי בממלכה שלי!" />
     <meta name="twitter:image" content="%PUBLIC_URL%og-image.jpg" />
     <link rel="manifest" href="./manifest.json" />
@@ -50,19 +50,63 @@
       <div id="modal-root"></div>
     </div>
     <div id="splash" role="img" aria-label="Chess of Ages — loading">
-      <div class="splash-crown" aria-hidden="true">👑</div>
-      <div class="logo big"><span class="he">Chess of Ages</span><span class="en">KINGDOM BUILDER</span></div>
+      <svg class="game-logo splash-logo" direction="ltr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="320" role="img" aria-label="Chess of Ages: Island Realms"><defs>
+<linearGradient id="lg1_g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff9da"/><stop offset=".38" stop-color="#f8d772"/><stop offset=".52" stop-color="#c8952c"/><stop offset=".66" stop-color="#f4cf63"/><stop offset="1" stop-color="#8a5a14"/></linearGradient>
+<linearGradient id="lg1_gd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3bc"/><stop offset=".45" stop-color="#e6b44c"/><stop offset=".7" stop-color="#b07a22"/><stop offset="1" stop-color="#6e450c"/></linearGradient>
+<radialGradient id="lg1_bg" cx=".5" cy=".36" r=".72"><stop offset="0" stop-color="#43308a"/><stop offset=".55" stop-color="#1e1446"/><stop offset="1" stop-color="#0b0720"/></radialGradient>
+<linearGradient id="lg1_sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6ff4ee"/><stop offset=".5" stop-color="#2bb3c8"/><stop offset="1" stop-color="#145c8a"/></linearGradient>
+<linearGradient id="lg1_rb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b3264a"/><stop offset=".55" stop-color="#7a1232"/><stop offset="1" stop-color="#4c0820"/></linearGradient>
+<linearGradient id="lg1_shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<clipPath id="lg1_clip"><circle cx="100" cy="100" r="83"/></clipPath>
+<filter id="lg1_sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".55"/></filter>
+</defs>
+<g transform="translate(220 0) scale(1)"><g>
+<circle cx="100" cy="100" r="96" fill="url(#lg1_gd)" stroke="#2a1704" stroke-width="3"/>
+<circle cx="100" cy="100" r="90" fill="none" stroke="#fff3c0" stroke-opacity=".55" stroke-width="1.5"/>
+<circle cx="100" cy="100" r="84" fill="url(#lg1_bg)" stroke="#4a2e08" stroke-width="2.5"/>
+<g clip-path="url(#lg1_clip)">
+  <g fill="#fff" opacity=".8"><circle cx="58" cy="52" r="1.3"/><circle cx="146" cy="60" r="1.1"/><circle cx="132" cy="38" r=".9"/><circle cx="70" cy="34" r=".8"/><circle cx="152" cy="92" r="1"/><circle cx="46" cy="88" r=".9"/></g>
+  <path d="M60 38 H140 L107 100 L140 162 H60 L93 100 Z" fill="none" stroke="url(#lg1_g)" stroke-width="3.2" stroke-linejoin="round" opacity=".38"/>
+  <path d="M86 150 Q100 140 114 150 Z" fill="#f4cf63" opacity=".35"/>
+  <path d="M10 134 Q36 126 62 134 T114 134 T166 134 T200 134 V200 H10 Z" fill="url(#lg1_sea)"/>
+  <path d="M10 146 Q36 139 62 146 T114 146 T166 146 T200 146" fill="none" stroke="#c8fbff" stroke-opacity=".6" stroke-width="2"/>
+  <ellipse cx="100" cy="138" rx="40" ry="9" fill="#e9cc8c" stroke="#5a3a10" stroke-width="1.5"/>
+  <ellipse cx="100" cy="135" rx="33" ry="6" fill="#5fa04a"/>
+</g>
+<g stroke="url(#lg1_g)" stroke-width="3" stroke-linecap="round"><line x1="172.0" y1="100.0" x2="181.0" y2="100.0"/><line x1="165.8" y1="138.0" x2="170.1" y2="140.5"/><line x1="138.0" y1="165.8" x2="140.5" y2="170.1"/><line x1="100.0" y1="172.0" x2="100.0" y2="181.0"/><line x1="62.0" y1="165.8" x2="59.5" y2="170.1"/><line x1="34.2" y1="138.0" x2="29.9" y2="140.5"/><line x1="28.0" y1="100.0" x2="19.0" y2="100.0"/><line x1="34.2" y1="62.0" x2="29.9" y2="59.5"/><line x1="62.0" y1="34.2" x2="59.5" y2="29.9"/><line x1="100.0" y1="28.0" x2="100.0" y2="19.0"/><line x1="138.0" y1="34.2" x2="140.5" y2="29.9"/><line x1="165.8" y1="62.0" x2="170.1" y2="59.5"/></g>
+<g fill="url(#lg1_gd)" stroke="#2a1704" stroke-width="1.3" ><ellipse cx="74.9" cy="187.5" rx="8.5" ry="3.8" transform="rotate(164.0 74.9 187.5)"/><ellipse cx="51.8" cy="177.2" rx="8.5" ry="3.8" transform="rotate(244.0 51.8 177.2)"/><ellipse cx="32.4" cy="160.9" rx="8.5" ry="3.8" transform="rotate(196.0 32.4 160.9)"/><ellipse cx="18.2" cy="139.9" rx="8.5" ry="3.8" transform="rotate(276.0 18.2 139.9)"/><ellipse cx="10.4" cy="115.8" rx="8.5" ry="3.8" transform="rotate(228.0 10.4 115.8)"/><ellipse cx="9.5" cy="90.5" rx="8.5" ry="3.8" transform="rotate(308.0 9.5 90.5)"/><ellipse cx="15.6" cy="65.9" rx="8.5" ry="3.8" transform="rotate(260.0 15.6 65.9)"/></g><g fill="url(#lg1_gd)" stroke="#2a1704" stroke-width="1.3" transform="translate(200 0) scale(-1 1)"><ellipse cx="74.9" cy="187.5" rx="8.5" ry="3.8" transform="rotate(164.0 74.9 187.5)"/><ellipse cx="51.8" cy="177.2" rx="8.5" ry="3.8" transform="rotate(244.0 51.8 177.2)"/><ellipse cx="32.4" cy="160.9" rx="8.5" ry="3.8" transform="rotate(196.0 32.4 160.9)"/><ellipse cx="18.2" cy="139.9" rx="8.5" ry="3.8" transform="rotate(276.0 18.2 139.9)"/><ellipse cx="10.4" cy="115.8" rx="8.5" ry="3.8" transform="rotate(228.0 10.4 115.8)"/><ellipse cx="9.5" cy="90.5" rx="8.5" ry="3.8" transform="rotate(308.0 9.5 90.5)"/><ellipse cx="15.6" cy="65.9" rx="8.5" ry="3.8" transform="rotate(260.0 15.6 65.9)"/></g>
+<g filter="url(#lg1_sh)" stroke="#2a1704" stroke-width="2.6" stroke-linejoin="round" paint-order="stroke fill" fill="url(#lg1_g)">
+  <rect x="96" y="30" width="8" height="24" rx="2"/><rect x="88" y="37" width="24" height="8" rx="2"/>
+  <path d="M84 79 L81 58 L91 65 L100 53 L109 65 L119 58 L116 79 Z"/>
+  <rect x="83" y="76" width="34" height="8" rx="3"/>
+  <path d="M80 129 C84 113 88 98 90 86 L110 86 C112 98 116 113 120 129 Z"/>
+  <rect x="75" y="127" width="50" height="9" rx="3"/>
+  <rect x="69" y="134" width="62" height="10" rx="4"/>
+</g>
+<circle cx="100" cy="70" r="3.4" fill="#ff4d5e" stroke="#5a0a14" stroke-width="1.2"/>
+<path d="M92 92 L95 124" stroke="#fff6cf" stroke-opacity=".7" stroke-width="2.4" stroke-linecap="round"/>
+<path d="M150 46 l2.2 5.8 5.8 2.2 -5.8 2.2 -2.2 5.8 -2.2 -5.8 -5.8 -2.2 5.8 -2.2z" fill="#fff6cf"/>
+<path d="M50 120 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6z" fill="#fff6cf" opacity=".85"/>
+</g></g>
+<g font-family="Cinzel, 'Trajan Pro', Georgia, 'Times New Roman', serif" font-weight="700" text-anchor="middle">
+  <text x="320" y="282" font-size="70" letter-spacing="5" fill="url(#lg1_g)" stroke="#2a1704" stroke-width="5" paint-order="stroke fill" filter="url(#lg1_sh)">CHESS OF AGES</text>
+</g>
+<g filter="url(#lg1_sh)">
+  <path d="M140 304 H500 L486 322 L500 340 H140 L154 322 Z" fill="url(#lg1_rb)" stroke="#f2c14e" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M140 304 L112 300 L124 322 L112 344 L140 340 Z" fill="#5c0c26" stroke="#f2c14e" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M500 304 L528 300 L516 322 L528 344 L500 340 Z" fill="#5c0c26" stroke="#f2c14e" stroke-width="2" stroke-linejoin="round"/>
+  <text x="320" y="330" font-family="Cinzel, 'Trajan Pro', Georgia, serif" font-weight="700" font-size="22" letter-spacing="6" text-anchor="middle" fill="#ffe9a8">ISLAND REALMS</text>
+</g>
+</svg>
       <div class="loader-bar" aria-hidden="true"><i></i></div>
-      <div class="splash-msg">Building your kingdom…</div>
+      <div class="splash-msg">Sailing to the islands…</div>
       <div class="version">v%APP_VERSION%</div>
     </div>
     <script>
       if (document.documentElement.lang === 'he') (function () {
         var sp = document.getElementById('splash');
         sp.setAttribute('aria-label', 'שחמט העידנים — טוען');
-        sp.querySelector('.he').textContent = 'שחמט העידנים';
-        sp.querySelector('.en').textContent = 'CHESS OF AGES';
-        sp.querySelector('.splash-msg').textContent = 'בונים את הממלכה…';
+        sp.querySelector('.splash-msg').textContent = 'מפליגים לאיים…';
         document.getElementById('scene').setAttribute('aria-label', 'לוח שחמט תלת-ממדי. השתמש בחצים ובמקש Enter כדי לשחק.');
       })();
     </script>

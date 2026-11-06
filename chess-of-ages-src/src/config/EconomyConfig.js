@@ -1,9 +1,10 @@
 /**
- * כלכלת היהלומים 💎 — מקור האמת היחיד למחירים, חבילות, פריטים, פרסים יומיים וגלגל המזל.
+ * כלכלת היהלומים — מקור האמת היחיד למחירים, חבילות, פריטים, פרסים יומיים וגלגל המזל.
  * שינוי מחיר כאן משתקף מיד בכל החנות.
  *
- * רכישות בכסף אמיתי (חבילות יהלומים) עוברות דרך Economy.purchaseGemPack() —
- * hook אסינכרוני שמוכן לחיבור Google Play Billing / RevenueCat (ראה README).
+ * יהלומים לא נקנים בכסף — מרוויחים אותם רק מניצחונות (בוטים / חברים), פרס יומי וגלגל המזל.
+ * הרכישה היחידה בכסף אמיתי: פתיחת המשחק המלא (איים 6–99) — Economy.purchaseFullGame(),
+ * hook אסינכרוני שמוכן לחיבור Google Play Billing (ראה README).
  */
 export const ECONOMY = {
   currencySymbol: '₪', // אפשר גם '$'
@@ -18,52 +19,39 @@ export const ECONOMY = {
   stageGems: 50,
   extraSpinCost: 50,
   devFreeGems: 500,
+  friendWinGems: 15, // ניצחון במשחק נגד חבר (מינימום 15 מהלכים)
   trialHours: 24,
   fragmentsToUnlock: 3,
 };
 
-export const GEM_PACKS = [
-  { id: 'pack_handful', name: 'חופן יהלומים', nameEn: 'Handful of Gems', gems: 250, price: 7.9 },
-  { id: 'pack_chest', name: 'תיבת יהלומים', nameEn: 'Gem Chest', gems: 750, price: 19.9 },
-  { id: 'pack_treasury', name: 'אוצר הממלכה', nameEn: 'Kingdom Treasury', gems: 2000, price: 44.9 },
-  { id: 'pack_emperor', name: 'כספת הקיסר', nameEn: "Emperor's Vault", gems: 5500, price: 99.9 },
-];
-
 /**
- * תגיות חבילות מחושבות מהנתונים עצמם (לא טקסט קבוע) כדי שלא יהיו מטעות:
- * בונוס = כמה יותר יהלומים לכל שקל לעומת החבילה הקטנה; "הכי משתלם" = היחס הטוב ביותר בפועל.
+ * המשחק המלא: איים 6–99. price = null → "המחיר ייקבע בקרוב" (קובעים כאן כשמחליטים, למשל 14.9).
+ * בגרסת גוגל פליי המחיר מגיע מהחנות (PaymentProvider.priceLabel).
  */
-export function packBadges(packs = GEM_PACKS) {
-  const rate = (p) => p.gems / p.price;
-  const base = rate(packs[0]);
-  const best = packs.reduce((a, b) => (rate(b) > rate(a) ? b : a));
-  return Object.fromEntries(packs.map((p) => [p.id, { bonusPct: Math.round((rate(p) / base - 1) * 100), best: p.id === best.id }]));
-}
-
-export const ERA_PRICES = { single: 600, bundle: 2200 };
+export const FULL_GAME = { id: 'full_game_unlock', price: null };
 
 /** פריטי לבוש — 4 קטגוריות. price=0 → ברירת מחדל חינמית */
 export const WEARABLES = {
   head: [
-    { id: 'crown_starter', name: 'נזר עץ פשוט', price: 0, rarity: 'common' },
+    { id: 'crown_starter', name: 'נזר עץ פשוט', price: 0, rarity: 'common', island: 1 },
     { id: 'crown_gold', name: 'כתר מלכותי משובץ אבני אודם', price: 200, rarity: 'rare' },
-    { id: 'helm_spartan', name: 'קסדת גלדיאטור ספרטנית עם נוצה אדומה', price: 350, rarity: 'rare' },
-    { id: 'helm_samurai', name: 'קסדת קאבוטו סמוראית מוזהבת', price: 500, rarity: 'epic' },
-    { id: 'crown_pharaoh', name: 'כתר נמס פרעוני עם קוברה מוזהבת', price: 650, rarity: 'epic' },
-    { id: 'visor_cyber', name: 'משקף הולוגרמה סייברפאנק זוהר', price: 800, rarity: 'legendary' },
+    { id: 'helm_spartan', name: 'קסדת גלדיאטור ספרטנית עם נוצה אדומה', price: 350, rarity: 'rare', island: 2 },
+    { id: 'helm_samurai', name: 'קסדת קאבוטו סמוראית מוזהבת', price: 500, rarity: 'epic', island: 6 },
+    { id: 'crown_pharaoh', name: 'כתר נמס פרעוני עם קוברה מוזהבת', price: 650, rarity: 'epic', island: 7 },
+    { id: 'visor_cyber', name: 'משקף הולוגרמה סייברפאנק זוהר', price: 800, rarity: 'legendary', island: 5 },
   ],
   armor: [
-    { id: 'tunic_starter', name: 'גלימת בד פשוטה', price: 0, rarity: 'common' },
+    { id: 'tunic_starter', name: 'גלימת בד פשוטה', price: 0, rarity: 'common', island: 1 },
     { id: 'cape_royal_velvet', name: 'גלימת קטיפה ארגמנית עם פרוות מלכים', price: 250, rarity: 'rare' },
-    { id: 'armor_paladin', name: 'שריון אבירים כסוף ומעוטר בזהב', price: 450, rarity: 'epic' },
-    { id: 'armor_shogun', name: 'שריון סמוראי שחור-זהב', price: 600, rarity: 'epic' },
-    { id: 'robe_celestial', name: 'גלימת כוכבים מרחפת עם חלקיקי אור', price: 950, rarity: 'legendary' },
+    { id: 'armor_paladin', name: 'שריון אבירים כסוף ומעוטר בזהב', price: 450, rarity: 'epic', island: 3 },
+    { id: 'armor_shogun', name: 'שריון סמוראי שחור-זהב', price: 600, rarity: 'epic', island: 6 },
+    { id: 'robe_celestial', name: 'גלימת כוכבים מרחפת עם חלקיקי אור', price: 950, rarity: 'legendary', island: 10 },
   ],
   weapon: [
-    { id: 'staff_wood', name: 'מטה עץ', price: 0, rarity: 'common' },
+    { id: 'staff_wood', name: 'מטה עץ', price: 0, rarity: 'common', island: 1 },
     { id: 'scepter_diamond', name: 'שרביט יהלום מלכותי', price: 300, rarity: 'rare' },
-    { id: 'sword_excalibur', name: 'חרב אקסקליבר זוהרת', price: 550, rarity: 'epic' },
-    { id: 'trident_atlantis', name: 'קלשון אטלנטיס חשמלי', price: 750, rarity: 'legendary' },
+    { id: 'sword_excalibur', name: 'חרב אקסקליבר זוהרת', price: 550, rarity: 'epic', island: 3 },
+    { id: 'trident_atlantis', name: 'קלשון אטלנטיס חשמלי', price: 750, rarity: 'legendary', island: 9 },
   ],
   aura: [
     { id: 'aura_none', name: 'ללא הילה', price: 0, rarity: 'common' },
@@ -99,7 +87,7 @@ export const DAILY_STREAK = [
 
 /** תוצאות תיבת היום השביעי (סיכויים שקופים) */
 export const ROYAL_CHEST = [
-  { type: 'gems', amount: 600, weight: 40, label: '‎+600 💎' },
+  { type: 'gems', amount: 600, weight: 40, label: '‎+600', icon: 'gem' },
   { type: 'wearable', weight: 35, label: 'פריט לבוש נדיר לצמיתות', labelEn: 'Permanent rare outfit item' },
   { type: 'petTrial', weight: 25, label: 'חיית מחמד בלעדית ל-24 שעות', labelEn: 'Exclusive pet for 24 hours' },
 ];
@@ -109,15 +97,15 @@ export const ROYAL_CHEST = [
  * תוחלת היהלומים לסיבוב קטנה ממחיר סיבוב נוסף, כך שאי אפשר "לחרוש" יהלומים בסיבובים.
  */
 export const WHEEL_SEGMENTS = [
-  { id: 'g25', type: 'gems', amount: 25, label: '25', icon: '💎', weight: 41.7, color: '#3a2a6b' },
-  { id: 'frag', type: 'fragment', label: 'שבר פריט', labelEn: 'Item shard', icon: '🧩', weight: 26, color: '#1f4d5c' },
-  { id: 'g50', type: 'gems', amount: 50, label: '50', icon: '💎', weight: 18, color: '#5a2448' },
-  { id: 'g100', type: 'gems', amount: 100, label: '100', icon: '💎', weight: 7, color: '#2a4a2a' },
-  { id: 'crown', type: 'item', item: 'crown_gold', label: 'כתר זהב', labelEn: 'Gold crown', icon: '👑', weight: 3, color: '#6b4a12' },
-  { id: 'g250', type: 'gems', amount: 250, label: '250', icon: '💎', weight: 2, color: '#24345a' },
-  { id: 'aura', type: 'item', item: 'aura_golden_sparks', label: 'הילת זהב', labelEn: 'Gold aura', icon: '✨', weight: 1.8, color: '#5a3a12' },
-  { id: 'g1000', type: 'gems', amount: 1000, label: '1,000', icon: '💰', weight: 0.3, color: '#7a5a10', jackpot: true },
-  { id: 'era', type: 'era', label: 'עידן פרימיום', labelEn: 'Premium era', icon: '🏯', weight: 0.2, color: '#5a1020', jackpot: true },
+  { id: 'g25', type: 'gems', amount: 25, label: '25', icon: 'gem', weight: 41.7, color: '#3a2a6b' },
+  { id: 'frag', type: 'fragment', label: 'שבר פריט', labelEn: 'Item shard', icon: 'puzzle', weight: 26, color: '#1f4d5c' },
+  { id: 'g50', type: 'gems', amount: 50, label: '50', icon: 'gem', weight: 18, color: '#5a2448' },
+  { id: 'g100', type: 'gems', amount: 100, label: '100', icon: 'gem', weight: 7, color: '#2a4a2a' },
+  { id: 'crown', type: 'item', item: 'crown_gold', label: 'כתר זהב', labelEn: 'Gold crown', icon: 'crown', weight: 3, color: '#6b4a12' },
+  { id: 'g250', type: 'gems', amount: 250, label: '250', icon: 'gem', weight: 2, color: '#24345a' },
+  { id: 'aura', type: 'item', item: 'aura_golden_sparks', label: 'הילת זהב', labelEn: 'Gold aura', icon: 'sparkle', weight: 1.8, color: '#5a3a12' },
+  { id: 'g1000', type: 'gems', amount: 1000, label: '1,000', icon: 'coin', weight: 0.3, color: '#7a5a10', jackpot: true },
+  { id: 'g500', type: 'gems', amount: 500, label: '500', icon: 'gems', weight: 0.2, color: '#5a1020', jackpot: true },
 ];
 export const DUPLICATE_ITEM_GEMS = 60;
 export const DUPLICATE_FRAGMENT_GEMS = 10;

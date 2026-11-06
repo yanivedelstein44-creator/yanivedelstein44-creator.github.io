@@ -1,9 +1,9 @@
 {
   "name": "chess-of-ages",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.1.0",
   "type": "module",
-  "description": "שחמט העידנים: בוני הממלכה — Chess of Ages: Kingdom Builder (PWA + Capacitor)",
+  "description": "שחמט העידנים: ממלכות האיים — Chess of Ages: Island Realms (PWA + Capacitor)",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
@@ -26,7 +26,6 @@
     "@fontsource/rubik": "^5.3.0",
     "chess.js": "^1.4.0",
     "gsap": "^3.15.1",
-    "peerjs": "^1.5.5",
     "three": "^0.187.0"
   },
   "devDependencies": {

@@ -8,7 +8,7 @@ NOTES="${2:-}"
 [ -d "$SITE_REPO/chess-of-ages" ] || { echo "לא נמצאה התיקייה chess-of-ages בתוך $SITE_REPO"; exit 1; }
 URL="https://yanivedelstein44-creator.github.io/chess-of-ages/"
 cd "$(dirname "$0")/.."
-npm version patch --no-git-tag-version >/dev/null
+npm version "${BUMP:-patch}" --no-git-tag-version >/dev/null
 VER="$(node -p "require('./package.json').version")"
 VITE_PUBLIC_URL="$URL" VITE_APK_URL="${URL}download/chess-of-ages.apk" RELEASE_NOTES="$NOTES" npx vite build
 # מחליפים את התוכן (חוץ מ-download/ שבו ה-APK) — בלי תלות ב-rsync

@@ -147,8 +147,8 @@ export class ChessBoard3D {
     }
   }
 
-  spawnPiece(type, color, square) {
-    const p = createPiece(type, color, this.matsFor(color));
+  spawnPiece(type, color, square, mats = this.matsFor(color)) {
+    const p = createPiece(type, color, mats);
     const [x, z] = squareToXZ(square);
     p.position.set(x, BOARD_TOP, z);
     p.userData.square = square;
@@ -198,6 +198,10 @@ export class ChessBoard3D {
     }
     this.selected = null;
     this.selRing.visible = this.selGlow.visible = false;
+    this.clearMarkers();
+  }
+
+  clearMarkers() {
     this.markers.forEach((m) => this.group.remove(m));
     this.markers = [];
   }

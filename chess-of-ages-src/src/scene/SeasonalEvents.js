@@ -15,11 +15,11 @@ function lunarNewYear(date) {
 
 export function detectSeason(date = new Date()) {
   const m = date.getMonth() + 1, d = date.getDate();
-  if ((m === 12 && d === 31) || (m === 1 && d <= 2)) return { id: 'newyear', he: 'שנה טובה! 🎆', en: 'Happy New Year! 🎆' };
-  if (lunarNewYear(date)) return { id: 'lunar', he: 'שנה ירחית חדשה שמחה! 🏮', en: 'Happy Lunar New Year! 🏮' };
-  if (m === 2 && d >= 12 && d <= 15) return { id: 'valentine', he: 'יום אהבה שמח! 💖', en: "Happy Valentine's Day! 💖" };
-  if ((m === 10 && d >= 28) || (m === 11 && d === 1)) return { id: 'halloween', he: 'ליל כל הקדושים מפחיד! 🎃', en: 'Happy Halloween! 🎃' };
-  if (m === 12 && d >= 18 && d <= 30) return { id: 'winter', he: 'חגים שמחים! ❄️', en: 'Happy Holidays! ❄️' };
+  if ((m === 12 && d === 31) || (m === 1 && d <= 2)) return { id: 'newyear', he: 'שנה טובה!', en: 'Happy New Year!', icon: 'burst' };
+  if (lunarNewYear(date)) return { id: 'lunar', he: 'שנה ירחית חדשה שמחה!', en: 'Happy Lunar New Year!', icon: 'lantern' };
+  if (m === 2 && d >= 12 && d <= 15) return { id: 'valentine', he: 'יום אהבה שמח!', en: "Happy Valentine's Day!", icon: 'heart' };
+  if ((m === 10 && d >= 28) || (m === 11 && d === 1)) return { id: 'halloween', he: 'ליל כל הקדושים מפחיד!', en: 'Happy Halloween!', icon: 'pumpkin' };
+  if (m === 12 && d >= 18 && d <= 30) return { id: 'winter', he: 'חגים שמחים!', en: 'Happy Holidays!', icon: 'snowflake' };
   return null;
 }
 
