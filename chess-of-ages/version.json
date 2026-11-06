@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.3.0",
-  "build": "1.3.0-1793990879367",
-  "buildTime": 1793990879367,
-  "date": "2026-11-06T18:47:59.367Z",
+  "version": "1.3.1",
+  "build": "1.3.1-1793994606358",
+  "buildTime": 1793994606358,
+  "date": "2026-11-06T19:50:06.358Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.3.0-1793990879367.zip",
-  "checksum": "22c3959360793712b231e36ee82063c8ead7ede59997f964e592f609fad745e7",
+  "bundle": "update/bundle-1.3.1-1793994606358.zip",
+  "checksum": "e836fcdb082dd43c983b8904c2c321d1f20c8c0f2fdc78a244f6e7d5449504d3",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "30 Premium Islands next to the Central Island, board skins (a free one every 20 islands), weekly double gems, the Golden Clockwork Dragon, and a bigger full-width board view"
+  "notes": "Luxury black onyx move markers: a polished onyx selection ring with black diamonds, and onyx move coins"
 }
