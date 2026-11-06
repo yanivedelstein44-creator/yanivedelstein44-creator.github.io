@@ -1,0 +1,183 @@
+# שחמט העידנים — שחרור גרסה אוטומטי
+# כל push ל-main: בדיקות מנוע → build → פרסום האתר (GitHub Pages או Netlify).
+# כל השחקנים (PWA וגם APK) מקבלים את העדכון אוטומטית מהאתר — אין צורך לבנות APK חדש לשינויי משחק רגילים.
+# APK חדש נבנה רק כשמבקשים: Actions → "Release" → Run workflow → סמן "Build APK", או בדחיפת תגית v* (למשל v1.2.0).
+name: Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      build_apk:
+        description: 'Build a new Android APK (needed only for native changes)'
+        type: boolean
+        default: false
+      notes:
+        description: 'Release notes (saved in version.json)'
+        type: string
+        required: false
+
+permissions:
+  contents: write   # יצירת GitHub Release עם ה-APK
+  pages: write      # פרסום ל-GitHub Pages
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  web:
+    name: Build web (PWA + OTA bundle)
+    runs-on: ubuntu-latest
+    outputs:
+      public_url: ${{ steps.urls.outputs.public_url }}
+      version: ${{ steps.urls.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Chess engine tests (perft + tactics)
+        run: npm run test:engine
+
+      - name: Resolve public URL
+        id: urls
+        shell: bash
+        run: |
+          OWNER="${GITHUB_REPOSITORY%%/*}"; REPO="${GITHUB_REPOSITORY#*/}"
+          DEFAULT_URL="https://${OWNER,,}.github.io/${REPO}/"
+          URL="${{ vars.PUBLIC_URL }}"
+          echo "public_url=${URL:-$DEFAULT_URL}" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        env:
+          VITE_PUBLIC_URL: ${{ steps.urls.outputs.public_url }}
+          VITE_UPDATE_URL: ${{ vars.UPDATE_URL }}
+          VITE_APK_URL: https://github.com/${{ github.repository }}/releases/latest/download/chess-of-ages.apk
+          VITE_PEER_HOST: ${{ vars.PEER_HOST }}
+          VITE_PEER_PORT: ${{ vars.PEER_PORT }}
+          VITE_PEER_PATH: ${{ vars.PEER_PATH }}
+          VITE_PEER_SECURE: ${{ vars.PEER_SECURE }}
+          VITE_PEER_KEY: ${{ vars.PEER_KEY }}
+          VITE_ICE_SERVERS: ${{ secrets.ICE_SERVERS }}
+          RELEASE_NOTES: ${{ github.event.inputs.notes }}
+        run: npm run build
+
+      - name: Prepare GitHub Pages
+        if: github.ref == 'refs/heads/main' && vars.DEPLOY_TARGET != 'netlify'
+        uses: actions/configure-pages@v6
+      - name: Upload site for GitHub Pages
+        if: github.ref == 'refs/heads/main' && vars.DEPLOY_TARGET != 'netlify'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+      - name: Deploy to Netlify
+        if: github.ref == 'refs/heads/main' && vars.DEPLOY_TARGET == 'netlify'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: npx --yes netlify-cli@latest deploy --dir dist --prod --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --message "v${{ steps.urls.outputs.version }} (${{ github.sha }})"
+
+  pages:
+    name: Deploy GitHub Pages
+    needs: web
+    # האתר מתפרסם רק מ-main (תגיות v* בונות APK בלבד)
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_TARGET != 'netlify'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v5
+
+  android:
+    name: Build Android APK
+    needs: web
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.build_apk == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+
+      - name: Build web assets
+        env:
+          VITE_PUBLIC_URL: ${{ needs.web.outputs.public_url }}
+          VITE_UPDATE_URL: ${{ vars.UPDATE_URL }}
+          VITE_APK_URL: https://github.com/${{ github.repository }}/releases/latest/download/chess-of-ages.apk
+          VITE_PEER_HOST: ${{ vars.PEER_HOST }}
+          VITE_PEER_PORT: ${{ vars.PEER_PORT }}
+          VITE_PEER_PATH: ${{ vars.PEER_PATH }}
+          VITE_PEER_SECURE: ${{ vars.PEER_SECURE }}
+          VITE_PEER_KEY: ${{ vars.PEER_KEY }}
+          VITE_ICE_SERVERS: ${{ secrets.ICE_SERVERS }}
+        run: npm run build
+
+      - name: Create Android project
+        shell: bash
+        run: |
+          npx cap add android
+          # שם האפליקציה: אנגלית כברירת מחדל (קהל עולמי), עברית במכשירים בעברית (iw = הקוד הישן של אנדרואיד)
+          for d in values-iw values-he; do
+            mkdir -p "android/app/src/main/res/$d"
+            printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<resources>' \
+              '    <string name="app_name">שחמט העידנים</string>' \
+              '    <string name="title_activity_main">שחמט העידנים</string>' \
+              '</resources>' > "android/app/src/main/res/$d/strings.xml"
+          done
+          # גרסה: versionName מ-package.json, versionCode עולה בכל ריצה
+          sed -i -E "s/versionCode [0-9]+/versionCode ${{ github.run_number }}/; s/versionName \"[^\"]*\"/versionName \"${{ needs.web.outputs.version }}\"/" android/app/build.gradle
+          npx cap sync android
+
+      - name: Build APK
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          cd android && chmod +x gradlew
+          BT="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          if [ -n "$KEYSTORE_B64" ]; then
+            ./gradlew assembleRelease --no-daemon
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            "$BT/zipalign" -p -f 4 app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/aligned.apk"
+            "$BT/apksigner" sign --ks "$RUNNER_TEMP/release.jks" --ks-pass env:KEYSTORE_PASSWORD \
+              --ks-key-alias "$KEY_ALIAS" --key-pass env:KEY_PASSWORD --out ../chess-of-ages.apk "$RUNNER_TEMP/aligned.apk"
+            rm -f "$RUNNER_TEMP/release.jks"
+          else
+            echo "::warning::No signing secrets — building a DEBUG APK. Each build gets a different key, so players must uninstall before installing the next APK. Add ANDROID_KEYSTORE_* secrets (see README)."
+            ./gradlew assembleDebug --no-daemon
+            cp app/build/outputs/apk/debug/app-debug.apk ../chess-of-ages.apk
+          fi
+          "$BT/apksigner" verify --print-certs ../chess-of-ages.apk | head -3
+
+      - name: Publish GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [[ "$GITHUB_REF" != refs/tags/* ]]; then TAG="v${{ needs.web.outputs.version }}-build${{ github.run_number }}"; fi
+          NOTES="${{ github.event.inputs.notes }}"
+          gh release create "$TAG" chess-of-ages.apk --target "$GITHUB_SHA" --latest \
+            --title "Chess of Ages ${TAG}" --notes "${NOTES:-Android build ${{ github.run_number }}}"
