@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.3.2",
-  "build": "1.3.2-1793996575999",
-  "buildTime": 1793996575999,
-  "date": "2026-11-06T20:22:55.999Z",
+  "version": "1.3.3",
+  "build": "1.3.3-1794003679203",
+  "buildTime": 1794003679203,
+  "date": "2026-11-06T22:21:19.203Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.3.2-1793996575999.zip",
-  "checksum": "6adff23d6955130b96f632eff4d44eeab8ef479bd1d9e96edd87f8dcf2181bca",
+  "bundle": "update/bundle-1.3.3-1794003679203.zip",
+  "checksum": "0a1e48bbc03334bfd3ae52b36c8167c2fc20c6b8ff68240db150ab1f62f56a7a",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "The in-game buttons moved to a small row under the board, so they no longer cover any squares"
+  "notes": "Island intro: a wide zoom-out over the whole island with its name, then the camera glides into the board (tap to skip)"
 }
