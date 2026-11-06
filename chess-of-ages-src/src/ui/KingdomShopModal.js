@@ -1,14 +1,17 @@
 /**
  * החנות (באי המרכזי): במת תצוגה תלת-ממדית חזיתית עם סיבוב איטי (Idle Orbit) ומיקוד מצלמה לפי הפריט,
  * ורשת כרטיסים (2 בשורה) עם תמונת תלת-ממד לכל פריט, שם קצר וכפתור רכישה ביהלומים.
- * יהלומים מרוויחים בקרבות — אין קנייה בכסף.
+ * יהלומים מרוויחים בקרבות. בכסף אמיתי (לשונית פרימיום ולוחות): איי הפרימיום, בוסט יהלומים כפולים לשבוע וסקינים ללוח.
  */
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { h, withIcon } from './UI.js';
 import { t, tn, shortName, islandName } from './i18n.js';
 import { icon } from './icons.js';
-import { WEARABLES, RARITY, formatGems } from '../config/EconomyConfig.js';
+import { WEARABLES, RARITY, formatGems, BOARD_SKINS, FULL_GAME, GEM_BOOST, formatPrice } from '../config/EconomyConfig.js';
+import { PaymentProvider } from '../core/Economy.js';
+import { eraMaterials } from '../scene/Materials.js';
+import { skinPreview } from '../scene/PieceSprites.js';
 import { PETS, PET_IDS } from '../config/Pets.js';
 import { PlayerAvatar3D } from '../scene/PlayerAvatar3D.js';
 import { PetCompanion3D } from '../scene/PetCompanion3D.js';
@@ -18,6 +21,19 @@ import { HUB_ID, islandDef, residentPrice, petColorPrice } from '../config/Islan
 const AURA_ICON = { aura_none: 'noAura', aura_golden_sparks: 'sparkle', aura_fire_ring: 'fireRing', aura_cosmic_lightning: 'boltPurple' };
 const SLOT_ICON = { head: 'crown', armor: 'shirt', weapon: 'swords', aura: 'sparkle' };
 const SLOT_SHORT = { head: ['כתרים', 'Crowns'], armor: ['גלימות', 'Armor'], weapon: ['נשקים', 'Weapons'], aura: ['הילות', 'Auras'] };
+
+// תמונות תצוגה של סקינים — נבנות בהדרגה (כדי לא לתקוע את הממשק) ונשמרות לכל ההפעלה
+const SKIN_PREVIEWS = new Map();
+let previewChain = Promise.resolve();
+function skinThumb(key, done) {
+  if (SKIN_PREVIEWS.has(key)) { done(SKIN_PREVIEWS.get(key)); return; }
+  previewChain = previewChain.then(() => new Promise((res) => setTimeout(() => {
+    try { if (!SKIN_PREVIEWS.has(key)) SKIN_PREVIEWS.set(key, skinPreview(eraMaterials(key))); done(SKIN_PREVIEWS.get(key)); } catch { /* נשארים עם הצבעים */ }
+    res();
+  }, 16)));
+}
+/** תווית מחיר לכסף אמיתי (מחנות האפליקציות כשמחוברת) */
+export const realPrice = (product) => (typeof PaymentProvider.priceLabel === 'function' && PaymentProvider.priceLabel(product)) || (product.price ? formatPrice(product.price) : null);
 
 /** במת התצוגה: מצלמה חזיתית, נדנוד עדין, גרירה מסובבת וחוזרת לחזית, מיקוד לפי הקטגוריה */
 class MiniStage {
@@ -100,7 +116,7 @@ export function openKingdomShop(app, { tab = 'wardrobe' } = {}) {
   const maxEra = app.progression.maxEraReached();
   let preview = { ...economy.loadout };
   let previewPet = economy.pet;
-  let curTab = ['pets', 'bots'].includes(tab) ? tab : 'wardrobe';
+  let curTab = ['pets', 'bots', 'boards', 'premium'].includes(tab) ? tab : 'wardrobe';
   let previewBot = null;
   let slot = 'head';
 
@@ -150,13 +166,66 @@ export function openKingdomShop(app, { tab = 'wardrobe' } = {}) {
 
   function setTab(id) { curTab = id; if (id !== 'bots' && previewBot) { previewBot = null; refreshPreview(); } focus(id === 'pets' ? 'pets' : id === 'bots' ? 'all' : slot); render(); }
   function render() {
-    tabs.replaceChildren(...[['wardrobe', 'shirt', t('tabWardrobe')], ['pets', 'paw', t('tabPets')], ['bots', 'users', t('tabBots')]].map(([id, ic, label]) => h('button', { class: 'tap', role: 'tab', 'aria-selected': String(curTab === id), onclick: () => setTab(id) }, icon(ic, { size: 20 }), h('span', {}, label))));
+    tabs.classList.add('five');
+    tabs.replaceChildren(...[['wardrobe', 'shirt', t('tabWardrobe')], ['pets', 'paw', t('tabPets')], ['bots', 'users', t('tabBots')], ['boards', 'checker', t('tabBoards')], ['premium', 'crown', t('tabPremium')]].map(([id, ic, label]) => h('button', { class: 'tap', role: 'tab', 'aria-selected': String(curTab === id), onclick: () => setTab(id) }, icon(ic, { size: 20 }), h('span', {}, label))));
     sub.hidden = curTab !== 'wardrobe';
     if (curTab === 'wardrobe') sub.replaceChildren(...Object.keys(WEARABLES).map((s) => h('button', { class: 'tap', 'aria-pressed': String(slot === s), onclick: () => { slot = s; focus(s); render(); } }, icon(SLOT_ICON[s], { size: 18 }), h('span', {}, tn(...SLOT_SHORT[s])))));
     const won = app.progression.conqueredList().filter((id) => id !== HUB_ID || app.progression.isConquered(HUB_ID)).sort((a, b) => a - b);
     if (curTab === 'wardrobe') grid.replaceChildren(...WEARABLES[slot].map(itemCard));
     else if (curTab === 'pets') grid.replaceChildren(...PET_IDS.map(petCard), ...won.filter((id) => islandDef(id).bot.petHue).map(petColorCard));
+    else if (curTab === 'boards') grid.replaceChildren(h('p', { class: 'shop-note' }, ...withIcon('gift', t('boardsNote'), 14)), ...BOARD_SKINS.map(skinCard));
+    else if (curTab === 'premium') grid.replaceChildren(...premiumCards());
     else grid.replaceChildren(...won.map(botCard), h('div', { class: 'card hint-card' }, icon('flag', { size: 34 }), h('small', {}, won.length ? t('moreBotsHint') : t('noBotsHint'))));
+  }
+
+  /** קנייה בכסף אמיתי: מצב בדיקה = מיידי וללא חיוב; בגוגל פליי — חלון התשלום של החנות */
+  const realBuy = async (fn, onDone) => {
+    const res = await fn(() => Promise.resolve(true));
+    if (res.ok) { sound.jackpot?.(); ui.toast(t('purchased'), { kind: 'gold', icon: 'check' }); onDone?.(); render(); }
+    else if (!res.cancelled) ui.toast(res.reason, { kind: 'bad' });
+  };
+  const realBtn = (product, onClick, label) => {
+    const price = realPrice(product);
+    return h('button', { class: 'buy real tap', 'aria-label': `${t('buyReal')} ${label}`, onclick: (e) => { e.stopPropagation(); onClick(); } }, h('b', {}, economy.sandbox ? `${t('buyReal')} (${tn('בדיקה', 'test')})` : (price || t('buyReal'))));
+  };
+
+  /** סקין ללוח: לוח האי / חינמי (כל 20 איים) / בכסף אמיתי */
+  function skinCard(sk) {
+    const owned = economy.ownsSkin(sk.id);
+    const equipped = economy.boardSkin === sk.id;
+    const name = sk.id ? tn(sk.he, sk.en) : t('islandBoard');
+    const key = sk.id || app.board.islandBoardKey || app.board.eraKey || 'stone';
+    const [c1, c2] = sk.colors;
+    const hex = (c) => `#${c.toString(16).padStart(6, '0')}`;
+    const box = h('div', { class: 'thumb', style: { background: `repeating-conic-gradient(${hex(c1)} 0 25%, ${hex(c2)} 0 50%) 0 0 / 50% 50%` } }, icon(sk.icon || 'checker', { size: 40, cls: 'ph' }));
+    skinThumb(key, (url) => box.replaceChildren(h('img', { src: url, alt: '' })));
+    let foot;
+    if (equipped) foot = h('span', { class: 'state on' }, icon('check', { size: 16 }), t('equipped'));
+    else if (owned) foot = h('button', { class: 'equip tap', onclick: (e) => { e.stopPropagation(); economy.equipSkin(sk.id); sound.pop?.(); } }, t('equip'));
+    else if (sk.earn) foot = h('span', { class: 'earn' }, icon('lock', { size: 14 }), `${t('earnSkinAt').replace('{n}', sk.earn)} (${Math.min(sk.earn, app.progression.conqueredCount())}/${sk.earn})`);
+    else foot = realBtn({ id: sk.product, price: sk.price }, () => realBuy((c) => economy.purchaseSkin(sk.id, c), () => economy.equipSkin(sk.id)), name);
+    return h('div', { class: `card skin rar-${sk.product ? 'legendary' : sk.earn ? 'epic' : 'common'} ${equipped ? 'sel' : ''}`, role: 'group', 'aria-label': name },
+      box, sk.product ? h('span', { class: 'region-tag' }, t('premiumTag')) : sk.earn ? h('span', { class: 'region-tag' }, `${sk.earn}`) : null,
+      h('b', { class: 'nm' }, name), h('div', { class: 'card-foot' }, foot));
+  }
+
+  /** כרטיסי פרימיום: איי הפרימיום (חד-פעמי) ובוסט יהלומים כפולים לשבוע */
+  function premiumCards() {
+    const ownsIslands = economy.ownsFullGame();
+    const islands = h('div', { class: 'card premium', role: 'group', 'aria-label': t('fullTitle') },
+      h('div', { class: 'p-head' }, icon('castle', { size: 40 }), h('h3', {}, t('fullTitle'))),
+      h('ul', {}, h('li', {}, t('premiumPoint1')), h('li', {}, t('premiumPoint2')), h('li', {}, t('premiumPoint3')), h('li', { class: 'bonus' }, t('dragonBonus'))),
+      h('div', { class: 'p-foot' }, h('span', { class: 'p-note' }, t('noAdsNote')),
+        ownsIslands ? h('span', { class: 'state on' }, icon('check', { size: 16 }), t('owned'))
+          : realBtn(FULL_GAME, () => realBuy((c) => economy.purchaseFullGame(c), () => app.onPremiumUnlocked?.()), t('fullTitle'))));
+    const left = economy.boostLeftMs();
+    const days = Math.floor(left / 86400000), hrs = Math.floor((left % 86400000) / 3600000);
+    const boost = h('div', { class: 'card premium', role: 'group', 'aria-label': t('boostTitle') },
+      h('div', { class: 'p-head' }, icon('gem', { size: 40 }), h('h3', {}, t('boostTitle'))),
+      h('p', { style: { margin: 0, fontSize: '13px' } }, t('boostBody')),
+      left > 0 ? h('div', { class: 'state on' }, icon('hourglass', { size: 15 }), `${t('boostActive')} · ${t('boostLeft').replace('{t}', `${days}${t('daysShort')} ${hrs}${t('hShort')}`)}`) : null,
+      h('div', { class: 'p-foot' }, h('span', { class: 'p-note' }, t('gemsX2')), realBtn(GEM_BOOST, () => realBuy((c) => economy.purchaseBoost(c), () => app.ui.setBoost?.(economy.boostLeftMs())), t('boostTitle'))));
+    return [islands, boost];
   }
 
   /** תמונה בכרטיס: תלת-ממד (מרונדר ברקע ונשמר במטמון) או אייקון להילות */
@@ -206,6 +275,7 @@ export function openKingdomShop(app, { tab = 'wardrobe' } = {}) {
     let foot;
     if (equipped) foot = h('span', { class: 'state on' }, icon('check', { size: 16 }), t('equipped'));
     else if (owned) foot = h('button', { class: 'equip tap', onclick: (e) => { e.stopPropagation(); economy.equipPet(id, maxEra); previewPet = id; refreshPreview(); app.applyLoadout(); } }, t('equip'));
+    else if (p.exclusive) foot = h('button', { class: 'equip tap', onclick: (e) => { e.stopPropagation(); setTab('premium'); } }, icon('crown', { size: 15 }), t('fullTitle'));
     else if (p.premium) foot = buyBtn(p.price, () => result(economy.buyPet(id)), name);
     else foot = h('span', { class: 'state' }, icon('lock', { size: 14 }), `${t('era')} ${p.unlockEra}`);
     return h('div', { class: `card rar-${p.premium ? 'legendary' : 'common'} ${previewPet === id ? 'sel' : ''}`, role: 'button', tabindex: '0', 'aria-label': name,

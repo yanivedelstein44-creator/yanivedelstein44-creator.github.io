@@ -84,11 +84,11 @@ export class KingdomBuilder {
   }
 
   // ---------- תצוגה מיידית ----------
-  show(eraId, built, { instantPalette = true, palette = null } = {}) {
+  show(eraId, built, { instantPalette = true, palette = null, floor = true, life = true } = {}) {
     this.clear();
     this.eraId = eraId;
     const era = getEra(eraId);
-    this.floor = this.makeFloor(eraId);
+    this.floor = floor ? this.makeFloor(eraId) : null;
     if (this.floor) this.root.add(this.floor);
     for (let i = 0; i < built; i++) {
       const set = this.buildSet(eraId, i);
@@ -99,7 +99,7 @@ export class KingdomBuilder {
     this.sm.applyPalette(palette || era.palette, instantPalette ? 0 : 1.2);
     this.sets.forEach((s) => s.onShow?.());
     this.board.setEra(era.key, { instant: true });
-    this.onEraReady?.(eraId, built);
+    if (life) this.onEraReady?.(eraId, built); else this.onEraHidden?.();
   }
 
   clear() {

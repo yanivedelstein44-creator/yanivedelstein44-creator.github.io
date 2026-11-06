@@ -88,6 +88,13 @@ button { font-family: inherit; color: inherit; touch-action: manipulation; }
 .hud-row.top { justify-content: space-between; }
 .hud-icons { display: flex; gap: 6px; align-items: center; }
 button:focus-visible, [role='button']:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.boost-pill { position: absolute; z-index: 9; inset-inline-end: 8px; top: 160px; display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 10px; border-radius: 14px; font-size: 12px; font-weight: 800; color: #2a1806; pointer-events: none;
+  background: linear-gradient(180deg, #fff0b8, #f2c94c 55%, #c8962a); border: 1.5px solid #fff3c8; box-shadow: 0 2px 0 var(--gold-dark), 0 0 12px rgba(242, 201, 76, 0.45); animation: boostGlow 2.4s ease-in-out infinite; }
+.boost-pill b { font-size: 13px; }
+.boost-pill[hidden] { display: none; }
+#app.map-open .boost-pill { display: none; }
+@keyframes boostGlow { 50% { box-shadow: 0 2px 0 var(--gold-dark), 0 0 20px rgba(242, 201, 76, 0.75); } }
+@media (prefers-reduced-motion: reduce) { .boost-pill { animation: none; } }
 .gems-pill {
   display: inline-flex; align-items: center; gap: 5px; height: 34px; padding: 0 12px 0 8px; border-radius: 999px;
   background: linear-gradient(180deg, #4a2f8a, #24164a); border: 1.5px solid rgba(176, 122, 255, 0.7);
@@ -545,3 +552,22 @@ button:focus-visible, [role='button']:focus-visible, input:focus-visible, select
 .card.hint-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 14px 10px; opacity: 0.85; min-height: 150px; }
 .card.hint-card small { font-size: 12px; color: var(--muted); line-height: 1.4; }
 .logo-wrap { display: flex; align-items: center; }
+
+/* ---------- חנות: לוחות ופרימיום ---------- */
+.tabs.five button { font-size: 11.5px; gap: 3px; padding: 0 2px; }
+.tabs.five button svg { width: 18px; height: 18px; }
+.card.skin .thumb img { object-fit: cover; border-radius: 10px; }
+.card.skin .earn { font-size: 11.5px; font-weight: 800; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; min-height: 38px; }
+.card .buy.real { background: linear-gradient(180deg, #ffe7a3, #f2c94c 55%, #c8962a); color: #2a1806; border-color: #fff3c8; box-shadow: 0 3px 0 var(--gold-dark), inset 0 1.5px 0 rgba(255, 255, 255, 0.6); text-shadow: none; }
+.shop-note { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--muted); text-align: center; }
+.card.premium { grid-column: 1 / -1; align-items: stretch; text-align: start; gap: 8px; padding: 14px; background: linear-gradient(160deg, rgba(90, 60, 10, 0.55), rgba(30, 20, 50, 0.85)); border-color: var(--gold); }
+.card.premium .p-head { display: flex; align-items: center; gap: 10px; }
+.card.premium .p-head h3 { margin: 0; font-size: 17px; color: var(--gold-2); }
+.card.premium ul { margin: 0; padding-inline-start: 18px; font-size: 13px; line-height: 1.5; }
+.card.premium .p-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.card.premium .p-note { font-size: 12px; color: var(--muted); }
+.card.premium .buy { min-width: 120px; }
+.fullgame ul { text-align: start; margin: 8px auto; padding-inline-start: 20px; max-width: 320px; font-size: 14px; line-height: 1.6; }
+.fullgame .bonus { color: var(--gold-2); font-weight: 700; font-size: 13.5px; }
+.summary .x2 { display: inline-block; margin-inline-start: 6px; padding: 1px 6px; border-radius: 8px; font-size: 12px; color: #2a1806; background: var(--gold); vertical-align: middle; }
+.region-tabs button.premium { border-color: rgba(242, 201, 76, 0.7); background: linear-gradient(180deg, rgba(242, 201, 76, 0.18), rgba(0, 0, 0, 0.2)); }

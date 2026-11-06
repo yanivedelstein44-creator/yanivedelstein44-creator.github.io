@@ -10,7 +10,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Builder, MON_COLORS as C, monumentGeometry, MONUMENT_SOLID, MONUMENT_GLOW } from './Monuments.js';
-import { HUB_ID, regionOf, islandDef } from '../config/Islands.js';
+import { HUB_ID, PREMIUM_FIRST, regionOf, islandDef } from '../config/Islands.js';
 import { GROUND } from '../config/IslandEras.js';
 import { islandPos } from './WorldMap.js';
 import { PlayerAvatar3D } from './PlayerAvatar3D.js';
@@ -31,10 +31,24 @@ const MICRO = {
   embers: { color: 0xff8a30, vy: 1.2, add: true }, underwater: { color: 0xc8f6ff, vy: 1.0 }, golden: { color: 0xfff0b0, vy: 0.4, add: true },
   stars: { color: 0xd8c8ff, vy: 0.2, add: true }, night: { color: 0xd8ff6a, vy: 0.1, add: true }, jungle: { color: 0xd8ff6a, vy: 0.1, add: true },
   desert: { color: 0xe8c890, vy: 0.1 }, marsDust: { color: 0xd88050, vy: 0.1 },
+  // איי הפרימיום
+  magnetic: { color: 0x8ad0ff, vy: 0.3, add: true }, glassIce: { color: 0xffffff, vy: -0.8 }, basalt: { color: 0xff8a30, vy: 1.2, add: true }, vinyl: { color: 0xff7ab8, vy: 0.4, add: true },
+  whisper: { color: 0xd8ff6a, vy: 0.1, add: true }, abyssal: { color: 0xc8f6ff, vy: 1.0 }, clockwork: { color: 0xffd070, vy: 0.4, add: true }, candy: { color: 0xffc8e8, vy: -0.7 },
+  mirror: { color: 0xffffff, vy: 0.2, add: true }, starDune: { color: 0xd8c8ff, vy: 0.2, add: true }, cyberLab: { color: 0x33ff8a, vy: -3, add: true }, library: { color: 0xffe0a0, vy: -0.3 },
+  stormCloud: { color: 0xb8d0ff, vy: -7 }, ink: { color: 0xc8282a, vy: -0.7 }, reef: { color: 0xffffff, vy: 0.6 }, hive: { color: 0xffd060, vy: 0.4, add: true },
+  marbleDay: { color: 0xffffff, vy: -0.3 }, space: { color: 0xd8c8ff, vy: 0.2, add: true }, geyser: { color: 0xffffff, vy: 1.0 }, mushroom: { color: 0x9affd8, vy: 0.3, add: true },
+  porcelain: { color: 0x8ab0e8, vy: -0.7 }, toy: { color: 0xffd23a, vy: -0.8 }, wheat: { color: 0xfff0b0, vy: 0.1 }, sepia: { color: 0xd8c4a0, vy: 0.1 },
+  cobweb: { color: 0xdfe6ff, vy: 0.1, add: true }, rapids: { color: 0xc8ecff, vy: -5 }, tundra: { color: 0xffffff, vy: -0.9 }, cell: { color: 0xffd0e8, vy: 1.0 },
+  rune: { color: 0xff4a2a, vy: 0.4, add: true }, zenith: { color: 0xfff0b0, vy: 0.4, add: true },
 };
 
-/** מיקום החלק של אי בפסיפס */
+/** מיקום החלק של אי בפסיפס (איי הפרימיום — טבעת שלישית, 30 מקומות שווים) */
 export function hubSlot(id) {
+  if (id >= PREMIUM_FIRST) {
+    const a = -Math.PI / 2 + ((id - PREMIUM_FIRST + 0.5) / 30) * TAU;
+    const rad = 38.4;
+    return { x: Math.cos(a) * rad, z: Math.sin(a) * rad, a, rad, row: 2 };
+  }
   const r = regionOf(id), idx = (id - 1) % 10;
   const row = idx < 5 ? 0 : 1, col = idx % 5;
   const a = -Math.PI / 2 + SECTOR_OFF[r] * SECTOR + (col - 2) * (SECTOR / 5.3);
@@ -112,7 +126,7 @@ function chunkGeometry(id) {
   const d = islandDef(id);
   const cl = d.era.climate;
   const slot = hubSlot(id);
-  const R = slot.row ? 2.35 : 2.05;
+  const R = slot.row === 2 ? 2.2 : slot.row ? 2.35 : 2.05;
   const b = new Builder();
   b.cyl(R, R * 0.97, 0.32, GROUND[cl] ?? C.grass, [0, -0.12, 0], 9);
   b.cyl(R * 0.96, R * 0.35, 2.6, ROCK[cl] ?? 0x6a5848, [0, -1.58, 0], 9);
@@ -189,6 +203,7 @@ export class HubMuseum {
 
   setActive(on) {
     this.active = on;
+    this.syncDragon();
     this.group.visible = on;
     if (on) { this.rebuild(); this.spawnResidents(); } else this.clearResidents();
   }
@@ -308,8 +323,35 @@ export class HubMuseum {
     }
   }
 
+  /** דרקון השעונים הזהוב מרחף מעל האי המרכזי — למי שפתח את איי הפרימיום */
+  syncDragon() {
+    const own = (this.app.economy.s.pets || []).includes('clockwork_dragon');
+    if (own && !this.dragon) {
+      const rig = buildPetRig('clockwork_dragon');
+      rig.root.scale.setScalar(3.4);
+      const g = new THREE.Group();
+      g.add(rig.root);
+      this.group.add(g);
+      this.dragon = { rig, g };
+    }
+    if (this.dragon) this.dragon.g.visible = own;
+  }
+
+  updateDragon(dt, tt) {
+    const d = this.dragon;
+    if (!d || !d.g.visible) return;
+    const a = tt * 0.2, R = 16;
+    d.g.position.set(Math.cos(a) * R, 11.5 + Math.sin(tt * 0.9) * 0.8, Math.sin(a) * R);
+    d.g.rotation.set(0, -a, Math.sin(tt * 0.5) * 0.08 - 0.12);
+    const r = d.rig;
+    r.wings.forEach((w) => { w.rotation.z = w.userData.side * (0.25 + Math.sin(tt * 6) * 0.6); });
+    (r.spinners || []).forEach((s, i) => { s.rotation.z += dt * (i % 2 ? -2.4 : 2.4); });
+    r.tails.forEach((chain) => chain.forEach((seg, i) => { seg.rotation.y = Math.sin(tt * 2 + i * 0.6) * 0.18; }));
+  }
+
   update(dt, tt) {
     if (!this.active) return;
+    this.updateDragon(dt, tt);
     this.updateWalkers(dt, tt);
     for (const l of this.micro || []) {
       const { pos, home, ph, n, vy } = l;

@@ -7,7 +7,7 @@ import { h, withIcon } from './UI.js';
 import { t, tn, islandLabel, shortName } from './i18n.js';
 import { icon } from './icons.js';
 import { formatGems } from '../config/EconomyConfig.js';
-import { HUB_ID, ISLAND_COUNT, islandDef, tierOf, conquestGems, repeatGems, regionOf } from '../config/Islands.js';
+import { HUB_ID, ISLAND_COUNT, islandDef, tierOf, conquestGems, repeatGems, regionOf, PREMIUM_WORLDS } from '../config/Islands.js';
 import { getEra } from '../config/Eras.js';
 import { pirateCrew, pirateGems } from '../config/Pirates.js';
 
@@ -36,7 +36,8 @@ export function buildMapUi(app, map) {
   map.onSelect = (id) => {
     const d = islandDef(id);
     const b = d.bot;
-    const era = getEra(regionOf(id));
+    const r = regionOf(id);
+    const era = PREMIUM_WORLDS[r] ? { name: PREMIUM_WORLDS[r].he, en: PREMIUM_WORLDS[r].en } : getEra(r);
     const cur = pr.currentIsland();
     const paywall = pr.needsFullGame(id);
     const conquered = pr.isConquered(id);
@@ -53,10 +54,10 @@ export function buildMapUi(app, map) {
     if (id === cur) status = h('span', { class: 'tag here' }, ...withIcon('pin', t('youAreHere'), 14));
     else if (piratesNow) status = h('span', { class: 'tag pirate' }, ...withIcon('swords', t('timePirates'), 14));
     else if (conquered) status = h('span', { class: 'tag done' }, ...withIcon('check', t('conqueredMark'), 14));
-    else if (paywall) status = h('span', { class: 'tag lock' }, ...withIcon('lock', t('locked5'), 14));
+    else if (paywall) status = h('span', { class: 'tag lock' }, ...withIcon('crown', t('locked5'), 14));
     const reward = piratesNow ? pirateGems(id) : pirates ? 0 : conquered ? repeatGems(id) : conquestGems(id);
     const actions = h('div', { class: 'card-actions' });
-    if (paywall) actions.append(h('button', { class: 'btn primary tap', onclick: () => app.travelTo(id) }, ...withIcon('lock', t('fullTitle'), 18)));
+    if (paywall) actions.append(h('button', { class: 'btn primary tap', onclick: () => app.travelTo(id) }, ...withIcon('crown', t('fullTitle'), 18)));
     else {
       const label = piratesNow ? t('fightPirates') : pirates ? t('practicePirates') : id === cur ? t('battle') : t('travelBattle');
       actions.append(h('button', { class: `btn primary go tap${piratesNow ? ' danger' : ''}`, onclick: () => app.travelTo(id) }, ...withIcon('swords', label, 20)));

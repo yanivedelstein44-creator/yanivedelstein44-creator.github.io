@@ -371,6 +371,7 @@ export function contactShadow(radius = 1.2, opacity = 0.55) {
   m.position.y = 0.025;
   m.renderOrder = -1;
   m.userData.noOcc = true;
+  m.userData.contact = true;
   return m;
 }
 

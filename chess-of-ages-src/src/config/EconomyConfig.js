@@ -3,8 +3,11 @@
  * שינוי מחיר כאן משתקף מיד בכל החנות.
  *
  * יהלומים לא נקנים בכסף — מרוויחים אותם רק מניצחונות (בוטים / חברים), פרס יומי וגלגל המזל.
- * הרכישה היחידה בכסף אמיתי: פתיחת המשחק המלא (איים 6–99) — Economy.purchaseFullGame(),
- * hook אסינכרוני שמוכן לחיבור Google Play Billing (ראה README).
+ * בלי פרסומות בכלל. איים 1–99 חינמיים לגמרי.
+ * רכישות בכסף אמיתי (hook אסינכרוני שמוכן לחיבור Google Play Billing — ראה README):
+ *   1) 30 איי הפרימיום (100–129) + דרקון השעונים הזהוב — Economy.purchaseFullGame()
+ *   2) בוסט x2 יהלומים לשבוע (אפשר לקנות שוב — כל קנייה מוסיפה 7 ימים) — Economy.purchaseBoost()
+ *   3) סקינים ללוח ולכלים — Economy.purchaseSkin(id)
  */
 export const ECONOMY = {
   currencySymbol: '₪', // אפשר גם '$'
@@ -25,10 +28,42 @@ export const ECONOMY = {
 };
 
 /**
- * המשחק המלא: איים 6–99. price = null → "המחיר ייקבע בקרוב" (קובעים כאן כשמחליטים, למשל 14.9).
+ * מוצרים בכסף אמיתי. price = null → "המחיר ייקבע בקרוב" (קובעים כאן כשמחליטים, למשל 9.9).
  * בגרסת גוגל פליי המחיר מגיע מהחנות (PaymentProvider.priceLabel).
  */
-export const FULL_GAME = { id: 'full_game_unlock', price: null };
+/** 30 איי הפרימיום (100–129) + דרקון השעונים הזהוב — רכישה חד-פעמית */
+export const FULL_GAME = { id: 'premium_islands', price: null };
+export const EXPANSION = { firstIsland: 100, pet: 'clockwork_dragon' };
+/** בוסט x2 יהלומים (ניצחונות על בוטים ופיראטים) לשבוע — מוצר מתכלה, אפשר לקנות שוב */
+export const GEM_BOOST = { id: 'gem_boost_week', price: null, days: 7, mult: 2, consumable: true };
+/**
+ * סקינים ללוח ולכלים ('' = הלוח של האי/העידן).
+ *  • 4 בחינם — על כל 30 איים שנכבשים (earn: 30/60/90/120)
+ *  • 10 פרימיום — כל אחד רכישה חד-פעמית בכסף אמיתי (product)
+ * colors = [משבצת בהירה, משבצת כהה] — לתצוגה בחנות. המראה המלא: scene/Materials.js
+ */
+export const BOARD_SKINS = [
+  { id: '', icon: 'checker', he: 'לוח האי', en: 'Island board', colors: [0xe8dfca, 0x6e4c2f] },
+  // סקין חינם על כל 20 איים שנכבשו (20/40/60/80 בחינם; 100/120 עם איי הפרימיום)
+  { id: 'oakAncient', earn: 20, icon: 'castle', he: 'אלון עתיק', en: 'Ancient Oak', colors: [0xe6d2a8, 0x6a4424] },
+  { id: 'emeraldMarble', earn: 40, icon: 'gem', he: 'שיש אמרלד', en: 'Emerald Marble', colors: [0xf2f0ea, 0x1f7a5a] },
+  { id: 'silverMoon', earn: 60, icon: 'moon', he: 'כסף הירח', en: 'Silver Moon', colors: [0xe8ecf2, 0x3a4250] },
+  { id: 'royalSapphire', earn: 80, icon: 'shield', he: 'ספיר מלכותי', en: 'Royal Sapphire', colors: [0xdfe6f2, 0x1d3a8a] },
+  { id: 'amethystAurora', earn: 100, icon: 'sparkle', he: 'אמטיסט זוהר', en: 'Amethyst Aurora', colors: [0xe8dcf4, 0x5a2a8a] },
+  { id: 'sunfire', earn: 120, icon: 'fire', he: 'אש השמש', en: 'Sunfire', colors: [0xffe2a0, 0xc8501a] },
+  { id: 'obsidianGold', product: 'skin_obsidian_gold', price: null, icon: 'crown', he: 'אובסידיאן וזהב', en: 'Obsidian Gold', colors: [0x2a2630, 0xd8a83a] },
+  { id: 'crystalPrism', product: 'skin_crystal_prism', price: null, icon: 'sparkle', he: 'פריזמת קריסטל', en: 'Crystal Prism', colors: [0xeaf6ff, 0x9fc8ff] },
+  { id: 'royalJade', product: 'skin_royal_jade', price: null, icon: 'temple', he: 'ירקן מלכותי', en: 'Royal Jade', colors: [0xf2ead8, 0x2f8a5e] },
+  { id: 'neonGrid', product: 'skin_neon_grid', price: null, icon: 'bolt', he: 'רשת ניאון', en: 'Neon Grid', colors: [0x1a1f44, 0x33f0ff] },
+  { id: 'rubyGold', product: 'skin_ruby_gold', price: null, icon: 'heart', he: 'אודם וזהב', en: 'Ruby & Gold', colors: [0xf6e6c8, 0x9a1428] },
+  { id: 'galaxy', product: 'skin_galaxy', price: null, icon: 'star', he: 'גלקסיה', en: 'Galaxy', colors: [0x3a2a7a, 0x0c0a24] },
+  { id: 'moltenLava', product: 'skin_molten_lava', price: null, icon: 'fire', he: 'לבה מותכת', en: 'Molten Lava', colors: [0x4a3a36, 0x1a1210] },
+  { id: 'frostDiamond', product: 'skin_frost_diamond', price: null, icon: 'snowflake', he: 'יהלום כפור', en: 'Frost Diamond', colors: [0xf4fbff, 0x8ec8e8] },
+  { id: 'rosePearl', product: 'skin_rose_pearl', price: null, icon: 'heart', he: 'פנינה וזהב ורוד', en: 'Rose Gold Pearl', colors: [0xfbf2f0, 0xd89a8a] },
+  { id: 'pharaohLapis', product: 'skin_pharaoh_lapis', price: null, icon: 'temple', he: 'לפיס פרעוני', en: 'Pharaoh Lapis', colors: [0xf2d68a, 0x1f3f9a] },
+];
+export const findSkin = (id) => BOARD_SKINS.find((x) => x.id === id) || null;
+export const SKIN_EVERY = 20;
 
 /** פריטי לבוש — 4 קטגוריות. price=0 → ברירת מחדל חינמית */
 export const WEARABLES = {
