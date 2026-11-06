@@ -1,11 +1,11 @@
 {
-  "name": "Chess of Ages: Kingdom Builder",
-  "version": "1.0.2",
-  "build": "1.0.2-1793961716523",
-  "buildTime": 1793961716523,
-  "date": "2026-11-06T10:41:56.523Z",
+  "name": "Chess of Ages: Island Realms",
+  "version": "1.1.0",
+  "build": "1.1.0-1793972961852",
+  "buildTime": 1793972961852,
+  "date": "2026-11-06T13:49:21.852Z",
   "minNative": "1.0.0",
-  "bundle": "update/bundle-1.0.2-1793961716523.zip",
+  "bundle": "update/bundle-1.1.0-1793972961852.zip",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "דמויות חיות ברקע של כל העידנים, צלילי אווירה, תגובות הקהל ללכידה/שח/מט וכפתור השתקה"
+  "notes": "Island Realms: ride your pet across 99 islands with their own eras, Time Pirates, the Time Museum, a shop of bots and the Central Cinema"
 }
