@@ -7,6 +7,7 @@ import { defineConfig, loadEnv } from 'vite';
 import fs from 'node:fs';
 import path from 'node:path';
 import { zipSync } from 'fflate';
+import crypto from 'node:crypto';
 
 const pkg = JSON.parse(fs.readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 const BUILD_TIME = Date.now();
@@ -42,15 +43,19 @@ function chessOfAgesBuild(env) {
       for (const f of walk(outDir)) if (!f.startsWith('update/')) zipFiles[f] = new Uint8Array(fs.readFileSync(path.join(outDir, f)));
       fs.mkdirSync(path.join(outDir, 'update'), { recursive: true });
       const bundleName = `update/bundle-${BUILD_ID}.zip`;
-      fs.writeFileSync(path.join(outDir, bundleName), zipSync(zipFiles, { level: 6 }));
+      const zipBytes = zipSync(zipFiles, { level: 6 });
+      fs.writeFileSync(path.join(outDir, bundleName), zipBytes);
+      // SHA-256 של ה-zip — חובה ב-@capgo/capacitor-updater 8.x (בלעדיו ההורדה נדחית)
+      const checksum = crypto.createHash('sha256').update(zipBytes).digest('hex');
       const info = {
         name: 'Chess of Ages: Island Realms',
         version: pkg.version,
         build: BUILD_ID,
         buildTime: BUILD_TIME,
         date: new Date(BUILD_TIME).toISOString(),
-        minNative: (pkg.palace && pkg.palace.minNativeVersion) || '1.0.0',
+        minNative: env.MIN_NATIVE || (pkg.palace && pkg.palace.minNativeVersion) || '1.0.0',
         bundle: bundleName,
+        checksum,
         apk: env.VITE_APK_URL || '',
         notes: env.RELEASE_NOTES || '',
       };

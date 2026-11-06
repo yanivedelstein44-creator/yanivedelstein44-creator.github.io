@@ -171,7 +171,7 @@ export function openSettings(app) {
       const r = await app.updater.checkForUpdates();
       btn.disabled = false;
       if (r === 'none' || r === 'unsupported') ui.toast(t('upToDate'), { kind: 'good', icon: 'check' });
-      else if (r === 'error') ui.toast(t('connError'), { kind: 'bad' });
+      else if (r === 'error') ui.toast(`${t('updateError')}${app.updater.lastError ? ` (${String(app.updater.lastError).slice(0, 90)})` : ''}`, { kind: 'bad', duration: 6000 });
       else m.close();
     } }, ...withIcon('refresh', t('checkUpdates'), 16))),
     h('div', { class: 'btn-row' }, h('button', { class: 'btn danger tap', onclick: async () => { if (await ui.confirm(t('confirmDelete'), t('deleteData'), { danger: true })) app.wipeData(); } }, ...withIcon('trash', t('deleteData'), 18))),
