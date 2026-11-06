@@ -283,21 +283,21 @@ export class PetCompanion3D {
     this.pedestal.children.slice(1).forEach((m) => { m.material = mats.trim; });
   }
 
-  setPet(id) {
-    if (this.id === id && this.rig) return;
+  /** variant: { hue (0..1 הסטת גוון), scale } — כך לכל בוט יש חיה בגוון ובגודל משלה */
+  setPet(id, variant = {}) {
+    const key = `${id}|${variant.hue || 0}|${variant.scale || 1}`;
+    if (this.key === key && this.rig) return;
+    this.key = key;
     this.id = id;
     if (this.rig) { this.holder.remove(this.rig.root); }
-    const rig = newRig();
-    rig.root.add(rig.body);
-    (BUILDERS[id] || BUILDERS.wolf_cub)(rig);
-    addCharacterRim(rig.root);
-    rig.root.scale.setScalar(1.15);
+    const rig = buildPetRig(id, variant);
+    const sc = 1.15 * (variant.scale || 1);
     this.holder.add(rig.root);
     this.rig = rig;
     this.state = 'idle';
     if (this.danceTl) { this.danceTl.kill(); this.danceTl = null; }
     rig.root.scale.setScalar(0.01);
-    gsap.to(rig.root.scale, { x: 1.15, y: 1.15, z: 1.15, duration: 0.6, ease: 'elastic.out(1, 0.5)' });
+    gsap.to(rig.root.scale, { x: sc, y: sc, z: sc, duration: 0.6, ease: 'elastic.out(1, 0.5)' });
   }
 
   place(x, z, facing) {
@@ -463,3 +463,28 @@ export class PetCompanion3D {
 }
 
 export const PET_BUILDERS = BUILDERS;
+
+const _hsl = { h: 0, s: 0, l: 0 };
+/** בונה חיה עצמאית (גם לתמונות ממוזערות). hue מסיט את גוון החומרים (העיניים והזוהר נשארים) */
+export function buildPetRig(id, { hue = 0 } = {}) {
+  const rig = newRig();
+  rig.root.add(rig.body);
+  (BUILDERS[id] || BUILDERS.wolf_cub)(rig);
+  if (hue) {
+    const eyes = new Set(rig.eyes.map((e) => e.material));
+    const done = new Map();
+    rig.root.traverse((o) => {
+      if (!o.isMesh || !o.material || eyes.has(o.material) || o.material.blending === THREE.AdditiveBlending) return;
+      if (!done.has(o.material)) {
+        const m = o.material.clone();
+        if (m.color) { m.color.getHSL(_hsl); if (_hsl.s > 0.08) m.color.setHSL((_hsl.h + hue) % 1, _hsl.s, _hsl.l); }
+        if (m.emissive && m.emissiveIntensity > 0) { m.emissive.getHSL(_hsl); m.emissive.setHSL((_hsl.h + hue) % 1, _hsl.s, _hsl.l); }
+        done.set(o.material, m);
+      }
+      o.material = done.get(o.material);
+    });
+  }
+  addCharacterRim(rig.root);
+  rig.root.scale.setScalar(1.15);
+  return rig;
+}

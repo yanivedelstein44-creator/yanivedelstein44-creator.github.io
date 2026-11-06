@@ -44,7 +44,7 @@ function chessOfAgesBuild(env) {
       const bundleName = `update/bundle-${BUILD_ID}.zip`;
       fs.writeFileSync(path.join(outDir, bundleName), zipSync(zipFiles, { level: 6 }));
       const info = {
-        name: 'Chess of Ages: Kingdom Builder',
+        name: 'Chess of Ages: Island Realms',
         version: pkg.version,
         build: BUILD_ID,
         buildTime: BUILD_TIME,

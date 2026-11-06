@@ -1,9 +1,10 @@
 /**
- * כרטיס שיתוף של הממלכה: צילום הסצנה + לוגו מוזהב + פרטי עידן → Web Share / שמירה / וואטסאפ.
+ * כרטיס שיתוף של הממלכה: צילום הסצנה + לוגו מוזהב + האי ומספר הכיבושים → Web Share / שמירה / וואטסאפ.
  */
 import { h } from './UI.js';
 import { t, tn } from './i18n.js';
 import { PUBLIC_URL } from '../config/AppConfig.js';
+import { drawIcon } from './icons.js';
 
 export async function makeShareCard(app) {
   const src = app.sm.renderer.domElement;
@@ -35,11 +36,18 @@ export async function makeShareCard(app) {
   const era = app.kingdom.eraId;
   const e = app.eraDef(era);
   ctx.font = '800 54px Rubik, Arial, sans-serif'; ctx.fillStyle = '#ffffff';
-  ctx.fillText(`${t('era')} ${era}: ${tn(e.name, e.en)}`, W / 2, H - 190);
+  ctx.fillText(`${t('island')} ${app.islandId} · ${tn(e.name, e.en)}`, W / 2, H - 190);
   ctx.font = '500 36px Rubik, Arial, sans-serif'; ctx.fillStyle = '#cfc6dc';
-  ctx.fillText(`${app.store.get('profile').name} · ${app.progression.totalBuilt()}/20 ${t('stage')} · 🏆 ${app.store.get('wins')}`, W / 2, H - 125);
+  const stats = `${app.store.get('profile').name} · ${app.progression.conqueredCount()}/99 ${t('conquered')} · ${app.progression.totalStars()}`;
+  ctx.fillText(stats, W / 2, H - 125);
+  const stw = ctx.measureText(stats).width;
+  drawIcon(ctx, 'star', W / 2 + stw / 2 + 28, H - 137, 40);
   ctx.font = '600 32px Rubik, Arial, sans-serif'; ctx.fillStyle = '#f2c94c';
-  ctx.fillText(tn('בוא לשחק נגדי בממלכה שלי! 👑', 'Come play me in my kingdom! 👑'), W / 2, H - 65);
+  const tag = tn('בוא לשחק נגדי בממלכה שלי!', 'Come play me in my kingdom!');
+  ctx.fillText(tag, W / 2, H - 65);
+  const tw = ctx.measureText(tag).width;
+  drawIcon(ctx, 'crown', W / 2 - tw / 2 - 34, H - 76, 44);
+  drawIcon(ctx, 'crown', W / 2 + tw / 2 + 34, H - 76, 44);
   return new Promise((r) => c.toBlob((b) => r({ blob: b, url: c.toDataURL('image/jpeg', 0.9) }), 'image/jpeg', 0.9));
 }
 
@@ -57,11 +65,11 @@ export async function shareKingdom(app) {
   }
   const img = h('img', { src: url, alt: t('share'), style: { width: '100%', borderRadius: '14px', userSelect: 'auto', WebkitUserSelect: 'auto' } });
   app.ui.modal({
-    title: `📸 ${t('share')}`,
+    title: t('share'), titleIcon: 'camera',
     body: h('div', {}, img, h('p', {}, tn('לחיצה ארוכה על התמונה כדי לשמור', 'Long-press the image to save'))),
     actions: [
-      { label: `⬇️ ${t('saveImage')}`, onClick: () => { const a = document.createElement('a'); a.href = url; a.download = 'chess-of-ages-kingdom.jpg'; a.click(); } },
-      { label: '💬 WhatsApp', cls: 'whatsapp', onClick: () => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener') },
+      { label: t('saveImage'), icon: 'download', onClick: () => { const a = document.createElement('a'); a.href = url; a.download = 'chess-of-ages-kingdom.jpg'; a.click(); } },
+      { label: 'WhatsApp', icon: 'chat', cls: 'whatsapp', onClick: () => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener') },
     ],
   });
 }

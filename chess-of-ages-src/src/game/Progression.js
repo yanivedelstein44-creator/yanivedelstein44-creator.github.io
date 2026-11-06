@@ -1,89 +1,106 @@
 /**
- * לוגיקת התקדמות: 10 עידנים × 2 שלבים.
- * עידנים 1-5 נבנים לפי הסדר. עידני פרימיום (6-10) נבנים רק אחרי השלמת הבסיס
- * ורק אם נרכשו — לפי סדר העידנים שבבעלות השחקן.
+ * התקדמות: 99 איים, בכל סדר שהשחקן רוצה.
+ * - כל אי פתוח לביקור ולכיבוש. איים 6–99 דורשים את המשחק המלא (רכישה חד-פעמית).
+ * - אחרי כיבוש: הבוט עוזב לאי המרכזי (אפשר לקנות אותו בחנות), החלק של האי מצטרף לפסיפס במרכז,
+ *   ופיראטי זמן תופסים את האי — באותה רמת קושי. ניצחון עליהם = יהלומים; הם בורחים וחוזרים אחרי כמה שעות.
+ * - אין יותר שלבי בנייה: כל אי מוצג במלואו, והאי המרכזי גדל עם כל כיבוש.
  */
-import { ERAS, stageNumber } from '../config/Eras.js';
-import { RULES } from '../config/AppConfig.js';
+import { ISLAND_COUNT, FREE_ISLANDS, HUB_ID, regionOf, regionIslands } from '../config/Islands.js';
+import { PIRATE_RESPAWN_MS } from '../config/Pirates.js';
 
 export class Progression {
   constructor(store, economy) {
     this.store = store;
     this.economy = economy;
+    this.migrate();
   }
 
-  get p() { return this.store.get('eraProgress'); }
-  progressOf(eraId) { return this.p[eraId - 1] || 0; }
-
-  baseComplete() {
-    for (let e = 1; e <= RULES.baseEras; e++) if (this.progressOf(e) < 2) return false;
-    return true;
-  }
-
-  totalBuilt() { return this.p.reduce((a, b) => a + b, 0); }
-
-  /** העידן הגבוה ביותר שהשחקן הגיע אליו (לפתיחת חיות בסיס) */
-  maxEraReached() {
-    let m = 1;
-    for (let e = 1; e <= 10; e++) if (this.progressOf(e) > 0) m = Math.max(m, e);
-    return m;
-  }
-
-  /** השלב הבא לבנייה או null (נעול/הושלם) */
-  nextStage() {
-    for (let e = 1; e <= RULES.baseEras; e++) {
-      const pr = this.progressOf(e);
-      if (pr < 2) return { eraId: e, idx: pr, number: stageNumber(e, pr) };
+  /** שחקנים מגרסה קודמת: שלבים שנבנו → איים כבושים */
+  migrate() {
+    if (this.store.get('islands')) return;
+    const conquered = [];
+    const ep = this.store.get('eraProgress') || [];
+    for (let r = 1; r <= 10; r++) {
+      const k = ep[r - 1] || 0;
+      if (!k) continue;
+      const list = regionIslands(r);
+      conquered.push(...list.slice(0, k >= 2 ? list.length : 5));
     }
-    for (let e = RULES.baseEras + 1; e <= RULES.totalEras; e++) {
-      const pr = this.progressOf(e);
-      if (pr < 2 && this.economy.ownsEra(e)) return { eraId: e, idx: pr, number: stageNumber(e, pr) };
-    }
+    this.store.set({ islands: { conquered, current: HUB_ID } });
+  }
+
+  get isl() { return this.store.get('islands') || { conquered: [], current: HUB_ID }; }
+  save(patch) { this.store.set({ islands: { ...this.isl, ...patch } }); }
+  get conqueredSet() { return new Set(this.isl.conquered); }
+  isConquered(id) { return this.isl.conquered.includes(id); }
+  conqueredCount() { return this.isl.conquered.length; }
+  /** סדר הכיבוש (לחלקים בפסיפס) */
+  conqueredList() { return [...this.isl.conquered]; }
+  regionConquered(r) { const set = this.conqueredSet; return regionIslands(r).filter((i) => set.has(i)).length; }
+
+  /** אי מומלץ להמשך: הראשון שעוד לא נכבש וזמין (או null אם כולם נכבשו) */
+  frontier() {
+    const set = this.conqueredSet;
+    for (let i = 1; i <= ISLAND_COUNT; i++) if (!set.has(i) && !this.needsFullGame(i)) return i;
+    for (let i = 1; i <= ISLAND_COUNT; i++) if (!set.has(i)) return i;
     return null;
   }
+  /** אין חסימות שלבים — כל אי פתוח */
+  isUnlocked() { return true; }
+  needsFullGame(id) { return id > FREE_ISLANDS && !this.economy.ownsFullGame(); }
+  canPlay(id) { return !this.needsFullGame(id); }
 
-  /** למה אי אפשר לבנות עוד: 'premium' (צריך לרכוש עידן) או 'complete' */
+  currentIsland() { const c = this.isl.current; return c >= 1 && c <= ISLAND_COUNT ? c : HUB_ID; }
+  setCurrent(id) { this.save({ current: id }); }
+
+  /** כיבוש אי. הפיראטים נוחתים מיד אחרי שהבוט עוזב */
+  conquer(id) {
+    if (this.isConquered(id)) return { first: false };
+    const pirates = { ...(this.isl.pirates || {}) };
+    pirates[id] = { cleared: 0, crew: 0 };
+    this.save({ conquered: [...this.isl.conquered, id], pirates });
+    return { first: true };
+  }
+
+  // ---------- פיראטי הזמן ----------
+  pirateState(id) { return (this.isl.pirates || {})[id] || { cleared: 0, crew: 0 }; }
+  hasPirates(id) {
+    if (id === HUB_ID || !this.isConquered(id)) return false;
+    return Date.now() - (this.pirateState(id).cleared || 0) >= PIRATE_RESPAWN_MS;
+  }
+  /** כמה זמן (ms) עד שהפיראטים חוזרים (0 = הם כבר שם) */
+  pirateReturnIn(id) { return Math.max(0, (this.pirateState(id).cleared || 0) + PIRATE_RESPAWN_MS - Date.now()); }
+  pirateCrewIndex(id) { return this.pirateState(id).crew || 0; }
+  defeatPirates(id) {
+    const st = this.pirateState(id);
+    this.save({ pirates: { ...(this.isl.pirates || {}), [id]: { cleared: Date.now(), crew: (st.crew || 0) + 1 } }, piratesBeaten: (this.isl.piratesBeaten || 0) + 1 });
+  }
+  piratesBeaten() { return this.isl.piratesBeaten || 0; }
+  pirateIslands() { return this.isl.conquered.filter((id) => this.hasPirates(id)); }
+
+  // ---------- כוכבים (1–3 לכל אי, נשמר השיא) ----------
+  starsOf(id) { return (this.isl.stars || {})[id] || 0; }
+  setStars(id, n) {
+    const prev = this.starsOf(id);
+    if (n <= prev) return 0;
+    this.save({ stars: { ...(this.isl.stars || {}), [id]: n } });
+    return n - prev;
+  }
+  totalStars() { return Object.values(this.isl.stars || {}).reduce((a, b) => a + b, 0); }
+  starRewardsClaimed() { return this.isl.starRewards || 0; }
+  setStarRewardsClaimed(n) { this.save({ starRewards: n }); }
+
+  // ---------- תצוגה ----------
+  /** ערכת התפאורה של אי (העולם שלו). האי המרכזי — מוזיאון הזמן על ערכת השיש */
+  displayEra(id = this.currentIsland()) { return id === HUB_ID ? 2 : regionOf(id); }
+  /** העולם הגבוה שבו נכבש אי כלשהו (לפתיחת חיות הבסיס) */
+  maxEraReached() { let m = 1; for (const id of this.isl.conquered) m = Math.max(m, regionOf(id)); return m; }
+  /** 'fullGame' — כל האיים החינמיים נכבשו וצריך לפתוח את המשחק; 'complete' — הכול נכבש */
   lockReason() {
-    if (this.nextStage()) return null;
-    const allDone = ERAS.every((e) => this.progressOf(e.id) >= 2);
-    return allDone ? 'complete' : 'premium';
+    const f = this.frontier();
+    if (!f) return 'complete';
+    return this.needsFullGame(f) ? 'fullGame' : null;
   }
 
-  /** בונה את השלב הבא. מחזיר פרטי השלב (כולל האם נפתח עידן חדש) */
-  buildNext() {
-    const next = this.nextStage();
-    if (!next) return null;
-    const arr = this.p.slice();
-    arr[next.eraId - 1] = next.idx + 1;
-    const prevEra = this.homeEra();
-    this.store.set({ eraProgress: arr, lastBuiltEra: next.eraId, selectedEra: null });
-    return { ...next, newEra: next.eraId !== prevEra || next.idx === 0, era: ERAS[next.eraId - 1] };
-  }
-
-  homeEra() { return this.store.get('lastBuiltEra') || 1; }
-
-  displayEra() {
-    const sel = this.store.get('selectedEra');
-    return sel && this.visitable(sel) ? sel : this.homeEra();
-  }
-
-  visitable(eraId) {
-    const era = ERAS[eraId - 1];
-    if (!era) return false;
-    if (eraId === 1) return true;
-    if (era.premium) return this.economy.ownsEra(eraId) && this.baseComplete();
-    return this.progressOf(eraId) > 0;
-  }
-
-  visitableEras() { return ERAS.filter((e) => this.visitable(e.id)).map((e) => e.id); }
-
-  /** מספר השלב לתצוגה ב-HUD: השלב האחרון שנבנה בעידן (0 אם טרם נבנה דבר) */
-  displayStageNumber(eraId) {
-    const pr = this.progressOf(eraId);
-    return pr === 0 ? (eraId - 1) * 2 : stageNumber(eraId, pr - 1);
-  }
-
-  resetAll() {
-    this.store.set({ eraProgress: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], lastBuiltEra: 1, selectedEra: null });
-  }
+  resetAll() { this.store.set({ islands: { conquered: [], current: HUB_ID } }); }
 }

@@ -35,7 +35,7 @@ const DEFAULT_PROGRESS = () => ({
   rating: 1200,
   difficulty: 'easy',
   timeControl: 10,
-  profile: { name: '', avatar: '♔' },
+  profile: { name: '', avatar: 'crown' },
   settings: { sfx: true, ambience: true, quality: 'auto', reducedMotion: false },
   savedGame: null,
   seenOnlineNotice: false,
@@ -51,7 +51,7 @@ export class ProgressStore {
     this.data = saved ? { ...def, ...saved, settings: { ...def.settings, ...(saved.settings || {}) }, profile: { ...def.profile, ...(saved.profile || {}) } } : def;
     if (!Array.isArray(this.data.eraProgress) || this.data.eraProgress.length !== 10) this.data.eraProgress = def.eraProgress;
     if (!this.data.profile.name) {
-      const he = (this.data.settings.lang || (/^(he|iw)\b/i.test(navigator.language || '') ? 'he' : 'en')) === 'he';
+      const he = this.data.settings.lang === 'he';
       this.data.profile.name = `${he ? 'מלך' : 'King'} ${Math.floor(100 + Math.random() * 900)}`;
     }
     this.listeners = new Set();

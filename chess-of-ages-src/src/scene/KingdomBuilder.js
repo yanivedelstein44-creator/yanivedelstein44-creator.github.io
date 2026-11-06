@@ -3,6 +3,7 @@
  * ומבצע "אבולוציית עידן" עם גל הלם זהוב שמחליף רצפות, חומרים ותאורה.
  */
 import * as THREE from 'three';
+import { seamDecor } from './SeamDecor.js';
 import gsap from 'gsap';
 import { ERAS, getEra } from '../config/Eras.js';
 import { eraMaterials } from './Materials.js';
@@ -52,8 +53,13 @@ export class KingdomBuilder {
   owner(idx) { return `era${this.eraId}-${idx}`; }
 
   makeFloor(eraId) {
-    const f = MODULES[eraId - 1].floor(this.ctx(eraId));
-    if (!f) return null;
+    const base = MODULES[eraId - 1].floor(this.ctx(eraId));
+    if (!base) return null;
+    // משטח + קישוטי קו התפר (סלעים, חלוקים, דשא) — יחד, כדי שגל ההלם יחליף את שניהם
+    const f = new THREE.Group();
+    f.add(base);
+    const decor = seamDecor(eraId);
+    if (decor) f.add(decor);
     f.traverse((o) => { if (o.isMesh) { const mats = Array.isArray(o.material) ? o.material : [o.material]; mats.forEach((m) => addRadialClip(m)); } });
     return f;
   }
@@ -78,7 +84,7 @@ export class KingdomBuilder {
   }
 
   // ---------- תצוגה מיידית ----------
-  show(eraId, built, { instantPalette = true } = {}) {
+  show(eraId, built, { instantPalette = true, palette = null } = {}) {
     this.clear();
     this.eraId = eraId;
     const era = getEra(eraId);
@@ -90,7 +96,7 @@ export class KingdomBuilder {
       this.claimLights(set);
       this.sets.push(set);
     }
-    this.sm.applyPalette(era.palette, instantPalette ? 0 : 1.2);
+    this.sm.applyPalette(palette || era.palette, instantPalette ? 0 : 1.2);
     this.sets.forEach((s) => s.onShow?.());
     this.board.setEra(era.key, { instant: true });
     this.onEraReady?.(eraId, built);

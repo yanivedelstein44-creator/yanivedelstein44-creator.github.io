@@ -715,8 +715,26 @@ const engine = new Engine();
  * חושב על המסע הבא.
  * @param {{fen:string, history?:string[], uci?:string[], level?:'easy'|'medium'|'hard', timeScale?:number}} req
  */
+/**
+ * חוזק רציף (0..1) — לבוטים של 99 האיים: מאי 1 (מתחיל סלחני) ועד אי 99 (רב-אמן).
+ * עומק, זמן, רעש וטעויות מכוונות משתנים בהדרגה.
+ */
+export function levelFromStrength(s) {
+  const x = Math.max(0, Math.min(1, s));
+  const depths = [[0.1, 1], [0.25, 2], [0.4, 3], [0.55, 4], [0.7, 5], [0.82, 6], [0.92, 8]];
+  const maxDepth = (depths.find(([lim]) => x < lim) || [0, 40])[1];
+  return {
+    maxDepth,
+    timeMs: Math.round(300 + x * 2300),
+    noise: Math.max(0, Math.round(150 * (1 - x / 0.6))),
+    quiescence: x >= 0.12,
+    blunder: Math.max(0, 0.22 * (1 - x / 0.35)),
+    book: x >= 0.3,
+  };
+}
+
 export function think(req) {
-  const level = LEVELS[req.level] || LEVELS.medium;
+  const level = typeof req.strength === 'number' ? levelFromStrength(req.strength) : LEVELS[req.level] || LEVELS.medium;
   const t0 = Date.now();
   // היסטוריית עמדות לזיהוי חזרות
   engine.histLen = 0;

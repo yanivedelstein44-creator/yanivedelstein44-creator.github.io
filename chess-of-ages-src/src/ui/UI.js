@@ -1,10 +1,12 @@
 /**
  * UI — HUD עליון, דוק תחתון, פעולות במשחק, הודעות, תוויות צפות, מערכת מודלים נגישה.
- * כל טקסט דינמי נכנס דרך textContent (שמות מהרשת לעולם לא כ-HTML).
+ * כל טקסט דינמי נכנס דרך textContent (שמות לעולם לא כ-HTML). אייקונים: SVG וקטוריים (icons.js) — בלי אימוג'ים.
  */
 import gsap from 'gsap';
 import { t } from './i18n.js';
 import { formatGems } from '../config/EconomyConfig.js';
+import { compactLogoSVG } from './logo.js';
+import { icon, emblemIcon, decorate, stripEmoji } from './icons.js';
 
 export function h(tag, attrs = {}, ...children) {
   const el = document.createElement(tag);
@@ -22,6 +24,9 @@ export function h(tag, attrs = {}, ...children) {
   }
   return el;
 }
+
+/** אייקון + טקסט (לכפתורים, כותרות ותוויות) */
+export const withIcon = (name, text, size = 18) => [icon(name, { size }), text ? h('span', { class: 'lbl' }, text) : null];
 
 const fmtClock = (ms) => {
   if (ms === null || ms === undefined) return '';
@@ -51,20 +56,21 @@ export class UI {
     this.root.querySelector('#actions')?.remove();
 
     this.gemsVal = h('span', { class: 'gv' }, '0');
-    // תפריט נפתח: צלילים, אווירה, סיור בעידנים, פנורמה, הישגים והגדרות — כדי שהסרגל העליון יישאר נקי
+    // תפריט נפתח: צלילים, אווירה, איים, פנורמה, הישגים והגדרות — כדי שהסרגל העליון יישאר נקי
     const menuItem = (ic, label, fn, checkable = false) => h('button', { class: 'menu-item', role: checkable ? 'menuitemcheckbox' : 'menuitem', 'aria-checked': checkable ? 'true' : null, onclick: () => { fn(); if (!checkable) this.toggleMenu(false); } },
-      h('span', { class: 'ic', 'aria-hidden': 'true' }, ic), h('span', { class: 'lb' }, label), checkable ? h('span', { class: 'sw', 'aria-hidden': 'true' }) : null);
-    this.sfxBtn = menuItem('🔊', t('sfx'), () => H.onSfx(), true);
-    this.ambBtn = menuItem('🎵', t('ambience'), () => H.onAmb(), true);
-    this.eraBtn = menuItem('🧭', t('eraTour'), () => H.onEraTour());
-    this.panoBtn = menuItem('🔭', t('panorama'), () => { H.onPanorama(); this.toggleMenu(false); }, true);
+      h('span', { class: 'ic', 'aria-hidden': 'true' }, icon(ic, { size: 22 })), h('span', { class: 'lb' }, label), checkable ? h('span', { class: 'sw', 'aria-hidden': 'true' }) : null);
+    this.sfxBtn = menuItem('sound', t('sfx'), () => H.onSfx(), true);
+    this.ambBtn = menuItem('music', t('ambience'), () => H.onAmb(), true);
+    this.panoBtn = menuItem('panorama', t('panorama'), () => { H.onPanorama(); this.toggleMenu(false); }, true);
     this.panoBtn.setAttribute('aria-checked', 'false');
     this.menu = h('div', { class: 'hud-menu glass', id: 'hud-menu', role: 'menu', 'aria-label': t('settings'), hidden: true },
-      this.sfxBtn, this.ambBtn, this.eraBtn, this.panoBtn,
-      menuItem('🏆', t('achievements'), () => H.onAchievements?.()),
-      menuItem('⚙️', t('settings'), () => H.onSettings()));
-    this.muteBtn = h('button', { class: 'menu-btn mute-btn', 'aria-label': t('muteAll'), 'aria-pressed': 'false', onclick: () => H.onMuteAll() }, h('span', { class: 'ic', 'aria-hidden': 'true' }, '🔊'));
-    this.menuBtn = h('button', { class: 'menu-btn', 'aria-label': t('settings'), 'aria-haspopup': 'menu', 'aria-expanded': 'false', 'aria-controls': 'hud-menu', onclick: (e) => { e.stopPropagation(); this.toggleMenu(); } },
+      this.sfxBtn, this.ambBtn, this.panoBtn,
+      menuItem('trophy', t('achievements'), () => H.onAchievements?.()),
+      menuItem('cap', t('tutorial'), () => H.onTutorial?.()),
+      menuItem('gear', t('settings'), () => H.onSettings()));
+    this.muteIc = h('span', { class: 'ic', 'aria-hidden': 'true' }, icon('sound', { size: 22 }));
+    this.muteBtn = h('button', { class: 'menu-btn mute-btn tap', 'aria-label': t('muteAll'), 'aria-pressed': 'false', onclick: () => H.onMuteAll() }, this.muteIc);
+    this.menuBtn = h('button', { class: 'menu-btn tap', 'aria-label': t('settings'), 'aria-haspopup': 'menu', 'aria-expanded': 'false', 'aria-controls': 'hud-menu', onclick: (e) => { e.stopPropagation(); this.toggleMenu(); } },
       h('span', { 'aria-hidden': 'true' }, h('i'), h('i'), h('i')));
     document.addEventListener('pointerdown', (e) => { if (!this.menu.hidden && !this.menu.contains(e.target) && !this.menuBtn.contains(e.target)) this.toggleMenu(false); }, true);
     this.menu.addEventListener('keydown', (e) => {
@@ -87,9 +93,9 @@ export class UI {
 
     this.hud = h('header', { id: 'hud', class: 'glass' },
       h('div', { class: 'hud-row top' },
-        h('div', { class: 'logo small', role: 'img', 'aria-label': `${t('appTitle')} — Chess of Ages` }, h('span', { class: 'he' }, t('appTitle')), h('span', { class: 'en' }, t('logoEn'))),
+        (() => { const el = h('div', { class: 'logo-wrap' }); el.innerHTML = compactLogoSVG({ height: 34, title: t('appSubtitle') }); return el; })(),
         h('div', { class: 'hud-icons' },
-          h('div', { class: 'gems-pill', role: 'group', 'aria-label': t('gems') }, '💎', this.gemsVal, h('button', { class: 'plus', 'aria-label': t('tabGems'), onclick: () => H.onGemsPlus() }, '+')),
+          h('div', { class: 'gems-pill', role: 'group', 'aria-label': t('gems') }, icon('gem', { size: 20 }), this.gemsVal),
           this.muteBtn, this.menuBtn)),
       this.menu,
       h('div', { class: 'era-row' }, this.eraBadge, h('div', { class: 'era-info' }, this.eraTitleEl, this.progressEl, this.nextLabel)),
@@ -97,27 +103,19 @@ export class UI {
       this.statusEl,
     );
 
-    const dockBtn = (key, ic, label, fn, cls = '') => h('button', { class: `dock-btn ${cls}`, 'data-tab': key, onclick: fn, 'aria-label': label.replace(/[^\p{L}\p{N}\s]/gu, '').trim() || label }, h('span', { class: 'ic', 'aria-hidden': 'true' }, ic), h('span', {}, label.replace(/ ?[👑⚡]/u, '')));
-    this.shopBtn = dockBtn('shop', '👑', t('shop'), () => { this.setActiveTab('shop'); H.onShop(); });
+    this.dock = h('nav', { id: 'dock', class: 'glass', 'aria-label': t('actions') });
     this.shopBadge = h('span', { class: 'badge-dot', hidden: true }, h('span', { 'aria-hidden': 'true' }, '!'), h('span', { class: 'sr-only' }, t('dailyGift')));
-    this.shopBtn.appendChild(this.shopBadge);
-    this.dock = h('nav', { id: 'dock', class: 'glass', 'aria-label': t('actions') },
-      dockBtn('center', '🎯', t('center'), () => { this.setActiveTab('center'); H.onCenter(); }),
-      this.shopBtn,
-      dockBtn('modes', '♟️', t('modes'), () => { this.setActiveTab('modes'); H.onModes(); }),
-      dockBtn('build', '⚡', t('buildNext'), () => H.onBuild(), 'build'));
-    this.setActiveTab('center');
+    this.setDock(this.dockHub ?? true);
 
-    const act = (ic, label, fn) => h('button', { class: 'icon-btn glass', 'aria-label': label, title: label, onclick: fn }, h('span', { 'aria-hidden': 'true' }, ic));
+    const act = (ic, label, fn) => h('button', { class: 'icon-btn round tap', 'aria-label': label, title: label, onclick: fn }, icon(ic, { size: 24 }));
     this.actBtns = {
-      share: act('📸', t('share'), () => H.onShare()),
-      hint: act('💡', t('hintCost'), () => H.onHint()),
-      emote: act('😀', t('emotes'), () => this.toggleEmotes()),
-      draw: act('🤝', t('offerDraw'), () => H.onDraw()),
-      resign: act('🏳️', t('resign'), () => H.onResign()),
+      center: act('target', t('center'), () => H.onCenter()),
+      share: act('camera', t('share'), () => H.onShare()),
+      hint: act('bulb', t('hintCost'), () => H.onHint()),
+      draw: act('handshake', t('offerDraw'), () => H.onDraw()),
+      resign: act('flag', t('resign'), () => H.onResign()),
     };
-    this.emotePicker = h('div', { class: 'emote-picker glass', hidden: true }, ...['👍', '😮', '😂', '😡', '👑', '🤝'].map((e) => h('button', { 'aria-label': e, onclick: () => { this.emotePicker.hidden = true; H.onEmote(e); } }, e)));
-    this.actions = h('div', { id: 'actions' }, ...Object.values(this.actBtns), this.emotePicker);
+    this.actions = h('div', { id: 'actions' }, ...Object.values(this.actBtns));
     this.root.append(this.hud, this.actions, this.dock);
     this.toasts = this.root.querySelector('#toasts');
     this.sr = this.root.querySelector('#sr-status');
@@ -126,42 +124,68 @@ export class UI {
   card() {
     const el = h('div', { class: 'pcard' });
     const av = h('div', { class: 'av', 'aria-hidden': 'true' });
+    const em = h('span', { class: 'em' });
     const pet = h('span', { class: 'pet' });
-    av.append(h('span', { class: 'em' }), pet);
+    av.append(em, pet);
     const nm = h('div', { class: 'nm' });
     const sub = h('div', { class: 'sub' });
     const cap = h('div', { class: 'cap', 'aria-hidden': 'true' });
     const clock = h('div', { class: 'clock', hidden: true });
     el.append(av, h('div', { class: 'meta' }, nm, sub, cap), clock);
-    return { el, av, pet, nm, sub, cap, clock };
+    return { el, av, em, pet, nm, sub, cap, clock };
+  }
+
+  /**
+   * הסרגל התחתון לפי המקום: באי המרכזי (הבית) — מפה · חנות · חבר · קרב; בשאר האיים — מפה · הביתה · קרב
+   */
+  setDock(hub) {
+    const H = this.hd;
+    this.dockHub = hub;
+    const dockBtn = (key, ic, label, fn, cls = '') => h('button', { class: `dock-btn tap ${cls}`, 'data-tab': key, onclick: fn, 'aria-label': label }, h('span', { class: 'ic', 'aria-hidden': 'true' }, icon(ic, { size: 26 })), h('span', { class: 'dl' }, label));
+    const btns = [dockBtn('map', 'compass', t('map'), () => { this.setActiveTab('map'); H.onMap(); })];
+    if (hub) {
+      const shop = dockBtn('shop', 'chest', t('shop'), () => { this.setActiveTab('shop'); H.onShop(); });
+      shop.appendChild(this.shopBadge);
+      btns.push(shop, dockBtn('friend', 'users', t('friend'), () => { this.setActiveTab('friend'); H.onFriend(); }));
+    } else btns.push(dockBtn('home', 'home', t('home'), () => H.onHome()));
+    btns.push(dockBtn('battle', 'swords', t('battle'), () => H.onBattle(), 'build'));
+    this.dock.replaceChildren(...btns);
+    this.dock.style.gridTemplateColumns = `repeat(${btns.length}, 1fr)`;
+    this.setActiveTab(this.activeTab || null);
   }
 
   // ---------- עדכונים ----------
-  setEra({ eraId, eraName, premium, stageNum, progress, ownedEras, next, lock }) {
-    this.eraBadge.textContent = `${t('era')} ${eraId}`;
-    this.eraBadge.classList.toggle('premium', !!premium);
-    this.eraTitleEl.replaceChildren(document.createTextNode(`${eraName} · `), h('span', { class: 'st' }, `${t('stage')} ${stageNum}/20`));
-    let done = 0;
-    for (let e = 1; e <= 10; e++) done += Math.min(2, progress[e - 1] || 0);
-    const pct = (done / 20) * 100;
-    this.eraFill.style.width = `${pct}%`;
-    this.progressEl.classList.toggle('premium', !!premium);
-    this.eraNext.hidden = !next;
-    if (next) this.eraNext.style.insetInlineStart = `calc(${((next.eraId - 1) * 2 + next.idx + 0.5) / 20 * 100}% - 4px)`;
-    this.progressEl.setAttribute('aria-valuenow', String(done));
-    this.progressEl.setAttribute('aria-label', `${t('stagesBuilt')}: ${done} / 20`);
-    this.nextLabel.textContent = next ? `${t('next')}: ${next.name}` : lock === 'complete' ? t('kingdomComplete') : `🔒 ${t('premiumLocked')}`;
+  /** שורת האי ב-HUD: מספר האי, שמו, פס כיבוש 99 האיים (10 אזורים) והיעד הבא */
+  setIsland({ id, name, regionName, boss, region, conquered, total, frontier, next, lock }) {
+    this.eraBadge.replaceChildren(...[boss ? icon('crown', { size: 13 }) : null, document.createTextNode(`${t('island')} ${id}`)].filter(Boolean));
+    this.eraBadge.classList.toggle('premium', region >= 6);
+    this.eraTitleEl.replaceChildren(document.createTextNode(`${name} · `), h('span', { class: 'st' }, regionName));
+    this.eraFill.style.width = `${(conquered / total) * 100}%`;
+    this.progressEl.classList.toggle('premium', region >= 6);
+    this.eraNext.hidden = !frontier;
+    if (frontier) this.eraNext.style.insetInlineStart = `calc(${((frontier - 0.5) / total) * 100}% - 4px)`;
+    this.progressEl.setAttribute('aria-valuemax', String(total));
+    this.progressEl.setAttribute('aria-valuenow', String(conquered));
+    this.progressEl.setAttribute('aria-label', `${t('conquered')}: ${conquered} / ${total}`);
+    if (lock === 'fullGame') this.nextLabel.replaceChildren(...withIcon('lock', t('unlockFullShort'), 12));
+    else if (lock === 'complete') this.nextLabel.textContent = t('allConquered');
+    else this.nextLabel.textContent = next || '';
   }
 
   setPlayer(which, p) {
     const c = this.cards[which];
-    c.av.querySelector('.em').textContent = p.avatar || '♔';
-    c.pet.textContent = p.petIcon || '';
+    c.em.replaceChildren(icon(emblemIcon(p.avatar || 'crown'), { size: 22 }));
+    if (p.petImg) {
+      if (c.pet.dataset.src !== p.petImg) { c.pet.replaceChildren(h('img', { src: p.petImg, alt: '' })); c.pet.dataset.src = p.petImg; }
+    } else if (c.pet.dataset.src !== 'paw') { c.pet.replaceChildren(icon('paw', { size: 12 })); c.pet.dataset.src = 'paw'; }
     c.nm.replaceChildren(document.createTextNode(p.name || ''));
-    if (p.isBot) c.nm.appendChild(h('span', { class: 'bot-tag', title: t('bot') }, '🤖 BOT'));
+    if (p.isBot) c.nm.appendChild(h('span', { class: 'bot-tag', title: t('bot') }, icon('robot', { size: 11 }), ' BOT'));
     c.sub.textContent = p.active && p.status ? p.status : (p.sub || '');
     c.sub.style.color = p.active && p.status ? (p.check ? '#ff8a96' : 'var(--gold-2)') : '';
-    c.cap.replaceChildren(document.createTextNode(p.captured || ''));
+    if (typeof p.capCount === 'number') {
+      c.cap.replaceChildren();
+      if (p.capCount > 0) c.cap.append(icon(p.capColor === 'w' ? 'dotLight' : 'dotDark', { size: 12 }), h('span', { class: 'cnum' }, `×${p.capCount}`));
+    } else c.cap.replaceChildren(document.createTextNode(p.captured || ''));
     if (p.adv) c.cap.appendChild(h('span', { class: 'adv' }, `+${p.adv}`));
     c.el.classList.toggle('active', !!p.active);
     c.el.classList.toggle('check', !!p.check);
@@ -192,16 +216,15 @@ export class UI {
   setAudio(sfx, amb) {
     this.sfxBtn.setAttribute('aria-checked', String(sfx));
     this.ambBtn.setAttribute('aria-checked', String(amb));
-    this.sfxBtn.querySelector('.ic').textContent = sfx ? '🔊' : '🔇';
-    this.ambBtn.querySelector('.ic').textContent = amb ? '🎵' : '🔕';
+    this.sfxBtn.querySelector('.ic').replaceChildren(icon(sfx ? 'sound' : 'mute', { size: 22 }));
+    this.ambBtn.querySelector('.ic').replaceChildren(icon('music', { size: 22, cls: amb ? '' : 'off' }));
     const muted = !sfx && !amb;
     this.menuBtn?.classList.toggle('muted', muted);
-    if (this.muteBtn) { this.muteBtn.setAttribute('aria-pressed', String(muted)); this.muteBtn.querySelector('.ic').textContent = muted ? '🔇' : '🔊'; }
+    if (this.muteBtn) { this.muteBtn.setAttribute('aria-pressed', String(muted)); this.muteIc.replaceChildren(icon(muted ? 'mute' : 'sound', { size: 22 })); }
   }
 
   setPanorama(on) { this.panoBtn.setAttribute('aria-checked', String(on)); }
   setShopBadge(on) { this.shopBadge.hidden = !on; }
-  setEraTourEnabled(on) { this.eraBtn.disabled = !on; }
 
   /** תפריט ההגדרות הנפתח בסרגל העליון */
   toggleMenu(open = this.menu.hidden) {
@@ -213,7 +236,7 @@ export class UI {
     }
   }
 
-  /** הלשונית הפעילה בסרגל התחתון זוהרת: המשחק (מרכז) כברירת מחדל, חנות / מצבי משחק כשהם פתוחים */
+  /** הלשונית הפעילה בסרגל התחתון זוהרת בזמן שהמסך שלה פתוח (מפה / חנות / חבר) */
   setActiveTab(tab) {
     this.activeTab = tab;
     this.dock?.querySelectorAll('.dock-btn[data-tab]').forEach((b) => {
@@ -223,21 +246,19 @@ export class UI {
     });
   }
 
+  /** mode: 'ai' | 'local' | null */
   setActions(mode) {
-    const show = { share: true, hint: mode === 'ai' || mode === 'local', emote: mode === 'friend' || mode === 'quick', draw: mode === 'friend' || mode === 'quick', resign: mode !== 'local' && mode !== null };
+    const show = { center: true, share: true, hint: mode === 'ai' || mode === 'local', draw: mode === 'local', resign: mode === 'ai' };
     Object.entries(this.actBtns).forEach(([k, b]) => { b.hidden = !show[k]; });
-    this.emotePicker.hidden = true;
   }
 
-  toggleEmotes() { this.emotePicker.hidden = !this.emotePicker.hidden; }
-
   // ---------- הודעות ----------
-  toast(text, { kind = '', duration = 2600 } = {}) {
-    const el = h('div', { class: `toast glass ${kind}` }, text);
+  toast(text, { kind = '', duration = 2600, icon: ic = null } = {}) {
+    const el = h('div', { class: `toast glass ${kind}` }, ic ? icon(ic, { size: 20 }) : null, h('span', {}, decorate(text, { size: 16 })));
     this.toasts.appendChild(el);
     while (this.toasts.children.length > 3) this.toasts.firstChild.remove();
     setTimeout(() => gsap.to(el, { opacity: 0, y: -8, duration: 0.35, onComplete: () => el.remove() }), duration);
-    this.announce(text);
+    this.announce(stripEmoji(text));
   }
 
   announce(text) {
@@ -245,13 +266,26 @@ export class UI {
     setTimeout(() => { this.sr.textContent = text; }, 30);
   }
 
-  floatLabel(text, pos, kind = '', duration = 1.6) {
+  floatLabel(text, pos, kind = '', duration = 1.6, ic = null) {
     if (!pos) return;
-    const el = h('div', { class: `float-label ${kind}` }, text);
+    const el = h('div', { class: `float-label ${kind}` }, ic ? icon(ic, { size: kind === 'emote' ? 40 : 18 }) : null, text ? h('span', {}, text) : null);
     el.style.left = `${pos.x}px`; el.style.top = `${pos.y}px`;
     this.root.appendChild(el);
     gsap.fromTo(el, { opacity: 0, y: 10, scale: 0.7 }, { opacity: 1, y: -10, scale: 1, duration: 0.35, ease: 'back.out(2)' });
     gsap.to(el, { opacity: 0, y: -40, duration: 0.5, delay: duration, onComplete: () => el.remove() });
+  }
+
+  /** בועת דיבור מעל דמות (הבוט). pos = מיקום מסך */
+  speech(text, pos, name = '') {
+    if (!pos) return;
+    this.bubble?.remove();
+    const el = h('div', { class: 'speech', role: 'status' }, name ? h('b', {}, name) : null, h('span', {}, text));
+    el.style.left = `${Math.max(90, Math.min(window.innerWidth - 90, pos.x))}px`;
+    el.style.top = `${Math.max(140, pos.y)}px`;
+    this.root.appendChild(el);
+    this.bubble = el;
+    gsap.fromTo(el, { opacity: 0, y: 8, scale: 0.85 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: 'back.out(2)' });
+    gsap.to(el, { opacity: 0, y: -10, duration: 0.4, delay: 2.8, onComplete: () => { el.remove(); if (this.bubble === el) this.bubble = null; } });
   }
 
   eraTitle(kicker, title, sub = '') {
@@ -263,19 +297,22 @@ export class UI {
   }
 
   // ---------- מודלים ----------
-  /** @returns {{el:HTMLElement, close:Function}} */
-  modal({ title, label, body, actions = [], center = false, full = false, dismissable = true, onClose, className = '', closeButton = true } = {}) {
+  /**
+   * title: מחרוזת או אלמנט; titleIcon: אייקון לצד הכותרת; actions: [{label, icon, primary, danger, cls, onClick}]
+   * @returns {{el:HTMLElement, close:Function}}
+   */
+  modal({ title, titleIcon, label, body, actions = [], center = false, full = false, dismissable = true, onClose, className = '', closeButton = true } = {}) {
     const prevFocus = document.activeElement;
     const titleId = `m${Math.random().toString(36).slice(2, 8)}`;
     const dlg = h('div', { class: `modal glass ${full ? 'full' : ''} ${className}`, role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': title ? titleId : null, 'aria-label': !title && label ? label : null });
-    const head = h('div', { class: 'modal-head' });
-    if (title) head.appendChild(typeof title === 'string' ? h('h2', { id: titleId }, title) : (title.id = titleId, title));
-    if (dismissable && closeButton) head.appendChild(h('button', { class: 'modal-close', 'aria-label': t('close'), onclick: () => ctl.close() }, '✕'));
+    const head = h('div', { class: `modal-head ${title ? 'has-title' : ''}` });
+    if (title) head.appendChild(typeof title === 'string' ? h('h2', { id: titleId }, titleIcon ? icon(titleIcon, { size: 24 }) : null, h('span', {}, title)) : (title.id = titleId, title));
+    if (dismissable && closeButton) head.appendChild(h('button', { class: 'modal-close tap', 'aria-label': t('close'), onclick: () => ctl.close() }, icon('close', { size: 16 })));
     dlg.appendChild(head);
     if (body) dlg.appendChild(typeof body === 'string' ? h('p', {}, body) : body);
     if (actions.length) {
       const row = h('div', { class: 'btn-row' });
-      actions.forEach((a) => row.appendChild(h('button', { class: `btn ${a.primary ? 'primary' : ''} ${a.danger ? 'danger' : ''} ${a.cls || ''}`, onclick: () => a.onClick?.(ctl), disabled: a.disabled }, a.label)));
+      actions.forEach((a) => row.appendChild(h('button', { class: `btn tap ${a.primary ? 'primary' : ''} ${a.danger ? 'danger' : ''} ${a.cls || ''}`, onclick: () => a.onClick?.(ctl), disabled: a.disabled }, a.icon ? icon(a.icon, { size: 20 }) : null, h('span', {}, a.label))));
       dlg.appendChild(row);
     }
     const back = h('div', { class: `modal-back ${center ? 'center' : ''}` }, dlg);
@@ -295,7 +332,7 @@ export class UI {
         if (ctl.closed) return;
         ctl.closed = true;
         this.modals = this.modals.filter((m) => m !== ctl);
-        if (!this.modals.length && this.activeTab !== 'center') this.setActiveTab('center');
+        if (!this.modals.length && this.activeTab && this.activeTab !== 'map') this.setActiveTab(null);
         gsap.to(back, { opacity: 0, duration: 0.18, onComplete: () => back.remove() });
         onClose?.();
         if (prevFocus && prevFocus.focus) setTimeout(() => prevFocus.focus(), 50);
