@@ -306,8 +306,8 @@ export class UI {
     gsap.to(el, { opacity: 0, y: -10, duration: 0.4, delay: 2.8, onComplete: () => { el.remove(); if (this.bubble === el) this.bubble = null; } });
   }
 
-  eraTitle(kicker, title, sub = '') {
-    const el = h('div', { class: 'era-title-card', role: 'status' }, h('div', { class: 'inner glass' }, h('div', { class: 'kicker' }, kicker), h('div', { class: 'title' }, title), sub ? h('div', { class: 'sub' }, sub) : null));
+  eraTitle(kicker, title, sub = '', { top = false } = {}) {
+    const el = h('div', { class: `era-title-card${top ? ' top' : ''}`, role: 'status' }, h('div', { class: 'inner glass' }, h('div', { class: 'kicker' }, kicker), h('div', { class: 'title' }, title), sub ? h('div', { class: 'sub' }, sub) : null));
     document.body.appendChild(el);
     gsap.fromTo(el.firstChild, { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: 'back.out(1.8)' });
     gsap.to(el, { opacity: 0, duration: 0.6, delay: 2.4, onComplete: () => el.remove() });

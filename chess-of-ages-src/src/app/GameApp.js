@@ -208,6 +208,9 @@ export class GameApp {
     this.ui.setActions(this.mode);
     this.setupSeason();
     this.startClockLoop();
+    const bootQ = new URLSearchParams(location.search);
+    const bootRoom = bootQ.get('room') || (this.store.get('onlineRoom')?.code && Date.now() - (this.store.get('onlineRoom').at || 0) < ONLINE.rejoinMs);
+    if (!bootRoom) this.playIslandIntro(this.islandId);
     requestAnimationFrame(() => requestAnimationFrame(() => this.hideSplash()));
     this.updater.init();
     if (!this.economy.s.welcomed) { this.economy.s.welcomed = true; this.economy.save(); setTimeout(() => this.ui.toast(tn(`קיבלת ${ECONOMY.welcomeGems} יהלומים מתנת פתיחה!`, `You got ${ECONOMY.welcomeGems} gems as a welcome gift!`), { kind: 'gold', duration: 4000, icon: 'gift' }), 1600); }
@@ -226,12 +229,12 @@ export class GameApp {
     }
     if (!this.store.get('seenCinemaHint')) { this.store.set({ seenCinemaHint: true }); setTimeout(() => this.ui.toast(t('cinemaHint'), { icon: 'play', duration: 4200 }), 1600); }
     else if (resumed) setTimeout(() => this.ui.toast(t('gameResumed'), { icon: 'knight' }), 1200);
-    else setTimeout(() => this.botSay('intro', true), 1500);
+    else this.afterIntro(() => this.botSay('intro', true), 500);
     if (this.economy.hasDailyBadge() && this.store.get('seenTutorial')) setTimeout(() => this.ui.toast(t('dailyGift'), { kind: 'gold', icon: 'gift' }), 3200);
-    if (this.isAITurn()) setTimeout(() => this.opponentMove(), 800);
+    if (this.isAITurn()) this.afterIntro(() => this.opponentMove(), 400);
     // תמונות ממוזערות לכרטיסי השחקנים — ברקע, אחרי שהסצנה עלתה
     setTimeout(() => { this.thumbsReady = true; this.refreshPetThumbs(); }, 2500);
-    if (this.atHub && !resumed) setTimeout(() => this.dockPending(), 2200);
+    if (this.atHub && !resumed) this.afterIntro(() => this.dockPending(), 600);
     window.__chessOfAges = this;
     window.__gsap = gsap;
     window.__appVersion = APP_VERSION;
@@ -570,6 +573,7 @@ export class GameApp {
   }
 
   onTap(x, y) {
+    if (this.introPlaying) return;
     // באי המרכזי: נגיעה בבית הקולנוע או בחנות
     const bld = this.atHub && !this.busy ? this.museum.pick(x, y) : null;
     if (bld === 'cinema') { this.sound.ui(); this.openCinema(); return; }
@@ -1043,20 +1047,39 @@ export class GameApp {
       if (battle) await this.startIslandBattle({ quiet: true });
       else { this.setupOpponentForMode(); this.applyLoadout(); }
       this.refreshHud();
-      // מבט מגובה על האי → צלילה אל הלוח
-      this.sm.controls.target.set(0, 0.5, 0);
-      this.sm.camera.position.set(6, 44, 36);
-      this.sm.camera.lookAt(0, 0.5, 0);
+      // זום אאוט: מבט רחב על כל האי → צלילה אל הלוח (נגיעה מדלגת)
+      const intro = this.playIslandIntro(id);
       CloudWipe.reveal(0.75);
-      await this.sm.toGameplay(2.1, this.viewSide());
-      const d = islandDef(id);
-      this.ui.eraTitle(`${t('island')} ${id}${d.boss ? ` · ${t('boss')}` : ''}`, id === HUB_ID ? t('hubName') : islandLabel(id), `${tn(d.bot.title.he, d.bot.title.en)} ${tn(d.bot.name.he, d.bot.name.en)} · ${d.bot.rating}`);
-      setTimeout(() => this.botSay('intro', true), 700);
+      await intro;
+      setTimeout(() => this.botSay('intro', true), 500);
     } finally {
       this.busy = false;
       this.traveling = false;
     }
     if (id === HUB_ID) this.dockPending();
+  }
+
+  /** פתיחה קולנועית של האי: הסרגלים נעלמים, מבט רחב עם שם האי, ואז צלילה אל הלוח. נגיעה מדלגת */
+  playIslandIntro(id = this.islandId) {
+    const d = islandDef(id);
+    this.introPlaying = true;
+    this.root.classList.add('intro');
+    const skip = () => this.sm.skipIntro();
+    this.root.addEventListener('pointerdown', skip, { capture: true });
+    const title = setTimeout(() => this.ui.eraTitle(`${t('island')} ${id}${d.boss ? ` · ${t('boss')}` : ''}`, id === HUB_ID ? t('hubName') : islandLabel(id), `${tn(d.bot.title.he, d.bot.title.en)} ${tn(d.bot.name.he, d.bot.name.en)} · ${d.bot.rating}`, { top: true }), 350);
+    this.introPromise = this.sm.islandIntro(this.viewSide(), { onDive: () => this.root.classList.remove('intro') })
+      .finally(() => {
+        clearTimeout(title);
+        this.root.removeEventListener('pointerdown', skip, { capture: true });
+        this.root.classList.remove('intro');
+        this.introPlaying = false;
+      });
+    return this.introPromise;
+  }
+
+  /** מריץ אחרי שהפתיחה הקולנועית הסתיימה (או מיד, אם אין פתיחה) */
+  afterIntro(fn, delay = 0) {
+    Promise.resolve(this.introPromise).catch(() => {}).then(() => setTimeout(fn, delay));
   }
 
   /** חלקים של איים שנכבשו מצטרפים לפסיפס של האי המרכזי (אנימציה) */

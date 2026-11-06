@@ -453,8 +453,73 @@ export class SceneManager {
       };
       const done = () => { apply(); this.animatingCamera = false; this.controls.enabled = !this.gestureBlocked; this.controls.update(); resolve(); };
       if (duration <= 0) { done(); return; }
-      gsap.to(st, { t: 1, duration, ease, onUpdate: apply, onComplete: done });
+      const tw = gsap.to(st, { t: 1, duration, ease, onUpdate: apply, onComplete: () => { if (this._camTween === tw) this._camTween = null; done(); } });
+      this._camTween = tw;
     });
+  }
+
+  /** מבט רחב שבו כל האי נכנס למסך (לפתיחה הקולנועית) */
+  fitIslandWide(az = this.view.azimuth, polarDeg = 48, rimR = 25) {
+    const cam = this.camera.clone();
+    cam.updateProjectionMatrix();
+    const polar = THREE.MathUtils.degToRad(polarDeg);
+    const tg = new V3(0, 0, 0);
+    const rim = [];
+    for (let i = 0; i < 32; i++) { const a = (i / 32) * TAU; rim.push(new V3(Math.cos(a) * rimR, 0, Math.sin(a) * rimR)); }
+    const v = new V3(), off = new V3();
+    let r = 80;
+    for (let it = 0; it < 40; it++) {
+      cam.position.copy(tg).add(off.setFromSpherical(new THREE.Spherical(r, polar, az)));
+      cam.lookAt(tg);
+      cam.updateMatrixWorld(true);
+      let mx = 0, my = 0;
+      for (const p of rim) { v.copy(p).project(cam); mx = Math.max(mx, Math.abs(v.x)); my = Math.max(my, Math.abs(v.y)); }
+      r *= Math.pow(Math.max(mx / 0.94, my / 0.78), 0.8);
+      r = Math.min(170, Math.max(35, r));
+    }
+    return { target: tg, radius: r, polar };
+  }
+
+  /**
+   * פתיחה קולנועית של אי: מתחילים במבט רחב על כל האי (סיבוב והתקרבות איטיים),
+   * ואז צוללים אל מבט המשחק. skipIntro() מקצר (נגיעה במסך).
+   */
+  async islandIntro(side = this.view.side, { hold = 2.6, dive = 2.3, onDive } = {}) {
+    this.endFreeLook();
+    this.fitGameplay(side);
+    const az0 = this.view.azimuth;
+    const W = this.fitIslandWide(az0 - 0.3);
+    const tg = W.target;
+    const st = { az: az0 - 0.7, r: W.radius * 1.06 };
+    const apply = () => {
+      this.camera.position.copy(tg).add(new V3().setFromSpherical(new THREE.Spherical(st.r, W.polar, st.az)));
+      this.camera.lookAt(tg);
+      this.controls.target.copy(tg);
+    };
+    this.controls.enabled = false;
+    this.controls.autoRotate = false;
+    this.animatingCamera = true;
+    this.introFog = true;
+    this._introSkip = false;
+    apply();
+    if (!this.reducedMotion && hold > 0) {
+      await new Promise((resolve) => {
+        this._introTween = gsap.to(st, { az: az0 - 0.2, r: W.radius * 0.8, duration: hold, ease: 'sine.inOut', onUpdate: apply, onComplete: resolve });
+      });
+    }
+    this._introTween = null;
+    onDive?.();
+    try {
+      await this.toGameplay(this._introSkip || this.reducedMotion ? 0.8 : dive, side);
+    } finally {
+      this.introFog = false;
+    }
+  }
+
+  skipIntro() {
+    this._introSkip = true;
+    if (this._introTween) this._introTween.progress(1);
+    else this._camTween?.timeScale(3);
   }
 
   /** מסלול קולנועי סביב נקודה: מסובב azimuth בזמן */
@@ -626,7 +691,10 @@ export class SceneManager {
       sh.amp *= Math.exp(-sh.decay * dt);
     } else sh.offset.set(0, 0, 0);
     this.camera.position.add(sh.offset);
+    const fb = this.introFog ? Math.max(0, this.camera.position.distanceTo(this.controls.target) - this.view.radius * 1.2) : 0;
+    if (fb) { this.fog.near += fb; this.fog.far += fb; }
     this.renderer.render(this.scene, this.camera);
+    if (fb) { this.fog.near -= fb; this.fog.far -= fb; }
     this.camera.position.sub(sh.offset);
     this.autoQuality(dt);
   }
