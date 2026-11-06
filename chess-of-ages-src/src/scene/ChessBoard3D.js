@@ -26,6 +26,42 @@ function roundedRect(w, h, r) {
   return s;
 }
 
+/** מאטקאפ אוניקס (תאורה אפויה) — שחור מבריק עקבי בכל אי ובכל אקלים, זול למובייל */
+function onyxMatcap() {
+  return drawnTexture('onyxMatcap', 256, (ctx, s) => {
+    const rg = (x, y, r, stops) => {
+      const g = ctx.createRadialGradient(x * s, y * s, 0, x * s, y * s, r * s);
+      stops.forEach(([o, c]) => g.addColorStop(o, c));
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, s, s);
+    };
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, s, s);
+    rg(0.5, 0.5, 0.5, [[0, '#141217'], [0.7, '#0a090c'], [0.9, '#2a2830'], [1, '#56525e']]);
+    rg(0.6, 0.9, 0.32, [[0, 'rgba(170,170,190,0.2)'], [1, 'rgba(170,170,190,0)']]);
+    rg(0.37, 0.3, 0.34, [[0, 'rgba(255,255,255,0.5)'], [0.45, 'rgba(255,255,255,0.14)'], [1, 'rgba(255,255,255,0)']]);
+    rg(0.35, 0.27, 0.08, [[0, 'rgba(255,255,255,1)'], [1, 'rgba(255,255,255,0)']]);
+  });
+}
+
+/** נצנוץ ארבע-קרני (כוכב אור) לטבעת הבחירה */
+function glintTexture() {
+  return drawnTexture('onyxGlint', 128, (ctx, s) => {
+    const c = s / 2;
+    const core = ctx.createRadialGradient(c, c, 0, c, c, c * 0.42);
+    core.addColorStop(0, 'rgba(255,255,255,1)'); core.addColorStop(0.35, 'rgba(240,244,255,0.55)'); core.addColorStop(1, 'rgba(230,236,255,0)');
+    ctx.fillStyle = core; ctx.fillRect(0, 0, s, s);
+    ctx.translate(c, c);
+    const rays = ctx.createRadialGradient(0, 0, 0, 0, 0, c);
+    rays.addColorStop(0, 'rgba(255,255,255,1)'); rays.addColorStop(0.45, 'rgba(240,244,255,0.4)'); rays.addColorStop(1, 'rgba(230,236,255,0)');
+    ctx.fillStyle = rays;
+    for (let k = 0; k < 2; k++) {
+      ctx.beginPath(); ctx.moveTo(-c, 0); ctx.lineTo(0, -c * 0.075); ctx.lineTo(c, 0); ctx.lineTo(0, c * 0.075); ctx.closePath(); ctx.fill();
+      ctx.rotate(Math.PI / 2);
+    }
+  });
+}
+
 export class ChessBoard3D {
   constructor(sceneMgr, fx) {
     this.sm = sceneMgr;
@@ -105,18 +141,39 @@ export class ChessBoard3D {
 
   buildHighlights() {
     const ringTex = glowTexture('ringGlow', 'rgba(255,255,255,1)');
-    this.selRing = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.045, 10, 48), new THREE.MeshStandardMaterial({ color: 0xffd36a, emissive: 0xffb020, emissiveIntensity: 2.2, metalness: 1, roughness: 0.2 }));
+    // סימונים יוקרתיים מאוניקס שחור מבריק — בולטים על כל לוח
+    this.markBlack = new THREE.MeshMatcapMaterial({ matcap: onyxMatcap() });
+    this.markGem = new THREE.MeshMatcapMaterial({ matcap: onyxMatcap(), flatShading: true });
+    // טבעת הבחירה: "בזל" של שעון יוקרה — רצועת אוניקס עם שני רכסים מלוטשים, ארבעה יהלומים שחורים ונצנוץ שמקיף
+    this.selRing = new THREE.Group();
+    this.selRing.add(
+      new THREE.Mesh(G.torus(0.43, 0.052, 14, 72), this.markBlack),
+      new THREE.Mesh(G.torus(0.492, 0.02, 8, 80), this.markBlack),
+      new THREE.Mesh(G.torus(0.367, 0.012, 8, 72), this.markBlack),
+    );
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2, big = k % 2 === 0;
+      const st = big
+        ? mesh(G.octa(0.078), this.markGem, { pos: [Math.cos(a) * 0.43, Math.sin(a) * 0.43, -0.055], rot: [0, 0, a], scale: [1, 0.7, 0.6] })
+        : mesh(G.sph(0.026, 10, 8), this.markBlack, { pos: [Math.cos(a) * 0.43, Math.sin(a) * 0.43, -0.05] });
+      this.selRing.add(st);
+    }
+    this.selGlint = new THREE.Sprite(new THREE.SpriteMaterial({ map: glintTexture(), color: 0xffffff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+    this.selGlint.position.set(0.492, 0, -0.02);
+    this.selRing.add(this.selGlint);
     this.selRing.rotation.x = Math.PI / 2;
     this.selRing.visible = false;
-    this.selGlow = new THREE.Mesh(G.plane(1.4, 1.4), new THREE.MeshBasicMaterial({ map: ringTex, color: 0xffc040, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
+    this.selGlow = new THREE.Mesh(G.plane(1.4, 1.4), new THREE.MeshBasicMaterial({ map: ringTex, color: 0x000000, transparent: true, opacity: 0.3, depthWrite: false }));
     this.selGlow.rotation.x = -Math.PI / 2;
     this.selGlow.visible = false;
     this.group.add(this.selRing, this.selGlow);
 
-    this.moveMat = new THREE.MeshStandardMaterial({ color: 0x2ee59d, emissive: 0x10c070, emissiveIntensity: 1.6, transparent: true, opacity: 0.9, roughness: 0.3 });
+    // נקודות מהלך: מטבע אוניקס עם שפה מוגבהת ויהלום שחור קטן במרכז
+    this.moveCoin = G.lathe('luxCoin2', [[0, 0], [0.19, 0], [0.204, 0.009], [0.204, 0.03], [0.19, 0.042], [0.13, 0.047], [0, 0.047]], 48);
+    this.moveRim = G.torus(0.205, 0.026, 10, 56);
+    this.moveGem = G.octa(0.068);
+    this.moveShadow = new THREE.MeshBasicMaterial({ map: ringTex, color: 0x000000, transparent: true, opacity: 0.42, depthWrite: false });
     this.capMat = new THREE.MeshStandardMaterial({ color: 0xff3b4e, emissive: 0xe0102a, emissiveIntensity: 1.8, transparent: true, opacity: 0.95, roughness: 0.3 });
-    this.moveGeo = new THREE.TorusGeometry(0.17, 0.05, 8, 32);
-    this.moveDot = new THREE.CircleGeometry(0.11, 24);
     this.capGeo = new THREE.TorusGeometry(0.44, 0.045, 8, 48);
 
     const tint = (c, o) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, depthWrite: false, blending: THREE.AdditiveBlending });
@@ -181,14 +238,18 @@ export class ChessBoard3D {
       const [mx, mz] = squareToXZ(mv.to);
       const isCap = !!mv.captured;
       const g = new THREE.Group();
+      let gem = null;
       if (isCap) {
         g.add(mesh(this.capGeo, this.capMat, { rot: [Math.PI / 2, 0, 0] }));
       } else {
-        g.add(mesh(this.moveGeo, this.moveMat, { rot: [Math.PI / 2, 0, 0] }));
-        g.add(mesh(this.moveDot, this.moveMat, { rot: [-Math.PI / 2, 0, 0] }));
+        g.add(mesh(G.plane(0.7, 0.7), this.moveShadow, { pos: [0, -0.012, 0], rot: [-Math.PI / 2, 0, 0] }));
+        g.add(mesh(this.moveCoin, this.markBlack));
+        g.add(mesh(this.moveRim, this.markBlack, { pos: [0, 0.022, 0], rot: [Math.PI / 2, 0, 0] }));
+        gem = mesh(this.moveGem, this.markGem, { pos: [0, 0.062, 0], scale: [1, 0.6, 1] });
+        g.add(gem);
       }
       g.position.set(mx, BOARD_TOP + 0.03, mz);
-      g.userData = { square: mv.to, cap: isCap, phase: Math.random() * 0.5 };
+      g.userData = { square: mv.to, cap: isCap, phase: Math.random() * 0.5, gem };
       g.scale.setScalar(0.01);
       gsap.to(g.scale, { x: 1, y: 1, z: 1, duration: 0.25, delay: 0.02 * this.markers.length, ease: 'back.out(2.5)' });
       this.group.add(g);
@@ -463,15 +524,18 @@ export class ChessBoard3D {
     this.time = t;
     const pulse = 0.5 + 0.5 * Math.sin(t * 5);
     this.markers.forEach((m) => {
-      const s = m.userData.cap ? 1 + pulse * 0.08 : 0.9 + pulse * 0.25;
+      const s = m.userData.cap ? 1 + pulse * 0.08 : 0.95 + pulse * 0.12;
       if (!gsap.isTweening(m.scale)) m.scale.setScalar(s);
-      m.position.y = BOARD_TOP + 0.03 + (m.userData.cap ? 0 : pulse * 0.04);
+      m.position.y = BOARD_TOP + 0.03 + (m.userData.cap ? 0 : pulse * 0.025);
+      if (m.userData.gem) m.userData.gem.rotation.y = t * 1.3 + m.userData.phase * 6;
     });
-    this.moveMat.emissiveIntensity = 1.2 + pulse * 1.2;
     this.capMat.emissiveIntensity = 1.3 + pulse * 1.4;
     if (this.selRing.visible) {
-      this.selRing.rotation.z += dt * 1.5;
-      this.selGlow.material.opacity = 0.35 + pulse * 0.35;
+      this.selRing.rotation.z += dt * 0.6;
+      this.selGlow.material.opacity = 0.22 + pulse * 0.16;
+      const tw = Math.pow(Math.max(0, Math.sin(t * 1.9)), 6);
+      this.selGlint.scale.setScalar(0.05 + tw * 0.24);
+      this.selGlint.material.opacity = 0.25 + tw * 0.75;
     }
     if (this.checkGlow.visible) this.checkGlow.material.opacity = 0.45 + pulse * 0.55;
     if (this.cursor.visible) this.cursor.material.opacity = 0.55 + pulse * 0.45;
