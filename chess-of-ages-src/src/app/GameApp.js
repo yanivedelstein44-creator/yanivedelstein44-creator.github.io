@@ -24,6 +24,7 @@ import { WorldMap } from '../scene/WorldMap.js';
 import { Weather, climatePalette } from '../scene/Climate.js';
 import { makeMonument } from '../scene/Monuments.js';
 import { HubMuseum } from '../scene/HubMuseum.js';
+import { HorizonIslands } from '../scene/HorizonIslands.js';
 import { eraMaterials } from '../scene/Materials.js';
 import { detectSeason, buildSeason } from '../scene/SeasonalEvents.js';
 import { SoundEngine } from '../audio/SoundEngine.js';
@@ -38,10 +39,12 @@ import { openDailyRewards } from '../ui/DailyRewardsModal.js';
 import { shareKingdom } from '../ui/ShareCard.js';
 import { Tutorial } from '../ui/Tutorial.js';
 import { Updater } from '../update/Updater.js';
+import { OnlineController } from './OnlineController.js';
+import { openFriendHub, joinFromLink, openEmotePicker } from '../ui/OnlineModal.js';
 import { getEra } from '../config/Eras.js';
 import { PETS } from '../config/Pets.js';
 import { ECONOMY } from '../config/EconomyConfig.js';
-import { TIME_CONTROLS, RULES, APP_VERSION } from '../config/AppConfig.js';
+import { TIME_CONTROLS, RULES, APP_VERSION, ONLINE } from '../config/AppConfig.js';
 import { ISLAND_COUNT, HUB_ID, islandDef, regionOf, regionIslands, isBoss, tierOf, conquestGems, repeatGems } from '../config/Islands.js';
 import { botLine, pirateLine } from '../config/BotLines.js';
 import { pirateCrew, pirateGems } from '../config/Pirates.js';
@@ -85,9 +88,11 @@ export class GameApp {
     this.map = new WorldMap(this);
     this.weather = new Weather(this.sm, this.sound);
     this.museum = new HubMuseum(this);
+    this.horizon = new HorizonIslands(this.sm);
     this.ai = new ChessAI();
     this.game = new GameController();
     this.tutorial = new Tutorial(this);
+    this.online = new OnlineController(this);
     this.updater = new Updater({
       isSafe: () => this.isSafe() && !this.ui.modals.length && !this.map.isOpen,
       onAvailable: (info, act) => this.showUpdateAvailable(info, act),
@@ -119,7 +124,9 @@ export class GameApp {
       onCenter: () => { this.sound.ui(); if (this.sm.panoramaOn) { this.sm.panoramaOn = false; this.ui.setPanorama(false); } this.sm.toGameplay(1.0, this.viewSide()); },
       onMap: () => this.openMap(),
       onShop: () => { this.sound.ui(); this.openShop(); },
-      onFriend: () => { this.sound.ui(); M.openFriend(this); },
+      onFriend: () => { this.sound.ui(); openFriendHub(this); },
+      onEmote: () => { this.sound.ui(); openEmotePicker(this); },
+      onLeave: () => { this.sound.ui(); this.online.leave(); },
       onHome: () => { this.sound.ui(); this.travelTo(HUB_ID); },
       onBattle: () => { this.sound.ui(); this.newBattle(); },
       onSfx: () => { const v = !this.store.get('settings').sfx; this.store.setSetting('sfx', v); this.sound.setSfx(v); this.ui.setAudio(v, this.store.get('settings').ambience); },
@@ -185,7 +192,19 @@ export class GameApp {
     requestAnimationFrame(() => requestAnimationFrame(() => this.hideSplash()));
     this.updater.init();
     if (!this.economy.s.welcomed) { this.economy.s.welcomed = true; this.economy.save(); setTimeout(() => this.ui.toast(tn(`קיבלת ${ECONOMY.welcomeGems} יהלומים מתנת פתיחה!`, `You got ${ECONOMY.welcomeGems} gems as a welcome gift!`), { kind: 'gold', duration: 4000, icon: 'gift' }), 1600); }
-    if (location.search.includes('room=')) history.replaceState(null, '', location.pathname);
+    // הזמנה לחדר אונליין (?room=CODE, ‎&watch=1 לצופים) או חזרה לחדר אחרי שהאפליקציה נסגרה
+    const q = new URLSearchParams(location.search);
+    const linkRoom = q.get('room');
+    if (linkRoom) {
+      const linkWatch = q.has('watch');
+      q.delete('room'); q.delete('watch');
+      history.replaceState(null, '', `${location.pathname}${q.toString() ? `?${q}` : ''}`);
+      setTimeout(() => joinFromLink(this, linkRoom, linkWatch), 900);
+    } else {
+      const or = this.store.get('onlineRoom');
+      if (or?.code && Date.now() - (or.at || 0) < ONLINE.rejoinMs) setTimeout(() => this.rejoinOnline(or.code), 1200);
+      else if ((this.store.get('myRooms') || []).length) setTimeout(() => this.online.cleanupMyRooms(), 20000);
+    }
     if (!this.store.get('seenCinemaHint')) { this.store.set({ seenCinemaHint: true }); setTimeout(() => this.ui.toast(t('cinemaHint'), { icon: 'play', duration: 4200 }), 1600); }
     else if (resumed) setTimeout(() => this.ui.toast(t('gameResumed'), { icon: 'knight' }), 1200);
     else setTimeout(() => this.botSay('intro', true), 1500);
@@ -276,12 +295,19 @@ export class GameApp {
   /** אווטאר אחד וחיה אחת שמטיילים איתך; מולך — הבוט של האי (לבוש, מראה וחיה בגוון משלו) או שחקן 2 */
   applyLoadout() {
     this.economy.expireTrials();
-    this.avatars.w.setLoadout(this.economy.loadout);
-    this.pets.w.setPet(this.economy.pet, { hue: this.economy.petHue });
+    const mine = { loadout: this.economy.loadout, look: {}, pet: this.economy.pet, petHue: this.economy.petHue, petScale: 1 };
     const o = this.opponent || {};
-    this.avatars.b.setLoadout(o.loadout || getEra(this.kingdom.eraId || 1).opponent);
-    this.avatars.b.setLook(o.look || {});
-    this.pets.b.setPet(o.pet || 'wolf_cub', { hue: o.petHue || 0, scale: o.petScale || 1 });
+    const opp = { loadout: o.loadout || getEra(this.kingdom.eraId || 1).opponent, look: o.look || {}, pet: o.pet || 'wolf_cub', petHue: o.petHue || 0, petScale: o.petScale || 1 };
+    // העמדות לפי צבע: הלבן תמיד בצד של הלבן. אונליין כשחור — אתה יושב בצד השחור
+    let W = mine, B = opp;
+    if (this.mode === 'online' && this.myColor === 'b') { W = opp; B = mine; }
+    if (this.mode === 'watch' && this.watchWhite) W = { ...this.watchWhite, look: {} };
+    this.avatars.w.setLoadout(W.loadout || {});
+    this.avatars.w.setLook(W.look || {});
+    this.pets.w.setPet(W.pet || 'wolf_cub', { hue: W.petHue || 0, scale: W.petScale || 1 });
+    this.avatars.b.setLoadout(B.loadout || {});
+    this.avatars.b.setLook(B.look || {});
+    this.pets.b.setPet(B.pet || 'wolf_cub', { hue: B.petHue || 0, scale: B.petScale || 1 });
     this.refreshHud();
     this.refreshPetThumbs();
   }
@@ -292,11 +318,25 @@ export class GameApp {
     const o = this.opponent || {};
     this.thumbs.pet(this.economy.pet, 96, { hue: this.economy.petHue }).then(() => this.refreshHud()).catch(() => {});
     if (o.pet) this.thumbs.pet(o.pet, 96, { hue: o.petHue }).then(() => this.refreshHud()).catch(() => {});
+    const ww = this.watchWhite;
+    if (ww?.pet) this.thumbs.pet(ww.pet, 96, { hue: ww.petHue }).then(() => this.refreshHud()).catch(() => {});
   }
   petThumb(id, hue = 0) { const hh = Math.round(hue * 100) / 100; return this.thumbs.get(`pet:${id}${hh ? `:${hh}` : ''}`); }
 
   /** היריב: הבוט של האי הנוכחי, או "שחקן 2" במשחק נגד חבר */
   setupOpponentForMode() {
+    if ((this.mode === 'online' || this.mode === 'watch') && this.online.room) {
+      // משחק אונליין: היריב הוא החבר (שם, לבוש וחיה כפי שהוא נראה אצלו). בצפייה: הלבן מול השחור
+      const r = this.online.room;
+      const asOpp = (p, waiting) => ({
+        name: p.name || (waiting ? t('waitingShort') : t('friend')), avatar: p.look.avatar || 'knight', pet: p.look.pet || 'wolf_cub', petHue: p.look.petHue || 0,
+        loadout: p.look.loadout, look: {}, friend: true, online: p.online, joined: p.joined, uid: p.uid,
+      });
+      if (this.mode === 'watch') { this.watchWhite = asOpp(r.player('w')); this.opponent = asOpp(r.player('b')); }
+      else { this.watchWhite = null; this.opponent = asOpp(r.player(this.myColor === 'w' ? 'b' : 'w'), !r.hasGuest); }
+      return;
+    }
+    this.watchWhite = null;
     if (this.mode === 'local') {
       const ep = getEra(this.kingdom.eraId || 1).opponent;
       this.opponent = { name: tn('שחקן 2', 'Player 2'), avatar: 'knight', pet: ep.pet, loadout: ep, look: {} };
@@ -354,25 +394,44 @@ export class GameApp {
     const cap = this.game.captured();
     const turn = this.game.turn;
     const check = this.game.inCheck() && !this.game.result;
-    const me = this.mode === 'local' ? 'w' : this.myColor;
+    const me = this.mode === 'local' || this.mode === 'watch' ? 'w' : this.myColor;
     const op = me === 'w' ? 'b' : 'w';
     const advFor = (color) => { const m = color === 'w' ? cap.material : -cap.material; return m > 0 ? m : 0; };
     const capStr = (color) => cap.by[color].map((p) => GLYPH[color === 'w' ? 'b' : 'w'][p] + TXT).join('');
     const o = this.opponent || {};
     const era = getEra(pr.displayEra(id));
     let status = '';
+    const room = (this.mode === 'online' || this.mode === 'watch') ? this.online.room : null;
+    const colorName = (c) => (c === 'w' ? t('white') : t('black'));
     if (this.game.result) status = this.resultText().title;
+    else if (room && !room.hasGuest) status = t('waitingFriend');
     else if (check) status = t('check');
     else if (this.thinking) status = this.mode === 'ai' ? tn(era.thinking, era.thinkingEn) : t('thinking');
+    else if (this.mode === 'online') status = turn === me ? t('yourTurn') : t('friendTurn');
+    else if (this.mode === 'watch') status = `${t('turnOf')} ${colorName(turn)}`;
     else status = t('yourTurn');
-    this.ui.setPlayer('me', {
-      name: this.mode === 'local' ? tn('שחקן 1', 'Player 1') : prof.name, avatar: prof.avatar, petImg: this.petThumb(this.economy.pet, this.economy.petHue),
-      sub: `${me === 'w' ? t('white') : t('black')} · ${this.store.get('rating')}`, captured: capStr(me), adv: advFor(me),
-      active: turn === me && !this.game.result, check: check && turn === me, status,
-    });
+    const watchers = room && room.spectators ? ` · ${t('spectatorsN').replace('{n}', String(room.spectators))}` : '';
+    if (this.mode === 'watch') {
+      const ww = this.watchWhite || {};
+      this.ui.setPlayer('me', {
+        name: ww.name || '', avatar: ww.avatar || 'knight', petImg: ww.pet ? this.petThumb(ww.pet, ww.petHue) : null,
+        sub: `${t('white')}${room.player('w').joined && !room.player('w').online ? ` · ${t('friendOffline')}` : ''}`, captured: capStr('w'), adv: advFor('w'),
+        active: turn === 'w' && !this.game.result, check: check && turn === 'w', status,
+      });
+    } else {
+      this.ui.setPlayer('me', {
+        name: this.mode === 'local' ? tn('שחקן 1', 'Player 1') : prof.name, avatar: prof.avatar, petImg: this.petThumb(this.economy.pet, this.economy.petHue),
+        sub: room ? `${colorName(me)}${watchers}` : `${colorName(me)} · ${this.store.get('rating')}`, captured: capStr(me), adv: advFor(me),
+        active: turn === me && !this.game.result, check: check && turn === me, status,
+      });
+    }
+    const oppLive = room ? room.player(op) : null; // נוכחות חיה (לא מהרגע שהחבר נכנס)
+    const oppSub = room
+      ? `${colorName(op)}${!oppLive?.joined ? '' : ` · ${oppLive.online ? t('friendOnline') : t('friendOffline')}`}${this.mode === 'watch' ? watchers : ''}`
+      : (o.title ? `${o.title} · ${o.rating}` : colorName(op));
     this.ui.setPlayer('opp', {
       name: o.name || '', avatar: o.avatar || 'knight', petImg: o.pet ? this.petThumb(o.pet, o.petHue) : null, isBot: this.mode === 'ai',
-      sub: o.title ? `${o.title} · ${o.rating}` : `${op === 'w' ? t('white') : t('black')}`, captured: capStr(op), adv: advFor(op),
+      sub: oppSub, captured: capStr(op), adv: advFor(op),
       active: turn === op && !this.game.result, check: check && turn === op, status,
     });
     const showClock = !!this.game.clock;
@@ -425,8 +484,9 @@ export class GameApp {
       if (e.target !== canvas || this.map.isOpen) return;
       pointers++;
       if (pointers === 1) {
+        // נגיעה על הלוח: המצלמה לא זזה בכלל (רק בוחרים כלים). גרירה מחוץ ללוח: טיול חופשי
         const onBoard = this.board.hitsBoard(e.clientX, e.clientY);
-        this.sm.controls.enableRotate = !onBoard;
+        this.sm.setGestureBlocked(onBoard);
         start = { x: e.clientX, y: e.clientY, t: e.timeStamp, id: e.pointerId };
       } else start = null;
     }, { capture: true });
@@ -434,7 +494,7 @@ export class GameApp {
       if (this.map.isOpen) { start = null; pointers = 0; return; }
       if (e.target !== canvas && !start) { pointers = Math.max(0, pointers - 1); return; }
       pointers = Math.max(0, pointers - 1);
-      if (pointers === 0) this.sm.controls.enableRotate = true;
+      if (pointers === 0) this.sm.setGestureBlocked(false);
       if (!start || e.pointerId !== start.id) return;
       const moved = Math.hypot(e.clientX - start.x, e.clientY - start.y);
       const dur = e.timeStamp - start.t;
@@ -494,6 +554,8 @@ export class GameApp {
   canAct() {
     if (this.busy || this.game.result || this.ui.modalOpen || this.map.isOpen) return false;
     if (this.mode === 'local') return true;
+    if (this.mode === 'watch') return false;
+    if (this.mode === 'online' && !this.online.room?.hasGuest) return false;
     return this.game.turn === this.myColor;
   }
 
@@ -518,6 +580,8 @@ export class GameApp {
   select(sq) {
     const moves = this.game.legalFrom(sq);
     if (!moves.length) { this.sound.illegal(); return; }
+    // בוחרים כלי אחרי טיול חופשי — חוזרים בעדינות לזווית המשחק הטובה
+    if (this.sm.freeLook && !this.sm.panoramaOn && !this.sm.animatingCamera) this.sm.toGameplay(0.8, this.viewSide());
     this.selected = sq;
     this.board.select(sq, moves);
     this.sound.pickup(this.panOf(sq));
@@ -534,10 +598,10 @@ export class GameApp {
     return (this.viewSide() === 'w' ? x : -x) / 5;
   }
 
-  viewSide() { return this.mode === 'local' ? this.game.turn : this.myColor; }
+  viewSide() { return this.mode === 'local' ? this.game.turn : this.mode === 'watch' ? 'w' : this.myColor; }
   isAITurn() { return !this.game.result && this.mode === 'ai' && this.game.turn !== this.myColor; }
   isSafe() { return !(this.busy || this.thinking); }
-  isLocalHuman(color) { return this.mode === 'local' || color === this.myColor; }
+  isLocalHuman(color) { return this.mode === 'local' || (this.mode !== 'watch' && color === this.myColor); }
 
   hopHooks(mover, pan) {
     const victim = mover === 'w' ? 'b' : 'w';
@@ -572,6 +636,7 @@ export class GameApp {
     const histBefore = this.game.beforeFens();
     const mv = this.game.move(m);
     if (!mv) { this.resyncBoard(); return null; }
+    if (local && this.mode === 'online') this.online.sendMove();
     this.busy = true;
     this.board.clearHint();
     const mover = mv.color, victim = mover === 'w' ? 'b' : 'w';
@@ -688,7 +753,7 @@ export class GameApp {
     if (!r) return { title: '', icon: '' };
     const reason = t(`reason_${r.reason}`);
     if (!r.winner) return { title: t('draw'), icon: 'handshake', reason };
-    if (this.mode === 'local') return { title: `${r.winner === 'w' ? t('white') : t('black')} — ${t('victory')}`, icon: 'crown', reason };
+    if (this.mode === 'local' || this.mode === 'watch') return { title: `${r.winner === 'w' ? t('white') : t('black')} — ${t('victory')}`, icon: 'crown', reason };
     return r.winner === this.myColor ? { title: t('victory'), icon: 'trophy', reason } : { title: t('defeat'), icon: 'shield', reason };
   }
 
@@ -710,8 +775,10 @@ export class GameApp {
     const winner = result.winner;
     const plies = this.game.ply;
     const vsBot = this.mode === 'ai';
-    const iWon = winner && (this.mode === 'local' || winner === this.myColor);
-    const iLost = winner && !iWon;
+    const online = this.mode === 'online' || this.mode === 'watch';
+    if (this.mode === 'online') this.online.reportResult(result);
+    const iWon = winner && this.mode !== 'watch' && (this.mode === 'local' || winner === this.myColor);
+    const iLost = winner && !iWon && this.mode !== 'watch';
     const islandId = this.islandId;
     // מט קולנועי
     if (result.reason === 'checkmate') {
@@ -749,14 +816,18 @@ export class GameApp {
     let gems = 0, stageMsg = '';
     const island = vsBot ? { id: islandId, first: false, stars: 0, prevStars: this.progression.starsOf(islandId) } : null;
     const stats = { wins: this.store.get('wins'), losses: this.store.get('losses'), draws: this.store.get('draws') };
-    if (iWon) {
+    if (online) {
+      // משחק ידידותי אונליין: בלי יהלומים ובלי דירוג (שלא יהיה "חוות ניצחונות" עם חבר)
+      if (this.mode === 'online' && plies >= 2) this.achievements.unlock('online1');
+      stageMsg = this.mode === 'online' ? t('friendlyMatch') : '';
+    } else if (iWon) {
       stats.wins++;
       this.achievements.unlock('first_win');
       if (result.reason === 'checkmate' && Math.ceil(plies / 2) < 20) this.achievements.unlock('fast_mate');
       this.achievements.count('streak');
       if (this.achievements.counters.streak >= 3) this.achievements.unlock('streak3');
     } else if (iLost) { stats.losses++; this.achievements.resetStreak(); } else stats.draws++;
-    this.store.set(stats);
+    if (!online) this.store.set(stats);
     if (this.mode === 'local') {
       this.achievements.unlock('pass_play');
       if (winner && plies >= RULES.antiFarmPlies) { gems = ECONOMY.friendWinGems; this.economy.addGems(gems, 'friend'); }
@@ -812,7 +883,7 @@ export class GameApp {
     const front = this.progression.frontier();
     M.openSummary(this, {
       ...rt, reason: rt.reason, gems, stageMsg, acc, keyMoments, canReplay: plies >= 4, vsBot, won: !!iWon && vsBot,
-      island, nextId: front && front !== islandId ? front : null,
+      island, nextId: front && front !== islandId ? front : null, online: online ? this.mode : null,
     });
     this.refreshHud();
   }
@@ -844,6 +915,8 @@ export class GameApp {
   }
 
   rematch() {
+    if (this.mode === 'online') { this.online.requestRematch(); return; }
+    if (this.mode === 'watch') return;
     if (this.mode === 'local') this.startFriendGame(this.store.get('timeControl'));
     else this.newBattle({ confirm: false });
   }
@@ -973,6 +1046,7 @@ export class GameApp {
       this.sm.world.add(this.islandMonument);
     }
     this.museum?.setActive(id === HUB_ID);
+    this.horizon?.setAround(id, { count: this.sm.quality?.level === 'low' ? 7 : 12 });
   }
 
   /** קרב חדש נגד הבוט של האי הנוכחי */
@@ -984,6 +1058,7 @@ export class GameApp {
   }
 
   async startIslandBattle({ quiet = false, keepResident = false } = {}) {
+    if (this.online.active) await this.online.detach();
     if (!keepResident) this.residentOpp = null;
     this.mode = 'ai';
     this.myColor = 'w';
@@ -1009,6 +1084,7 @@ export class GameApp {
 
   /** משחק נגד חבר על אותו מכשיר — באי המרכזי */
   async startFriendGame(tcId) {
+    if (this.online.active) await this.online.detach();
     if (!this.atHub) { await this.travelTo(HUB_ID, { battle: false }); }
     this.residentOpp = null;
     this.mode = 'local';
@@ -1026,7 +1102,80 @@ export class GameApp {
     this.ui.toast(t('gameStarted'), { icon: 'users' });
   }
 
+  // ======================= אונליין עם חבר =======================
+  /** נכנסים לחדר: הלוח של החדר ליד השולחן באי המרכזי */
+  async enterOnline(room) {
+    this.ui.closeAll();
+    if (!this.atHub) {
+      this.progression.setCurrent(HUB_ID);
+      this.ui.setDock(true);
+      this.showIsland(HUB_ID);
+    }
+    this.residentOpp = null;
+    this.mode = room.isPlayer ? 'online' : 'watch';
+    this.myColor = room.myColor || 'w';
+    this.game.stopClock();
+    this.resetBoardState();
+    this.store.set({ savedGame: null });
+    if (room.moves.length) {
+      this.game.loadUci(room.moves);
+      this.resyncBoard();
+      if (this.game.inCheck()) this.board.setCheck(this.game.kingSquare(this.game.turn));
+    }
+    const res = room.result;
+    if (res && !this.game.result) this.game.finish(res.winner, res.reason);
+    this.setupOpponentForMode();
+    this.applyLoadout();
+    this.ui.setActions(this.mode);
+    this.refreshHud();
+    this.sm.toGameplay(1.0, this.viewSide()); // בלי לחכות — חדר ההמתנה נפתח מיד
+  }
+
+  /** יוצאים מהחדר: חוזרים לבוט של האי המרכזי */
+  async exitOnline() {
+    if (this.mode !== 'online' && this.mode !== 'watch') return;
+    this.watchWhite = null;
+    await this.startIslandBattle({ quiet: true });
+    this.sm.toGameplay(1.0, 'w');
+  }
+
+  /** משחק חוזר בחדר: לוח חדש, הצבעים מתחלפים */
+  async restartOnline(room) {
+    this.ui.closeAll();
+    this.myColor = room.myColor || 'w';
+    this.resetBoardState();
+    this.setupOpponentForMode();
+    this.applyLoadout();
+    this.ui.setActions(this.mode);
+    await this.sm.toGameplay(1.2, this.viewSide());
+    this.refreshHud();
+    this.ui.toast(t('newOnlineGame'), { kind: 'gold', icon: 'refresh' });
+  }
+
+  /** החבר נכנס לחדר שפתחת */
+  onFriendJoined(room) {
+    this.ui.closeAll();
+    this.setupOpponentForMode();
+    this.applyLoadout();
+    this.sound.notify?.();
+    const name = room.opponent()?.name || t('friend');
+    this.ui.toast(t('friendJoined').replace('{name}', name), { kind: 'gold', icon: 'users', duration: 3800 });
+    this.refreshHud();
+  }
+
+  /** האפליקציה נסגרה באמצע משחק אונליין — חוזרים לאותו חדר */
+  async rejoinOnline(code) {
+    if (this.online.active) return;
+    try {
+      await this.online.join(code);
+      this.ui.toast(t('backToRoom'), { icon: 'users' });
+    } catch {
+      this.store.set({ onlineRoom: null });
+    }
+  }
+
   async confirmLeave() {
+    if (this.online.active) return this.online.leave();
     const inProgress = !this.game.result && this.game.ply > 0;
     if (!inProgress) return true;
     return this.ui.confirm(t('confirmNew'), t('newGame'));
@@ -1055,6 +1204,11 @@ export class GameApp {
 
   /** תיקו בהסכמה — במשחק נגד חבר */
   async offerDraw() {
+    if (this.mode === 'online') {
+      if (this.game.result || this.game.ply < 2 || !this.online.room?.hasGuest) return;
+      if (await this.ui.confirm(t('confirmDrawOnline'), t('offerDraw'))) this.online.offerDraw();
+      return;
+    }
     if (this.mode !== 'local' || this.game.result || this.game.ply < 2 || this.busy) return;
     if (await this.ui.confirm(t('confirmDraw'), t('draw'))) this.endGame(this.game.finish(null, 'agreement'));
   }
@@ -1062,12 +1216,15 @@ export class GameApp {
   async resign() {
     if (this.game.result || this.game.ply === 0 || this.busy) return;
     if (!(await this.ui.confirm(t('confirmResign'), t('resign'), { danger: true }))) return;
+    if (this.mode === 'watch') return;
     const winner = this.mode === 'local' ? (this.game.turn === 'w' ? 'b' : 'w') : (this.myColor === 'w' ? 'b' : 'w');
+    if (this.mode === 'online') await this.online.room?.resign().catch(() => {});
     this.endGame(this.game.finish(winner, 'resign'));
   }
 
   // ======================= עוד =======================
   async hint() {
+    if (this.mode === 'online' || this.mode === 'watch') { this.ui.toast(t('noHintsOnline'), { icon: 'bulb' }); return; }
     if (!this.canAct()) return;
     if (!this.economy.spend(HINT_COST)) { this.ui.toast(t('notEnoughGems'), { kind: 'bad', icon: 'gem' }); return; }
     this.ui.toast(`${t('hint')}…`, { icon: 'bulb' });

@@ -11,6 +11,11 @@ import { grassTex, stoneTex, glowTexture, mesh, G, rand, TAU } from './kit.js';
 const V3 = THREE.Vector3;
 /** זווית מבט המשחק (מעלות מהאנך). 55 = לוח גדול יותר; 60 = יותר אדריכלות בחלק העליון */
 export const GAMEPLAY_POLAR = 55;
+/** טיול חופשי באצבע: המצלמה נוטה למטה עד שרואים שמיים ואיים באופק */
+const ROAM_POLAR = 76;
+const ROAM_MAX_POLAR = 1.4; // ‎~80°
+const GAME_MAX_POLAR = 1.32;
+const ROAM_RADIUS = 19;
 const SKY_VERT = `varying vec3 vDir; void main(){ vDir = position; vec4 p = projectionMatrix * modelViewMatrix * vec4(position,1.0); gl_Position = p.xyww; }`;
 const SKY_FRAG = `
 uniform vec3 uTop, uMid, uHorizon, uBottom, uSunGlow, uSunDir;
@@ -289,7 +294,26 @@ export class SceneManager {
     c.mouseButtons = { LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE };
     c.autoRotateSpeed = 0.55;
     c.addEventListener('change', () => this.clampPan());
+    c.addEventListener('start', () => this.beginFreeLook());
     this.controls = c;
+  }
+
+  /** מגע על הלוח = בלי תזוזת מצלמה בכלל (רק בחירת כלים). מחוץ ללוח = טיול חופשי */
+  setGestureBlocked(b) {
+    this.gestureBlocked = b;
+    this.controls.enabled = !b && !this.animatingCamera;
+  }
+
+  /** התחלת גרירה מחוץ ללוח: מרחיבים את גבולות המצלמה (אופק, שמיים, כל האי) */
+  beginFreeLook() {
+    if (this.panoramaOn || this.animatingCamera || this.freeLook) return;
+    this.freeLook = true;
+    this.controls.maxPolarAngle = ROAM_MAX_POLAR;
+  }
+
+  endFreeLook() {
+    this.freeLook = false;
+    this.controls.maxPolarAngle = GAME_MAX_POLAR;
   }
 
   /** גבולות הזזה: נקודת המבט תמיד נשארת על הלוח — הלוח אף פעם לא בורח מהמסך */
@@ -297,6 +321,29 @@ export class SceneManager {
     const b = this.panBounds;
     if (!b || this.panoramaOn || this.animatingCamera) return;
     const t = this.controls.target;
+    if (this.freeLook) {
+      // טיול: נשארים מעל האי; ככל שמתרחקים מהלוח המצלמה נוטה לאופק
+      const r = Math.hypot(t.x, t.z);
+      if (r > ROAM_RADIUS) { const k = ROAM_RADIUS / r; const dx = t.x * k - t.x, dz = t.z * k - t.z; t.x += dx; t.z += dz; this.camera.position.x += dx; this.camera.position.z += dz; }
+      const st = this.controls.state;
+      const off = this._off || (this._off = new V3());
+      const sph = this._sph || (this._sph = new THREE.Spherical());
+      off.copy(this.camera.position).sub(t);
+      sph.setFromVector3(off);
+      if (st === 2 || st === 4) {
+        const d = Math.hypot(t.x - this.view.target.x, t.z - this.view.target.z);
+        const k = THREE.MathUtils.smoothstep(d, 1.2, 9);
+        const want = THREE.MathUtils.degToRad(GAMEPLAY_POLAR + (ROAM_POLAR - GAMEPLAY_POLAR) * k);
+        sph.phi += (want - sph.phi) * 0.25;
+      }
+      // אף פעם לא מתחת לגובה 1.8 (בתוך דמויות / מתחת לשפת האי)
+      const maxPhi = Math.acos(Math.min(1, 1.8 / Math.max(1.8, sph.radius)));
+      sph.phi = Math.min(sph.phi, maxPhi, ROAM_MAX_POLAR);
+      off.setFromSpherical(sph);
+      this.camera.position.copy(t).add(off);
+      this.camera.lookAt(t);
+      return;
+    }
     const x = THREE.MathUtils.clamp(t.x, b.minX, b.maxX), z = THREE.MathUtils.clamp(t.z, b.minZ, b.maxZ);
     if (x === t.x && z === t.z) return;
     this.camera.position.x += x - t.x;
@@ -362,6 +409,7 @@ export class SceneManager {
 
   /** קפיצה/אנימציה למבט המשחק */
   toGameplay(duration = 1.1, side = this.view.side) {
+    this.endFreeLook();
     this.fitGameplay(side);
     return this.animateCamera(this.view.position, this.view.target, duration);
   }
@@ -389,7 +437,7 @@ export class SceneManager {
         this.camera.lookAt(tg);
         this.controls.target.copy(tg);
       };
-      const done = () => { apply(); this.animatingCamera = false; this.controls.enabled = true; this.controls.update(); resolve(); };
+      const done = () => { apply(); this.animatingCamera = false; this.controls.enabled = !this.gestureBlocked; this.controls.update(); resolve(); };
       if (duration <= 0) { done(); return; }
       gsap.to(st, { t: 1, duration, ease, onUpdate: apply, onComplete: done });
     });
@@ -444,7 +492,7 @@ export class SceneManager {
       });
     });
     this.animatingCamera = false;
-    this.controls.enabled = true;
+    this.controls.enabled = !this.gestureBlocked;
     this.controls.update();
   }
 
@@ -452,8 +500,8 @@ export class SceneManager {
     this.panoramaOn = on;
     this.controls.enablePan = !on;
     if (on) {
-      const tg = new V3(0, 3, -2);
-      const pos = tg.clone().add(new V3().setFromSpherical(new THREE.Spherical(this.view.radius * 1.75, THREE.MathUtils.degToRad(62), this.view.azimuth + 0.4)));
+      const tg = new V3(0, 3.5, -2);
+      const pos = tg.clone().add(new V3().setFromSpherical(new THREE.Spherical(this.view.radius * 1.6, THREE.MathUtils.degToRad(72), this.view.azimuth + 0.4)));
       return this.animateCamera(pos, tg, 1.4).then(() => {
         if (!this.panoramaOn) return;
         this.controls.autoRotate = true;
@@ -490,7 +538,7 @@ export class SceneManager {
     this.camera.aspect = aspect;
     this.camera.fov = aspect < 0.75 ? 52 : aspect < 1.2 ? 46 : 40;
     this.camera.updateProjectionMatrix();
-    if (!this.animatingCamera && !this.panoramaOn && this._fitted) {
+    if (!this.animatingCamera && !this.panoramaOn && !this.freeLook && this._fitted) {
       this.fitGameplay();
       this.camera.position.copy(this.view.position);
       this.controls.target.copy(this.view.target);
@@ -500,6 +548,7 @@ export class SceneManager {
 
   /** מיקום ראשוני מיידי */
   initView(side = 'w') {
+    this.endFreeLook();
     this.fitGameplay(side);
     this.camera.position.copy(this.view.position);
     this.controls.target.copy(this.view.target);
