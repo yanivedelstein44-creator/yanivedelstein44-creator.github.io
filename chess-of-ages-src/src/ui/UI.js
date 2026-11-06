@@ -118,7 +118,9 @@ export class UI {
       leave: act('close', t('leaveRoom'), () => H.onLeave?.()),
     };
     this.actions = h('div', { id: 'actions' }, ...Object.values(this.actBtns));
-    this.root.append(this.hud, this.actions, this.dock);
+    // בוסט יהלומים כפולים: שעון קטן מתחת לסרגל העליון (מופיע רק כשהבוסט פעיל)
+    this.boostPill = h('div', { class: 'boost-pill', role: 'status', hidden: true }, icon('gem', { size: 16 }), h('b', {}, 'x2'), this.boostLeftEl = h('span', {}));
+    this.root.append(this.hud, this.actions, this.dock, this.boostPill);
     this.toasts = this.root.querySelector('#toasts');
     this.sr = this.root.querySelector('#sr-status');
   }
@@ -160,10 +162,10 @@ export class UI {
   /** שורת האי ב-HUD: מספר האי, שמו, פס כיבוש 99 האיים (10 אזורים) והיעד הבא */
   setIsland({ id, name, regionName, boss, region, conquered, total, frontier, next, lock }) {
     this.eraBadge.replaceChildren(...[boss ? icon('crown', { size: 13 }) : null, document.createTextNode(`${t('island')} ${id}`)].filter(Boolean));
-    this.eraBadge.classList.toggle('premium', region >= 6);
+    this.eraBadge.classList.toggle('premium', region >= 11);
     this.eraTitleEl.replaceChildren(document.createTextNode(`${name} · `), h('span', { class: 'st' }, regionName));
     this.eraFill.style.width = `${(conquered / total) * 100}%`;
-    this.progressEl.classList.toggle('premium', region >= 6);
+    this.progressEl.classList.toggle('premium', region >= 11);
     this.eraNext.hidden = !frontier;
     if (frontier) this.eraNext.style.insetInlineStart = `calc(${((frontier - 0.5) / total) * 100}% - 4px)`;
     this.progressEl.setAttribute('aria-valuemax', String(total));
@@ -213,6 +215,18 @@ export class UI {
     gsap.to(o, { v: n, duration: 0.9, ease: 'power2.out', onUpdate: () => { this.gemsVal.textContent = formatGems(Math.round(o.v)); } });
     if (n > this.gemsShown) gsap.fromTo(this.gemsVal.parentElement, { scale: 1.18 }, { scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.4)' });
     this.gemsShown = n;
+  }
+
+  /** בוסט יהלומים כפולים: שעון ספירה לאחור ליד היהלומים (מוסתר כשאין בוסט) */
+  setBoost(ms) {
+    if (!this.boostPill) return;
+    const on = ms > 0;
+    this.boostPill.hidden = !on;
+    if (!on) return;
+    const hTot = Math.floor(ms / 3600000), d = Math.floor(hTot / 24), hh = hTot % 24, mm = Math.floor((ms % 3600000) / 60000);
+    this.boostLeftEl.textContent = d > 0 ? `${d}${t('daysShort')} ${hh}${t('hShort')}` : `${hh}:${String(mm).padStart(2, '0')}`;
+    this.boostPill.style.top = `${(this.hud?.offsetHeight || 150) + 8}px`;
+    this.boostPill.setAttribute('aria-label', `${t('boostActive')} · ${t('boostLeft').replace('{t}', this.boostLeftEl.textContent)}`);
   }
 
   setAudio(sfx, amb) {

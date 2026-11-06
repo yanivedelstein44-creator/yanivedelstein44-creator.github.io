@@ -10,7 +10,7 @@ import { grassTex, stoneTex, glowTexture, mesh, G, rand, TAU } from './kit.js';
 
 const V3 = THREE.Vector3;
 /** זווית מבט המשחק (מעלות מהאנך). 55 = לוח גדול יותר; 60 = יותר אדריכלות בחלק העליון */
-export const GAMEPLAY_POLAR = 55;
+export const GAMEPLAY_POLAR = 38; // לוח ברוחב מלא; מעליו האי, הכס והחיות
 /** טיול חופשי באצבע: המצלמה נוטה למטה עד שרואים שמיים ואיים באופק */
 const ROAM_POLAR = 76;
 const ROAM_MAX_POLAR = 1.4; // ‎~80°
@@ -299,6 +299,9 @@ export class SceneManager {
     this.controls = c;
   }
 
+  /** זווית מבט המשחק (מעלות מהאנך) */
+  get gameplayPolarDeg() { return this.gameplayPolar || GAMEPLAY_POLAR; }
+
   /** מגע על הלוח = בלי תזוזת מצלמה בכלל (רק בחירת כלים). מחוץ ללוח = טיול חופשי */
   setGestureBlocked(b) {
     this.gestureBlocked = b;
@@ -334,7 +337,8 @@ export class SceneManager {
       if (st === 2 || st === 4) {
         const d = Math.hypot(t.x - this.view.target.x, t.z - this.view.target.z);
         const k = THREE.MathUtils.smoothstep(d, 1.2, 9);
-        const want = THREE.MathUtils.degToRad(GAMEPLAY_POLAR + (ROAM_POLAR - GAMEPLAY_POLAR) * k);
+        const gp = this.gameplayPolarDeg;
+        const want = THREE.MathUtils.degToRad(gp + (ROAM_POLAR - gp) * k);
         sph.phi += (want - sph.phi) * 0.25;
       }
       // אף פעם לא מתחת לגובה 1.8 (בתוך דמויות / מתחת לשפת האי)
@@ -352,14 +356,14 @@ export class SceneManager {
     t.x = x; t.z = z;
   }
 
-  /** מחשב את מבט המשחק האופטימלי (55° מהאנך) כך שהלוח ימלא את רוחב המסך בחלק התחתון */
+  /** מחשב את מבט המשחק (38° מהאנך) כך שהלוח ימלא את רוחב המסך, ומעליו נשאר מקום לאי, לכס ולחיות */
   fitGameplay(side = this.view.side) {
     // חישוב על עותק — לא נוגעים במצלמה האמיתית (אחרת אנימציות מתחילות מהמקום הלא נכון)
     const cam = this.camera.clone();
     cam.updateProjectionMatrix();
     const sgn = side === 'w' ? 1 : -1;
     const az = side === 'w' ? 0 : Math.PI;
-    const polar = THREE.MathUtils.degToRad(this.gameplayPolar || GAMEPLAY_POLAR);
+    const polar = THREE.MathUtils.degToRad(this.gameplayPolarDeg);
     const safe = this.getSafeArea();
     const H = this.height, W = this.width;
     const yTop = 1 - (2 * (safe.top + 6)) / H;

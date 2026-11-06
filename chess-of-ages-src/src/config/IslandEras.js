@@ -1,5 +1,5 @@
 /**
- * לכל אי עידן משלו: שם, אקלים ומונומנט.
+ * לכל אי עידן משלו: שם, אקלים ומונומנט (1–99 חינם, 100–129 איי הפרימיום).
  * 10 העולמות (האזורים) קובעים את ערכת התפאורה סביב הלוח; כל אי בתוך העולם הוא עידן/תרבות אחרת,
  * עם אקלים (שמיים, תאורה ומזג אוויר) ומונומנט ייחודי — שהוא גם החלק שמצטרף לאי המרכזי אחרי הכיבוש.
  * [עברית, English, אקלים, מונומנט]
@@ -115,6 +115,40 @@ const E = {
   97: ['מצפה הכוכבים', 'Star Observatory', 'stars', 'orrery'],
   98: ['גשר הקשת', 'Rainbow Bridge', 'aurora', 'rainbowArch'],
   99: ['האולימפוס', 'Mount Olympus', 'golden', 'olympusTemple'],
+  // ===== איי הפרימיום (100–129): לכל אחד אקלים, לוח, מונומנט ותפאורה מונפשת משלו =====
+  // 11 — ממלכות הפלא
+  100: ['ממלכת המגנטים המרחפים', 'Floating Magnets', 'magnetic', 'xMagnet'],
+  101: ['ארמון קרח הזכוכית', 'Glass Ice Palace', 'glassIce', 'xGlassIce'],
+  102: ['מצוקי הבזלת המותכת', 'Molten Basalt Cliffs', 'basalt', 'xBasalt'],
+  103: ['מועדון הוויניל', 'Vinyl Lounge', 'vinyl', 'xVinyl'],
+  104: ['היער הלוחש', 'Whispering Woods', 'whisper', 'xWhisperTree'],
+  105: ['שער אטלנטיס', 'Atlantis Gate', 'abyssal', 'xAtlantisGate'],
+  106: ['מגדל השעונים', 'Clockwork Tower', 'clockwork', 'xClockTower'],
+  107: ['ממלכת הממתקים', 'Candy Kingdom', 'candy', 'xCandy'],
+  108: ['ממד המראות', 'Mirror Dimension', 'mirror', 'xMirror'],
+  109: ['דיונות אור הכוכבים', 'Starlight Dunes', 'starDune', 'xStarDune'],
+  // 12 — ממלכות החלום
+  110: ['מעבדת הסייבר', 'Cyber Lab', 'cyberLab', 'xCyberLab'],
+  111: ['הספרייה המרחפת', 'Floating Library', 'library', 'xLibrary'],
+  112: ['ענן הסערה', 'Storm Cloud', 'stormCloud', 'xStormCloud'],
+  113: ['דיו ומשי', 'Ink & Silk', 'ink', 'xInkBrush'],
+  114: ['שוניות הפיראטים', 'Pirate Reefs', 'reef', 'xPirateReef'],
+  115: ['כוורת הזהב', 'Golden Hive', 'hive', 'xHive'],
+  116: ['גן הפסלים', 'Statue Garden', 'marbleDay', 'xStatue'],
+  117: ['חגורת האסטרואידים', 'Asteroid Belt', 'space', 'xAsteroid'],
+  118: ['עמק הגייזרים', 'Geyser Valley', 'geyser', 'xGeyser'],
+  119: ['יער הפטריות הזוהרות', 'Glowshroom Forest', 'mushroom', 'xMushroom'],
+  // 13 — ממלכות הזניט
+  120: ['ארמון הפורצלן', 'Porcelain Palace', 'porcelain', 'xPorcelainVase'],
+  121: ['חדר הצעצועים', 'Toy Room', 'toy', 'xToyBlocks'],
+  122: ['שדות החיטה', 'Wheat Fields', 'wheat', 'xWindmill'],
+  123: ['זיכרונות בספיה', 'Sepia Memories', 'sepia', 'xSepiaCamera'],
+  124: ['טירת קורי העכביש', 'Cobweb Castle', 'cobweb', 'xCobweb'],
+  125: ['גשר הנהר הגועש', 'Raging River Bridge', 'rapids', 'xRiverBridge'],
+  126: ['טונדרת השלג', 'Snow Tundra', 'tundra', 'xIgloo'],
+  127: ['עולם התאים', 'Micro Cell World', 'cell', 'xCell'],
+  128: ['מעגל הרונות', 'Rune Circle', 'rune', 'xRuneCircle'],
+  129: ['פסגת הזניט', 'Zenith Summit', 'zenith', 'xZenith'],
 };
 
 /** צבע הקרקע של החלק שמצטרף לאי המרכזי (ושל האי במפה) לפי האקלים */
@@ -122,6 +156,12 @@ export const GROUND = {
   day: 0x6aa04a, dusk: 0x7a8a3a, snow: 0xeef3f8, snowNight: 0xd8e2ee, rain: 0x4f8a46, desert: 0xe2c68a, fog: 0x7e9a72, night: 0x2f5a3e,
   blossom: 0x8ab06a, autumn: 0xc8883a, embers: 0x4a3a34, aurora: 0xcfe4ea, underwater: 0x6ad0c0, storm: 0x45704a, jungle: 0x2f8a3a,
   golden: 0xc8c070, stars: 0x5a4a8a, smog: 0x7a7060, rainNight: 0x2a3a4a, marsDust: 0xc8603a,
+  // איי הפרימיום
+  magnetic: 0x5a6474, glassIce: 0xdff2fa, basalt: 0x2e2e32, vinyl: 0x3a2a3a, whisper: 0x3a6a2e, abyssal: 0x5ab8a8,
+  clockwork: 0x8a6a3a, candy: 0xffc8e0, mirror: 0xc8ccd8, starDune: 0x9a78c8, cyberLab: 0x2a3a4a, library: 0x8a6a48,
+  stormCloud: 0x6a7480, ink: 0xe8e2d4, reef: 0xe8d8b0, hive: 0xd8a83a, marbleDay: 0xd8dcd0, space: 0x3a3a5a,
+  geyser: 0xc8885a, mushroom: 0x3a5a3a, porcelain: 0xe8eef8, toy: 0x7ac85a, wheat: 0xd8c070, sepia: 0xa88a5a,
+  cobweb: 0x3a3a40, rapids: 0x4a7a4a, tundra: 0xeef4fa, cell: 0xe8a8c8, rune: 0x4a4a42, zenith: 0xf0f4fa,
 };
 
 /** העידן של אי: { he, en, climate, monument }. האי המרכזי הוא מוזיאון הזמן */

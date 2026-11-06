@@ -29,6 +29,41 @@ const P = {
   stars: { skyTop: 0x02020a, skyMid: 0x0a0a24, skyHorizon: 0x2a1a4a, skyBottom: 0x05050f, sunDir: [-0.3, 0.4, -0.8], sunGlow: 0xc8a8ff, nebula: 1, stars: 1, key: 0xd8c8ff, keyIntensity: 1.6, keyDir: [0.4, 0.9, 0.3], hemiSky: 0x8a7ad8, hemiGround: 0x0a0814, hemiIntensity: 0.85, fog: 0x120e28, fogNear: 50, fogFar: 180, exposure: 1.12, env: 0.45, ground: 0x4a3a6a },
   smog: { skyTop: 0x4a4a48, skyMid: 0x7a7468, skyHorizon: 0xc8b090, skyBottom: 0x5a5248, sunDir: [-0.4, 0.3, -0.8], sunGlow: 0xffd8a0, nebula: 0, stars: 0, key: 0xffe0b0, keyIntensity: 2.0, keyDir: [0.5, 0.85, 0.3], hemiSky: 0xd8c8b0, hemiGround: 0x3a3428, hemiIntensity: 0.95, fog: 0x9a8c78, fogNear: 30, fogFar: 140, exposure: 1.05, env: 0.5, ground: 0x6a6450 },
 };
+// ---------- אקלימי איי הפרימיום (100–129) ----------
+const X = (base, o) => ({ ...P[base], ...o });
+Object.assign(P, {
+  magnetic: X('night', { skyTop: 0x0a1630, skyMid: 0x1a3a6a, skyHorizon: 0x5a9ad8, skyBottom: 0x0e1a30, sunGlow: 0x8ad0ff, nebula: 0.4, stars: 0.6, key: 0xc8e4ff, keyIntensity: 1.9, hemiSky: 0x8ab8ff, hemiGround: 0x1a2030, hemiIntensity: 0.95, fog: 0x1a2e50, exposure: 1.1, ground: 0x5a6474 }),
+  glassIce: X('snow', { skyTop: 0x6ab8e8, skyMid: 0xb8e4f8, skyHorizon: 0xf4fcff, skyBottom: 0xd8f0fa, sunGlow: 0xffffff, key: 0xf4fbff, keyIntensity: 2.4, hemiSky: 0xf4fbff, hemiGround: 0x9ac8e0, fog: 0xdff2fa, fogNear: 45, fogFar: 160, env: 0.85, ground: 0xdff2fa }),
+  basalt: X('embers', { skyTop: 0x120808, skyMid: 0x3a1210, skyHorizon: 0xe0501a, skyBottom: 0x1a0806, sunGlow: 0xff5a10, key: 0xffa070, keyIntensity: 2.0, fog: 0x3a1a12, ground: 0x2e2e32 }),
+  vinyl: X('night', { skyTop: 0x14061e, skyMid: 0x3a1450, skyHorizon: 0xd85a8a, skyBottom: 0x1a0a24, sunGlow: 0xff7ab8, nebula: 0.5, stars: 0.6, key: 0xffd0e8, keyIntensity: 1.7, hemiSky: 0xd88ab8, hemiGround: 0x1a0a1a, hemiIntensity: 0.9, fog: 0x2a1238, exposure: 1.12, ground: 0x3a2a3a }),
+  whisper: X('jungle', { skyTop: 0x2a5a4a, skyMid: 0x6a9a7a, skyHorizon: 0xd8f0c0, skyBottom: 0x3a5a3a, sunGlow: 0xf0ffd0, key: 0xf0ffd8, keyIntensity: 1.9, hemiSky: 0xc8f0c8, hemiGround: 0x1e3a1e, fog: 0x7aa88a, fogNear: 24, fogFar: 115, ground: 0x3a6a2e }),
+  abyssal: X('underwater', { skyTop: 0x011a2e, skyMid: 0x044a5a, skyHorizon: 0x2ab8b0, skyBottom: 0x012030, sunGlow: 0x9afff0, key: 0xa8fff4, keyIntensity: 1.9, fog: 0x0a6a78, ground: 0x5ab8a8 }),
+  clockwork: X('dusk', { skyTop: 0x2a1a10, skyMid: 0x7a4a2a, skyHorizon: 0xf0b860, skyBottom: 0x3a2414, sunGlow: 0xffc070, stars: 0.1, key: 0xffd8a0, keyIntensity: 2.4, hemiSky: 0xffd8a8, hemiGround: 0x3a2a18, fog: 0x8a6040, ground: 0x8a6a3a }),
+  candy: X('blossom', { skyTop: 0xff8ac8, skyMid: 0xffb8e0, skyHorizon: 0xfff0f8, skyBottom: 0xffd0e8, sunGlow: 0xfff4fa, key: 0xfff0f8, keyIntensity: 2.4, hemiSky: 0xffe8f4, hemiGround: 0xc87aa0, fog: 0xffd8ec, ground: 0xffc8e0 }),
+  mirror: X('golden', { skyTop: 0x6a6aa8, skyMid: 0xb8b8e0, skyHorizon: 0xf4f4ff, skyBottom: 0xd8d8f0, sunGlow: 0xffffff, nebula: 0.4, key: 0xf4f4ff, keyIntensity: 2.4, hemiSky: 0xf0f0ff, hemiGround: 0x8a8aa8, fog: 0xdcdcf4, env: 0.95, ground: 0xc8ccd8 }),
+  starDune: X('stars', { skyTop: 0x0a0420, skyMid: 0x2a1458, skyHorizon: 0x9a6ad8, skyBottom: 0x1a0a30, sunGlow: 0xd8b8ff, key: 0xe0d0ff, keyIntensity: 1.8, hemiSky: 0xb89aff, hemiGround: 0x2a1a40, fog: 0x2a1a4a, ground: 0x9a78c8 }),
+  cyberLab: X('rainNight', { skyTop: 0x020a0a, skyMid: 0x0a2a24, skyHorizon: 0x1aa86a, skyBottom: 0x020a08, sunGlow: 0x33ff8a, nebula: 0.2, key: 0xb8ffd8, keyIntensity: 1.5, hemiSky: 0x4ad8a8, hemiGround: 0x041410, fog: 0x0a2a24, ground: 0x2a3a4a }),
+  library: X('dusk', { skyTop: 0x1a0e08, skyMid: 0x4a2a18, skyHorizon: 0xd89a50, skyBottom: 0x24140a, sunGlow: 0xffc880, stars: 0.4, key: 0xffd8a8, keyIntensity: 2.0, hemiSky: 0xf0c890, hemiGround: 0x2a1a0e, fog: 0x5a3a24, ground: 0x8a6a48 }),
+  stormCloud: X('storm', { skyTop: 0x141a26, skyMid: 0x2a3448, skyHorizon: 0x6a7890, skyBottom: 0x1a2030, sunGlow: 0x9ad0ff, key: 0xc8d8f0, ground: 0x6a7480 }),
+  ink: X('fog', { skyTop: 0xc8c0b0, skyMid: 0xe0dace, skyHorizon: 0xf4f0e6, skyBottom: 0xe8e2d4, sunDir: [0.5, 0.35, -0.8], sunGlow: 0xff6a4a, key: 0xfff4ea, keyIntensity: 2.0, hemiSky: 0xf4f0e8, hemiGround: 0x6a6460, fog: 0xe8e2d6, fogNear: 30, fogFar: 140, ground: 0xe8e2d4 }),
+  reef: X('day', { skyTop: 0x1a8ad8, skyMid: 0x5ac8f0, skyHorizon: 0xd8f8ff, skyBottom: 0x6ad8e8, sunGlow: 0xfff8d8, key: 0xfff8e8, keyIntensity: 2.8, hemiSky: 0xd8fbff, hemiGround: 0x6a8a6a, fog: 0xb8eaf8, ground: 0xe8d8b0 }),
+  hive: X('golden', { skyTop: 0xc88a1a, skyMid: 0xf0c050, skyHorizon: 0xfff0b8, skyBottom: 0xf8d880, sunGlow: 0xfff0b0, key: 0xfff0c8, keyIntensity: 2.6, hemiSky: 0xfff0c0, hemiGround: 0x8a6a20, fog: 0xf8dc90, ground: 0xd8a83a }),
+  marbleDay: X('day', { skyTop: 0x4a8ad8, skyMid: 0x9ac8f0, skyHorizon: 0xf4f8ff, skyBottom: 0xd8e8f4, sunGlow: 0xfffaf0, key: 0xfffaf0, keyIntensity: 2.8, hemiSky: 0xf4f8ff, hemiGround: 0x8a8a7a, fog: 0xdce8f4, env: 0.75, ground: 0xd8dcd0 }),
+  space: X('stars', { skyTop: 0x000004, skyMid: 0x05061a, skyHorizon: 0x1a2048, skyBottom: 0x000008, sunGlow: 0x9ad8ff, nebula: 0.9, key: 0xe8f0ff, keyIntensity: 1.9, hemiSky: 0x6a7ad8, hemiGround: 0x05060c, fog: 0x080a1a, ground: 0x3a3a5a }),
+  geyser: X('desert', { skyTop: 0x5a8ab8, skyMid: 0xa8c0d0, skyHorizon: 0xf0dcc0, skyBottom: 0xd8a888, sunGlow: 0xfff0d8, key: 0xfff0e0, keyIntensity: 2.4, hemiSky: 0xf8e8d8, hemiGround: 0x7a4a2a, fog: 0xe0ccb8, fogNear: 30, fogFar: 130, ground: 0xc8885a }),
+  mushroom: X('night', { skyTop: 0x0a0a20, skyMid: 0x1a1a40, skyHorizon: 0x3a5a6a, skyBottom: 0x0a1018, sunGlow: 0x9affd8, nebula: 0.4, stars: 0.8, key: 0xb8ffe8, keyIntensity: 1.5, hemiSky: 0x7ad8c8, hemiGround: 0x101a14, hemiIntensity: 0.9, fog: 0x14283a, ground: 0x3a5a3a }),
+  porcelain: X('snow', { skyTop: 0x5a8ad8, skyMid: 0xa8c8f0, skyHorizon: 0xf4f8ff, skyBottom: 0xdce8f8, sunGlow: 0xffffff, key: 0xf8fbff, keyIntensity: 2.5, hemiSky: 0xf4f8ff, hemiGround: 0x7a8aa8, fog: 0xe4ecf8, fogNear: 50, fogFar: 170, env: 0.85, ground: 0xe8eef8 }),
+  toy: X('day', { skyTop: 0x3a9af0, skyMid: 0x8ad0ff, skyHorizon: 0xfff8d8, skyBottom: 0xffe8a8, sunGlow: 0xfff8d0, key: 0xfff8e8, keyIntensity: 2.7, hemiSky: 0xfff8e8, hemiGround: 0x8a6a4a, fog: 0xd8f0ff, ground: 0x7ac85a }),
+  wheat: X('autumn', { skyTop: 0x4a8ad0, skyMid: 0xa8c8e8, skyHorizon: 0xffe8b0, skyBottom: 0xf0d090, sunDir: [-0.45, 0.3, -0.8], sunGlow: 0xffe0a0, key: 0xffe8c0, keyIntensity: 2.5, hemiSky: 0xfff0d0, hemiGround: 0x8a6a30, fog: 0xf0dcb0, ground: 0xd8c070 }),
+  sepia: X('golden', { skyTop: 0x8a6a48, skyMid: 0xb89a74, skyHorizon: 0xf0dcb8, skyBottom: 0xc8aa80, sunGlow: 0xfff0d0, nebula: 0, key: 0xfff0d8, keyIntensity: 2.2, hemiSky: 0xf4e4c8, hemiGround: 0x5a4a34, fog: 0xd8c4a0, ground: 0xa88a5a }),
+  cobweb: X('fog', { skyTop: 0x101018, skyMid: 0x24242e, skyHorizon: 0x5a5a6a, skyBottom: 0x14141a, sunGlow: 0xc8c8e8, stars: 0.3, key: 0xc8ccf0, keyIntensity: 1.3, hemiSky: 0x8a8aa8, hemiGround: 0x101014, hemiIntensity: 0.8, fog: 0x2a2a34, fogNear: 20, fogFar: 95, exposure: 1.12, ground: 0x3a3a40 }),
+  rapids: X('rain', { skyTop: 0x3a5a6a, skyMid: 0x6a8a94, skyHorizon: 0xb8ccd0, skyBottom: 0x4a6a64, sunGlow: 0xe0f0f0, key: 0xe0f0f0, keyIntensity: 1.9, hemiSky: 0xc8e0e0, hemiGround: 0x2a3a2a, fog: 0x8aa4a8, ground: 0x4a7a4a }),
+  tundra: X('snowNight', { skyTop: 0x06142a, skyMid: 0x14304a, skyHorizon: 0x5a8aa0, skyBottom: 0x0a1828, sunGlow: 0x7affc8, nebula: 0.3, key: 0xc8e8ff, keyIntensity: 1.6, hemiSky: 0x9ac8e0, hemiGround: 0x2a3a4a, fog: 0x1e3a50, ground: 0xeef4fa }),
+  cell: X('underwater', { skyTop: 0x3a0a2a, skyMid: 0x8a2a5a, skyHorizon: 0xf2a8c8, skyBottom: 0x4a1a3a, sunDir: [0.2, 0.9, -0.3], sunGlow: 0xffd0e8, key: 0xffe0f0, keyIntensity: 2.0, hemiSky: 0xf8c8e0, hemiGround: 0x3a0a2a, fog: 0x8a3a6a, ground: 0xe8a8c8 }),
+  rune: X('storm', { skyTop: 0x140606, skyMid: 0x3a1414, skyHorizon: 0x8a3a2a, skyBottom: 0x1a0808, sunGlow: 0xff4a2a, key: 0xffb8a0, keyIntensity: 1.6, hemiSky: 0xc87a6a, hemiGround: 0x140808, fog: 0x2a1410, ground: 0x4a4a42 }),
+  zenith: X('golden', { skyTop: 0x2a4ab8, skyMid: 0x8ab0f0, skyHorizon: 0xfff8e8, skyBottom: 0xf4f0ff, sunDir: [0.2, 0.7, -0.6], sunGlow: 0xffffff, nebula: 0.4, stars: 0.3, key: 0xfffcf0, keyIntensity: 2.8, hemiSky: 0xfffcf4, hemiGround: 0xa8a0c0, fog: 0xf4f0ff, fogNear: 70, fogFar: 220, env: 0.9, ground: 0xf0f4fa }),
+});
+
 /** משקל האקלים מול פלטת ערכת העולם (1 = האקלים בלבד) + שכבות מזג אוויר */
 export const CLIMATES = {
   day: { w: 0.55, fx: [{ type: 'pollen' }] },
@@ -51,6 +86,37 @@ export const CLIMATES = {
   golden: { w: 0.7, fx: [{ type: 'sparkles' }] },
   stars: { w: 0.92, fx: [{ type: 'starmotes' }] },
   smog: { w: 0.8, fx: [{ type: 'soot' }] },
+  // איי הפרימיום — האקלים שולט כמעט לגמרי (w≈0.97)
+  magnetic: { w: 0.97, fx: [{ type: 'shards', color: [0x8ad0ff, 0xffffff, 0x4aa8ff] }, { type: 'mist', n: 14, color: [0x4aa8ff], alpha: 0.07 }] },
+  glassIce: { w: 0.97, fx: [{ type: 'snow', n: 260 }, { type: 'shards', n: 120 }] },
+  basalt: { w: 0.97, fx: [{ type: 'embers', n: 420 }, { type: 'soot', n: 220 }, { type: 'steam', n: 12 }] },
+  vinyl: { w: 0.97, fx: [{ type: 'notes' }, { type: 'sparkles', color: [0xff7ab8, 0xffd8ee, 0x9ad8ff], n: 120 }] },
+  whisper: { w: 0.97, fx: [{ type: 'fireflies', n: 140 }, { type: 'leaves', color: [0x6aa84a, 0x9ac85a, 0x4a8a3a], n: 160 }, { type: 'mist', n: 30 }] },
+  abyssal: { w: 0.97, fx: [{ type: 'bubbles', n: 420 }], shafts: true },
+  clockwork: { w: 0.97, fx: [{ type: 'sparkles', color: [0xffd070, 0xffb040, 0xfff0c0], n: 160 }, { type: 'steam', n: 12 }] },
+  candy: { w: 0.97, fx: [{ type: 'confetti', color: [0xff6ab8, 0xffffff, 0x8ae8ff, 0xfff04a, 0xb8ff8a] }, { type: 'sparkles', color: [0xffffff, 0xffc8e8], n: 120 }] },
+  mirror: { w: 0.97, fx: [{ type: 'shards', n: 220 }] },
+  starDune: { w: 0.97, fx: [{ type: 'dust', color: [0xb48fd6, 0x8a6ab8], n: 360 }, { type: 'starmotes', n: 200 }, { type: 'meteors' }] },
+  cyberLab: { w: 0.97, fx: [{ type: 'digital' }, { type: 'sparkles', color: [0x33ff8a, 0x33f0ff], n: 100 }] },
+  library: { w: 0.97, fx: [{ type: 'pages' }, { type: 'dust', color: [0xffe0a0, 0xf0c880], n: 200, vx: 0.2, alpha: 0.35 }] },
+  stormCloud: { w: 0.97, fx: [{ type: 'rain', n: 1000 }, { type: 'mist', n: 30, color: [0x8a94a8] }], storm: true },
+  ink: { w: 0.97, fx: [{ type: 'petals', color: [0xc8282a, 0xffffff, 0xe8a0a0], n: 220 }, { type: 'mist', n: 22, color: [0x2a2a2a], alpha: 0.07 }] },
+  reef: { w: 0.97, fx: [{ type: 'sparkles', color: [0xffffff, 0xfff8d0], n: 140 }, { type: 'spray' }] },
+  hive: { w: 0.97, fx: [{ type: 'bees' }, { type: 'sparkles', color: [0xffd060, 0xfff0b0], n: 160 }] },
+  marbleDay: { w: 0.97, fx: [{ type: 'powder' }, { type: 'petals', color: [0xffffff, 0xf4f0e8], n: 120 }] },
+  space: { w: 0.97, fx: [{ type: 'starmotes', n: 360 }, { type: 'meteors', n: 24 }] },
+  geyser: { w: 0.97, fx: [{ type: 'steam', n: 46 }, { type: 'spray', n: 160 }] },
+  mushroom: { w: 0.97, fx: [{ type: 'spores' }, { type: 'fireflies', color: [0x9affd8, 0xe8a8ff], n: 80 }] },
+  porcelain: { w: 0.97, fx: [{ type: 'petals', color: [0x2a58b8, 0xffffff, 0x8ab0e8], n: 260 }] },
+  toy: { w: 0.97, fx: [{ type: 'confetti', n: 260 }] },
+  wheat: { w: 0.97, fx: [{ type: 'pollen', n: 160, color: [0xfff0b0] }, { type: 'leaves', color: [0xe8c05a, 0xd8a83a, 0xf0d880], n: 140, size: 0.24 }] },
+  sepia: { w: 0.97, fx: [{ type: 'dust', color: [0xd8c4a0, 0xb89a74], n: 260, alpha: 0.4 }], css: 'sepia(0.62) contrast(1.06) brightness(1.02)' },
+  cobweb: { w: 0.97, fx: [{ type: 'mist', n: 50, color: [0xb8bcc8] }, { type: 'fireflies', color: [0xdfe6ff, 0xb8c8ff], n: 60 }] },
+  rapids: { w: 0.97, fx: [{ type: 'rain', n: 360 }, { type: 'spray', n: 260 }, { type: 'mist', n: 30 }] },
+  tundra: { w: 0.97, fx: [{ type: 'snow', n: 700, vx: 1.2 }], aurora: true },
+  cell: { w: 0.97, fx: [{ type: 'bubbles', color: [0xffd0e8, 0xf2a8c8, 0xffffff], n: 260 }, { type: 'spores', color: [0xff8ac0, 0xd8a8ff], n: 120 }] },
+  rune: { w: 0.97, fx: [{ type: 'embers', color: [0xff3a2a, 0xff6a4a], n: 200 }, { type: 'runes' }] },
+  zenith: { w: 0.97, fx: [{ type: 'sparkles', n: 260 }, { type: 'starmotes', n: 160 }, { type: 'meteors', n: 10 }] },
 };
 
 const COLOR_KEYS = ['skyTop', 'skyMid', 'skyHorizon', 'skyBottom', 'sunGlow', 'key', 'hemiSky', 'hemiGround', 'fog', 'ground'];
@@ -81,6 +147,12 @@ function tex(kind) {
   else if (kind === 'ring') { x.strokeStyle = 'rgba(255,255,255,0.95)'; x.lineWidth = 5; x.beginPath(); x.arc(32, 32, 24, 0, TAU); x.stroke(); x.fillStyle = 'rgba(255,255,255,0.25)'; x.fill(); x.fillStyle = 'rgba(255,255,255,0.9)'; x.beginPath(); x.arc(24, 23, 5, 0, TAU); x.fill(); }
   else if (kind === 'star') { radial([[0, 'rgba(255,255,255,1)'], [0.25, 'rgba(255,255,255,0.6)'], [1, 'rgba(255,255,255,0)']]); x.fillStyle = 'rgba(255,255,255,0.9)'; x.fillRect(30, 4, 4, 56); x.fillRect(4, 30, 56, 4); }
   else if (kind === 'mist') radial([[0, 'rgba(255,255,255,0.55)'], [0.6, 'rgba(255,255,255,0.18)'], [1, 'rgba(255,255,255,0)']]);
+  else if (kind === 'meteor') { const g = x.createLinearGradient(6, 6, 58, 58); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.85, 'rgba(255,255,255,0.85)'); g.addColorStop(1, 'rgba(255,255,255,1)'); x.strokeStyle = g; x.lineWidth = 4; x.lineCap = 'round'; x.beginPath(); x.moveTo(8, 8); x.lineTo(56, 56); x.stroke(); }
+  else if (kind === 'note') { x.fillStyle = '#fff'; x.beginPath(); x.ellipse(22, 46, 11, 8, -0.4, 0, TAU); x.fill(); x.fillRect(30, 10, 5, 36); x.beginPath(); x.moveTo(35, 10); x.quadraticCurveTo(52, 16, 46, 32); x.lineTo(44, 30); x.quadraticCurveTo(48, 20, 35, 18); x.fill(); }
+  else if (kind === 'page') { x.fillStyle = '#fff'; x.fillRect(12, 6, 40, 52); x.fillStyle = 'rgba(0,0,0,0.28)'; for (let i = 0; i < 7; i++) x.fillRect(17, 14 + i * 6, 30 - (i % 3) * 5, 2); }
+  else if (kind === 'confetti') { x.fillStyle = '#fff'; x.fillRect(22, 14, 20, 36); }
+  else if (kind === 'bee') { x.fillStyle = 'rgba(255,255,255,0.75)'; x.beginPath(); x.ellipse(24, 20, 10, 7, -0.6, 0, TAU); x.fill(); x.beginPath(); x.ellipse(40, 20, 10, 7, 0.6, 0, TAU); x.fill(); x.fillStyle = '#fff'; x.beginPath(); x.ellipse(32, 36, 15, 11, 0, 0, TAU); x.fill(); x.fillStyle = '#111'; x.fillRect(27, 26, 4, 20); x.fillRect(35, 26, 4, 20); }
+  else if (kind === 'rune') { x.strokeStyle = '#fff'; x.lineWidth = 5; x.lineCap = 'round'; x.shadowColor = '#fff'; x.shadowBlur = 6; x.beginPath(); x.moveTo(32, 8); x.lineTo(32, 56); x.moveTo(32, 20); x.lineTo(46, 10); x.moveTo(32, 34); x.lineTo(18, 24); x.moveTo(32, 44); x.lineTo(46, 52); x.stroke(); }
   else radial([[0, 'rgba(255,255,255,1)'], [0.4, 'rgba(255,255,255,0.75)'], [1, 'rgba(255,255,255,0)']]);
   const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace;
   return (texCache[kind] = tx);
@@ -101,6 +173,19 @@ const LAYER = {
   sparkles: { n: 240, color: [0xfff0b0, 0xffffff, 0xffd870], size: 0.2, vy: 0.3, sway: 0.4, tex: 'star', add: true, blink: true },
   starmotes: { n: 300, color: [0xd8c8ff, 0xffffff, 0x9ad8ff], size: 0.18, vy: 0.08, sway: 0.2, tex: 'star', add: true, blink: true },
   pollen: { n: 80, color: [0xfffff0], size: 0.12, vy: 0.05, vx: 0.4, sway: 0.5, tex: 'dot', alpha: 0.7, low: true },
+  // שכבות של איי הפרימיום
+  meteors: { n: 16, color: [0xffffff, 0xbfe8ff], size: 1.7, vy: -7, vx: -11, sway: 0, tex: 'meteor', add: true, alpha: 0.85, y0: 8, h: 16 },
+  notes: { n: 56, color: [0xffd8ee, 0xffe08a, 0x9ad8ff], size: 0.5, vy: 0.55, vx: 0.25, sway: 0.7, tex: 'note', alpha: 0.95, y0: 0.6 },
+  pages: { n: 42, color: [0xf6eedc, 0xe8dcc0], size: 0.55, vy: -0.22, vx: 0.4, sway: 0.8, tex: 'page', alpha: 0.95, y0: 1 },
+  spray: { n: 220, color: [0xeaf8ff, 0xc8ecff], size: 0.16, vy: 0.9, vx: 0.5, sway: 0.6, tex: 'dot', alpha: 0.55, low: true, h: 4 },
+  spores: { n: 220, color: [0x9affd8, 0xe8a8ff, 0xfff08a], size: 0.2, vy: 0.35, sway: 0.5, tex: 'dot', add: true, blink: true },
+  powder: { n: 240, color: [0xffffff, 0xf0f0f0], size: 0.13, vy: -0.25, vx: 0.3, sway: 0.4, tex: 'dot', alpha: 0.65 },
+  steam: { n: 36, color: [0xffffff], size: 6, vy: 0.9, vx: 0.2, sway: 0.3, tex: 'mist', alpha: 0.18, low: true },
+  confetti: { n: 300, color: [0xff4a6a, 0xffd23a, 0x4ad8ff, 0x6aff8a, 0xc84aff], size: 0.24, vy: -0.9, vx: 0.3, sway: 1.0, tex: 'confetti', alpha: 1 },
+  bees: { n: 36, color: [0xffd23a], size: 0.3, vy: 0.05, vx: 0.3, sway: 1.8, tex: 'bee', alpha: 1, low: true, h: 6 },
+  shards: { n: 140, color: [0xffffff, 0xd8d0ff, 0xbfe8ff], size: 0.3, vy: 0.15, sway: 0.3, tex: 'star', add: true, blink: true },
+  digital: { n: 480, color: [0x33ff8a, 0x9affc8], size: 0.36, vy: -6, sway: 0, tex: 'streak', alpha: 0.5, add: true },
+  runes: { n: 70, color: [0xff4a2a, 0xff8a4a], size: 0.4, vy: 0.4, sway: 0.4, tex: 'rune', add: true, blink: true },
 };
 const W = 24, H = 15;
 
@@ -122,18 +207,22 @@ export class Weather {
     this.clear();
     this.climate = climate;
     const cfg = CLIMATES[climate] || CLIMATES.day;
-    for (const L of cfg.fx || []) this.layers.push(this.makeLayer({ ...LAYER[L.type], ...L, color: L.color || LAYER[L.type].color }, quality));
+    for (const L of cfg.fx || []) if (LAYER[L.type]) this.layers.push(this.makeLayer({ ...LAYER[L.type], ...L, color: L.color || LAYER[L.type].color }, quality));
     if (cfg.aurora) this.addAurora();
     if (cfg.shafts) this.addShafts();
     this.storm = !!cfg.storm;
+    // פילטר מסך (למשל ספיה) — רק באיכות בינונית ומעלה
+    const el = this.sm.renderer?.domElement;
+    if (el) el.style.filter = cfg.css && quality !== 'low' ? cfg.css : '';
   }
 
   makeLayer(L, quality) {
     const n = Math.max(8, Math.round(L.n * (quality === 'low' ? 0.4 : 1)));
     const pos = new Float32Array(n * 3), col = new Float32Array(n * 3), ph = new Float32Array(n);
     const c = new THREE.Color();
+    const y0 = L.y0 || 0, hh = L.h || H;
     for (let i = 0; i < n; i++) {
-      pos[i * 3] = (Math.random() * 2 - 1) * W; pos[i * 3 + 1] = Math.random() * H; pos[i * 3 + 2] = (Math.random() * 2 - 1) * W;
+      pos[i * 3] = (Math.random() * 2 - 1) * W; pos[i * 3 + 1] = y0 + Math.random() * hh; pos[i * 3 + 2] = (Math.random() * 2 - 1) * W;
       c.setHex(L.color[i % L.color.length]); col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
       ph[i] = Math.random() * TAU;
     }
@@ -145,7 +234,7 @@ export class Weather {
     pts.frustumCulled = false;
     pts.renderOrder = 5;
     this.group.add(pts);
-    return { L, pts, pos, ph, n, base: mat.opacity };
+    return { L, pts, pos, ph, n, base: mat.opacity, y0, hh };
   }
 
   /** זוהר צפוני: וילונות אור מעל האופק בצד הצפוני */
@@ -197,18 +286,20 @@ export class Weather {
     this.auroraMat = this.shaftMat = null;
     if (this.flash) { this.sm.hemi.intensity -= this.flash; this.flash = 0; }
     this.storm = false;
+    const el = this.sm.renderer?.domElement;
+    if (el && el.style.filter) el.style.filter = '';
   }
 
   update(dt, t) {
     for (const l of this.layers) {
-      const { L, pos, ph, n } = l;
+      const { L, pos, ph, n, y0, hh } = l;
       const vx = L.vx || 0, vy = L.vy || 0, sw = L.sway || 0;
       for (let i = 0; i < n; i++) {
         const k = i * 3, p = ph[i];
         pos[k] += (vx + Math.sin(t * 0.9 + p) * sw) * dt;
         pos[k + 1] += vy * dt * (0.8 + (p % 1) * 0.4);
         pos[k + 2] += Math.cos(t * 0.7 + p * 1.3) * sw * 0.6 * dt;
-        if (pos[k + 1] < 0) pos[k + 1] += H; else if (pos[k + 1] > H) pos[k + 1] -= H;
+        if (pos[k + 1] < y0) pos[k + 1] += hh; else if (pos[k + 1] > y0 + hh) pos[k + 1] -= hh;
         if (pos[k] > W) pos[k] -= 2 * W; else if (pos[k] < -W) pos[k] += 2 * W;
         if (pos[k + 2] > W) pos[k + 2] -= 2 * W; else if (pos[k + 2] < -W) pos[k + 2] += 2 * W;
       }
@@ -220,13 +311,14 @@ export class Weather {
     // סערה: ברקים מדי פעם
     if (this.storm) {
       this.nextBolt -= dt;
-      if (this.nextBolt <= 0) {
-        this.nextBolt = 3 + Math.random() * 6;
-        const add = 2.2;
-        this.sm.hemi.intensity += add; this.flash += add;
-        setTimeout(() => { this.sm.hemi.intensity -= add; this.flash -= add; }, 90 + Math.random() * 80);
-        setTimeout(() => this.sound?.thunder?.(), 250 + Math.random() * 500);
-      }
+      if (this.nextBolt <= 0) { this.nextBolt = 3 + Math.random() * 6; this.strike(); }
     }
+  }
+
+  /** ברק: הבזק אור קצר ורעם (גם לפי בקשה — למשל הכאה באי הסערה) */
+  strike(add = 2.2) {
+    this.sm.hemi.intensity += add; this.flash += add;
+    setTimeout(() => { this.sm.hemi.intensity -= add; this.flash -= add; }, 90 + Math.random() * 80);
+    setTimeout(() => this.sound?.thunder?.(), 250 + Math.random() * 500);
   }
 }

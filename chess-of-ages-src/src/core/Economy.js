@@ -3,7 +3,7 @@
  * יהלומים מרוויחים רק במשחק. הרכישה היחידה בכסף אמיתי: פתיחת המשחק המלא (hook מוכן ל-Google Play Billing).
  */
 import {
-  ECONOMY, FULL_GAME, ALL_WEARABLES, findWearable, DEFAULT_LOADOUT,
+  ECONOMY, FULL_GAME, EXPANSION, GEM_BOOST, BOARD_SKINS, findSkin, ALL_WEARABLES, findWearable, DEFAULT_LOADOUT,
   DAILY_STREAK, ROYAL_CHEST, WHEEL_SEGMENTS, DUPLICATE_ITEM_GEMS, DUPLICATE_FRAGMENT_GEMS,
 } from '../config/EconomyConfig.js';
 import { PETS, PREMIUM_PET_IDS } from '../config/Pets.js';
@@ -41,8 +41,11 @@ export class Economy {
       residents: [],
       petColors: [],
       eras: [],
-      fullGame: false,
-      equipped: { ...DEFAULT_LOADOUT, pet: 'wolf_cub' },
+      fullGame: false, // 30 איי הפרימיום (השם נשמר מהגרסאות הקודמות)
+      skins: [],
+      boostUntil: 0,
+      expansionGranted: false,
+      equipped: { ...DEFAULT_LOADOUT, pet: 'wolf_cub', boardSkin: '' },
       trials: {},
       fragments: {},
       lastFreeSpin: 0,
@@ -55,7 +58,80 @@ export class Economy {
     this.login = readJSON(ECONOMY.lastLoginKey, { lastClaimDay: null, streak: 0 });
     this.listeners = new Set();
     this.expireTrials();
+    // מי שרכש את "המשחק המלא" בגרסאות הבדיקה הקודמות מקבל את איי הפרימיום והדרקון
+    if (this.s.fullGame && !this.s.expansionGranted) this.grantExpansionPerks();
     this.save();
+  }
+
+  // ---------- איי הפרימיום, בוסט וסקינים ----------
+  grantExpansionPerks() {
+    if (!this.s.pets.includes(EXPANSION.pet)) this.s.pets = [...this.s.pets, EXPANSION.pet];
+    this.s.expansionGranted = true;
+  }
+  boostLeftMs() { return Math.max(0, (this.s.boostUntil || 0) - Date.now()); }
+  boostActive() { return this.boostLeftMs() > 0; }
+  /** x2 יהלומים על ניצחונות נגד בוטים ופיראטים בזמן הבוסט */
+  gemMultiplier() { return this.boostActive() ? GEM_BOOST.mult : 1; }
+
+  /** קופה: מצב בדיקה (בלי חיוב) או Google Play Billing כשמחובר */
+  async realPurchase(product, confirmSandbox) {
+    if (this.sandbox) {
+      const ok = await confirmSandbox(product);
+      if (!ok) return { ok: false, cancelled: true };
+      return { ok: true, tx: `sandbox-${Date.now()}` };
+    }
+    if (typeof PaymentProvider.nativePurchase === 'function') {
+      const res = await PaymentProvider.nativePurchase(product);
+      if (!res || !res.ok) return { ok: false, reason: tn('הרכישה לא הושלמה', 'The purchase was not completed') };
+      return { ok: true, tx: res.transactionId };
+    }
+    return { ok: false, reason: tn('הרכישה תהיה זמינה בקרוב', 'Purchasing will be available soon') };
+  }
+  logPurchase(product, tx) {
+    this.s.purchases.push({ id: product.id, price: product.price, tx, at: Date.now(), sandbox: this.sandbox });
+  }
+
+  /** בוסט x2 לשבוע — כל קנייה מוסיפה 7 ימים */
+  async purchaseBoost(confirmSandbox) {
+    const r = await this.realPurchase(GEM_BOOST, confirmSandbox);
+    if (!r.ok) return r;
+    this.s.boostUntil = Math.max(Date.now(), this.s.boostUntil || 0) + GEM_BOOST.days * 86400000;
+    this.logPurchase(GEM_BOOST, r.tx);
+    this.save();
+    this.emit({ type: 'buy', id: GEM_BOOST.id });
+    return { ok: true };
+  }
+
+  async purchaseSkin(id, confirmSandbox) {
+    const sk = findSkin(id);
+    if (!sk || !sk.product) return { ok: false, reason: tn('לא ניתן לקנייה', 'Not for sale') };
+    if (this.ownsSkin(id)) return { ok: true, already: true };
+    const product = { id: sk.product, price: sk.price };
+    const r = await this.realPurchase(product, confirmSandbox);
+    if (!r.ok) return r;
+    this.s.skins = [...(this.s.skins || []), id];
+    this.logPurchase(product, r.tx);
+    this.save();
+    this.emit({ type: 'buy', id: sk.product });
+    return { ok: true };
+  }
+  ownsSkin(id) { return !id || (this.s.skins || []).includes(id); }
+  /** סקינים חינמיים: אחד על כל 20 איים שנכבשים. מחזיר את מה שנפתח עכשיו (להודעה) */
+  grantEarnedSkins(conqueredCount) {
+    const fresh = BOARD_SKINS.filter((x) => x.earn && conqueredCount >= x.earn && !this.ownsSkin(x.id));
+    if (!fresh.length) return [];
+    this.s.skins = [...(this.s.skins || []), ...fresh.map((x) => x.id)];
+    this.save();
+    this.emit({ type: 'skins', ids: fresh.map((x) => x.id) });
+    return fresh;
+  }
+  get boardSkin() { const id = this.s.equipped.boardSkin || ''; return this.ownsSkin(id) ? id : ''; }
+  equipSkin(id) {
+    if (!BOARD_SKINS.some((x) => x.id === id) || !this.ownsSkin(id)) return false;
+    this.s.equipped.boardSkin = id;
+    this.save();
+    this.emit({ type: 'equip', slot: 'board', id });
+    return true;
   }
 
   // ---------- בסיס ----------
@@ -114,7 +190,7 @@ export class Economy {
   }
   /** אין יותר עידנים בתשלום — כל אזור נפתח בכיבוש האיים שלפניו */
   ownsEra() { return true; }
-  /** איים 6–99 */
+  /** איי הפרימיום 100–129 */
   ownsFullGame() { return !!this.s.fullGame; }
 
   get loadout() {
@@ -188,7 +264,7 @@ export class Economy {
 
   buyPet(id) {
     const p = PETS[id];
-    if (!p || !p.premium) return { ok: false, reason: tn('לא ניתן לקנייה', 'Not for sale') };
+    if (!p || !p.premium || p.exclusive) return { ok: false, reason: tn('לא ניתן לקנייה', 'Not for sale') };
     if (this.s.pets.includes(id)) return { ok: false, reason: tn('כבר בבעלותך', 'Already owned') };
     if (!this.spend(p.price)) return { ok: false, reason: tn('אין מספיק יהלומים', 'Not enough gems'), needGems: p.price - this.s.gems };
     this.s.pets.push(id);
@@ -204,20 +280,11 @@ export class Economy {
    */
   async purchaseFullGame(confirmSandbox) {
     if (this.s.fullGame) return { ok: true, already: true };
-    let tx = null;
-    if (this.sandbox) {
-      const ok = await confirmSandbox(FULL_GAME);
-      if (!ok) return { ok: false, cancelled: true };
-      tx = `sandbox-${Date.now()}`;
-    } else if (typeof PaymentProvider.nativePurchase === 'function') {
-      const res = await PaymentProvider.nativePurchase(FULL_GAME);
-      if (!res || !res.ok) return { ok: false, reason: tn('הרכישה לא הושלמה', 'The purchase was not completed') };
-      tx = res.transactionId;
-    } else {
-      return { ok: false, reason: tn('הרכישה תהיה זמינה בקרוב', 'Purchasing will be available soon') };
-    }
+    const r = await this.realPurchase(FULL_GAME, confirmSandbox);
+    if (!r.ok) return r;
     this.s.fullGame = true;
-    this.s.purchases.push({ id: FULL_GAME.id, price: FULL_GAME.price, tx, at: Date.now(), sandbox: this.sandbox });
+    this.grantExpansionPerks();
+    this.logPurchase(FULL_GAME, r.tx);
     this.save();
     this.emit({ type: 'buy', id: FULL_GAME.id });
     return { ok: true };
@@ -226,6 +293,9 @@ export class Economy {
   /** hook כללי: רכישה לפי מזהה (משחק מלא / פריט / חיה) */
   async purchaseItem(itemId, confirmSandbox) {
     if (itemId === FULL_GAME.id) return this.purchaseFullGame(confirmSandbox);
+    if (itemId === GEM_BOOST.id) return this.purchaseBoost(confirmSandbox);
+    const sk = BOARD_SKINS.find((x) => x.product === itemId);
+    if (sk) return this.purchaseSkin(sk.id, confirmSandbox);
     if (PETS[itemId]) return this.buyPet(itemId);
     return this.buyItem(itemId);
   }

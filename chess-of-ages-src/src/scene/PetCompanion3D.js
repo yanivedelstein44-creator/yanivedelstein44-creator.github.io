@@ -1,5 +1,5 @@
 /**
- * חיות מחמד תלת-ממדיות על כן מעוטר: 8 יצורים פרוצדורליים עם שלד פשוט,
+ * חיות מחמד תלת-ממדיות על כן מעוטר: 9 יצורים פרוצדורליים עם שלד פשוט,
  * אנימציית מנוחה (נשימה, ריחוף, מבט לכלי הפעיל, זנב/כנפיים) ותגובות למשחק.
  */
 import * as THREE from 'three';
@@ -201,6 +201,33 @@ const BUILDERS = {
     rig.hover = true; rig.flap = 1;
     rig.voice = 'dragon'; rig.fxColor = [0xffd060, 0xff8a20, 0xff3010];
   },
+  clockwork_dragon(rig) {
+    // דרקון שעונים מזהב ופליז: גלגלי שיניים מסתובבים, עיניים זוהרות בטורקיז, כנפי מתכת
+    const brass = std(0xd0a040, 0.3, 1), gold = std(0xf2c14e, 0.22, 1), dark = std(0x5a3a1a, 0.4, 0.8), copper = std(0xc87a40, 0.32, 1);
+    const wingTex = drawnTexture('clockWing', 128, (c, s) => {
+      const g = c.createLinearGradient(0, 0, s, s); g.addColorStop(0, '#8a5a1a'); g.addColorStop(1, '#f2c14e'); c.fillStyle = g; c.fillRect(0, 0, s, s);
+      c.strokeStyle = '#fff0b8'; c.lineWidth = 3; for (let i = 0; i < 6; i++) { c.beginPath(); c.moveTo(0, s); c.lineTo(s * (i / 5), 0); c.stroke(); }
+      c.strokeStyle = 'rgba(80,230,255,0.9)'; c.lineWidth = 2; c.strokeRect(4, 4, s - 8, s - 8);
+    });
+    quadruped(rig, { bodyMat: brass, bellyMat: copper, headMat: brass, snoutMat: gold, eyeMat: eyeMat(0x33e8ff), snout: [0.13, 0.09, 0.22], ears: [0.03, 0.2], earMat: gold, bodyR: 0.19, bodyLen: 0.5, legLen: 0.22, legMat: copper, tailMat: brass, tailSegs: 6, tailR: 0.07, tailLen: 0.13, tailUp: 0.3 });
+    addWings(rig, new THREE.MeshStandardMaterial({ map: wingTex, side: THREE.DoubleSide, roughness: 0.35, metalness: 0.75 }), 0.85, 0.16, 0.08);
+    rig.spinners = [];
+    const gear = (r, x, y, z, ry) => {
+      const g = new THREE.Group();
+      g.position.set(x, y, z); g.rotation.y = ry;
+      g.add(mesh(G.torus(r, r * 0.22, 6, 18), gold, { cast: true }));
+      for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; g.add(mesh(G.box(r * 0.3, r * 0.3, r * 0.22), gold, { pos: [Math.cos(a) * r * 1.15, Math.sin(a) * r * 1.15, 0], rot: [0, 0, a] })); }
+      g.add(mesh(G.cyl(r * 0.3, r * 0.3, r * 0.3, 8), dark, { rot: [Math.PI / 2, 0, 0] }));
+      rig.body.add(g);
+      rig.spinners.push(g);
+    };
+    gear(0.09, 0.2, 0.04, 0.05, Math.PI / 2); gear(0.09, -0.2, 0.04, 0.05, Math.PI / 2); gear(0.07, 0, 0.21, -0.12, 0); gear(0.06, 0, 0.21, 0.12, 0);
+    const lastTail = rig.tails[0][rig.tails[0].length - 1];
+    lastTail.add(mesh(G.cone(0.07, 0.16, 4), gold, { pos: [0, 0, -0.2], rot: [-Math.PI / 2, 0, 0] }));
+    for (let i = 0; i < 4; i++) rig.body.add(mesh(G.cone(0.03, 0.09, 4), copper, { pos: [0, 0.2, 0.26 - i * 0.16] }));
+    rig.hover = true; rig.flap = 1;
+    rig.voice = 'dragon'; rig.fxColor = [0xffd36a, 0x33e8ff, 0xffffff];
+  },
   golden_phoenix(rig) {
     const gold = std(0xffb830, 0.3, 0.6, { emissive: 0xff8a10, emissiveIntensity: 0.55 });
     const flameM = std(0xffd060, 0.3, 0, { emissive: 0xff6a10, emissiveIntensity: 1.2, side: THREE.DoubleSide });
@@ -302,7 +329,8 @@ export class PetCompanion3D {
 
   place(x, z, facing) {
     this.group.position.set(x, 0, z);
-    this.group.rotation.y = facing;
+    this.group.rotation.set(0, facing, 0);
+    this.group.userData.facing = facing;
   }
 
   lookAt(world) { if (world) this.lookTarget.copy(world); }
@@ -455,6 +483,7 @@ export class PetCompanion3D {
       w.rotation.z = s * (0.2 + flap * (r.flap || 0.3));
     });
     if (r.aura) { r.aura.rotation.z += dt * 0.8; r.aura.material.opacity = 0.6 + Math.sin(tt * 2) * 0.25; }
+    if (r.spinners) r.spinners.forEach((g, i) => { g.rotation.z += dt * (i % 2 ? -2.6 : 2.6); });
     if (r.trail && Math.random() < dt * 14) {
       const p = this.worldOf(r.body);
       this.fx.embers([p.x, p.y - 0.1, p.z], 1, r.trail);

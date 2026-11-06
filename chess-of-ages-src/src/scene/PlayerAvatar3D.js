@@ -398,7 +398,8 @@ export class PlayerAvatar3D {
 
   place(x, z, facing) {
     this.group.position.set(x, 0, z);
-    this.group.rotation.y = facing;
+    this.group.rotation.set(0, facing, 0);
+    this.group.userData.facing = facing;
   }
 
   lookAt(world) { if (world) this.lookTarget.copy(world); }

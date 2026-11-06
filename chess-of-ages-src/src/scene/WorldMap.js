@@ -8,7 +8,7 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { ISLAND_COUNT, HUB_ID, regionOf, isBoss, islandDef, tierOf } from '../config/Islands.js';
+import { ISLAND_COUNT, HUB_ID, PREMIUM_FIRST, isPremium, regionOf, isBoss, islandDef, tierOf } from '../config/Islands.js';
 import { getEra } from '../config/Eras.js';
 import { drawIcon } from '../ui/icons.js';
 import { t, islandLabel } from '../ui/i18n.js';
@@ -23,8 +23,10 @@ const V3 = THREE.Vector3;
 const REGION_COLORS = {
   1: [0xd8c08a, 0x6f9a3a], 2: [0xe8dcc0, 0x8fae5a], 3: [0xc8b88a, 0x4f8a3a], 4: [0xa89070, 0x6a6a4a], 5: [0x6a7a8a, 0x2a3a5a],
   6: [0xe0c8b0, 0xd88aa8], 7: [0xe8cc8a, 0xd8b060], 8: [0xb8c4cc, 0xe8f0f6], 9: [0xd8e0c8, 0x3aa8a0], 10: [0xc8c0e8, 0x8a7ad8],
+  // איי הפרימיום: חוף זהוב
+  11: [0xf2d68a, 0x9a7ae0], 12: [0xf0d080, 0x5ac8c8], 13: [0xffe2a0, 0xf2c94c],
 };
-const FLYERS = new Set(['royal_owl', 'fire_dragon', 'golden_phoenix', 'mythic_griffin']);
+const FLYERS = new Set(['royal_owl', 'fire_dragon', 'golden_phoenix', 'mythic_griffin', 'clockwork_dragon']);
 const GATE_SCALE = 1.6;
 const GATE_CENTER = { 1: 0.75, 2: 0.75, 3: 0.75, 4: 1.05, 5: 1.1, 6: 0.85, 7: 0.8, 8: 0.5, 9: 0.5, 10: 1.15 };
 const HOOP_K = [3.9, 3.0, 2.15];
@@ -33,12 +35,21 @@ const BRIDGE = { 2: [0xf2ece0, 0x5a5040], 3: [0x8a5a30, 0x000000], 4: [0xb07a3a,
 
 /** דרכי הכניסה — לכל אי אחת, מתחלפות בין איים סמוכים */
 export const APPROACHES = ['gate', 'rings', 'skim', 'spiral', 'dive', 'bridge'];
-export const approachOf = (id) => (id === HUB_ID ? 'spiral' : APPROACHES[(id * 5 + regionOf(id) * 3) % 6]);
+export const approachOf = (id) => (id === HUB_ID ? 'spiral' : isPremium(id) ? 'hop' : APPROACHES[(id * 5 + regionOf(id) * 3) % 6]);
 
-/** מיקום אי במפה: האי המרכזי באמצע, 2–99 על ספירלה ארכימדית במרווחים שווים */
+/** איי הפרימיום: שתי טבעות צמודות לאי המרכזי (15 בכל טבעת, הפנימית מסובבת חצי צעד) */
+const PREM_R = [6.4, 9.3];
+export function premiumPos(id) {
+  const k = id - PREMIUM_FIRST, ring = k < 15 ? 0 : 1, i = k % 15;
+  const th = -Math.PI / 2 + ((i + (ring ? 0.5 : 0)) / 15) * TAU;
+  return new V3(Math.cos(th) * PREM_R[ring], 0, Math.sin(th) * PREM_R[ring]);
+}
+
+/** מיקום אי במפה: האי המרכזי באמצע, טבעות הפרימיום סביבו, 2–99 על ספירלה ארכימדית במרווחים שווים */
 export function islandPos(id) {
   if (id === HUB_ID) return new V3(0, 0, 0);
-  const a = 7.2, b = 1.06, d = 4.3;
+  if (id >= PREMIUM_FIRST) return premiumPos(id);
+  const a = 12.6, b = 1.06, d = 4.3;
   const s = (id - 2) * d;
   const th = (-a + Math.sqrt(a * a + 2 * b * s)) / b;
   const r = a + b * th;
@@ -47,11 +58,11 @@ export function islandPos(id) {
 }
 /** צבעי האי במפה: בסיס לפי העולם, צמחייה/קרקע לפי האקלים של העידן */
 function islandColors(id) { const [sand, grass] = REGION_COLORS[regionOf(id)]; const cl = islandDef(id)?.era?.climate; return [sand, id === HUB_ID ? grass : (GROUND[cl] ?? grass)]; }
-const islandScale = (id) => (id === HUB_ID ? 2.3 : isBoss(id) ? 1.3 : 0.95 + ((id * 37) % 7) * 0.025);
+const islandScale = (id) => (id === HUB_ID ? 2.3 : isPremium(id) ? (isBoss(id) ? 0.78 : 0.64) : isBoss(id) ? 1.3 : 0.95 + ((id * 37) % 7) * 0.025);
 /** נקודת העמידה על האי (באי המרכזי — מול הטירה) */
-function standOf(id) { const p = islandPos(id).setY(id === HUB_ID ? 0.42 : 0.3); p.z += id === HUB_ID ? 2.4 : 0.38; return p; }
+function standOf(id) { const p = islandPos(id).setY(id === HUB_ID ? 0.42 : isPremium(id) ? 0.22 : 0.3); p.z += id === HUB_ID ? 2.4 : isPremium(id) ? 0.25 : 0.38; return p; }
 /** כיוון הכניסה לאי (מהאי הקודם בספירלה) — לשערים, לטבעות ולגשרים */
-function inDir(id) { const d = islandPos(id).sub(islandPos(Math.max(1, id - 1))).setY(0); return d.lengthSq() < 1e-6 ? new V3(0, 0, -1) : d.normalize(); }
+function inDir(id) { const d = isPremium(id) ? islandPos(id).setY(0) : islandPos(id).sub(islandPos(Math.max(1, id - 1))).setY(0); return d.lengthSq() < 1e-6 ? new V3(0, 0, -1) : d.normalize(); }
 const wrapAngle = (a) => { while (a > Math.PI) a -= TAU; while (a < -Math.PI) a += TAU; return a; };
 
 function islandGeo() {
@@ -261,8 +272,9 @@ export class WorldMap {
       if (!type) continue;
       const { solid, glow } = monumentGeometry(type);
       const p = this.positions[id];
-      const sc = 0.34 * (isBoss(id) ? 1.2 : 1);
-      mm.compose(vv.set(p.x, 0.22, p.z - 0.42), qq.identity(), ss.set(sc, sc, sc));
+      const prem = isPremium(id);
+      const sc = (prem ? 0.24 : 0.34) * (isBoss(id) ? 1.2 : 1);
+      mm.compose(vv.set(p.x, prem ? 0.16 : 0.22, p.z - (prem ? 0.28 : 0.42)), qq.identity(), ss.set(sc, sc, sc));
       if (solid) solids.push(solid.clone().applyMatrix4(mm));
       if (glow) glows.push(glow.clone().applyMatrix4(mm));
     }
@@ -271,6 +283,7 @@ export class WorldMap {
     // מעט עצים וסלעים לגיוון
     const items = { tree: [], rock: [] };
     for (let id = 2; id <= ISLAND_COUNT; id++) {
+      if (isPremium(id)) continue;
       const base = this.positions[id];
       const a = id * 2.3;
       items[id % 3 ? 'tree' : 'rock'].push([base.x + Math.cos(a) * 0.85, 0.18, base.z + Math.sin(a) * 0.35 - 0.1, 0.7, a]);
@@ -342,10 +355,16 @@ export class WorldMap {
   /** שביל אבני דריכה בין האיים (זהב = נכבש) */
   buildPath() {
     const pts = [];
-    for (let id = 1; id < ISLAND_COUNT; id++) {
-      const a = this.positions[id], b = this.positions[id + 1];
-      const n = id === HUB_ID ? 4 : 3;
-      for (let k = 1; k < n; k++) pts.push([a.clone().lerp(b, k / n), id]);
+    // הספירלה 1→99, ואיי הפרימיום: מהמרכז אל 100, סביב הטבעת הפנימית, אל הטבעת החיצונית וסביבה
+    const links = [];
+    for (let id = 1; id < Math.min(ISLAND_COUNT, PREMIUM_FIRST - 1); id++) links.push([id, id + 1, id === HUB_ID ? 4 : 3]);
+    if (ISLAND_COUNT >= PREMIUM_FIRST) {
+      links.push([HUB_ID, PREMIUM_FIRST, 2]);
+      for (let id = PREMIUM_FIRST; id < ISLAND_COUNT; id++) links.push([id, id + 1, 2]);
+    }
+    for (const [from, to, n] of links) {
+      const a = this.positions[from], b = this.positions[to];
+      for (let k = 1; k < n; k++) pts.push([a.clone().lerp(b, k / n), from]);
     }
     this.pathMesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.16, 0.18, 0.08, 8), new THREE.MeshStandardMaterial({ roughness: 0.6, emissive: 0x1a1000 }), pts.length);
     const m4 = new THREE.Matrix4();
@@ -388,8 +407,9 @@ export class WorldMap {
       const tex = labelTexture(String(id), { bg: boss ? 'rgba(90,40,10,0.85)' : 'rgba(12,8,24,0.78)', w: id === HUB_ID || boss ? 112 : 84, ic: id === HUB_ID ? 'home' : boss ? 'crown' : null });
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthWrite: false, transparent: true }));
       const p = this.positions[id];
-      sp.position.set(p.x, id === HUB_ID ? 1.6 : 1.4, p.z + (id === HUB_ID ? 3.9 : 1.6));
-      sp.scale.set(id === HUB_ID || boss ? 2.1 : 1.6, id === HUB_ID || boss ? 1.05 : 0.95, 1);
+      const prem = isPremium(id);
+      sp.position.set(p.x, id === HUB_ID ? 1.6 : prem ? 1.05 : 1.4, p.z + (id === HUB_ID ? 3.9 : prem ? 1.05 : 1.6));
+      sp.scale.set((id === HUB_ID || boss ? 2.1 : 1.6) * (prem ? 0.78 : 1), (id === HUB_ID || boss ? 1.05 : 0.95) * (prem ? 0.78 : 1), 1);
       sp.userData.id = id;
       this.labels.push(sp);
       this.scene.add(sp);
@@ -515,6 +535,7 @@ export class WorldMap {
     const c = new THREE.Color(), dim = new THREE.Color(0x2a3442);
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new V3(), v = new V3();
     let f = 0, pf = 0, fog = 0;
+    const goldFog = new THREE.Color(0xffd36a), whiteFog = new THREE.Color(0xffffff);
     for (let id = 1; id <= ISLAND_COUNT; id++) {
       const [sand, grass] = islandColors(id);
       const locked = pr.needsFullGame(id) || (pr.isUnlocked ? !pr.isUnlocked(id) : false);
@@ -526,15 +547,19 @@ export class WorldMap {
         if (pr.hasPirates?.(id)) this.pirateFlags.setMatrixAt(pf++, m4); else this.flags.setMatrixAt(f++, m4);
       }
       if (locked && id !== HUB_ID) {
+        // איי פרימיום שעוד לא נפתחו: ערפל זהוב קטן; איים רגילים: ערפל לבן
+        const prem = isPremium(id), k0 = prem ? 0.62 : 1;
         for (let k = 0; k < 3; k++) {
           const a = id * 1.3 + k * 2.1;
-          this.fogPuffs.setMatrixAt(fog++, m4.compose(v.set(p.x + Math.cos(a) * 0.6, 0.72 + k * 0.12, p.z + Math.sin(a) * 0.42), q, s.set(1.0 - k * 0.14, 0.42, 0.8)));
+          this.fogPuffs.setColorAt(fog, prem ? goldFog : whiteFog);
+          this.fogPuffs.setMatrixAt(fog++, m4.compose(v.set(p.x + Math.cos(a) * 0.6 * k0, (0.72 + k * 0.12) * k0, p.z + Math.sin(a) * 0.42 * k0), q, s.set((1.0 - k * 0.14) * k0, 0.42 * k0, 0.8 * k0)));
         }
       }
     }
     this.flags.count = f; this.flags.instanceMatrix.needsUpdate = true;
     this.pirateFlags.count = pf; this.pirateFlags.instanceMatrix.needsUpdate = true;
     this.fogPuffs.count = fog; this.fogPuffs.instanceMatrix.needsUpdate = true;
+    if (this.fogPuffs.instanceColor) this.fogPuffs.instanceColor.needsUpdate = true;
     this.baseMesh.instanceColor.needsUpdate = true;
     this.topMesh.instanceColor.needsUpdate = true;
     const gold = new THREE.Color(0xffd36a), grey = new THREE.Color(0x6a7486);
@@ -762,6 +787,12 @@ export class WorldMap {
     const cruise = this.ground ? 0.05 : (this.unicorn ? 1.9 : 2.5) + Math.min(3.5, dist * 0.06);
     const S = (k, y) => B.clone().addScaledVector(dir, -k).setY(y);
     const pts = [A.clone(), A.clone().addScaledVector(fd, 0.7).setY(A.y + (this.ground ? 0.5 : 0.9))];
+    if (ap === 'hop') {
+      // איי הפרימיום צמודים למרכז: קפיצה קצרה בקשת
+      const mid = A.clone().lerp(B, 0.55); mid.y = (this.ground ? 0.6 : Math.max(1.6, cruise * 0.8)) + Math.min(5, dist * 0.12);
+      pts.push(mid, B.clone().addScaledVector(fd, -0.9).setY(this.ground ? 0.3 : 0.9), land);
+      return { pts, ap, B, land, dir };
+    }
     const entry = S(4.6, cruise);
     if (dist > 8) { const mid = A.clone().lerp(entry, 0.5).addScaledVector(side, Math.min(4, dist * 0.1)); mid.y = cruise + (this.ground ? 0.1 : 1.2); pts.push(mid); }
     const gy = -0.2 + (GATE_CENTER[regionOf(toId)] || 0.8) * GATE_SCALE - 0.45;

@@ -1,11 +1,14 @@
 /**
- * התקדמות: 99 איים, בכל סדר שהשחקן רוצה.
- * - כל אי פתוח לביקור ולכיבוש. איים 6–99 דורשים את המשחק המלא (רכישה חד-פעמית).
+ * התקדמות: 129 איים, בכל סדר שהשחקן רוצה.
+ * - כל אי פתוח לביקור ולכיבוש. איים 1–99 חינם; איים 100–129 הם איי הפרימיום (רכישה חד-פעמית).
  * - אחרי כיבוש: הבוט עוזב לאי המרכזי (אפשר לקנות אותו בחנות), החלק של האי מצטרף לפסיפס במרכז,
  *   ופיראטי זמן תופסים את האי — באותה רמת קושי. ניצחון עליהם = יהלומים; הם בורחים וחוזרים אחרי כמה שעות.
  * - אין יותר שלבי בנייה: כל אי מוצג במלואו, והאי המרכזי גדל עם כל כיבוש.
  */
-import { ISLAND_COUNT, FREE_ISLANDS, HUB_ID, regionOf, regionIslands } from '../config/Islands.js';
+import { ISLAND_COUNT, FREE_ISLANDS, HUB_ID, PREMIUM_FIRST, BASE_ISLANDS, regionOf, regionIslands } from '../config/Islands.js';
+
+/** ערכת הצלילים/הדמויות (1–10) של כל אי פרימיום — לפי האווירה שלו */
+const PREMIUM_KIT = [5, 10, 1, 4, 1, 9, 4, 2, 10, 7, 5, 3, 8, 6, 9, 2, 2, 10, 1, 1, 6, 4, 3, 4, 3, 8, 8, 9, 8, 10];
 import { PIRATE_RESPAWN_MS } from '../config/Pirates.js';
 
 export class Progression {
@@ -34,6 +37,7 @@ export class Progression {
   get conqueredSet() { return new Set(this.isl.conquered); }
   isConquered(id) { return this.isl.conquered.includes(id); }
   conqueredCount() { return this.isl.conquered.length; }
+  baseConqueredCount() { return this.isl.conquered.filter((id) => id <= BASE_ISLANDS).length; }
   /** סדר הכיבוש (לחלקים בפסיפס) */
   conqueredList() { return [...this.isl.conquered]; }
   regionConquered(r) { const set = this.conqueredSet; return regionIslands(r).filter((i) => set.has(i)).length; }
@@ -92,7 +96,7 @@ export class Progression {
 
   // ---------- תצוגה ----------
   /** ערכת התפאורה של אי (העולם שלו). האי המרכזי — מוזיאון הזמן על ערכת השיש */
-  displayEra(id = this.currentIsland()) { return id === HUB_ID ? 2 : regionOf(id); }
+  displayEra(id = this.currentIsland()) { return id === HUB_ID ? 2 : id >= PREMIUM_FIRST ? (PREMIUM_KIT[id - PREMIUM_FIRST] || 10) : regionOf(id); }
   /** העולם הגבוה שבו נכבש אי כלשהו (לפתיחת חיות הבסיס) */
   maxEraReached() { let m = 1; for (const id of this.isl.conquered) m = Math.max(m, regionOf(id)); return m; }
   /** 'fullGame' — כל האיים החינמיים נכבשו וצריך לפתוח את המשחק; 'complete' — הכול נכבש */

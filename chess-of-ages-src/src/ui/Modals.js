@@ -11,7 +11,7 @@ import { FULL_GAME, formatPrice } from '../config/EconomyConfig.js';
 import { PaymentProvider } from '../core/Economy.js';
 import { ACHIEVEMENTS } from '../core/Achievements.js';
 import { GLYPH } from '../game/GameController.js';
-import { ISLAND_COUNT, HUB_ID, islandDef, regionIslands, tierOf } from '../config/Islands.js';
+import { ISLAND_COUNT, HUB_ID, REGION_COUNT, PREMIUM_WORLDS, islandDef, regionIslands, regionOf, tierOf } from '../config/Islands.js';
 import { getEra } from '../config/Eras.js';
 
 const TXT = '︎';
@@ -37,13 +37,15 @@ export function openFriend(app) {
   });
 }
 
-/** פתיחת המשחק המלא (איים 6–99) — רכישה חד-פעמית */
+/** איי הפרימיום (100–129) — רכישה חד-פעמית, עם דרקון השעונים הזהוב כבונוס */
 export function openFullGame(app, onUnlocked) {
   const { economy, ui, sound } = app;
   const priceLabel = (typeof PaymentProvider.priceLabel === 'function' && PaymentProvider.priceLabel(FULL_GAME)) || (FULL_GAME.price ? formatPrice(FULL_GAME.price) : t('priceSoon'));
   const body = h('div', { class: 'fullgame' },
     h('div', { class: 'hero-ic' }, icon('castle', { size: 64 })),
     h('p', {}, t('fullBody')),
+    h('ul', {}, h('li', {}, t('premiumPoint1')), h('li', {}, t('premiumPoint2')), h('li', {}, t('premiumPoint3'))),
+    h('p', { class: 'bonus' }, ...withIcon('dragon', t('dragonBonus'), 16)),
     h('div', { class: 'price-tag' }, priceLabel),
     economy.sandbox ? h('p', { class: 'soon' }, ...withIcon('info', t('sandboxNote'), 14)) : null);
   return ui.modal({
@@ -52,7 +54,7 @@ export function openFullGame(app, onUnlocked) {
       { label: t('later'), onClick: (c) => c.close() },
       { label: economy.sandbox ? t('unlockTest') : t('unlock'), icon: 'lock', primary: true, onClick: async (c) => {
         const res = await economy.purchaseFullGame(() => Promise.resolve(true));
-        if (res.ok) { c.close(); sound.jackpot(); ui.toast(`${t('fullOwned')}!`, { kind: 'gold', icon: 'crown' }); onUnlocked?.(); }
+        if (res.ok) { c.close(); sound.jackpot(); ui.toast(`${t('fullOwned')}!`, { kind: 'gold', icon: 'crown' }); app.onPremiumUnlocked?.(); onUnlocked?.(); }
         else if (!res.cancelled) ui.toast(res.reason, { kind: 'bad' });
       } },
     ],
@@ -70,7 +72,7 @@ export function openPromotion(app, color) {
 
 /** סיכום משחק: תוצאה, כוכבים וכיבוש, יהלומים, דיוק ורגעי מפתח + המשך (האי הבא / שוב / מפה) */
 export function openSummary(app, data) {
-  const { title, icon: ic, reason, gems, stageMsg, acc, keyMoments, canReplay, vsBot, won, island, nextId } = data;
+  const { title, icon: ic, reason, gems, stageMsg, acc, keyMoments, canReplay, vsBot, won, island, nextId, boosted } = data;
   const accBlock = (label, v) => h('div', {}, h('div', { class: 'acc-row' }, h('span', {}, label), h('b', {}, v === null ? '—' : `${v.toFixed(1)}%`)), h('div', { class: 'acc-bar' }, h('i', { style: { width: `${v || 0}%` } })));
   const conquestBlock = vsBot && island ? h('div', { class: 'conquest' },
     won ? h('div', { class: 'stars-big' }, starRow(island.stars, 34)) : null,
@@ -83,7 +85,7 @@ export function openSummary(app, data) {
     conquestBlock,
     stageMsg ? h('p', { class: 'gold-line' }, stageMsg) : null,
     h('div', { class: 'stat-grid' },
-      h('div', { class: 'stat' }, h('b', {}, `+${gems}`), h('span', {}, ...withIcon('gem', t('gemsEarned'), 14))),
+      h('div', { class: 'stat' }, h('b', {}, `+${gems}`, boosted && gems > 0 ? h('span', { class: 'x2' }, 'x2') : null), h('span', {}, ...withIcon('gem', t('gemsEarned'), 14))),
       h('div', { class: 'stat' }, h('b', {}, String(app.store.get('wins'))), h('span', {}, ...withIcon('trophy', tn('ניצחונות', 'Wins'), 14))),
       h('div', { class: 'stat' }, h('b', {}, String(app.store.get('rating'))), h('span', {}, ...withIcon('chart', t('rating'), 14)))),
     h('h3', {}, ...withIcon('target', t('accuracy'), 16)), accBlock(t('yourAccuracy'), acc.me), accBlock(t('oppAccuracy'), acc.opp),
@@ -110,23 +112,24 @@ export function openSummary(app, data) {
 /** אלבום הבוטים: לשונית לכל אזור, דיוקן תלת-ממדי, כוכבים וחותמת "הובס" */
 export function openAlbum(app) {
   const pr = app.progression;
-  let region = Math.max(1, Math.min(10, Math.ceil((pr.frontier() || ISLAND_COUNT) / 10)));
+  let region = regionOf(pr.frontier() || 1) || 1;
   const tabs = h('div', { class: 'region-tabs', role: 'tablist' });
   const grid = h('div', { class: 'album-grid' });
   const note = h('p', { class: 'muted small' }, t('albumNote'));
   function render() {
-    tabs.replaceChildren(...Array.from({ length: 10 }, (_, i) => i + 1).map((r) => {
+    tabs.replaceChildren(...Array.from({ length: REGION_COUNT }, (_, i) => i + 1).map((r) => {
       const ids = regionIslands(r);
       const done = ids.filter((id) => pr.isConquered(id)).length;
-      return h('button', { class: 'tap', role: 'tab', 'aria-selected': String(r === region), onclick: () => { region = r; render(); } }, h('b', {}, String(r)), h('small', {}, `${done}/${ids.length}`));
+      return h('button', { class: `tap${r > 10 ? ' premium' : ''}`, role: 'tab', 'aria-selected': String(r === region), onclick: () => { region = r; render(); } }, h('b', {}, r > 10 ? icon('crown', { size: 14 }) : String(r)), h('small', {}, `${done}/${ids.length}`));
     }));
-    const era = getEra(region);
+    const pw = PREMIUM_WORLDS[region];
+    const era = pw ? { name: pw.he, en: pw.en } : getEra(region);
     grid.replaceChildren(h('div', { class: 'album-head' }, h('b', {}, tn(era.name, era.en))), ...regionIslands(region).map((id) => {
       const d = islandDef(id);
       const met = pr.isUnlocked(id);
       const won = pr.isConquered(id);
       const pic = h('div', { class: 'portrait' }, icon(met ? 'crown' : 'lock', { size: 30, cls: 'ph' }));
-      if (met) app.thumbs.avatar(`bot${id}`, d.bot.loadout, d.bot.look, 200).then((url) => { if (url) pic.replaceChildren(h('img', { src: url, alt: '' }), won ? h('span', { class: 'stamp' }, t('defeated')) : null); });
+      if (met) app.thumbs.avatar(`bot${id}`, d.bot.loadout, d.bot.look, 200).then((url) => { if (url) pic.replaceChildren(...[h('img', { src: url, alt: '' }), won ? h('span', { class: 'stamp' }, t('defeated')) : null].filter(Boolean)); });
       const tier = tierOf(d.bot.rating);
       return h('button', { class: `album-card tap ${won ? 'won' : ''} ${met ? '' : 'unmet'}`, onclick: () => { m.close(); app.openMap(id); } },
         pic,
@@ -160,7 +163,7 @@ export function openSettings(app) {
   const qSeg = segment([['auto', t('auto')], ['high', t('high')], ['low', t('low')]], s.quality || 'auto', (v) => { store.setSetting('quality', v); app.applyQuality(); });
   const fullRow = economy.ownsFullGame()
     ? h('p', { class: 'ok-line' }, ...withIcon('check', t('fullOwned'), 16))
-    : h('div', { class: 'btn-row' }, h('button', { class: 'btn small tap', onclick: () => { m.close(); openFullGame(app); } }, ...withIcon('crown', t('fullTitle'), 16)));
+    : h('div', { class: 'btn-row' }, h('button', { class: 'btn small tap', onclick: () => { m.close(); openFullGame(app); } }, ...withIcon('crown', tn('לפרטים ולפתיחה', 'Details & unlock'), 16)));
   const body = h('div', { class: 'settings' },
     h('h3', {}, ...withIcon('crown', t('profile'), 16)),
     h('div', { class: 'field' }, h('label', { for: 'pname' }, t('name')), nameIn),

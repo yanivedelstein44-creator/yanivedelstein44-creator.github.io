@@ -25,6 +25,7 @@ import { Weather, climatePalette } from '../scene/Climate.js';
 import { makeMonument } from '../scene/Monuments.js';
 import { HubMuseum } from '../scene/HubMuseum.js';
 import { HorizonIslands } from '../scene/HorizonIslands.js';
+import { ExpansionStage } from '../scene/ExpansionStage.js';
 import { eraMaterials } from '../scene/Materials.js';
 import { detectSeason, buildSeason } from '../scene/SeasonalEvents.js';
 import { SoundEngine } from '../audio/SoundEngine.js';
@@ -45,7 +46,7 @@ import { getEra } from '../config/Eras.js';
 import { PETS } from '../config/Pets.js';
 import { ECONOMY } from '../config/EconomyConfig.js';
 import { TIME_CONTROLS, RULES, APP_VERSION, ONLINE } from '../config/AppConfig.js';
-import { ISLAND_COUNT, HUB_ID, islandDef, regionOf, regionIslands, isBoss, tierOf, conquestGems, repeatGems } from '../config/Islands.js';
+import { ISLAND_COUNT, BASE_ISLANDS, HUB_ID, islandDef, regionOf, regionIslands, isBoss, isPremium, tierOf, conquestGems, repeatGems } from '../config/Islands.js';
 import { botLine, pirateLine } from '../config/BotLines.js';
 import { pirateCrew, pirateGems } from '../config/Pirates.js';
 
@@ -82,6 +83,7 @@ export class GameApp {
     this.life = new ArenaLife(this.sm, this.fx, this.sound);
     this.kingdom.onEraReady = (eraId, built) => this.life.setEra(eraId, built, this.kingdom);
     this.kingdom.onEraLeave = () => this.life.leave();
+    this.kingdom.onEraHidden = () => this.life.clear();
     this.pets = { w: new PetCompanion3D(this.sm, this.fx, this.sound), b: new PetCompanion3D(this.sm, this.fx, this.sound) };
     this.avatars = { w: new PlayerAvatar3D(this.sm, this.fx), b: new PlayerAvatar3D(this.sm, this.fx) };
     this.thumbs = new ThumbRenderer(this.sm.renderer);
@@ -89,6 +91,8 @@ export class GameApp {
     this.weather = new Weather(this.sm, this.sound);
     this.museum = new HubMuseum(this);
     this.horizon = new HorizonIslands(this.sm);
+    // תפאורה מונפשת לאיי הפרימיום (100–129)
+    this.expansion = new ExpansionStage(this.sm, { board: this.board, weather: this.weather, fx: this.fx, sound: this.sound });
     this.ai = new ChessAI();
     this.game = new GameController();
     this.tutorial = new Tutorial(this);
@@ -155,7 +159,16 @@ export class GameApp {
     const s = this.store.get('settings');
     this.ui.setAudio(s.sfx, s.ambience);
     this.ui.setGems(this.economy.gems, false);
-    this.economy.onChange((evt) => { if (evt.type === 'gems' || evt.type === 'buy' || evt.type === 'daily') this.ui.setGems(this.economy.gems); this.refreshBadges(); });
+    this.economy.onChange((evt) => {
+      if (evt.type === 'gems' || evt.type === 'buy' || evt.type === 'daily') this.ui.setGems(this.economy.gems);
+      if (evt.type === 'equip' && evt.slot === 'board') this.board.setSkin(this.economy.boardSkin, { flash: true });
+      if (evt.type === 'boost' || evt.type === 'buy') this.ui.setBoost?.(this.economy.boostLeftMs());
+      this.refreshBadges();
+    });
+    this.board.setSkin(this.economy.boardSkin);
+    this.grantEarnedSkins(false);
+    this.ui.setBoost(this.economy.boostLeftMs());
+    setInterval(() => this.ui.setBoost(this.economy.boostLeftMs()), 30000);
     this.achievements.onUnlock((a) => { this.ui.toast(`${t('achievementUnlocked')} ${tn(a.he, a.en)} · +${a.gems}`, { kind: 'gold', duration: 3800, icon: a.icon }); this.sound.notify(); });
 
     // משחק שמור (באמצע) → חוזרים לאותו אי; אחרת מתחילים בבית — האי המרכזי
@@ -657,6 +670,7 @@ export class GameApp {
     if (!local) this.sound.pickup(pan);
     await this.board.animateMove(mv, this.hopHooks(mover, pan));
     this.board.setLastMove(mv.from, mv.to);
+    this.expansion.onMove(mv);
     if (mv.promotion) { this.sound.promotion(pan); if (this.isLocalHuman(mover)) this.achievements.unlock('promote'); }
     if (this.game.inCheck()) {
       const ks = this.game.kingSquare(this.game.turn);
@@ -843,6 +857,8 @@ export class GameApp {
       else if (winner) stageMsg = t('antiFarm');
     }
     await sleep(1400);
+    // בוסט יהלומים כפולים (קנייה שבועית) — חל על ניצחונות נגד בוטים ופיראטים
+    const gemMult = this.economy.gemMultiplier();
     if (vsBot && iWon) {
       // דירוג
       const my = this.store.get('rating');
@@ -854,7 +870,7 @@ export class GameApp {
         if (this.opponent.practice) stageMsg = t('practiceNoGems');
         else {
           // הפיראטים בורחים — יהלומים, והאי שקט עד שצוות חדש נוחת
-          gems = pirateGems(islandId);
+          gems = pirateGems(islandId) * gemMult;
           this.economy.addGems(gems, 'pirates');
           this.progression.defeatPirates(islandId);
           stageMsg = t('piratesFled');
@@ -864,7 +880,7 @@ export class GameApp {
       } else {
         const res = this.progression.conquer(islandId);
         island.first = res.first;
-        gems = res.first ? conquestGems(islandId) : repeatGems(islandId);
+        gems = (res.first ? conquestGems(islandId) : repeatGems(islandId)) * gemMult;
         this.economy.addGems(gems, res.first ? 'conquest' : 'win');
         island.stars = this.starsFor(acc.me, plies);
         const gained = this.progression.setStars(islandId, island.stars);
@@ -874,6 +890,7 @@ export class GameApp {
           if (islandId !== HUB_ID) { stageMsg = t('pieceToMuseum'); this.store.set({ pendingDocks: [...(this.store.get('pendingDocks') || []), islandId] }); }
           if ((this.opponent?.rating || 0) >= 2050) this.achievements.unlock('beat_hard');
           this.checkIslandAchievements();
+          this.grantEarnedSkins(true);
           // עולם שלם נכבש → תיבת אוצר
           const r = regionOf(islandId);
           if (this.progression.regionConquered(r) === regionIslands(r).length) { const chest = this.economy.openRoyalChest(); this.ui.toast(`${t('regionComplete')} · ${t('royalChest')}`, { kind: 'gold', duration: 4200, icon: 'chest' }); if (chest?.id) this.applyLoadout(); }
@@ -892,9 +909,29 @@ export class GameApp {
     const front = this.progression.frontier();
     M.openSummary(this, {
       ...rt, reason: rt.reason, gems, stageMsg, acc, keyMoments, canReplay: plies >= 4, vsBot, won: !!iWon && vsBot,
-      island, nextId: front && front !== islandId ? front : null, online: online ? this.mode : null,
+      island, nextId: front && front !== islandId ? front : null, online: online ? this.mode : null, boosted: gemMult > 1 && vsBot && iWon,
     });
     this.refreshHud();
+  }
+
+  /** אחרי רכישת איי הפרימיום: הדרקון מתחיל לרחף מעל האי המרכזי, המפה והסרגל מתעדכנים */
+  onPremiumUnlocked() {
+    this.museum.syncDragon?.();
+    if (this.map.isOpen) this.map.refresh();
+    this.refreshHud();
+    setTimeout(() => this.ui.toast(tn('דרקון השעונים הזהוב הצטרף אליך!', 'The Golden Clockwork Dragon joined you!'), { kind: 'gold', icon: 'dragon', duration: 3800 }), 1400);
+  }
+
+  /** סקין לוח חינמי על כל 20 איים שנכבשים (20/40/60/80/100/120) — עם הודעה כשנפתח חדש */
+  grantEarnedSkins(announce = true) {
+    const fresh = this.economy.grantEarnedSkins(this.progression.conqueredCount());
+    if (announce) {
+      fresh.forEach((sk, i) => setTimeout(() => {
+        this.ui.toast(`${tn('סקין לוח חדש נפתח!', 'New board skin unlocked!')} ${tn(sk.he, sk.en)}`, { kind: 'gold', duration: 4200, icon: 'gem' });
+        this.sound.notify?.();
+      }, 2400 + i * 1600));
+    }
+    return fresh;
   }
 
   checkIslandAchievements() {
@@ -902,7 +939,8 @@ export class GameApp {
     if (n >= 5) this.achievements.unlock('island5');
     if (n >= 25) this.achievements.unlock('island25');
     if (n >= 50) this.achievements.unlock('island50');
-    if (n >= ISLAND_COUNT) this.achievements.unlock('island99');
+    if (this.progression.baseConqueredCount() >= BASE_ISLANDS) this.achievements.unlock('island99');
+    if (n >= ISLAND_COUNT) this.achievements.unlock('island129');
     if (n >= 10) this.achievements.unlock('base_done');
     const mx = this.progression.maxEraReached();
     if (mx >= 2) this.achievements.unlock('era2');
@@ -1044,7 +1082,11 @@ export class GameApp {
     const kit = this.progression.displayEra(id);
     const era = islandDef(id).era;
     const base = getEra(kit).palette;
-    this.kingdom.show(kit, id === HUB_ID ? 0 : 1, { palette: climatePalette(base, era.climate) });
+    const prem = isPremium(id);
+    // איי פרימיום: לוח ייחודי, בלי ערכת העולם הרגילה (רצפה/שלבים/דמויות) — במקומה תפאורה משלהם
+    this.board.setIslandBoard(prem ? `i${id}` : '');
+    this.kingdom.show(kit, id === HUB_ID || prem ? 0 : 1, { palette: climatePalette(base, era.climate), floor: !prem, life: !prem });
+    this.expansion.show(prem ? id : 0);
     this.sound.setEra(kit);
     this.applyStationMaterials();
     this.weather.set(era.climate, { quality: this.sm.quality?.level });

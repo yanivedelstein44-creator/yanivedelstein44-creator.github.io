@@ -147,6 +147,11 @@ export class ChessBoard3D {
     }
   }
 
+  /** מחליף מראה של כלי קיים לפי ערכת חומרים */
+  applyPieceLook(p, set) {
+    applyPieceMaterials(p, p.userData.color === 'w' ? set.white : set.black);
+  }
+
   spawnPiece(type, color, square, mats = this.matsFor(color)) {
     const p = createPiece(type, color, mats);
     const [x, z] = squareToXZ(square);
@@ -358,25 +363,50 @@ export class ChessBoard3D {
     this.fx.sparkle([x, BOARD_TOP + 0.6, z], 60, [0xffffff, 0xffe08a, 0x9ad8ff], 0.5);
   }
 
-  // ---------- עידנים ----------
+  // ---------- עידנים וסקינים ----------
+  /** סדר עדיפות: סקין שהשחקן הלביש > לוח ייחודי של אי פרימיום > ערכת העידן */
+  get matKey() { return this.skinKey || this.islandBoardKey || this.eraKey || 'stone'; }
+
   /** החלפת חומרים מיידית או בגל רדיאלי (radius מגיע מגל ההלם) */
   setEra(key, { instant = true } = {}) {
-    this.pendingMats = eraMaterials(key);
     this.eraKey = key;
-    if (instant) { this.mats = this.pendingMats; this.applyAll(); return; }
+    this.pendingMats = eraMaterials(this.matKey);
+    if (instant) { this.mats = this.pendingMats; this.pendingMats = null; this.applyAll(); return; }
     this.morphDone = new Set();
+  }
+
+  /** לוח ייחודי של האי (איי פרימיום); מוחל בקריאת setEra הבאה או מיד */
+  setIslandBoard(key, { apply = false } = {}) {
+    this.islandBoardKey = key || '';
+    if (apply) this.reapply();
+  }
+
+  /** סקין לוח וכלים שהשחקן בחר ('' = לוח האי) — מוחל מיד עם ניצוץ קטן */
+  setSkin(id, { flash = false } = {}) {
+    const next = id || '';
+    if (next === (this.skinKey || '')) return;
+    this.skinKey = next;
+    this.reapply();
+    if (flash) this.fx?.sparkle?.([0, BOARD_TOP + 0.4, 0], 40, [0xffffff, 0xffe08a, 0x9ad8ff], 1.6);
+  }
+
+  reapply() {
+    this.pendingMats = null;
+    this.morphDone = null;
+    this.mats = eraMaterials(this.matKey);
+    this.applyAll();
   }
 
   applyAll() {
     const m = this.mats;
     this.dais.material = m.dais; this.frame.material = m.frame; this.trim.material = m.trim;
     this.squares.forEach((s) => { s.material = s.userData.light ? m.light : m.dark; });
-    for (const p of this.pieces.values()) applyPieceMaterials(p, this.matsFor(p.userData.color));
+    for (const p of this.pieces.values()) this.applyPieceLook(p, m);
   }
 
   /** נקרא כשגל ההלם מתרחב: כל מה שבתוך הרדיוס מקבל את חומרי העידן החדש */
   morphTo(radius) {
-    if (!this.pendingMats) return;
+    if (!this.pendingMats || !this.morphDone) return;
     const m = this.pendingMats;
     this.squares.forEach((s) => {
       if (this.morphDone.has(s)) return;
@@ -388,7 +418,7 @@ export class ChessBoard3D {
     for (const p of this.pieces.values()) {
       if (this.morphDone.has(p)) continue;
       if (Math.hypot(p.position.x, p.position.z) <= radius) {
-        applyPieceMaterials(p, p.userData.color === 'w' ? m.white : m.black);
+        this.applyPieceLook(p, m);
         this.morphDone.add(p);
         gsap.fromTo(p.scale, { x: 1.25, y: 1.25, z: 1.25 }, { x: 1, y: 1, z: 1, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
         this.fx.sparkle([p.position.x, BOARD_TOP + 0.5, p.position.z], 6);

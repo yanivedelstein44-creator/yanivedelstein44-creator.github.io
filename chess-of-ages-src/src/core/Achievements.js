@@ -21,6 +21,7 @@ export const ACHIEVEMENTS = [
   { id: 'island25', icon: 'compass', he: 'נווט', en: 'Navigator', desc: 'כבוש 25 איים', descEn: 'Conquer 25 islands', gems: 200 },
   { id: 'island50', icon: 'castle', he: 'שליט הארכיפלג', en: 'Archipelago Ruler', desc: 'כבוש 50 איים', descEn: 'Conquer 50 islands', gems: 400 },
   { id: 'island99', icon: 'crown', he: 'אדון 99 האיים', en: 'Lord of 99 Isles', desc: 'כבוש את כל 99 האיים', descEn: 'Conquer all 99 islands', gems: 1500 },
+  { id: 'island129', icon: 'crown', he: 'קיסר הזניט', en: 'Zenith Emperor', desc: 'כבוש את כל 129 האיים, כולל איי הפרימיום', descEn: 'Conquer all 129 islands, premium islands included', gems: 2500 },
   { id: 'boss1', icon: 'dragon', he: 'קוטל הבוסים', en: 'Boss Breaker', desc: 'נצח בוס של אזור', descEn: 'Defeat a region boss', gems: 120 },
   { id: 'pirates1', icon: 'swords', he: 'צייד פיראטים', en: 'Pirate Hunter', desc: 'גרש את פיראטי הזמן מאי', descEn: 'Drive the Time Pirates off an island', gems: 50 },
   { id: 'pirates10', icon: 'shield', he: 'שומר הזמן', en: 'Keeper of Time', desc: 'נצח את פיראטי הזמן 10 פעמים', descEn: 'Beat the Time Pirates 10 times', gems: 250 },

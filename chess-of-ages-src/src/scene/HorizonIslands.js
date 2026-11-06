@@ -44,8 +44,10 @@ export class HorizonIslands {
     if (key === this.key) return;
     this.key = key;
     const ids = [];
-    for (let d = 1; ids.length < count && d < 99; d++) {
-      for (const id of [centerId + d, centerId - d]) if (id >= 2 && id <= 99 && id !== centerId && ids.length < count && !ids.includes(id)) ids.push(id);
+    // איי הבסיס (2–99) שכנים זה לזה; איי הפרימיום (100–129) — ארכיפלג משלהם
+    const lo = centerId >= 100 ? 100 : 2, hi = centerId >= 100 ? 129 : 99;
+    for (let d = 1; ids.length < count && d < 130; d++) {
+      for (const id of [centerId + d, centerId - d]) if (id >= lo && id <= hi && id !== centerId && ids.length < count && !ids.includes(id)) ids.push(id);
     }
     this.build(ids, centerId);
   }

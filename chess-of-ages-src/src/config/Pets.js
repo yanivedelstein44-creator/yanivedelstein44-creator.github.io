@@ -9,8 +9,10 @@ export const PETS = {
   golden_phoenix: { id: 'golden_phoenix', name: 'עוף חול מוזהב', icon: 'fire', island: 7, premium: true, price: 850, voice: 'phoenix', desc: 'עוף זוהר עם שובל גחלים מוזהבות', descEn: 'A radiant bird with a trail of golden embers' },
   cyber_fox: { id: 'cyber_fox', name: 'שועל סייבר הולוגרפי', icon: 'paw', island: 5, premium: true, price: 750, voice: 'fox', desc: 'שועל ניאון שקוף עם שני זנבות וטבעות לייזר', descEn: 'A translucent neon fox with twin tails and laser rings' },
   mythic_griffin: { id: 'mythic_griffin', name: 'גריפון אגדי', icon: 'star', island: 8, premium: true, price: 800, voice: 'griffin', desc: 'אריה-נשר עם כנפי זהב וגל רעם', descEn: 'A lion-eagle with golden wings and a thunder wave' },
+  clockwork_dragon: { id: 'clockwork_dragon', name: 'דרקון שעונים זהוב', icon: 'dragon', island: 11, premium: true, exclusive: true, price: 0, voice: 'dragon', desc: 'דרקון מכני מזהב ופליז עם גלגלי שיניים מסתובבים — בלעדי להרחבת הפרימיום', descEn: 'A gold-and-brass mechanical dragon with spinning gears — exclusive to the premium expansion' },
   crystal_unicorn: { id: 'crystal_unicorn', name: 'חד-קרן קריסטל', icon: 'sparkle', island: 10, premium: true, price: 700, voice: 'unicorn', desc: 'חד-קרן מנצנץ עם קרן ספירלה והילת קשת', descEn: 'A sparkling unicorn with a spiral horn and a rainbow halo' },
 };
 
 export const PET_IDS = Object.keys(PETS);
-export const PREMIUM_PET_IDS = PET_IDS.filter((id) => PETS[id].premium);
+export const PREMIUM_PET_IDS = PET_IDS.filter((id) => PETS[id].premium && !PETS[id].exclusive); // בלי הבלעדיות (רק בהרחבה)
+export const BOT_PET_IDS = PET_IDS.filter((id) => !PETS[id].exclusive);
