@@ -1,11 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.1.0",
-  "build": "1.1.0-1793972961852",
-  "buildTime": 1793972961852,
-  "date": "2026-11-06T13:49:21.852Z",
+  "version": "1.1.1",
+  "build": "1.1.1-1793976618976",
+  "buildTime": 1793976618976,
+  "date": "2026-11-06T14:50:18.976Z",
   "minNative": "1.0.0",
-  "bundle": "update/bundle-1.1.0-1793972961852.zip",
+  "bundle": "update/bundle-1.1.1-1793976618976.zip",
+  "checksum": "a986b4c00b6a86773a723acbd0ae0989fc3128b7e40829a734f2abde86f7fbae",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Island Realms: ride your pet across 99 islands with their own eras, Time Pirates, the Time Museum, a shop of bots and the Central Cinema"
+  "notes": "Fixed automatic updates in the Android app and smoother web updates"
 }
