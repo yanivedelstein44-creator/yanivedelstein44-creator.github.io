@@ -17,6 +17,8 @@ cp -r dist/. "$SITE_REPO/chess-of-ages/"
 rm -f "$SITE_REPO/chess-of-ages/_headers"
 cd "$SITE_REPO"
 git add chess-of-ages
-git commit -m "Chess of Ages ${VER}${NOTES:+: ${NOTES}}"
+git commit -m "Chess of Ages ${VER}${NOTES:+: ${NOTES}}${COMMIT_TRAILER:+
+
+${COMMIT_TRAILER}}"
 git push origin HEAD:main
 echo "✔ v${VER} פורסם — האפליקציה תציג 'יש עדכון חדש' תוך כמה דקות"
