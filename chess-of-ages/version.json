@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.2.1",
-  "build": "1.2.1-1793983824090",
-  "buildTime": 1793983824090,
-  "date": "2026-11-06T16:50:24.090Z",
+  "version": "1.3.0",
+  "build": "1.3.0-1793990879367",
+  "buildTime": 1793990879367,
+  "date": "2026-11-06T18:47:59.367Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.2.1-1793983824090.zip",
-  "checksum": "72a62c6b9265e3a6f5be43aece05dc18aec52126b26474a1dacfe6f47d76c502",
+  "bundle": "update/bundle-1.3.0-1793990879367.zip",
+  "checksum": "22c3959360793712b231e36ee82063c8ead7ede59997f964e592f609fad745e7",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Bigger board that fills the screen, characters sit closer, steady camera during play"
+  "notes": "30 Premium Islands next to the Central Island, board skins (a free one every 20 islands), weekly double gems, the Golden Clockwork Dragon, and a bigger full-width board view"
 }
