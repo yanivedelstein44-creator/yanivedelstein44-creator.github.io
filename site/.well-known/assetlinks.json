@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "dev.pages.hayoman_shelanu.twa",
+        "sha256_cert_fingerprints": ["EC:A4:D8:20:B4:60:F8:5D:D7:70:DF:61:A6:E8:88:27:74:3A:4B:D4:77:A3:29:9A:65:35:41:6C:B7:2F:C4:21"]
+      }
+    }]

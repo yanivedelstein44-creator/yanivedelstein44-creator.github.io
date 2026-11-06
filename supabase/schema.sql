@@ -1,0 +1,377 @@
+-- היומן שלנו – Supabase schema (run once in a fresh project)
+create extension if not exists pg_net;
+create extension if not exists pg_cron;
+
+-- ---------- tables ----------
+create table if not exists public.households (
+  id uuid primary key default gen_random_uuid(),
+  name text not null default 'היומן שלנו',
+  invite_code text not null unique,
+  tz text not null default 'Asia/Jerusalem',
+  created_by uuid,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.members (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  household_id uuid not null references public.households(id) on delete cascade,
+  display_name text not null check (char_length(display_name) between 1 and 40),
+  gender text not null default 'm' check (gender in ('m','f')),
+  color text not null default '#2563eb',
+  notify_changes boolean not null default true,
+  notify_reminders boolean not null default true,
+  notify_daily boolean not null default true,
+  notify_weekly boolean not null default true,
+  daily_hour int not null default 7 check (daily_hour between 0 and 23),
+  joined_at timestamptz not null default now()
+);
+create index if not exists members_household_idx on public.members(household_id);
+
+create table if not exists public.shift_types (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references public.households(id) on delete cascade,
+  name text not null check (char_length(name) between 1 and 40),
+  start_time time not null,
+  end_time time not null,
+  color text not null default '#cbd5e1',
+  sort int not null default 0,
+  created_at timestamptz not null default now()
+);
+create index if not exists shift_types_household_idx on public.shift_types(household_id);
+
+create table if not exists public.events (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references public.households(id) on delete cascade,
+  kind text not null default 'event' check (kind in ('event','shift')),
+  title text not null check (char_length(title) between 1 and 200),
+  category text,
+  owner_id uuid references public.members(user_id) on delete set null,
+  all_day boolean not null default false,
+  start_date date not null,
+  start_time time,
+  end_date date not null,
+  end_time time,
+  location text,
+  notes text,
+  shift_type_id uuid references public.shift_types(id) on delete set null,
+  recur text check (recur in ('daily','weekly','monthly','yearly')),
+  recur_interval int not null default 1 check (recur_interval between 1 and 99),
+  recur_until date,
+  exdates date[] not null default '{}',
+  reminders int[] not null default '{}',
+  created_by uuid default auth.uid(),
+  updated_by uuid default auth.uid(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check (end_date >= start_date)
+);
+create index if not exists events_household_idx on public.events(household_id, start_date);
+create index if not exists events_reminders_idx on public.events(household_id) where reminders <> '{}';
+
+create table if not exists public.push_subs (
+  endpoint text primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  household_id uuid not null references public.households(id) on delete cascade,
+  p256dh text not null,
+  auth text not null,
+  ua text,
+  created_at timestamptz not null default now(),
+  last_ok timestamptz
+);
+create index if not exists push_subs_user_idx on public.push_subs(user_id);
+
+create table if not exists public.activity (
+  id bigint generated always as identity primary key,
+  household_id uuid not null references public.households(id) on delete cascade,
+  actor_id uuid,
+  action text not null,
+  kind text,
+  title text,
+  event_id uuid,
+  ev_date date,
+  ev_time time,
+  owner_id uuid,
+  recur text,
+  notified boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists activity_household_idx on public.activity(household_id, id desc);
+
+create table if not exists public.reminder_log (
+  event_id uuid not null,
+  occ_key text not null,
+  offset_min int not null,
+  sent_at timestamptz not null default now(),
+  primary key (event_id, occ_key, offset_min)
+);
+
+create table if not exists public.digest_log (
+  user_id uuid not null,
+  kind text not null,
+  day date not null,
+  sent_at timestamptz not null default now(),
+  primary key (user_id, kind, day)
+);
+
+-- ---------- helpers ----------
+create or replace function public.my_household() returns uuid
+language sql stable security definer set search_path = public as $$
+  select household_id from public.members where user_id = auth.uid()
+$$;
+
+create or replace function public.gen_code() returns text
+language plpgsql volatile as $$
+declare chars text := 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; r text := ''; i int;
+begin
+  for i in 1..6 loop r := r || substr(chars, 1 + floor(random() * length(chars))::int, 1); end loop;
+  return r;
+end $$;
+
+-- ---------- RLS ----------
+alter table public.households enable row level security;
+alter table public.members enable row level security;
+alter table public.shift_types enable row level security;
+alter table public.events enable row level security;
+alter table public.push_subs enable row level security;
+alter table public.activity enable row level security;
+alter table public.reminder_log enable row level security;
+alter table public.digest_log enable row level security;
+
+drop policy if exists hh_select on public.households;
+create policy hh_select on public.households for select to authenticated using (id = public.my_household());
+drop policy if exists hh_update on public.households;
+create policy hh_update on public.households for update to authenticated using (id = public.my_household()) with check (id = public.my_household());
+
+drop policy if exists mem_select on public.members;
+create policy mem_select on public.members for select to authenticated using (household_id = public.my_household());
+drop policy if exists mem_update on public.members;
+create policy mem_update on public.members for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid() and household_id = public.my_household());
+
+drop policy if exists st_all on public.shift_types;
+create policy st_all on public.shift_types for all to authenticated using (household_id = public.my_household()) with check (household_id = public.my_household());
+
+drop policy if exists ev_all on public.events;
+create policy ev_all on public.events for all to authenticated using (household_id = public.my_household()) with check (household_id = public.my_household());
+
+drop policy if exists ps_select on public.push_subs;
+create policy ps_select on public.push_subs for select to authenticated using (user_id = auth.uid());
+drop policy if exists ps_delete on public.push_subs;
+create policy ps_delete on public.push_subs for delete to authenticated using (user_id = auth.uid());
+
+drop policy if exists act_select on public.activity;
+create policy act_select on public.activity for select to authenticated using (household_id = public.my_household());
+-- reminder_log / digest_log: no policies (service role only)
+
+-- ---------- RPCs ----------
+create or replace function public.create_household(p_display_name text, p_gender text, p_color text, p_name text default null)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_uid uuid := auth.uid(); v_hh uuid; v_code text;
+begin
+  if v_uid is null then raise exception 'not authenticated'; end if;
+  select household_id into v_hh from members where user_id = v_uid;
+  if v_hh is not null then return v_hh; end if;
+  loop v_code := gen_code(); exit when not exists (select 1 from households where invite_code = v_code); end loop;
+  insert into households(name, invite_code, created_by) values (coalesce(nullif(trim(p_name), ''), 'היומן שלנו'), v_code, v_uid) returning id into v_hh;
+  insert into members(user_id, household_id, display_name, gender, color)
+    values (v_uid, v_hh, left(trim(p_display_name), 40), case when p_gender = 'f' then 'f' else 'm' end, coalesce(p_color, '#2563eb'));
+  insert into shift_types(household_id, name, start_time, end_time, color, sort) values
+    (v_hh, 'בוקר', '07:00', '15:00', '#facc15', 1),
+    (v_hh, 'ערב', '15:00', '23:00', '#fb923c', 2),
+    (v_hh, 'לילה', '23:00', '07:00', '#818cf8', 3);
+  return v_hh;
+end $$;
+
+create or replace function public.household_preview(p_code text)
+returns json language plpgsql stable security definer set search_path = public as $$
+declare v_id uuid; v_name text;
+begin
+  if auth.uid() is null then raise exception 'not authenticated'; end if;
+  select id, name into v_id, v_name from households where invite_code = upper(trim(p_code));
+  if v_id is null then return null; end if;
+  return json_build_object('id', v_id, 'name', v_name, 'members',
+    (select coalesce(json_agg(json_build_object('user_id', user_id, 'display_name', display_name, 'color', color) order by joined_at), '[]'::json)
+       from members where household_id = v_id));
+end $$;
+
+create or replace function public.join_household(p_code text, p_display_name text, p_gender text, p_color text, p_replace uuid default null)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_uid uuid := auth.uid(); v_hh uuid; v_old uuid; v_color text := p_color;
+begin
+  if v_uid is null then raise exception 'not authenticated'; end if;
+  select id into v_hh from households where invite_code = upper(trim(p_code));
+  if v_hh is null then raise exception 'קוד ההזמנה לא נמצא'; end if;
+  select household_id into v_old from members where user_id = v_uid;
+  if v_old = v_hh then return v_hh; end if;
+  perform set_config('app.silent', 'on', true);
+  if v_old is not null then
+    delete from push_subs where user_id = v_uid;
+    delete from members where user_id = v_uid;
+    if not exists (select 1 from members where household_id = v_old) then delete from households where id = v_old; end if;
+  end if;
+  if (select count(*) from members where household_id = v_hh) >= 8 then raise exception 'ביומן הזה כבר יש 8 משתתפים'; end if;
+  if p_replace is not null then
+    select color into v_color from members where user_id = p_replace and household_id = v_hh;
+    if v_color is null then v_color := p_color; end if;
+  end if;
+  insert into members(user_id, household_id, display_name, gender, color)
+    values (v_uid, v_hh, left(trim(p_display_name), 40), case when p_gender = 'f' then 'f' else 'm' end, coalesce(v_color, '#db2777'));
+  if p_replace is not null and exists (select 1 from members where user_id = p_replace and household_id = v_hh) then
+    update events set owner_id = v_uid where owner_id = p_replace and household_id = v_hh;
+    update events set created_by = v_uid where created_by = p_replace and household_id = v_hh;
+    update events set updated_by = v_uid where updated_by = p_replace and household_id = v_hh;
+    update activity set actor_id = v_uid where actor_id = p_replace and household_id = v_hh;
+    update members m set notify_changes = o.notify_changes, notify_reminders = o.notify_reminders, notify_daily = o.notify_daily,
+      notify_weekly = o.notify_weekly, daily_hour = o.daily_hour
+      from members o where o.user_id = p_replace and m.user_id = v_uid;
+    delete from push_subs where user_id = p_replace;
+    delete from members where user_id = p_replace;
+  end if;
+  return v_hh;
+end $$;
+
+create or replace function public.leave_household() returns void
+language plpgsql security definer set search_path = public as $$
+declare v_uid uuid := auth.uid(); v_hh uuid;
+begin
+  select household_id into v_hh from members where user_id = v_uid;
+  if v_hh is null then return; end if;
+  perform set_config('app.silent', 'on', true);
+  delete from push_subs where user_id = v_uid;
+  delete from members where user_id = v_uid;
+  if not exists (select 1 from members where household_id = v_hh) then delete from households where id = v_hh; end if;
+end $$;
+
+create or replace function public.regenerate_invite() returns text
+language plpgsql security definer set search_path = public as $$
+declare v_hh uuid := my_household(); v_code text;
+begin
+  if v_hh is null then raise exception 'no household'; end if;
+  loop v_code := gen_code(); exit when not exists (select 1 from households where invite_code = v_code); end loop;
+  update households set invite_code = v_code where id = v_hh;
+  return v_code;
+end $$;
+
+create or replace function public.save_push_sub(p_endpoint text, p_p256dh text, p_auth text, p_ua text default null) returns void
+language plpgsql security definer set search_path = public as $$
+declare v_hh uuid := my_household();
+begin
+  if auth.uid() is null or v_hh is null then raise exception 'no household'; end if;
+  insert into push_subs(endpoint, user_id, household_id, p256dh, auth, ua)
+  values (p_endpoint, auth.uid(), v_hh, p_p256dh, p_auth, left(p_ua, 200))
+  on conflict (endpoint) do update set user_id = excluded.user_id, household_id = excluded.household_id,
+    p256dh = excluded.p256dh, auth = excluded.auth, ua = excluded.ua, created_at = now();
+end $$;
+
+-- Several changes in one call = one transaction = one notification to the partner.
+create or replace function public.apply_ops(p_ops jsonb) returns setof public.events
+language plpgsql security invoker set search_path = public as $$
+declare o jsonb; v_hh uuid := my_household(); r public.events;
+  defaults constant jsonb := '{"kind":"event","all_day":false,"exdates":[],"reminders":[],"recur_interval":1}';
+begin
+  if v_hh is null then raise exception 'no household'; end if;
+  for o in select * from jsonb_array_elements(p_ops) loop
+    r := null;
+    if o->>'op' = 'delete' then
+      delete from events where id = (o->>'id')::uuid and household_id = v_hh;
+    elsif o->>'op' = 'insert' then
+      insert into events select * from jsonb_populate_record(null::public.events,
+        defaults || (o->'row') || jsonb_build_object('id', gen_random_uuid(), 'household_id', v_hh,
+          'created_by', auth.uid(), 'updated_by', auth.uid(), 'created_at', now(), 'updated_at', now()))
+      returning * into r;
+      return next r;
+    elsif o->>'op' = 'update' then
+      update events e set (kind, title, category, owner_id, all_day, start_date, start_time, end_date, end_time, location, notes,
+          shift_type_id, recur, recur_interval, recur_until, exdates, reminders) =
+        (select x.kind, x.title, x.category, x.owner_id, x.all_day, x.start_date, x.start_time, x.end_date, x.end_time, x.location, x.notes,
+          x.shift_type_id, x.recur, x.recur_interval, x.recur_until, x.exdates, x.reminders
+           from jsonb_populate_record(e, o->'row') x)
+      where e.id = (o->>'id')::uuid and e.household_id = v_hh
+      returning e.* into r;
+      if r.id is not null then return next r; end if;
+    end if;
+  end loop;
+end $$;
+
+-- ---------- triggers ----------
+create or replace function public.events_touch() returns trigger
+language plpgsql as $$
+begin
+  new.updated_at := now();
+  new.updated_by := coalesce(auth.uid(), new.updated_by);
+  return new;
+end $$;
+drop trigger if exists trg_events_touch on public.events;
+create trigger trg_events_touch before update on public.events for each row execute function public.events_touch();
+
+create or replace function public.events_activity() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare v public.events; v_act text;
+begin
+  if coalesce(current_setting('app.silent', true), '') = 'on' then return null; end if;
+  if tg_op = 'DELETE' then v := old; v_act := 'delete';
+  elsif tg_op = 'INSERT' then v := new; v_act := 'insert';
+  else
+    v := new; v_act := 'update';
+    if (to_jsonb(new) - 'updated_at' - 'updated_by') = (to_jsonb(old) - 'updated_at' - 'updated_by') then return null; end if;
+  end if;
+  if not exists (select 1 from households where id = v.household_id) then return null; end if;
+  insert into activity(household_id, actor_id, action, kind, title, event_id, ev_date, ev_time, owner_id, recur)
+  values (v.household_id, auth.uid(), v_act, v.kind, v.title, v.id, v.start_date,
+          case when v.all_day then null else v.start_time end, v.owner_id, v.recur);
+  return null;
+end $$;
+drop trigger if exists trg_events_activity on public.events;
+create trigger trg_events_activity after insert or update or delete on public.events for each row execute function public.events_activity();
+
+-- At commit time: one push per transaction to the other members.
+create or replace function public.activity_notify() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare v_items jsonb; v_url text; v_secret text;
+begin
+  if new.actor_id is null then return null; end if;
+  if not exists (select 1 from activity where id = new.id and notified = false) then return null; end if;
+  with batch as (
+    update activity set notified = true
+     where household_id = new.household_id and actor_id = new.actor_id and notified = false and created_at = new.created_at
+    returning id, action, kind, title, ev_date, ev_time, owner_id, recur, event_id
+  )
+  select jsonb_agg(to_jsonb(batch) order by batch.id) into v_items from batch;
+  if v_items is null then return null; end if;
+  select decrypted_secret into v_url from vault.decrypted_secrets where name = 'push_url';
+  select decrypted_secret into v_secret from vault.decrypted_secrets where name = 'hook_secret';
+  if v_url is null or v_secret is null then return null; end if;
+  perform net.http_post(
+    url := v_url,
+    body := jsonb_build_object('type', 'change', 'household_id', new.household_id, 'actor_id', new.actor_id, 'items', v_items),
+    headers := jsonb_build_object('Content-Type', 'application/json', 'x-hook-secret', v_secret),
+    timeout_milliseconds := 15000);
+  return null;
+end $$;
+drop trigger if exists trg_activity_notify on public.activity;
+create constraint trigger trg_activity_notify after insert on public.activity
+  deferrable initially deferred for each row execute function public.activity_notify();
+
+-- ---------- realtime ----------
+do $$ begin
+  begin alter publication supabase_realtime add table public.events; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.shift_types; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.members; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.activity; exception when duplicate_object then null; end;
+end $$;
+
+-- ---------- grants ----------
+revoke all on function public.gen_code() from public, anon;
+grant execute on function public.create_household(text, text, text, text) to authenticated;
+grant execute on function public.household_preview(text) to authenticated;
+grant execute on function public.join_household(text, text, text, text, uuid) to authenticated;
+grant execute on function public.leave_household() to authenticated;
+grant execute on function public.regenerate_invite() to authenticated;
+grant execute on function public.save_push_sub(text, text, text, text) to authenticated;
+grant execute on function public.apply_ops(jsonb) to authenticated;
+revoke execute on function public.create_household(text, text, text, text) from anon;
+revoke execute on function public.household_preview(text) from anon;
+revoke execute on function public.join_household(text, text, text, text, uuid) from anon;
+revoke execute on function public.leave_household() from anon;
+revoke execute on function public.regenerate_invite() from anon;
+revoke execute on function public.save_push_sub(text, text, text, text) from anon;
+revoke execute on function public.apply_ops(jsonb) from anon;
