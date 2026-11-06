@@ -93,6 +93,7 @@ export class KingdomBuilder {
     this.sm.applyPalette(era.palette, instantPalette ? 0 : 1.2);
     this.sets.forEach((s) => s.onShow?.());
     this.board.setEra(era.key, { instant: true });
+    this.onEraReady?.(eraId, built);
   }
 
   clear() {
@@ -207,6 +208,7 @@ export class KingdomBuilder {
     await this.riseSet(set, { hooks });
     this.claimLights(set);
     set.onShow?.();
+    this.onEraReady?.(eraId, idx + 1);
     await cam;
   }
 
@@ -219,6 +221,7 @@ export class KingdomBuilder {
     const prevFloor = this.floor;
     if (cinematic) this.sm.cinematicOrbit({ target: [0, 1, -1], radius: this.sm.view.radius * 1.35, polar: 52, fromAz: this.sm.view.azimuth - 0.9, toAz: this.sm.view.azimuth + 0.7, duration: 5.4 / speed });
     hooks.onSink?.();
+    this.onEraLeave?.();
     await this.sinkAll(speed);
     this.sets.forEach((s) => { s.onHide?.(); this.sm.releaseLights(this.owner(s.idx)); this.root.remove(s.group); disposeTree(s.group); });
     this.sets = [];
@@ -254,6 +257,7 @@ export class KingdomBuilder {
       this.claimLights(set);
       set.onShow?.();
     }
+    this.onEraReady?.(eraId, built);
   }
 
   /** שקיפות למבנים שמסתירים את הלוח מהמצלמה (למשל במבט מצד השחור) */

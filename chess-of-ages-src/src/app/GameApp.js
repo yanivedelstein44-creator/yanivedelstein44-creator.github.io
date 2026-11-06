@@ -15,6 +15,7 @@ import { FX } from '../scene/Particles.js';
 import { ChessBoard3D, squareToXZ, BOARD_TOP } from '../scene/ChessBoard3D.js';
 import { Shockwave, screenFlash } from '../scene/Effects.js';
 import { KingdomBuilder } from '../scene/KingdomBuilder.js';
+import { ArenaLife } from '../scene/ArenaLife.js';
 import { PetCompanion3D } from '../scene/PetCompanion3D.js';
 import { PlayerAvatar3D } from '../scene/PlayerAvatar3D.js';
 import { eraMaterials } from '../scene/Materials.js';
@@ -56,6 +57,10 @@ export class GameApp {
     this.board = new ChessBoard3D(this.sm, this.fx);
     this.shock = new Shockwave(this.sm, this.fx);
     this.kingdom = new KingdomBuilder(this.sm, this.fx, this.board, this.shock);
+    // חיים ברקע: דמויות, כלי טיס, אפקטים וצלילי אווירה לפי העידן המוצג
+    this.life = new ArenaLife(this.sm, this.fx, this.sound);
+    this.kingdom.onEraReady = (eraId, built) => this.life.setEra(eraId, built, this.kingdom);
+    this.kingdom.onEraLeave = () => this.life.leave();
     this.pets = { w: new PetCompanion3D(this.sm, this.fx, this.sound), b: new PetCompanion3D(this.sm, this.fx, this.sound) };
     this.avatars = { w: new PlayerAvatar3D(this.sm, this.fx), b: new PlayerAvatar3D(this.sm, this.fx) };
     this.ai = new ChessAI();
@@ -103,6 +108,12 @@ export class GameApp {
       onResign: () => this.resign(),
       onShare: () => this.shareKingdom(),
       onSettings: () => { this.sound.ui(); M.openSettings(this); },
+      onMuteAll: () => {
+        const st = this.store.get('settings'); const on = !(st.sfx || st.ambience);
+        this.store.setSetting('sfx', on); this.store.setSetting('ambience', on);
+        this.sound.setSfx(on); this.sound.setAmbience(on); this.ui.setAudio(on, on);
+        if (on) this.sound.ui();
+      },
       onAchievements: () => { this.sound.ui(); M.openAchievements(this); },
     };
   }
@@ -492,6 +503,7 @@ export class GameApp {
     await this.board.animateMove(mv, {
       onCapture: () => {
         this.sound.capture(pan);
+        this.life.react('capture');
         this.pets[mover].react('capture');
         this.pets[victim].react('lost');
         if (this.isLocalHuman(mover)) this.achievements.count('captures');
@@ -505,6 +517,7 @@ export class GameApp {
       const ks = this.game.kingSquare(this.game.turn);
       this.board.setCheck(ks);
       this.sound.check(pan);
+      this.life.react('check');
       this.sm.addShake(0.22);
       this.pets[mover].react('checkAttack');
       this.pets[victim].react('checkDefend');
@@ -638,6 +651,7 @@ export class GameApp {
     } else if (iWon) this.sound.victory();
     else if (iLost) this.sound.defeat();
     else this.sound.draw();
+    if (winner) this.life.react(iLost ? 'defeat' : 'victory');
     if (winner) {
       this.pets[winner].react('victory'); this.avatars[winner].victory();
       const loser = winner === 'w' ? 'b' : 'w';

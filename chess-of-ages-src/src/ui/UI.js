@@ -63,6 +63,7 @@ export class UI {
       this.sfxBtn, this.ambBtn, this.eraBtn, this.panoBtn,
       menuItem('🏆', t('achievements'), () => H.onAchievements?.()),
       menuItem('⚙️', t('settings'), () => H.onSettings()));
+    this.muteBtn = h('button', { class: 'menu-btn mute-btn', 'aria-label': t('muteAll'), 'aria-pressed': 'false', onclick: () => H.onMuteAll() }, h('span', { class: 'ic', 'aria-hidden': 'true' }, '🔊'));
     this.menuBtn = h('button', { class: 'menu-btn', 'aria-label': t('settings'), 'aria-haspopup': 'menu', 'aria-expanded': 'false', 'aria-controls': 'hud-menu', onclick: (e) => { e.stopPropagation(); this.toggleMenu(); } },
       h('span', { 'aria-hidden': 'true' }, h('i'), h('i'), h('i')));
     document.addEventListener('pointerdown', (e) => { if (!this.menu.hidden && !this.menu.contains(e.target) && !this.menuBtn.contains(e.target)) this.toggleMenu(false); }, true);
@@ -89,7 +90,7 @@ export class UI {
         h('div', { class: 'logo small', role: 'img', 'aria-label': `${t('appTitle')} — Chess of Ages` }, h('span', { class: 'he' }, t('appTitle')), h('span', { class: 'en' }, t('logoEn'))),
         h('div', { class: 'hud-icons' },
           h('div', { class: 'gems-pill', role: 'group', 'aria-label': t('gems') }, '💎', this.gemsVal, h('button', { class: 'plus', 'aria-label': t('tabGems'), onclick: () => H.onGemsPlus() }, '+')),
-          this.menuBtn)),
+          this.muteBtn, this.menuBtn)),
       this.menu,
       h('div', { class: 'era-row' }, this.eraBadge, h('div', { class: 'era-info' }, this.eraTitleEl, this.progressEl, this.nextLabel)),
       h('div', { class: 'players' }, this.cards.me.el, this.cards.opp.el),
@@ -193,7 +194,9 @@ export class UI {
     this.ambBtn.setAttribute('aria-checked', String(amb));
     this.sfxBtn.querySelector('.ic').textContent = sfx ? '🔊' : '🔇';
     this.ambBtn.querySelector('.ic').textContent = amb ? '🎵' : '🔕';
-    this.menuBtn?.classList.toggle('muted', !sfx && !amb);
+    const muted = !sfx && !amb;
+    this.menuBtn?.classList.toggle('muted', muted);
+    if (this.muteBtn) { this.muteBtn.setAttribute('aria-pressed', String(muted)); this.muteBtn.querySelector('.ic').textContent = muted ? '🔇' : '🔊'; }
   }
 
   setPanorama(on) { this.panoBtn.setAttribute('aria-checked', String(on)); }

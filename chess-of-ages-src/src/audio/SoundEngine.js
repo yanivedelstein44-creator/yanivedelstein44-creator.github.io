@@ -544,6 +544,73 @@ export class SoundEngine {
     }, 200);
   }
 
+  // ---------- קהל וחיי רקע (ArenaLife) ----------
+  /** תגובות הקהל: ooh (לכידה), gasp (שח), cheer (ניצחון), aww (הפסד) — רעש מסונן בפורמנטים של קול אנושי */
+  crowd(kind = 'ooh') {
+    if (!this.ok) return;
+    const t = this.now, d = this.sfxBus;
+    const voice = (t0, dur, f0, f1, g) => {
+      this.noise(t0, dur, { type: 'bandpass', freq: f0, freqEnd: f1, q: 2.4, gain: g, attack: dur * 0.35, buffer: this.pink, dest: d });
+      this.noise(t0, dur, { type: 'bandpass', freq: f0 * 2.6, freqEnd: f1 * 2.4, q: 3.2, gain: g * 0.4, attack: dur * 0.35, buffer: this.pink, dest: d });
+    };
+    if (kind === 'ooh') voice(t, 0.75, 430, 640, 0.09);
+    else if (kind === 'gasp') { voice(t, 0.55, 950, 520, 0.1); this.tone(58, t, 1.5, { gain: 0.16, freqEnd: 46, attack: 0.08 }); this.tone(220, t + 0.1, 1.2, { type: 'triangle', gain: 0.025, freqEnd: 330, attack: 0.4 }); }
+    else if (kind === 'cheer') {
+      voice(t, 2.4, 620, 860, 0.1);
+      for (let i = 0; i < 52; i++) this.noise(t + 0.1 + Math.random() * 2.8, 0.018, { type: 'bandpass', freq: 1300 + Math.random() * 1700, q: 1.4, gain: 0.05 + Math.random() * 0.07, dest: d });
+    } else if (kind === 'aww') voice(t, 1.2, 560, 320, 0.08);
+  }
+
+  /** צלילי אווירה נקודתיים לפי עידן (לאפיק האווירה; פאן מרחבי לפי מיקום) */
+  ambientEvent(kind, pan = 0) {
+    if (!this.ok || !this.ambOn) return;
+    const t = this.now, d = this.out(pan, this.ambBus), P = this.P;
+    const note = (deg, oct = 0) => {
+      const n = P.scale.length, k = ((deg % n) + n) % n;
+      return mtof(P.root + 12 * (oct + Math.floor(deg / n)) + P.scale[k]);
+    };
+    const lp = (freq) => { const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq; f.connect(d); return f; };
+    switch (kind) {
+      case 'howl': { // זאב רחוק
+        const f0 = 360 + Math.random() * 120, dst = lp(1400);
+        const { o } = this.tone(f0, t, 3.2, { gain: 0.03, freqEnd: f0 * 1.3, attack: 0.9, dest: dst });
+        const l = this.ctx.createOscillator(), lg = this.ctx.createGain(); l.frequency.value = 5.5; lg.gain.value = 9; l.connect(lg).connect(o.frequency); l.start(t); l.stop(t + 3.3);
+        break;
+      }
+      case 'bird': for (let i = 0; i < 3; i++) this.tone(2300 + Math.random() * 900, t + i * 0.13, 0.08, { freqEnd: 3100 + Math.random() * 900, gain: 0.018, dest: d }); break;
+      case 'step': this.noise(t, 0.05, { type: 'lowpass', freq: 380 + Math.random() * 120, gain: 0.05, dest: d }); break;
+      case 'clink': [2637, 3520, 4186].forEach((f, i) => this.tone(f * (0.97 + Math.random() * 0.06), t + i * 0.005, 0.28, { gain: 0.011, dest: d })); break;
+      case 'clank': [523, 1244, 2093, 3135].forEach((f) => this.tone(f * (0.98 + Math.random() * 0.04), t, 0.7, { type: 'triangle', gain: 0.016, dest: d })); break;
+      case 'trumpet': { // חצוצרה רחוקה מהטירה
+        const dst = lp(1600);
+        [0, 0, 2, 4, 7].forEach((deg, i) => this.tone(note(deg, 1), t + i * 0.22, i === 4 ? 0.9 : 0.2, { type: 'sawtooth', gain: 0.02, attack: 0.03, dest: dst }));
+        break;
+      }
+      case 'whistle': this.tone(1180, t, 1.9, { gain: 0.026, freqEnd: 1330, attack: 0.15, dest: d }); this.noise(t, 2.0, { type: 'bandpass', freq: 2400, q: 6, gain: 0.03, attack: 0.1, dest: d }); break;
+      case 'hover': this.noise(t, 1.5, { type: 'bandpass', freq: 280, freqEnd: 1700, q: 1.6, gain: 0.07, attack: 0.55, dest: d }); this.tone(105, t, 1.5, { type: 'sawtooth', gain: 0.012, freqEnd: 165, attack: 0.55, dest: lp(800) }); break;
+      case 'flute': { // חליל במבוק
+        const degs = [0, 2, 4, 3, 1, 0].slice(0, 4 + Math.floor(Math.random() * 3));
+        let tt = t;
+        degs.forEach((deg, i) => {
+          const dur = i === degs.length - 1 ? 1.6 : 0.5 + Math.random() * 0.3;
+          const f = note(deg, 1);
+          this.tone(f, tt, dur, { gain: 0.028, attack: 0.14, dest: d });
+          this.noise(tt, dur * 0.8, { type: 'bandpass', freq: f * 2, q: 9, gain: 0.008, attack: 0.1, dest: d });
+          tt += dur * 0.92;
+        });
+        break;
+      }
+      case 'oud': { // כלי מיתר מדברי
+        const start = Math.floor(Math.random() * 3);
+        [0, 1, 2, 1, 0, -1, 0].map((x) => x + start).forEach((deg, i) => this.pluck(note(deg, 0), t + i * 0.19 + (i > 3 ? 0.12 : 0), { gain: 0.06, decay: 0.9, dest: d, bright: 2400 }));
+        break;
+      }
+      case 'drums': [0, 0.62, 1.24, 1.46].forEach((dt, i) => this.drum(t + dt, i === 0 ? 0.42 : 0.3, d)); break;
+      case 'bells': for (let i = 0; i < 3; i++) { const f = note(Math.floor(Math.random() * 7), 2); this.tone(f, t + i * 0.24, 3.2, { gain: 0.018, dest: d }); this.tone(f * 2.76, t + i * 0.24, 1.4, { gain: 0.006, dest: d }); } break;
+      default: break;
+    }
+  }
+
   // ---------- מוזיקה אדפטיבית ----------
   startMusic() {
     clearInterval(this.musicTimer);

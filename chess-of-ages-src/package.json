@@ -1,7 +1,7 @@
 {
   "name": "chess-of-ages",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "description": "שחמט העידנים: בוני הממלכה — Chess of Ages: Kingdom Builder (PWA + Capacitor)",
   "scripts": {
