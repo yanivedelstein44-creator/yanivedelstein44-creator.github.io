@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.2.0",
-  "build": "1.2.0-1793981415300",
-  "buildTime": 1793981415300,
-  "date": "2026-11-06T16:10:15.300Z",
+  "version": "1.2.1",
+  "build": "1.2.1-1793983824090",
+  "buildTime": 1793983824090,
+  "date": "2026-11-06T16:50:24.090Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.2.0-1793981415300.zip",
-  "checksum": "1c123a708e68b077af577668d69ee441feb1ad7d88ceab3e2d50db3117769928",
+  "bundle": "update/bundle-1.2.1-1793983824090.zip",
+  "checksum": "72a62c6b9265e3a6f5be43aece05dc18aec52126b26474a1dacfe6f47d76c502",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Online with a friend (private invite link or code, spectators, reactions), a steady camera during games and free-roam views with islands on the horizon"
+  "notes": "Bigger board that fills the screen, characters sit closer, steady camera during play"
 }
