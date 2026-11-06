@@ -2,7 +2,7 @@
 <!--
   Privacy Policy & Accessibility — Chess of Ages: Island Realms
   לפני פרסום: להחליף את כל הסימונים [OPERATOR NAME] / [CONTACT EMAIL] / [HOSTING PROVIDER],
-  כשיתווסף משחק נגד חבר מרחוק (Firebase) — להוסיף סעיף על השרת והנתונים שנשלחים.
+  משחק אונליין עם חבר (Firebase) מתואר בסעיף 3. כללי האבטחה של מסד הנתונים: firebase/database.rules.json בקוד המקור.
   מומלץ שעורך/ת דין יעבור/תעבור על הנוסח — זה לא ייעוץ משפטי.
 -->
 <html lang="en" dir="ltr">
@@ -73,7 +73,8 @@
         <ul class="summary">
           <li>No account, no cookies, no ads, no analytics and no tracking pixels.</li>
           <li>Your islands, museum, gems, outfits, pets and settings are stored only on your device. We can't see them.</li>
-          <li>All games are played on your device: against the computer's bots, the Time Pirates, or a friend on the same device. Nothing about your games is sent anywhere.</li>
+          <li>Games against the bots, the Time Pirates or a friend on the same device are played entirely on your device. Nothing about them is sent anywhere.</li>
+          <li>Online with a friend is optional: only the data needed for that game (your display name, avatar look and moves) goes through Google Firebase, and only people who have your private room code can see it. No strangers, no free-text chat.</li>
           <li>You can erase everything at any time: <b>Settings → Delete all my data</b>.</li>
         </ul>
       </section>
@@ -90,10 +91,11 @@
           <caption>Local storage used by the game</caption>
           <thead><tr><th scope="col">Name</th><th scope="col">What it contains</th><th scope="col">Why</th><th scope="col">How long</th></tr></thead>
           <tbody>
-            <tr><td><code>chess_ages_progress</code></td><td>Conquered islands, stars, Time Pirate timers, museum pieces, the island you're on, wins/losses/draws, rating, display name and symbol, settings (sound, language, graphics), a saved unfinished game, achievements</td><td>To keep your progress between visits</td><td>Until you delete it</td></tr>
+            <tr><td><code>chess_ages_progress</code></td><td>Conquered islands, stars, Time Pirate timers, museum pieces, the island you're on, wins/losses/draws, rating, display name and symbol, settings (sound, language, graphics), a saved unfinished game, achievements, and the code of an online room you're in or created (to return to it, and to close your old rooms)</td><td>To keep your progress between visits</td><td>Until you delete it</td></tr>
             <tr><td><code>chess_ages_economy</code></td><td>Gem balance, owned outfits, pets, pet colors and resident bots, what you have equipped, 24-hour trials, item shards, whether the full game is unlocked, a log of test purchases, daily-reward and spin-wheel timers</td><td>To run the in-game shop and rewards</td><td>Until you delete it</td></tr>
             <tr><td><code>chess_ages_last_login</code></td><td>The date you last claimed the daily reward</td><td>To count your 7-day login streak</td><td>Until you delete it</td></tr>
             <tr><td>App cache (<code>chess-ages-…</code>)</td><td>Copies of the game's own files. No personal data.</td><td>So the game opens offline and updates itself automatically</td><td>Replaced by every update</td></tr>
+            <tr><td><code>firebaseLocalStorageDb</code> (only if you play online)</td><td>An anonymous sign-in token from Firebase Authentication — a random ID, no email, name or password</td><td>So you keep your seat in an online room</td><td>Until you delete the app's data</td></tr>
           </tbody>
         </table>
         <p>We don't use cookies, advertising IDs, fingerprinting, analytics tools or tracking pixels.</p>
@@ -101,7 +103,9 @@
 
       <section aria-labelledby="en-play">
         <h2 id="en-play">3. How games are played</h2>
-        <p>The bots on the 99 islands, the Time Pirates and the residents of the Central Island are computer opponents that run on your device. Playing against a friend happens on the same device. The game doesn't connect you to other players over the internet.</p>
+        <p>The bots on the 99 islands, the Time Pirates and the residents of the Central Island are computer opponents that run on your device, and so does a game against a friend on the same device.</p>
+        <p><b>Online with a friend (optional).</b> When you create or join a private room, the game uses Google Firebase (Realtime Database and Anonymous Authentication, data stored in Belgium, EU), provided by Google as our service provider. What is sent: a random anonymous user ID, the display name you chose, your avatar's outfit, pet and symbol, the room code, your color, the moves, draw and rematch requests, the fixed reactions you send (there is no free-text chat) and whether you're connected. Like any internet service, Google also processes technical data such as your IP address to deliver it.</p>
+        <p>Who can see it: only people who have the room code — the friend you invited and spectators you share the code with. There is no matchmaking with strangers, and rooms can't be listed or searched. How long: a room is deleted when its creator leaves it, or the next time the creator opens online play after an old room was left open. We don't use room data for anything else.</p>
       </section>
 
       <section aria-labelledby="en-share">
@@ -124,7 +128,7 @@
 
       <section aria-labelledby="en-kids">
         <h2 id="en-kids">7. Children</h2>
-        <p>The game doesn't ask for an email, phone number or real name, and doesn't connect players to each other. If you have a question about a child's use of the game, contact us.</p>
+        <p>The game doesn't ask for an email, phone number or real name. Online play only connects you with a friend you invite using a private code — there's no matchmaking with strangers and no free-text chat, only fixed reactions. If you have a question about a child's use of the game, contact us.</p>
       </section>
 
       <section aria-labelledby="en-rights">
@@ -137,12 +141,12 @@
 
       <section aria-labelledby="en-sec">
         <h2 id="en-sec">9. Security</h2>
-        <p>The website and updates use HTTPS.</p>
+        <p>The website, updates and online play use HTTPS. Online rooms are protected by server-side security rules: rooms can't be listed, only people with the code can open a room, only the two players can change the game, and only the player whose turn it is can make a move.</p>
       </section>
 
       <section aria-labelledby="en-change">
         <h2 id="en-change">10. Changes</h2>
-        <p>If we change how the game handles data (for example when remote games with a friend are added), we'll update this page and the date at the top before the change takes effect.</p>
+        <p>If we change how the game handles data (for example new online features), we'll update this page and the date at the top before the change takes effect.</p>
       </section>
 
       <section aria-labelledby="en-a11y">
@@ -178,7 +182,8 @@
         <ul class="summary">
           <li>בלי חשבון, בלי עוגיות, בלי פרסומות, בלי כלי ניתוח ובלי פיקסלי מעקב.</li>
           <li>האיים, המוזיאון, היהלומים, הבגדים, החיות וההגדרות נשמרים רק במכשיר שלך. אנחנו לא רואים אותם.</li>
-          <li>כל המשחקים מתנהלים במכשיר שלך: נגד הבוטים של המחשב, נגד פיראטי הזמן או נגד חבר על אותו מכשיר. שום דבר מהמשחקים לא נשלח לשום מקום.</li>
+          <li>משחקים נגד הבוטים, נגד פיראטי הזמן או נגד חבר על אותו מכשיר מתנהלים כולם במכשיר שלך. שום דבר מהם לא נשלח לשום מקום.</li>
+          <li>משחק אונליין עם חבר הוא אופציונלי: רק המידע שדרוש למשחק הזה (שם התצוגה, מראה האווטאר והמהלכים) עובר דרך Firebase של Google, ורואים אותו רק מי שקיבל ממך את קוד החדר הפרטי. בלי זרים ובלי צ׳אט חופשי.</li>
           <li>אפשר למחוק הכול בכל רגע: <b>הגדרות ← מחק את כל הנתונים שלי</b>.</li>
         </ul>
       </section>
@@ -195,10 +200,11 @@
           <caption>האחסון המקומי של המשחק</caption>
           <thead><tr><th scope="col">שם</th><th scope="col">מה יש בו</th><th scope="col">למה</th><th scope="col">לכמה זמן</th></tr></thead>
           <tbody>
-            <tr><td><code>chess_ages_progress</code></td><td>איים שנכבשו, כוכבים, שעוני פיראטי הזמן, חלקי המוזיאון, האי שבו אתה נמצא, ניצחונות/הפסדים/תיקו, דירוג, שם תצוגה וסמל, הגדרות (צליל, שפה, גרפיקה), משחק שלא הסתיים, הישגים</td><td>כדי לשמור את ההתקדמות בין ביקורים</td><td>עד שתמחק</td></tr>
+            <tr><td><code>chess_ages_progress</code></td><td>איים שנכבשו, כוכבים, שעוני פיראטי הזמן, חלקי המוזיאון, האי שבו אתה נמצא, ניצחונות/הפסדים/תיקו, דירוג, שם תצוגה וסמל, הגדרות (צליל, שפה, גרפיקה), משחק שלא הסתיים, הישגים, וקוד של חדר אונליין שאתה נמצא בו או פתחת (כדי לחזור אליו ולסגור חדרים ישנים שלך)</td><td>כדי לשמור את ההתקדמות בין ביקורים</td><td>עד שתמחק</td></tr>
             <tr><td><code>chess_ages_economy</code></td><td>מאזן יהלומים, בגדים, חיות, צבעי חיות ובוטים תושבים שבבעלותך, מה שלבוש עליך, ניסיונות של 24 שעות, שברי פריטים, האם המשחק המלא פתוח, יומן רכישות ניסיון, שעוני הפרס היומי והגלגל</td><td>כדי להפעיל את החנות והפרסים במשחק</td><td>עד שתמחק</td></tr>
             <tr><td><code>chess_ages_last_login</code></td><td>התאריך שבו קיבלת לאחרונה את הפרס היומי</td><td>כדי לספור רצף כניסות של 7 ימים</td><td>עד שתמחק</td></tr>
             <tr><td>מטמון האפליקציה (<code>chess-ages-…</code>)</td><td>עותקים של קובצי המשחק עצמו. בלי מידע אישי.</td><td>כדי שהמשחק ייפתח גם בלי רשת ויתעדכן לבד</td><td>מוחלף בכל עדכון</td></tr>
+            <tr><td><code>firebaseLocalStorageDb</code> (רק אם שיחקת אונליין)</td><td>אסימון התחברות אנונימי של Firebase Authentication — מזהה אקראי, בלי אימייל, שם או סיסמה</td><td>כדי לשמור לך את המקום בחדר אונליין</td><td>עד שתמחק את נתוני האפליקציה</td></tr>
           </tbody>
         </table>
         <p>אנחנו לא משתמשים בעוגיות, במזהי פרסום, בטביעות אצבע של מכשירים, בכלי ניתוח או בפיקסלי מעקב.</p>
@@ -206,7 +212,9 @@
 
       <section aria-labelledby="he-play">
         <h2 id="he-play">3. איך מתנהלים המשחקים</h2>
-        <p>הבוטים ב-99 האיים, פיראטי הזמן והתושבים של האי המרכזי הם יריבים ממוחשבים שרצים במכשיר שלך. משחק נגד חבר מתנהל על אותו מכשיר. המשחק לא מחבר אותך לשחקנים אחרים דרך האינטרנט.</p>
+        <p>הבוטים ב-99 האיים, פיראטי הזמן והתושבים של האי המרכזי הם יריבים ממוחשבים שרצים במכשיר שלך, וגם משחק נגד חבר על אותו מכשיר מתנהל כולו במכשיר.</p>
+        <p><b>אונליין עם חבר (אופציונלי).</b> כשאתה פותח חדר פרטי או מצטרף אליו, המשחק משתמש ב-Google Firebase (Realtime Database והתחברות אנונימית, המידע נשמר בבלגיה, האיחוד האירופי), ש-Google מספקת לנו כספק שירות. מה נשלח: מזהה משתמש אנונימי אקראי, שם התצוגה שבחרת, הבגדים, החיה והסמל של האווטאר שלך, קוד החדר, הצבע שלך, המהלכים, בקשות לתיקו ולמשחק חוזר, התגובות הקבועות שאתה שולח (אין צ׳אט חופשי) והאם אתה מחובר. כמו בכל שירות אינטרנט, Google מעבדת גם מידע טכני כמו כתובת IP כדי לספק את השירות.</p>
+        <p>מי רואה: רק מי שיש לו את קוד החדר — החבר שהזמנת וצופים שקיבלו ממך את הקוד. אין שידוך עם זרים, ואי אפשר לרשום או לחפש חדרים. לכמה זמן: החדר נמחק כשמי שפתח אותו יוצא ממנו, או בפעם הבאה שהוא נכנס למשחק אונליין אם חדר ישן נשאר פתוח. אנחנו לא משתמשים במידע של החדרים לשום דבר אחר.</p>
       </section>
 
       <section aria-labelledby="he-share">
@@ -229,7 +237,7 @@
 
       <section aria-labelledby="he-kids">
         <h2 id="he-kids">7. ילדים</h2>
-        <p>המשחק לא מבקש אימייל, מספר טלפון או שם אמיתי, ולא מחבר שחקנים זה לזה. לשאלות על שימוש של ילד במשחק, אפשר לפנות אלינו.</p>
+        <p>המשחק לא מבקש אימייל, מספר טלפון או שם אמיתי. משחק אונליין מחבר אותך רק עם חבר שהזמנת עם קוד פרטי — אין שידוך עם זרים ואין צ׳אט חופשי, רק תגובות קבועות. לשאלות על שימוש של ילד במשחק, אפשר לפנות אלינו.</p>
       </section>
 
       <section aria-labelledby="he-rights">
@@ -242,12 +250,12 @@
 
       <section aria-labelledby="he-sec">
         <h2 id="he-sec">9. אבטחה</h2>
-        <p>האתר והעדכונים משתמשים ב-HTTPS.</p>
+        <p>האתר, העדכונים והמשחק האונליין משתמשים ב-HTTPS. חדרי האונליין מוגנים בכללי אבטחה בצד השרת: אי אפשר לרשום את החדרים, רק מי שיש לו את הקוד יכול לפתוח חדר, רק שני השחקנים יכולים לשנות את המשחק, ורק השחקן שתורו יכול להזיז כלי.</p>
       </section>
 
       <section aria-labelledby="he-change">
         <h2 id="he-change">10. שינויים</h2>
-        <p>אם נשנה את האופן שבו המשחק מטפל במידע (למשל כשיתווסף משחק מרחוק נגד חבר), נעדכן את הדף הזה ואת התאריך שבראשו לפני שהשינוי ייכנס לתוקף.</p>
+        <p>אם נשנה את האופן שבו המשחק מטפל במידע (למשל יכולות אונליין חדשות), נעדכן את הדף הזה ואת התאריך שבראשו לפני שהשינוי ייכנס לתוקף.</p>
       </section>
 
       <section aria-labelledby="he-a11y">
