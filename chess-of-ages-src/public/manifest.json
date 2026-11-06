@@ -1,0 +1,38 @@
+{
+  "name": "Chess of Ages: Kingdom Builder",
+  "short_name": "Chess of Ages",
+  "description": "3D chess where every victory builds your kingdom across 10 eras — from the Stone Age to the stars.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0912",
+  "theme_color": "#0b0912",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": [
+    "games",
+    "entertainment"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
