@@ -92,6 +92,7 @@ export class GameApp {
       isSafe: () => this.isSafe() && !this.ui.modals.length && !this.map.isOpen,
       onAvailable: (info, act) => this.showUpdateAvailable(info, act),
       onUpdating: (v) => this.ui.toast(`${t('update')} ${v ? `(v${v})` : ''}`, { kind: 'gold', duration: 3000, icon: 'refresh' }),
+      onDownloading: (info) => this.ui.toast(`${t('downloadingUpdate')}${info?.version ? ` (v${info.version})` : ''}`, { kind: 'gold', duration: 4000, icon: 'download' }),
       onNativeRequired: (info) => this.ui.modal({
         title: t('updateNative'), titleIcon: 'device', center: true,
         body: `${t('updateNativeBody')}${info.version ? ` (v${info.version})` : ''}`,
