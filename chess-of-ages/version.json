@@ -1,11 +1,11 @@
 {
   "name": "Chess of Ages: Kingdom Builder",
-  "version": "1.0.1",
-  "build": "1.0.1-1793959806692",
-  "buildTime": 1793959806692,
-  "date": "2026-11-06T10:10:06.692Z",
+  "version": "1.0.2",
+  "build": "1.0.2-1793961716523",
+  "buildTime": 1793961716523,
+  "date": "2026-11-06T10:41:56.523Z",
   "minNative": "1.0.0",
-  "bundle": "update/bundle-1.0.1-1793959806692.zip",
+  "bundle": "update/bundle-1.0.2-1793961716523.zip",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "כפתור 'בדוק עדכונים' בהגדרות, ובדיקה שהעדכון האוטומטי עובד"
+  "notes": "דמויות חיות ברקע של כל העידנים, צלילי אווירה, תגובות הקהל ללכידה/שח/מט וכפתור השתקה"
 }
