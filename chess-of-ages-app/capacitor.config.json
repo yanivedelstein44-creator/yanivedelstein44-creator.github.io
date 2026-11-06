@@ -1,0 +1,23 @@
+{
+  "appId": "com.chessofages.kingdombuilder",
+  "appName": "Chess of Ages",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#0b0912",
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "initialViewportFitValueHint": "cover",
+      "style": "DARK"
+    },
+    "CapacitorUpdater": {
+      "autoUpdate": false,
+      "appReadyTimeout": 20000,
+      "resetWhenUpdate": true,
+      "autoDeletePrevious": true,
+      "statsUrl": ""
+    }
+  }
+}

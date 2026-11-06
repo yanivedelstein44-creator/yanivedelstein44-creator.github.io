@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>שחמט העידנים | Chess of Ages</title>
+    <meta name="description" content="Chess of Ages: Kingdom Builder — 3D chess where every victory builds your kingdom across 10 eras. | שחמט העידנים: בוני הממלכה" />
+    <meta name="theme-color" content="#0b0912" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="שחמט העידנים" />
+    <meta name="application-name" content="שחמט העידנים" />
+    <!-- OpenGraph — תצוגת קישור בוואטסאפ -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="שחמט העידנים | Chess of Ages" />
+    <meta property="og:title" content="Chess of Ages: Kingdom Builder | שחמט העידנים: בוני הממלכה" />
+    <meta property="og:description" content="Come play against me in my kingdom! | בוא לשחק נגדי בממלכה שלי!" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="he_IL" />
+    <meta property="og:image:alt" content="Chess of Ages — a golden 3D chess board inside a kingdom" />
+    <meta property="og:image" content="https://yanivedelstein44-creator.github.io/chess-of-ages/og-image.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content="https://yanivedelstein44-creator.github.io/chess-of-ages/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Chess of Ages: Kingdom Builder | שחמט העידנים" />
+    <meta name="twitter:description" content="Come play against me in my kingdom! | בוא לשחק נגדי בממלכה שלי!" />
+    <meta name="twitter:image" content="https://yanivedelstein44-creator.github.io/chess-of-ages/og-image.jpg" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" type="image/png" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <script>
+      // שפה לפני הציור הראשון: עברית רק אם נבחרה בהגדרות או שהמכשיר בעברית — אחרת אנגלית (קהל עולמי)
+      (function () {
+        var dev = /^(he|iw)\b/i.test(navigator.language || '') ? 'he' : 'en', lang = dev;
+        try { var s = JSON.parse(localStorage.getItem('chess_ages_progress') || 'null'); if (s && s.settings && s.settings.lang) lang = s.settings.lang; } catch (e) { /* storage blocked */ }
+        var d = document.documentElement; d.lang = lang; d.dir = lang === 'he' ? 'rtl' : 'ltr';
+        if (lang === 'he') { var m = document.querySelector('link[rel="manifest"]'); if (m) m.href = './manifest.he.json'; }
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-Cb6QBLJq.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-Bk7TQmch.css">
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene" tabindex="0" role="application" aria-label="3D chess board. Use the arrow keys and Enter to play."></canvas>
+      <div id="toasts" aria-live="polite"></div>
+      <div id="sr-status" class="sr-only" aria-live="assertive"></div>
+      <div id="modal-root"></div>
+    </div>
+    <div id="splash" role="img" aria-label="Chess of Ages — loading">
+      <div class="splash-crown" aria-hidden="true">👑</div>
+      <div class="logo big"><span class="he">Chess of Ages</span><span class="en">KINGDOM BUILDER</span></div>
+      <div class="loader-bar" aria-hidden="true"><i></i></div>
+      <div class="splash-msg">Building your kingdom…</div>
+      <div class="version">v1.0.0</div>
+    </div>
+    <script>
+      if (document.documentElement.lang === 'he') (function () {
+        var sp = document.getElementById('splash');
+        sp.setAttribute('aria-label', 'שחמט העידנים — טוען');
+        sp.querySelector('.he').textContent = 'שחמט העידנים';
+        sp.querySelector('.en').textContent = 'CHESS OF AGES';
+        sp.querySelector('.splash-msg').textContent = 'בונים את הממלכה…';
+        document.getElementById('scene').setAttribute('aria-label', 'לוח שחמט תלת-ממדי. השתמש בחצים ובמקש Enter כדי לשחק.');
+      })();
+    </script>
+    <noscript>Chess of Ages needs JavaScript to run. · כדי לשחק בשחמט העידנים צריך להפעיל JavaScript.</noscript>
+  </body>
+</html>

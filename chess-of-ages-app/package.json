@@ -1,0 +1,14 @@
+{
+  "name": "chess-of-ages-android",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Android (Capacitor) wrapper for Chess of Ages — the web game itself lives in ../chess-of-ages",
+  "dependencies": {
+    "@capacitor/android": "8.6.0",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/cli": "8.6.0",
+    "@capacitor/core": "8.6.0",
+    "@capacitor/haptics": "8.0.2",
+    "@capgo/capacitor-updater": "8.54.2"
+  }
+}
