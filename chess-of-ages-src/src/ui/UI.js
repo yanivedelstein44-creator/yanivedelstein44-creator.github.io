@@ -114,6 +114,8 @@ export class UI {
       hint: act('bulb', t('hintCost'), () => H.onHint()),
       draw: act('handshake', t('offerDraw'), () => H.onDraw()),
       resign: act('flag', t('resign'), () => H.onResign()),
+      emote: act('smile', t('emotes'), () => H.onEmote?.()),
+      leave: act('close', t('leaveRoom'), () => H.onLeave?.()),
     };
     this.actions = h('div', { id: 'actions' }, ...Object.values(this.actBtns));
     this.root.append(this.hud, this.actions, this.dock);
@@ -248,7 +250,8 @@ export class UI {
 
   /** mode: 'ai' | 'local' | null */
   setActions(mode) {
-    const show = { center: true, share: true, hint: mode === 'ai' || mode === 'local', draw: mode === 'local', resign: mode === 'ai' };
+    const net = mode === 'online' || mode === 'watch';
+    const show = { center: true, share: !net, hint: mode === 'ai' || mode === 'local', draw: mode === 'local' || mode === 'online', resign: mode === 'ai' || mode === 'online', emote: net, leave: net };
     Object.entries(this.actBtns).forEach(([k, b]) => { b.hidden = !show[k]; });
   }
 

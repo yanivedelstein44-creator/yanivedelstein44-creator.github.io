@@ -17,7 +17,7 @@ import { getEra } from '../config/Eras.js';
 const TXT = '︎';
 
 /** בחירה מתוך קבוצה (aria-pressed) */
-function segment(options, current, onPick) {
+export function segment(options, current, onPick) {
   const seg = h('div', { class: 'seg' }, ...options.map(([v, label, sub]) => h('button', { class: 'tap', 'aria-pressed': String(current === v), onclick: (e) => { seg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', 'false')); e.currentTarget.setAttribute('aria-pressed', 'true'); onPick(v); } }, h('b', {}, label), sub ? h('small', {}, sub) : null)));
   return seg;
 }
@@ -91,7 +91,12 @@ export function openSummary(app, data) {
     ...keyMoments.map((k) => h('div', { class: 'moment' }, h('span', {}, `${k.moveNo}. ${k.san}`), h('span', { class: 'mlab' }, icon(k.color === 'w' ? 'dotLight' : 'dotDark', { size: 12 }), k.label))));
   const actions = [];
   if (canReplay) actions.push({ label: t('replay'), icon: 'play', onClick: (c) => { c.close(); app.replayFinale(); } });
-  if (vsBot) {
+  if (data.online === 'watch') {
+    actions.push({ label: t('leaveRoom'), icon: 'close', onClick: (c) => { c.close(); app.online.leave(); } });
+  } else if (data.online === 'online') {
+    actions.push({ label: t('leaveRoom'), icon: 'close', onClick: (c) => { c.close(); app.online.leave(); } });
+    actions.push({ label: t('rematch'), icon: 'refresh', primary: true, onClick: (c) => { c.close(); app.rematch(); } });
+  } else if (vsBot) {
     actions.push({ label: t('toMap'), icon: 'compass', onClick: (c) => { c.close(); app.openMap(won && nextId ? nextId : undefined); } });
     if (won && nextId) actions.push({ label: `${t('nextIsland')} · ${nextId}`, icon: 'swords', primary: true, onClick: (c) => { c.close(); app.travelTo(nextId); } });
     else actions.push({ label: won ? t('rematch') : t('tryAgain'), icon: 'refresh', primary: true, onClick: (c) => { c.close(); app.rematch(); } });
