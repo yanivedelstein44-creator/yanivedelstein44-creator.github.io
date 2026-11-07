@@ -530,6 +530,7 @@ export class WorldMap {
     const gs = new THREE.Sprite(new THREE.SpriteMaterial({ map: gold, depthWrite: false, transparent: true }));
     gs.position.set(0, 3, -44 - 3.6); gs.scale.set(5, 1.05, 1);
     this.scene.add(gs);
+    this.goldSign = gs;
   }
 
   buildClouds() {
@@ -652,6 +653,8 @@ export class WorldMap {
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new V3(), v = new V3();
     let f = 0, pf = 0, fog = 0;
     const goldFog = new THREE.Color(0xffd36a), whiteFog = new THREE.Color(0xffffff);
+    const front = pr.frontier() || ISLAND_COUNT + 1;
+    this.fogIdx = {};
     for (let id = 1; id <= ISLAND_COUNT; id++) {
       const [sand, grass] = islandColors(id);
       const locked = pr.needsFullGame(id) || (pr.isUnlocked ? !pr.isUnlocked(id) : false);
@@ -662,14 +665,18 @@ export class WorldMap {
         m4.makeTranslation(p.x + 0.5, 0.2, p.z - 0.72);
         if (pr.hasPirates?.(id)) this.pirateFlags.setMatrixAt(pf++, m4); else this.flags.setMatrixAt(f++, m4);
       }
-      if (locked && id !== HUB_ID) {
-        // איי פרימיום שעוד לא נפתחו: ערפל זהוב קטן; איים רגילים: ערפל לבן
-        const prem = isPremium(id), k0 = prem ? 0.62 : 1;
+      const prem = isPremium(id);
+      const foggy = id !== HUB_ID && !pr.isConquered(id) && (prem ? locked : id > front || id === this.fogPending);
+      if (foggy) {
+        // איי פרימיום שעוד לא נפתחו: ערפל זהוב קטן; איים רגילים אחרי האי הבא: ערפל לבן
+        const k0 = prem ? 0.62 : 1;
+        const fog0 = fog;
         for (let k = 0; k < 3; k++) {
           const a = id * 1.3 + k * 2.1;
           this.fogPuffs.setColorAt(fog, prem ? goldFog : whiteFog);
           this.fogPuffs.setMatrixAt(fog++, m4.compose(v.set(p.x + Math.cos(a) * 0.6 * k0, (0.72 + k * 0.12) * k0, p.z + Math.sin(a) * 0.42 * k0), q, s.set((1.0 - k * 0.14) * k0, 0.42 * k0, 0.8 * k0)));
         }
+        this.fogIdx[id] = [fog0, fog];
       }
     }
     this.flags.count = f; this.flags.instanceMatrix.needsUpdate = true;
@@ -693,7 +700,11 @@ export class WorldMap {
   open({ focus, travel = false } = {}) {
     if (this.isOpen) return;
     this.build();
+    const front = this.app.progression.frontier();
+    const lifted = this.app.store.get('mapFogLifted') ?? (front ? front - 1 : 0);
+    this.fogPending = front && front < PREMIUM_FIRST && lifted < front ? front : null;
     this.refresh();
+    if (this.fogPending && !travel) setTimeout(() => this.liftFog(this.fogPending), 1100);
     this.dressTraveler();
     const cur = this.app.progression.currentIsland();
     this.placeTraveler(cur);
@@ -718,12 +729,51 @@ export class WorldMap {
     if (!travel) setTimeout(() => this.select(focus || this.app.progression.frontier() || cur, { fly: false }), 250);
   }
 
+  /** הערפל מעל האי הבא מתפזר: הענן עולה, מתנפח ונעלם בנצנוצים */
+  liftFog(id) {
+    if (!this.isOpen || this.fogPending !== id) return;
+    this.app.store.set({ mapFogLifted: id });
+    const range = this.fogIdx?.[id];
+    if (!range) { this.fogPending = null; return; }
+    const [i0, i1] = range;
+    const base = [], m4 = new THREE.Matrix4();
+    for (let i = i0; i < i1; i++) { this.fogPuffs.getMatrixAt(i, m4); base.push(m4.clone()); }
+    const p = this.positions[id];
+    this.app.sound.whoosh?.(1.2);
+    this.fx.sparkle([p.x, 1.1, p.z], 46);
+    const pos = new V3(), q = new THREE.Quaternion(), sc = new V3();
+    let t = 0;
+    const up = (dt) => {
+      t += dt;
+      const k = Math.min(1, t / 1.7), e = k * k * (3 - 2 * k);
+      base.forEach((b, j) => {
+        b.decompose(pos, q, sc);
+        const a = (j / base.length) * TAU + id;
+        pos.x += Math.cos(a) * e * 1.7; pos.z += Math.sin(a) * e * 1.3; pos.y += e * 1.6;
+        sc.multiplyScalar(Math.max(0.001, 1 + e * 0.7 - e * e * 1.7));
+        this.fogPuffs.setMatrixAt(i0 + j, m4.compose(pos, q, sc));
+      });
+      this.fogPuffs.instanceMatrix.needsUpdate = true;
+      if (k >= 1) {
+        this.updaters.delete(up);
+        this.fogPending = null;
+        this.fx.sparkle([p.x, 0.8, p.z], 24, [0xffe08a, 0xffffff]);
+        this.app.sound.chime?.(2);
+        this.refresh();
+      }
+    };
+    this.updaters.add(up);
+  }
+
   close() {
     if (!this.isOpen) return;
+    this.fogPending = null;
     this.isOpen = false;
     this.endFlightExtras();
     this.flight = null;
     this.labels?.forEach((l) => { l.visible = true; });
+    this.worldSigns?.forEach((w) => { w.visible = true; });
+    if (this.goldSign) this.goldSign.visible = true;
     if (this.fogPuffs) this.fogPuffs.visible = true;
     this.unbind?.();
     this.ui?.remove();
@@ -946,6 +996,8 @@ export class WorldMap {
     this.selRing.visible = false;
     this.nextRing.visible = false;
     this.labels.forEach((l) => { l.visible = false; });
+    this.worldSigns?.forEach((w) => { w.visible = false; });
+    if (this.goldSign) this.goldSign.visible = false;
     this.ui?.classList.add('flying');
     this.placeTraveler(fromId);
     this.traveler.rotation.y = Math.atan2(pts[1].x - pts[0].x, pts[1].z - pts[0].z);
