@@ -173,7 +173,7 @@ async function scanGemini(img: string, mt: string, text: string, t0: number) {
         if (o.schema) { o = { ...o, schema: false }; continue; }
         throw new ScanError('failed', 502, msg);
       }
-      if (tries < 2) { await sleep(1200); continue; } // overloaded or network: one more try on the same model
+      if (tries < 2 && model === MODELS[MODELS.length - 1]) { await sleep(1200); continue; } // overloaded or network: another model is the better retry; only the last one is tried twice
       break;
     }
   }
