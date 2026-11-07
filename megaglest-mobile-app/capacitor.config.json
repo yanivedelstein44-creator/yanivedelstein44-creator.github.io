@@ -1,0 +1,10 @@
+{
+  "appId": "com.edtrending.megaglest",
+  "appName": "MegaGlest Mobile",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#121a26",
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false
+  }
+}

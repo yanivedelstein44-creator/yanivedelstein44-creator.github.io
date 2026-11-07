@@ -1,0 +1,11 @@
+{
+  "name": "megaglest-mobile-android",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Android (Capacitor) wrapper for MegaGlest Mobile — the web game itself lives in ../megaglest-mobile",
+  "dependencies": {
+    "@capacitor/android": "8.6.0",
+    "@capacitor/cli": "8.6.0",
+    "@capacitor/core": "8.6.0"
+  }
+}
