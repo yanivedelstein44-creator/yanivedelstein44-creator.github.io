@@ -423,6 +423,7 @@ export class SceneManager {
 
   /** קפיצה/אנימציה למבט המשחק */
   toGameplay(duration = 1.1, side = this.view.side) {
+    this.overviewOn = false;
     this.endFreeLook();
     this.fitGameplay(side);
     return this.animateCamera(this.view.position, this.view.target, duration);
@@ -458,41 +459,80 @@ export class SceneManager {
     });
   }
 
-  /** מבט רחב שבו כל האי נכנס למסך (לפתיחה הקולנועית) */
-  fitIslandWide(az = this.view.azimuth, polarDeg = 48, rimR = 25) {
+  /**
+   * מבט רחב שבו כל האי נכנס למסך. ברירת מחדל: כל המסך (לפתיחה הקולנועית);
+   * עם yTop/yBot — בין הסרגל העליון לתחתון (מבט־על באי המרכזי).
+   */
+  fitIslandWide(az = this.view.azimuth, { polarDeg = 48, rimR = 25, xMax = 0.94, yTop = 0.78, yBot = -0.78 } = {}) {
     const cam = this.camera.clone();
     cam.updateProjectionMatrix();
     const polar = THREE.MathUtils.degToRad(polarDeg);
-    const tg = new V3(0, 0, 0);
     const rim = [];
     for (let i = 0; i < 32; i++) { const a = (i / 32) * TAU; rim.push(new V3(Math.cos(a) * rimR, 0, Math.sin(a) * rimR)); }
-    const v = new V3(), off = new V3();
-    let r = 80;
-    for (let it = 0; it < 40; it++) {
+    const dir = new V3(Math.sin(az), 0, Math.cos(az)); // מהמרכז לכיוון המצלמה
+    const tg = new V3(), v = new V3(), off = new V3();
+    let r = 80, o = 0;
+    for (let it = 0; it < 60; it++) {
+      tg.copy(dir).multiplyScalar(o);
       cam.position.copy(tg).add(off.setFromSpherical(new THREE.Spherical(r, polar, az)));
       cam.lookAt(tg);
       cam.updateMatrixWorld(true);
-      let mx = 0, my = 0;
-      for (const p of rim) { v.copy(p).project(cam); mx = Math.max(mx, Math.abs(v.x)); my = Math.max(my, Math.abs(v.y)); }
-      r *= Math.pow(Math.max(mx / 0.94, my / 0.78), 0.8);
+      let mx = 0, lo = 9, hi = -9;
+      for (const p of rim) { v.copy(p).project(cam); mx = Math.max(mx, Math.abs(v.x)); lo = Math.min(lo, v.y); hi = Math.max(hi, v.y); }
+      r *= Math.pow(Math.max(mx / xMax, (hi - lo) / (yTop - yBot)), 0.8);
       r = Math.min(170, Math.max(35, r));
+      o -= ((lo + hi) / 2 - (yTop + yBot) / 2) * r * 0.3; // האי במרכז הרצועה הפנויה
+      o = Math.min(18, Math.max(-18, o));
     }
-    return { target: tg, radius: r, polar };
+    return { target: tg.clone(), radius: r, polar };
+  }
+
+  /** מבט־על על כל האי בין הסרגלים (האי המרכזי: רואים את כל המבנים) */
+  overviewFrame(az = this.view.azimuth) {
+    const safe = this.getSafeArea();
+    const H = this.height;
+    const yTop = 1 - (2 * (safe.top + 10)) / H;
+    const yBot = -1 + (2 * (Math.max(safe.bottom, safe.clear || 0) + 8)) / H;
+    return this.fitIslandWide(az, { polarDeg: 48, rimR: 27, xMax: 0.97, yTop, yBot });
+  }
+
+  /** מצב מבט־על: טיול חופשי מסביב לאי, עם טווח זום שמתאים למרחק */
+  enterOverview(O) {
+    this.overviewOn = true;
+    this.freeLook = true;
+    this.controls.maxPolarAngle = ROAM_MAX_POLAR;
+    this.controls.minDistance = 6;
+    this.controls.maxDistance = O.radius * 1.25;
+  }
+
+  /** מעבר מצלמה למבט־על על כל האי */
+  async toOverview(duration = 1.4, side = this.view.side) {
+    this.endFreeLook();
+    this.fitGameplay(side);
+    const O = this.overviewFrame(this.view.azimuth);
+    this.enterOverview(O); // גבולות הזום לפני שהאנימציה נגמרת (אחרת המצלמה "קופצת" פנימה)
+    const pos = O.target.clone().add(new V3().setFromSpherical(new THREE.Spherical(O.radius, O.polar, this.view.azimuth)));
+    await this.animateCamera(pos, O.target, duration);
+    this.enterOverview(O);
   }
 
   /**
    * פתיחה קולנועית של אי: מתחילים במבט רחב על כל האי (סיבוב והתקרבות איטיים),
-   * ואז צוללים אל מבט המשחק. skipIntro() מקצר (נגיעה במסך).
+   * ואז צוללים אל מבט המשחק — או, עם overview, נשארים במבט־על על כל האי.
+   * skipIntro() מקצר (נגיעה במסך).
    */
-  async islandIntro(side = this.view.side, { hold = 2.6, dive = 2.3, onDive } = {}) {
+  async islandIntro(side = this.view.side, { hold = 2.6, dive = 2.3, onDive, overview = false } = {}) {
     this.endFreeLook();
     this.fitGameplay(side);
     const az0 = this.view.azimuth;
     const W = this.fitIslandWide(az0 - 0.3);
-    const tg = W.target;
-    const st = { az: az0 - 0.7, r: W.radius * 1.06 };
+    const O = overview ? this.overviewFrame(az0) : null;
+    const from = W.target.clone();
+    const st = { az: az0 - 0.7, r: W.radius * 1.06, k: 0 };
+    const tg = new V3();
     const apply = () => {
-      this.camera.position.copy(tg).add(new V3().setFromSpherical(new THREE.Spherical(st.r, W.polar, st.az)));
+      tg.lerpVectors(from, O ? O.target : from, st.k);
+      this.camera.position.copy(tg).add(new V3().setFromSpherical(new THREE.Spherical(st.r, W.polar + ((O ? O.polar : W.polar) - W.polar) * st.k, st.az)));
       this.camera.lookAt(tg);
       this.controls.target.copy(tg);
     };
@@ -502,6 +542,26 @@ export class SceneManager {
     this.introFog = true;
     this._introSkip = false;
     apply();
+    if (O) {
+      // מבט־על: מסתובבים לאט אל צד השחקן ונעצרים כשכל האי בין הסרגלים
+      let shown = false;
+      const reveal = () => { if (!shown) { shown = true; onDive?.(); } };
+      await new Promise((resolve) => {
+        this._introTween = gsap.to(st, {
+          az: az0, r: O.radius, k: 1, duration: this.reducedMotion ? 0.6 : hold + 0.4, ease: 'sine.inOut',
+          onUpdate: () => { apply(); if (this._introTween && this._introTween.progress() > 0.6) reveal(); },
+          onComplete: resolve,
+        });
+      });
+      this._introTween = null;
+      reveal();
+      this.enterOverview(O);
+      this.animatingCamera = false;
+      this.controls.enabled = !this.gestureBlocked;
+      this.controls.update();
+      this.introFog = false;
+      return;
+    }
     if (!this.reducedMotion && hold > 0) {
       await new Promise((resolve) => {
         this._introTween = gsap.to(st, { az: az0 - 0.2, r: W.radius * 0.8, duration: hold, ease: 'sine.inOut', onUpdate: apply, onComplete: resolve });
@@ -691,7 +751,7 @@ export class SceneManager {
       sh.amp *= Math.exp(-sh.decay * dt);
     } else sh.offset.set(0, 0, 0);
     this.camera.position.add(sh.offset);
-    const fb = this.introFog ? Math.max(0, this.camera.position.distanceTo(this.controls.target) - this.view.radius * 1.2) : 0;
+    const fb = (this.introFog || this.overviewOn) ? Math.max(0, this.camera.position.distanceTo(this.controls.target) - this.view.radius * 1.2) : 0;
     if (fb) { this.fog.near += fb; this.fog.far += fb; }
     this.renderer.render(this.scene, this.camera);
     if (fb) { this.fog.near -= fb; this.fog.far -= fb; }

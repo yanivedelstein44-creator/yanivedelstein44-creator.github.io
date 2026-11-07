@@ -137,7 +137,7 @@ export class GameApp {
       onFriend: () => { this.sound.ui(); openFriendHub(this); },
       onEmote: () => { this.sound.ui(); openEmotePicker(this); },
       onLeave: () => { this.sound.ui(); this.online.leave(); },
-      onHome: () => { this.sound.ui(); this.travelTo(HUB_ID); },
+      onHome: () => { this.sound.ui(); this.travelTo(HUB_ID, { battle: false, overview: true }); },
       onBattle: () => { this.sound.ui(); this.newBattle(); },
       onSfx: () => { const v = !this.store.get('settings').sfx; this.store.setSetting('sfx', v); this.sound.setSfx(v); this.ui.setAudio(v, this.store.get('settings').ambience); },
       onAmb: () => { const v = !this.store.get('settings').ambience; this.store.setSetting('ambience', v); this.sound.setAmbience(v); this.ui.setAudio(this.store.get('settings').sfx, v); },
@@ -578,6 +578,7 @@ export class GameApp {
     const bld = this.atHub && !this.busy ? this.museum.pick(x, y) : null;
     if (bld === 'cinema') { this.sound.ui(); this.openCinema(); return; }
     if (bld === 'shop') { this.sound.ui(); this.openShop(); return; }
+    if (this.sm.overviewOn) { if (this.board.hitsBoard(x, y)) { this.sound.ui(); this.sm.toGameplay(1.1, this.viewSide()); } return; }
     const sq = this.board.pickSquare(x, y, this.preferredSquares());
     if (!sq) { if (this.selected) this.deselect(); return; }
     this.onSquare(sq);
@@ -1017,11 +1018,11 @@ export class GameApp {
    * מסע לאי: האווטאר רוכב על החיה במפה (בדרך הכניסה של אי היעד), ענני מעבר,
    * ואז המצלמה צוללת מגובה אל הלוח של האי — והבוט מברך אותך.
    */
-  async travelTo(id, { battle = true } = {}) {
+  async travelTo(id, { battle = true, overview = false } = {}) {
     if (this.busy || this.traveling) return;
     const pr = this.progression;
     if (!pr.isUnlocked(id)) { this.ui.toast(t('lockedBeatPrev').replace('{n}', String(id - 1)), { kind: 'bad', icon: 'lock' }); return; }
-    if (pr.needsFullGame(id)) { M.openFullGame(this, () => this.travelTo(id, { battle })); return; }
+    if (pr.needsFullGame(id)) { M.openFullGame(this, () => this.travelTo(id, { battle, overview })); return; }
     const from = pr.currentIsland();
     if (id !== from && !(await this.confirmLeave())) return;
     this.traveling = true;
@@ -1048,10 +1049,10 @@ export class GameApp {
       else { this.setupOpponentForMode(); this.applyLoadout(); }
       this.refreshHud();
       // זום אאוט: מבט רחב על כל האי → צלילה אל הלוח (נגיעה מדלגת)
-      const intro = this.playIslandIntro(id);
+      const intro = this.playIslandIntro(id, { overview });
       CloudWipe.reveal(0.75);
       await intro;
-      setTimeout(() => this.botSay('intro', true), 500);
+      if (!overview) setTimeout(() => this.botSay('intro', true), 500);
     } finally {
       this.busy = false;
       this.traveling = false;
@@ -1060,14 +1061,14 @@ export class GameApp {
   }
 
   /** פתיחה קולנועית של האי: הסרגלים נעלמים, מבט רחב עם שם האי, ואז צלילה אל הלוח. נגיעה מדלגת */
-  playIslandIntro(id = this.islandId) {
+  playIslandIntro(id = this.islandId, { overview = false } = {}) {
     const d = islandDef(id);
     this.introPlaying = true;
     this.root.classList.add('intro');
     const skip = () => this.sm.skipIntro();
     this.root.addEventListener('pointerdown', skip, { capture: true });
     const title = setTimeout(() => this.ui.eraTitle(`${t('island')} ${id}${d.boss ? ` · ${t('boss')}` : ''}`, id === HUB_ID ? t('hubName') : islandLabel(id), `${tn(d.bot.title.he, d.bot.title.en)} ${tn(d.bot.name.he, d.bot.name.en)} · ${d.bot.rating}`, { top: true }), 350);
-    this.introPromise = this.sm.islandIntro(this.viewSide(), { onDive: () => this.root.classList.remove('intro') })
+    this.introPromise = this.sm.islandIntro(this.viewSide(), { overview, onDive: () => this.root.classList.remove('intro') })
       .finally(() => {
         clearTimeout(title);
         this.root.removeEventListener('pointerdown', skip, { capture: true });
@@ -1088,6 +1089,7 @@ export class GameApp {
     if (!list.length || !this.atHub || this.docking) return;
     this.docking = true;
     this.busy = true;
+    const wasOverview = this.sm.overviewOn;
     try {
       for (const id of list) {
         const e = islandDef(id).era;
@@ -1096,7 +1098,8 @@ export class GameApp {
         this.store.set({ pendingDocks: (this.store.get('pendingDocks') || []).filter((x) => x !== id) });
         this.museum.rebuild();
       }
-      await this.sm.toGameplay(1.3, this.viewSide());
+      if (wasOverview) await this.sm.toOverview(1.3, this.viewSide());
+      else await this.sm.toGameplay(1.3, this.viewSide());
     } finally {
       this.docking = false;
       this.busy = false;
