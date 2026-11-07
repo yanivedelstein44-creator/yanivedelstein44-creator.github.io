@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.3.7",
-  "build": "1.3.7-1794060902807",
-  "buildTime": 1794060902807,
-  "date": "2026-11-07T14:15:02.807Z",
+  "version": "1.3.8",
+  "build": "1.3.8-1794061925554",
+  "buildTime": 1794061925554,
+  "date": "2026-11-07T14:32:05.554Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.3.7-1794060902807.zip",
-  "checksum": "8351360d3b012612434dc73b5d20c27cb61b870ff7c0b4da8f2aa24c69cfc18e",
+  "bundle": "update/bundle-1.3.8-1794061925554.zip",
+  "checksum": "5fd8453a2126f3d6a0588231a527a5164b3aafd66f4d85b61564d97aaac37488",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Clearer world map: a continuous golden path with arrows to the next island, world signs and colors, premium islands moved to an outer golden ring (with faster flights), and the map opens on your island and the next one"
+  "notes": "Fog of the unknown: every island after the next one is under fog, and after a win the fog over the new next island lifts with sparkles. World signs hide during flights"
 }
