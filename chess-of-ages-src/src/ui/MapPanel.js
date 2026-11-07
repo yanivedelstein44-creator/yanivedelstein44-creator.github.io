@@ -59,8 +59,12 @@ export function buildMapUi(app, map) {
     const actions = h('div', { class: 'card-actions' });
     if (paywall) actions.append(h('button', { class: 'btn primary tap', onclick: () => app.travelTo(id) }, ...withIcon('crown', t('fullTitle'), 18)));
     else {
-      const label = piratesNow ? t('fightPirates') : pirates ? t('practicePirates') : id === cur ? t('battle') : t('travelBattle');
-      actions.append(h('button', { class: `btn primary go tap${piratesNow ? ' danger' : ''}`, onclick: () => app.travelTo(id) }, ...withIcon('swords', label, 20)));
+      // האי המרכזי: "כניסה" (יש בו מבנים מעבר לקרב) — מבט־על על כל האי
+      if (id === HUB_ID) actions.append(h('button', { class: 'btn primary go tap', onclick: () => app.travelTo(id, { battle: false, overview: true }) }, ...withIcon('home', t('enterIsland'), 20)));
+      else {
+        const label = piratesNow ? t('fightPirates') : pirates ? t('practicePirates') : id === cur ? t('battle') : t('travelBattle');
+        actions.append(h('button', { class: `btn primary go tap${piratesNow ? ' danger' : ''}`, onclick: () => app.travelTo(id) }, ...withIcon('swords', label, 20)));
+      }
       if (id === HUB_ID) actions.append(h('button', { class: 'btn tap', onclick: () => { map.close(); app.handlers().onFriend(); } }, ...withIcon('users', t('friend'), 18)));
     }
     const note = pirates && !piratesNow ? h('div', { class: 'muted small' }, t('piratesReturn').replace('{t}', fmtDur(pr.pirateReturnIn(id)))) : null;
