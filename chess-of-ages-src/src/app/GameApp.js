@@ -801,6 +801,17 @@ export class GameApp {
 
   async endGame(result) {
     if (!result || this.ending) return;
+    try {
+      await this.finishGame(result);
+    } catch (e) {
+      console.error('endGame', e);
+      this.busy = false;
+      this.ending = false;
+      this.refreshHud();
+    }
+  }
+
+  async finishGame(result) {
     this.ending = true;
     this.busy = true;
     this.thinking = false;
@@ -821,7 +832,7 @@ export class GameApp {
       this.sound.checkmate();
       const kw = this.board.squareWorld(ks);
       this.sm.animateCamera(this.sm.camera.position.clone().lerp(kw, 0.35).add(new THREE.Vector3(0, 1.5, 0)), kw, 1.6, 'power2.inOut');
-      await this.board.toppleKing(ks);
+      await Promise.race([this.board.toppleKing(ks), sleep(3000)]);
       screenFlash('rgba(255,236,170,0.75)', 1.2);
       this.fx.confetti([kw.x, 1.5, kw.z], 160);
       this.shock.play({ duration: 1.3, maxR: 14 });
@@ -838,7 +849,7 @@ export class GameApp {
     if (vsBot && winner) setTimeout(() => this.botSay(iWon ? 'lose' : 'win', true), 900);
 
     // דיוק (לכוכבים ולסיכום)
-    await this.waitReviews();
+    await this.waitReviews(result.reason === 'resign' ? 1200 : 3500);
     const rv = this.game.reviews.filter(Boolean);
     const myColor = this.mode === 'local' ? 'w' : this.myColor;
     const avg = (arr) => (arr.length ? arr.reduce((a, b) => a + b.acc, 0) / arr.length : null);
@@ -867,7 +878,7 @@ export class GameApp {
       if (winner && plies >= RULES.antiFarmPlies) { gems = ECONOMY.friendWinGems; this.economy.addGems(gems, 'friend'); }
       else if (winner) stageMsg = t('antiFarm');
     }
-    await sleep(1400);
+    await sleep(result.reason === 'resign' ? 500 : 1400);
     // בוסט יהלומים כפולים (קנייה שבועית) — חל על ניצחונות נגד בוטים ופיראטים
     const gemMult = this.economy.gemMultiplier();
     if (vsBot && iWon) {
@@ -1297,9 +1308,18 @@ export class GameApp {
   }
 
   async resign() {
-    if (this.game.result || this.game.ply === 0 || this.busy) return;
-    if (!(await this.ui.confirm(t('confirmResign'), t('resign'), { danger: true }))) return;
     if (this.mode === 'watch') return;
+    // המשחק כבר נגמר / עוד לא התחיל: הדגל מציע משחק חדש (במקום לא לעשות כלום)
+    if (this.game.result || this.game.ply === 0) {
+      if (this.ending || this.mode !== 'ai') return;
+      if (await this.ui.confirm(t('confirmRestart'), t('newGame'))) await this.newBattle({ confirm: false });
+      return;
+    }
+    if (!(await this.ui.confirm(t('confirmResign'), t('resign'), { danger: true }))) return;
+    // מהלך באמצע אנימציה — מחכים שיסתיים (עד 4 שניות) במקום להתעלם מהלחיצה
+    for (let i = 0; i < 40 && this.busy && !this.ending; i++) await sleep(100);
+    if (this.game.result || this.ending) return;
+    this.busy = false; // אם משהו נתקע — משחררים, כדי שתמיד אפשר יהיה לסיים ולהתחיל מחדש
     const winner = this.mode === 'local' ? (this.game.turn === 'w' ? 'b' : 'w') : (this.myColor === 'w' ? 'b' : 'w');
     if (this.mode === 'online') await this.online.room?.resign().catch(() => {});
     this.endGame(this.game.finish(winner, 'resign'));
