@@ -37,19 +37,19 @@ const BRIDGE = { 2: [0xf2ece0, 0x5a5040], 3: [0x8a5a30, 0x000000], 4: [0xb07a3a,
 export const APPROACHES = ['gate', 'rings', 'skim', 'spiral', 'dive', 'bridge'];
 export const approachOf = (id) => (id === HUB_ID ? 'spiral' : isPremium(id) ? 'hop' : APPROACHES[(id * 5 + regionOf(id) * 3) % 6]);
 
-/** איי הפרימיום: שתי טבעות צמודות לאי המרכזי (15 בכל טבעת, הפנימית מסובבת חצי צעד) */
-const PREM_R = [6.4, 9.3];
+/** איי הפרימיום: טבעת זהב חיצונית סביב כל העולם — לא צמודים לאי המרכזי */
+const PREM_RING_R = 44;
 export function premiumPos(id) {
-  const k = id - PREMIUM_FIRST, ring = k < 15 ? 0 : 1, i = k % 15;
-  const th = -Math.PI / 2 + ((i + (ring ? 0.5 : 0)) / 15) * TAU;
-  return new V3(Math.cos(th) * PREM_R[ring], 0, Math.sin(th) * PREM_R[ring]);
+  const k = id - PREMIUM_FIRST;
+  const th = -Math.PI / 2 + (k / 30) * TAU;
+  return new V3(Math.cos(th) * PREM_RING_R, 0, Math.sin(th) * PREM_RING_R);
 }
 
 /** מיקום אי במפה: האי המרכזי באמצע, טבעות הפרימיום סביבו, 2–99 על ספירלה ארכימדית במרווחים שווים */
 export function islandPos(id) {
   if (id === HUB_ID) return new V3(0, 0, 0);
   if (id >= PREMIUM_FIRST) return premiumPos(id);
-  const a = 12.6, b = 1.06, d = 4.3;
+  const a = 8.0, b = 1.06, d = 4.3;
   const s = (id - 2) * d;
   const th = (-a + Math.sqrt(a * a + 2 * b * s)) / b;
   const r = a + b * th;
@@ -227,6 +227,7 @@ export class WorldMap {
     this.buildPath();
     this.buildMarkers();
     this.buildLabels();
+    this.buildWorldSigns();
     this.buildClouds();
     this.buildTraveler();
   }
@@ -354,23 +355,115 @@ export class WorldMap {
 
   /** שביל אבני דריכה בין האיים (זהב = נכבש) */
   buildPath() {
+    // שביל רציף 1→99 על המים: זהב עד האי האחרון שנכבש, קטע "הבא" מהבהב, ואחריו מקווקו
     const pts = [];
-    // הספירלה 1→99, ואיי הפרימיום: מהמרכז אל 100, סביב הטבעת הפנימית, אל הטבעת החיצונית וסביבה
-    const links = [];
-    for (let id = 1; id < Math.min(ISLAND_COUNT, PREMIUM_FIRST - 1); id++) links.push([id, id + 1, id === HUB_ID ? 4 : 3]);
+    for (let id = 1; id < PREMIUM_FIRST; id++) pts.push(this.positions[id].clone().setY(-0.12));
+    this.pathCurve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+    this.pathSamples = this.pathCurve.getSpacedPoints((PREMIUM_FIRST - 2) * 16);
+    this.islandSample = [];
+    for (let id = 1; id < PREMIUM_FIRST; id++) {
+      let best = 0, bd = 1e9;
+      const p = this.positions[id];
+      this.pathSamples.forEach((q, i) => { const d = (q.x - p.x) ** 2 + (q.z - p.z) ** 2; if (d < bd) { bd = d; best = i; } });
+      this.islandSample[id] = best;
+    }
+    // הילות צבע על המים — כל עולם בצבע משלו
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const x = c.getContext('2d'); const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, 'rgba(255,255,255,0.9)'); g.addColorStop(0.55, 'rgba(255,255,255,0.45)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+    const tint = { 1: 0xffa94a, 2: 0xfff0c8, 3: 0x7dff4f, 4: 0xe0805a, 5: 0x3fe0ff, 6: 0xff6f9a, 7: 0xffd02a, 8: 0xd8ecff, 9: 0x2fe0b6, 10: 0xb48aff };
+    this.halos = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, opacity: 0.85, toneMapped: false }), PREMIUM_FIRST - 1);
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new V3(), col = new THREE.Color();
+    for (let id = 1; id < PREMIUM_FIRST; id++) {
+      const p = this.positions[id];
+      m4.compose(new V3(p.x, -0.2, p.z), q, sc.setScalar(id === HUB_ID ? 9 : 7.2));
+      this.halos.setMatrixAt(id - 1, m4);
+      this.halos.setColorAt(id - 1, col.setHex(id === HUB_ID ? 0xffffff : tint[regionOf(id)]));
+    }
+    this.halos.renderOrder = -1;
+    this.scene.add(this.halos);
+    // קווי השביל (נבנים מחדש ב-refresh לפי ההתקדמות)
+    const dash = document.createElement('canvas'); dash.width = 64; dash.height = 8;
+    const dx = dash.getContext('2d'); dx.fillStyle = '#ffffff'; dx.fillRect(0, 0, 30, 8);
+    const dashTex = new THREE.CanvasTexture(dash); dashTex.wrapS = THREE.RepeatWrapping;
+    this.ribbonMats = {
+      shadow: new THREE.MeshBasicMaterial({ color: 0x0b2a4a, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }),
+      done: new THREE.MeshBasicMaterial({ color: 0xffd25a, transparent: true, opacity: 0.98, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }),
+      next: new THREE.MeshBasicMaterial({ color: 0x5dffb0, transparent: true, opacity: 0.95, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }),
+      todo: new THREE.MeshBasicMaterial({ color: 0xffffff, map: dashTex, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide }),
+    };
+    this.ribbons = new THREE.Group();
+    this.scene.add(this.ribbons);
+    // חיצים על קטע "הבא"
+    const sh = new THREE.Shape(); sh.moveTo(-0.32, -0.26); sh.lineTo(0.12, 0); sh.lineTo(-0.32, 0.26); sh.lineTo(-0.18, 0); sh.closePath();
+    this.arrowGeo = new THREE.ShapeGeometry(sh).rotateX(-Math.PI / 2);
+    this.arrows = [];
+    for (let i = 0; i < 6; i++) { const a = new THREE.Mesh(this.arrowGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthWrite: false, toneMapped: false })); a.visible = false; a.scale.setScalar(2.1); this.scene.add(a); this.arrows.push(a); }
+    // אבני זהב לאורך טבעת הפרימיום
     if (ISLAND_COUNT >= PREMIUM_FIRST) {
-      links.push([HUB_ID, PREMIUM_FIRST, 2]);
-      for (let id = PREMIUM_FIRST; id < ISLAND_COUNT; id++) links.push([id, id + 1, 2]);
+      const ring = [];
+      for (let id = PREMIUM_FIRST; id <= ISLAND_COUNT; id++) {
+        const a = this.positions[id], b = this.positions[id === ISLAND_COUNT ? PREMIUM_FIRST : id + 1];
+        for (let k = 1; k < 4; k++) ring.push(a.clone().lerp(b, k / 4));
+      }
+      this.ringStones = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.2, 0.22, 0.08, 8), new THREE.MeshStandardMaterial({ color: 0xf2c94c, emissive: 0x7a5410, emissiveIntensity: 0.5, roughness: 0.5 }), ring.length);
+      ring.forEach((pt, i) => { m4.makeTranslation(pt.x, -0.12, pt.z); this.ringStones.setMatrixAt(i, m4); });
+      this.scene.add(this.ringStones);
     }
-    for (const [from, to, n] of links) {
-      const a = this.positions[from], b = this.positions[to];
-      for (let k = 1; k < n; k++) pts.push([a.clone().lerp(b, k / n), from]);
+    this.pathMesh = null;
+    this.pathOwners = [];
+  }
+
+  ribbonGeo(i0, i1, width, uvScale = 1) {
+    const S = this.pathSamples, n = Math.max(2, i1 - i0 + 1);
+    const pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = [];
+    let len = 0;
+    for (let k = 0; k < n; k++) {
+      const i = Math.min(S.length - 1, i0 + k);
+      const p = S[i], a = S[Math.max(0, i - 1)], b = S[Math.min(S.length - 1, i + 1)];
+      const tx = b.x - a.x, tz = b.z - a.z, tl = Math.hypot(tx, tz) || 1;
+      const sx = (-tz / tl) * width / 2, sz = (tx / tl) * width / 2;
+      if (k > 0) len += p.distanceTo(S[Math.min(S.length - 1, i0 + k - 1)]);
+      pos.set([p.x + sx, p.y, p.z + sz, p.x - sx, p.y, p.z - sz], k * 6);
+      uv.set([len * uvScale, 0, len * uvScale, 1], k * 4);
+      if (k < n - 1) { const v = k * 2; idx.push(v, v + 1, v + 2, v + 1, v + 3, v + 2); }
     }
-    this.pathMesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.16, 0.18, 0.08, 8), new THREE.MeshStandardMaterial({ roughness: 0.6, emissive: 0x1a1000 }), pts.length);
-    const m4 = new THREE.Matrix4();
-    pts.forEach(([p], i) => { m4.makeTranslation(p.x, -0.12, p.z); this.pathMesh.setMatrixAt(i, m4); });
-    this.pathOwners = pts.map(([, id]) => id);
-    this.scene.add(this.pathMesh);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    g.setIndex(idx);
+    return g;
+  }
+
+  updateRibbon() {
+    if (!this.ribbons) return;
+    this.ribbons.children.forEach((m) => m.geometry.dispose());
+    this.ribbons.clear();
+    const pr = this.app.progression;
+    const nxt = Math.min(PREMIUM_FIRST - 1, pr.frontier() || 2);
+    const last = Math.max(1, nxt - 1);
+    const sDone = this.islandSample[last], sNext = this.islandSample[nxt], end = this.pathSamples.length - 1;
+    const add = (i0, i1, w, mat, y = 0, uv = 1) => { if (i1 > i0) { const m = new THREE.Mesh(this.ribbonGeo(i0, i1, w, uv), mat); m.position.y = y; m.renderOrder = 2; this.ribbons.add(m); } };
+    add(0, end, 0.62, this.ribbonMats.shadow, -0.005);
+    add(0, sDone, 0.4, this.ribbonMats.done, 0.004);
+    add(sDone, sNext, 0.4, this.ribbonMats.next, 0.006);
+    add(sNext, end, 0.26, this.ribbonMats.todo, 0.004, 1 / 0.9);
+    // חיצים: על הקטע אל האי הבא ועל הקטע שאחריו
+    const legs = [[sDone, sNext, 0x5dffb0], [sNext, this.islandSample[Math.min(PREMIUM_FIRST - 1, nxt + 1)], 0xffffff]];
+    let ai = 0;
+    for (const [a, b, colr] of legs) {
+      for (const f of [0.3, 0.5, 0.7]) {
+        const arrow = this.arrows[ai++]; if (!arrow) break;
+        const i = Math.round(a + (b - a) * f);
+        const p = this.pathSamples[i], q2 = this.pathSamples[Math.min(end, i + 2)];
+        arrow.position.set(p.x, 0.02, p.z);
+        arrow.rotation.set(0, -Math.atan2(q2.z - p.z, q2.x - p.x), 0);
+        arrow.material.color.setHex(colr);
+        arrow.visible = b > a;
+        arrow.userData.f = f;
+      }
+    }
   }
 
   buildMarkers() {
@@ -414,6 +507,29 @@ export class WorldMap {
       this.labels.push(sp);
       this.scene.add(sp);
     }
+  }
+
+  /** שלט לכל עולם, בתחילת הקטע שלו בספירלה */
+  buildWorldSigns() {
+    const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+    this.worldSigns = [];
+    for (let w = 1; w <= 10; w++) {
+      const first = Math.max(2, (w - 1) * 10 + 1);
+      const p = this.positions[first];
+      const out = p.clone().setY(0).normalize();
+      const era = getEra(w);
+      const tex = labelTexture(`עולם ${ROMAN[w - 1]} · ${era.name}`, { w: 300, h: 56, bg: 'rgba(40,26,80,0.9)', fg: '#ffe9a8' });
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthWrite: false, transparent: true }));
+      sp.position.set(p.x + out.x * 3.2, 2.6, p.z + out.z * 3.2);
+      sp.scale.set(5.4, 1.0, 1);
+      sp.userData.world = w;
+      this.scene.add(sp);
+      this.worldSigns.push(sp);
+    }
+    const gold = labelTexture('איי הזהב · פרימיום', { w: 260, h: 56, bg: 'rgba(80,52,6,0.92)', fg: '#ffe08a' });
+    const gs = new THREE.Sprite(new THREE.SpriteMaterial({ map: gold, depthWrite: false, transparent: true }));
+    gs.position.set(0, 3, -44 - 3.6); gs.scale.set(5, 1.05, 1);
+    this.scene.add(gs);
   }
 
   buildClouds() {
@@ -563,8 +679,9 @@ export class WorldMap {
     this.baseMesh.instanceColor.needsUpdate = true;
     this.topMesh.instanceColor.needsUpdate = true;
     const gold = new THREE.Color(0xffd36a), grey = new THREE.Color(0x6a7486);
-    this.pathOwners.forEach((id, i) => this.pathMesh.setColorAt(i, pr.isConquered(id) ? gold : grey));
-    this.pathMesh.instanceColor.needsUpdate = true;
+    this.updateRibbon();
+    const nxL = pr.frontier() || 2;
+    this.labels?.forEach((l) => { const id = l.userData.id; l.visible = id === HUB_ID || isBoss(id) || isPremium(id) || Math.abs(id - nxL) <= 5; });
     const cur = pr.currentIsland();
     const nx = pr.frontier();
     this.nextRing.visible = !!nx && nx !== cur;
@@ -588,8 +705,10 @@ export class WorldMap {
     document.getElementById('app').classList.add('map-open');
     this.ui = this.buildUi();
     if (travel) this.ui?.classList.add('flying');
-    const target = this.positions[focus || cur] || new V3();
-    this.view = { x: target.x, z: target.z, h: 11, vx: 0, vz: 0 };
+    let target = this.positions[focus || cur] || new V3();
+    const nxt = this.app.progression.frontier();
+    if (!focus && nxt && this.positions[nxt]) target = target.clone().lerp(this.positions[nxt], 0.5);
+    this.view = { x: target.x, z: target.z, h: 15, vx: 0, vz: 0 };
     this.applyView();
     this.bindInput();
     this.last = performance.now();
@@ -640,6 +759,8 @@ export class WorldMap {
     this.nextRing.material.opacity = 0.5 + pulse * 0.45;
     if (this.selRing.visible) this.selRing.rotation.z += dt * 0.8;
     this.hubFlag.rotation.y = Math.sin(tt * 2.4) * 0.25;
+    if (this.ribbonMats) this.ribbonMats.next.opacity = 0.55 + 0.45 * pulse;
+    this.arrows?.forEach((a) => { if (a.visible) a.material.opacity = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(tt * 5 - (a.userData.f || 0) * 9)); });
     const cam = this.camera.position;
     for (const cl of this.clouds) {
       cl.position.x += cl.userData.v * dt;
@@ -657,10 +778,11 @@ export class WorldMap {
   /** מצלמת סיור: זום-אין משטיח את הזווית ומראה אופק ושמיים; זום-אאוט מלמעלה */
   applyView() {
     const v = this.view;
-    const lim = 34;
+    const lim = 50;
     const d = Math.hypot(v.x, v.z);
     if (d > lim) { v.x *= lim / d; v.z *= lim / d; }
-    v.h = Math.max(5, Math.min(40, v.h));
+    v.h = Math.max(5, Math.min(58, v.h));
+    if (this.scene.fog) { this.scene.fog.near = 45 + Math.max(0, v.h - 20) * 1.2; this.scene.fog.far = 130 + Math.max(0, v.h - 20) * 2.4; }
     const k = THREE.MathUtils.clamp((v.h - 5) / 35, 0, 1);
     const pitch = THREE.MathUtils.degToRad(24 + k * 30);
     this.camera.position.set(v.x, v.h, v.z + v.h / Math.tan(pitch));
@@ -788,7 +910,7 @@ export class WorldMap {
     const S = (k, y) => B.clone().addScaledVector(dir, -k).setY(y);
     const pts = [A.clone(), A.clone().addScaledVector(fd, 0.7).setY(A.y + (this.ground ? 0.5 : 0.9))];
     if (ap === 'hop') {
-      // איי הפרימיום צמודים למרכז: קפיצה קצרה בקשת
+      // איי הפרימיום בטבעת הזהב החיצונית: קשת גבוהה ומהירה
       const mid = A.clone().lerp(B, 0.55); mid.y = (this.ground ? 0.6 : Math.max(1.6, cruise * 0.8)) + Math.min(5, dist * 0.12);
       pts.push(mid, B.clone().addScaledVector(fd, -0.9).setY(this.ground ? 0.3 : 0.9), land);
       return { pts, ap, B, land, dir };
@@ -830,7 +952,8 @@ export class WorldMap {
     this.setRiding(true);
     this.app.sound.petVoice?.(this.rig?.voice || 'wolf');
     this.endFlightExtras();
-    const f = { curve, len, t: -0.75, dur: THREE.MathUtils.clamp(len / 6.2, 2.6, 6.4), speed: 1, phase: 'fly', ap, B, land, dir, toId,
+    const premTrip = isPremium(toId) || isPremium(fromId);
+    const f = { curve, len, t: -0.75, dur: premTrip ? THREE.MathUtils.clamp(len / 12, 2.2, 3.6) : THREE.MathUtils.clamp(len / 6.2, 2.6, 6.4), speed: 1, phase: 'fly', ap, B, land, dir, toId,
       camPos: this.camera.position.clone(), camLook: this.lookAt.clone(), prevYaw: null, yawRate: 0, clouds: [], hoops: [], gate: null, whoosh: false };
     if (ap === 'bridge') this.buildBridge(B, dir, toId);
     if (ap === 'rings') f.hoops = this.hoopList.filter((hp) => hp.id === toId).map((hp) => ({ pos: hp.pos, passed: false }));
