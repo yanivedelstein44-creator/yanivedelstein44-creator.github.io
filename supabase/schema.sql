@@ -24,6 +24,7 @@ create table if not exists public.members (
   notify_daily boolean not null default true,
   notify_weekly boolean not null default true,
   daily_hour int not null default 7 check (daily_hour between 0 and 23),
+  roster_name text constraint members_roster_name_len check (roster_name is null or char_length(roster_name) between 1 and 40),
   joined_at timestamptz not null default now()
 );
 create index if not exists members_household_idx on public.members(household_id);
@@ -484,3 +485,22 @@ revoke execute on function public.apply_ops(jsonb) from anon;
 select cron.schedule('hayoman-guest-cleanup', '23 3 * * *',
   $$delete from auth.users u where u.is_anonymous and u.created_at < now() - interval '3 days'
       and not exists (select 1 from public.members m where m.user_id = u.id)$$);
+
+-- ---------- "מתמונה ליומן": log for the daily cap (Edge Function 'scan', service role only) ----------
+create table if not exists public.scan_log (
+  id bigint generated always as identity primary key,
+  household_id uuid not null references public.households(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  model text,
+  input_tokens int not null default 0,
+  output_tokens int not null default 0,
+  items int not null default 0,
+  ok boolean not null default false,
+  error text
+);
+create index if not exists scan_log_household_time on public.scan_log (household_id, created_at desc);
+alter table public.scan_log enable row level security;
+revoke all on public.scan_log from anon, authenticated;
+select cron.schedule('hayoman-scanlog-cleanup', '41 3 * * *',
+  $$delete from public.scan_log where created_at < now() - interval '60 days'$$);
