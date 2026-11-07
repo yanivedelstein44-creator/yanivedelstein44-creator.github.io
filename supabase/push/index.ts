@@ -67,6 +67,45 @@ function expand(events, from, to) {
   out.sort((a, b) => (b.allDay - a.allDay) || a.A - b.A || String(a.ev.title).localeCompare(String(b.ev.title)));
   return out;
 }
+
+// ----- day intervals in minutes [a, b) -----
+function ivMerge(iv) {
+  iv = iv.filter(x => x[1] > x[0]).sort((a, b) => a[0] - b[0]);
+  const out = [];
+  for (const x of iv) { const l = out[out.length - 1]; if (l && x[0] <= l[1]) l[1] = Math.max(l[1], x[1]); else out.push([x[0], x[1]]); }
+  return out;
+}
+function ivIntersect(a, b) {
+  const out = []; let i = 0, j = 0;
+  while (i < a.length && j < b.length) {
+    const s = Math.max(a[i][0], b[j][0]), e = Math.min(a[i][1], b[j][1]);
+    if (e > s) out.push([s, e]);
+    if (a[i][1] < b[j][1]) i++; else j++;
+  }
+  return out;
+}
+// busy minutes of day d from timed occurrences matching pick
+function dayBusy(occ, d, pick) {
+  const D0 = dn(d) * 1440;
+  return ivMerge(occ.filter(o => !o.allDay && pick(o)).map(o => [Math.max(o.A - D0, 0), Math.min(o.B - D0, 1440)]));
+}
+// times when every member has a personal (not shared) commitment
+function bothBusy(occ, d, ids) {
+  if (!ids || ids.length < 2) return [];
+  let acc = null;
+  for (const id of ids) {
+    const iv = dayBusy(occ, d, o => o.ev.owner_id === id);
+    acc = acc === null ? iv : ivIntersect(acc, iv);
+    if (!acc.length) return [];
+  }
+  return acc.filter(x => x[1] - x[0] >= 15);
+}
+function freeSlots(busy, from, to, minLen) {
+  const out = []; let cur = from;
+  for (const [a, b] of busy) { if (b <= cur) continue; if (a > cur) out.push([cur, Math.min(a, to)]); cur = Math.max(cur, b); if (cur >= to) break; }
+  if (cur < to) out.push([cur, to]);
+  return out.filter(x => x[1] - x[0] >= minLen);
+}
 // ===== end shared =====
 
 // ===== minimal Web Push (RFC 8291 aes128gcm + RFC 8292 VAPID) on WebCrypto – works in Deno and Node 20+ =====
@@ -198,35 +237,62 @@ async function sendToUsers(userIds, msg, opts) {
 }
 
 // ---------- change notifications ----------
-function composeChange(actor, items, mems, today) {
+const KIND1 = { shift: 'משמרת', task: 'משימה', event: 'אירוע' }, KINDN = { shift: 'משמרות', task: 'משימות', event: 'אירועים' };
+function composeChange(actor, items, mems, today, to, note) {
   const name = actor ? actor.display_name : 'מישהו', f = actor && actor.gender === 'f';
-  const V = { insert: f ? 'הוסיפה' : 'הוסיף', update: f ? 'עדכנה' : 'עדכן', delete: f ? 'מחקה' : 'מחק' };
+  const V = { insert: f ? 'הוסיפה' : 'הוסיף', update: f ? 'עדכנה' : 'עדכן', delete: f ? 'מחקה' : 'מחק', done: f ? 'סיימה' : 'סיים' };
   const when = it => it.ev_date ? relDay(it.ev_date, today) + (it.ev_time ? ' · ' + String(it.ev_time).slice(0, 5) : '') : '';
-  const ownerOf = it => (it.owner_id && actor && it.owner_id !== actor.user_id) ? ` (של ${(mems.find(m => m.user_id === it.owner_id) || {}).display_name || ''})` : '';
+  const whose = it => !it.owner_id ? (mems.length > 1 ? ' (שלנו)' : '') : it.owner_id === to.user_id ? ' (שלך)' : (actor && it.owner_id === actor.user_id) ? '' : ` (של ${(mems.find(m => m.user_id === it.owner_id) || {}).display_name || ''})`;
+  const urlOf = it => it.kind === 'task' ? '/?tasks=1' : it.action !== 'delete' && it.ev_date ? `/?d=${it.ev_date}` : '/?feed=1';
   if (items.length === 1) {
     const it = items[0];
     return {
-      title: `${name} ${V[it.action] || V.update} ${it.kind === 'shift' ? 'משמרת' : 'אירוע'}`,
-      body: [`${it.title || ''}${ownerOf(it)}`, when(it), it.recur ? '🔁' : ''].filter(Boolean).join(' · '),
-      url: it.action !== 'delete' && it.ev_date ? `/?d=${it.ev_date}` : '/?feed=1', tag: 'chg-' + (it.event_id || Date.now())
+      title: `${name} ${V[it.action] || V.update} ${KIND1[it.kind] || 'אירוע'}`,
+      body: [[`${it.title || ''}${whose(it)}`, when(it), it.recur ? '🔁' : ''].filter(Boolean).join(' · '), note].filter(Boolean).join('\n'),
+      url: urlOf(it), tag: 'chg-' + (it.event_id || Date.now())
     };
   }
   const acts = [...new Set(items.map(i => i.action))], kinds = [...new Set(items.map(i => i.kind))], n = items.length;
   const title = acts.length === 1 && kinds.length === 1
-    ? `${name} ${V[acts[0]]} ${n} ${kinds[0] === 'shift' ? 'משמרות' : 'אירועים'}`
+    ? `${name} ${V[acts[0]] || V.update} ${n} ${KINDN[kinds[0]] || 'פריטים'}`
     : `${name} ${f ? 'עדכנה' : 'עדכן'} ${n} פריטים ביומן`;
-  const lines = items.slice(0, 5).map(it => `${it.action === 'delete' ? '✖ ' : ''}${it.title || ''}${ownerOf(it)}${it.ev_date ? ' · ' + relDay(it.ev_date, today) : ''}`);
+  const lines = items.slice(0, 5).map(it => `${it.action === 'delete' ? '✖ ' : it.action === 'done' ? '✓ ' : ''}${it.title || ''}${whose(it)}${it.ev_date ? ' · ' + relDay(it.ev_date, today) : ''}`);
   if (n > 5) lines.push(`ועוד ${n - 5}…`);
-  return { title, body: lines.join('\n'), url: '/?feed=1', tag: 'chg-batch-' + Date.now() };
+  if (note) lines.push(note);
+  return { title, body: lines.join('\n'), url: kinds.length === 1 && kinds[0] === 'task' ? '/?tasks=1' : '/?feed=1', tag: 'chg-batch-' + Date.now() };
+}
+// "both of you are busy at the same time" created by this change (2-person calendars)
+async function bothBusyNote(hh, items, mems, today) {
+  if (mems.length !== 2) return '';
+  const ch = items.filter(i => i.action !== 'delete' && i.kind !== 'task' && i.ev_date && i.owner_id && i.ev_time && !i.recur);
+  if (!ch.length) return '';
+  const ids = new Set(ch.map(i => i.event_id)), dates = [...new Set(ch.map(i => i.ev_date))].sort();
+  const { data: evs } = await db.from('events').select('*').eq('household_id', hh).or(`end_date.gte.${addDays(dates[0], -2)},recur.not.is.null`).lte('start_date', addDays(dates[dates.length - 1], 2));
+  const hits = [];
+  for (const d of dates) {
+    const occ = expand(evs || [], addDays(d, -2), addDays(d, 1));
+    for (const dd of [d, addDays(d, 1)]) {
+      const D0 = dn(dd) * 1440;
+      const mine = occ.filter(o => ids.has(o.ev.id) && o.date === d).map(o => [o.A - D0, o.B - D0]);
+      for (const [a, b] of bothBusy(occ, dd, mems.map(m => m.user_id))) if (mine.some(([x, y]) => x < b && a < y) && !hits.some(h => h[0] === dd && h[1] === a)) hits.push([dd, a, b]);
+    }
+  }
+  if (!hits.length) return '';
+  if (hits.length === 1) return `⚠️ שניכם עסוקים במקביל ${relDay(hits[0][0], today)} ${fmtT(hits[0][1])}-${fmtT(hits[0][2])}`;
+  return `⚠️ ${hits.length} פעמים ששניכם עסוקים במקביל`;
 }
 async function handleChange(b) {
   const items = b.items || [];
   if (!items.length) return { sent: 0 };
   const { data: mems } = await db.from('members').select('user_id, display_name, gender, notify_changes').eq('household_id', b.household_id);
-  const actor = (mems || []).find(m => m.user_id === b.actor_id);
-  const targets = (mems || []).filter(m => m.user_id !== b.actor_id && m.notify_changes).map(m => m.user_id);
-  const msg = composeChange(actor, items, mems || [], localAt(Date.now()).date);
-  return await sendToUsers(targets, msg, { ttl: 86400 });
+  const all = mems || [], actor = all.find(m => m.user_id === b.actor_id), today = localAt(Date.now()).date;
+  const targets = all.filter(m => m.user_id !== b.actor_id && m.notify_changes);
+  if (!targets.length) return { sent: 0 };
+  let note = '';
+  try { note = await bothBusyNote(b.household_id, items, all, today); } catch (e) { console.log('note error', String(e)); }
+  let sent = 0;
+  for (const t of targets) sent += (await sendToUsers([t.user_id], composeChange(actor, items, all, today, t, note), { ttl: 86400 })).sent;
+  return { sent };
 }
 
 // ---------- reminders ----------
@@ -320,6 +386,16 @@ async function digest(m, kind, L, mems) {
     if (!items.length) continue;
     lines.push(`${HE_D[dowOf(d)]} ${dShort(d)}: ${items.slice(0, 4).map(o => fmt(o, true)).join(' · ')}${items.length > 4 ? ` +${items.length - 4}` : ''}`);
   }
+  if (hhm.length >= 2) {
+    const fr = [];
+    for (let d = from; d <= to && fr.length < 3; d = addDays(d, 1)) {
+      const w = freeSlots(dayBusy(occ, d, () => true), 7 * 60, 23 * 60, 90).filter(([a, b]) => b > 17 * 60 || dowOf(d) >= 5);
+      if (w.length) { const best = w.sort((x, y) => (y[1] - y[0]) - (x[1] - x[0]))[0]; fr.push(`${HE_D[dowOf(d)]} ${fmtT(best[0])}-${fmtT(best[1])}`); }
+    }
+    if (fr.length) lines.push('💛 פנויים יחד: ' + fr.join(' · '));
+  }
+  const { data: tks } = await db.from('tasks').select('title').eq('household_id', m.household_id).eq('done', false).order('created_at').limit(30);
+  if (tks && tks.length) lines.push(`📝 משימות פתוחות (${tks.length}): ${tks.slice(0, 3).map(t => t.title).join(' · ')}${tks.length > 3 ? ' …' : ''}`);
   if (!lines.length) return 0;
   const r = await sendToUsers([m.user_id], { title: `📅 השבוע ביומן (${dShort(from)}-${dShort(to)})`, body: lines.join('\n'), url: `/?d=${from}`, tag: 'weekly-' + from }, { ttl: 12 * 3600 });
   return r.sent;

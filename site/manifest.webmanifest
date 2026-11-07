@@ -1,24 +1,68 @@
 {
-  "id": "/",
-  "name": "היומן שלנו",
-  "short_name": "היומן שלנו",
-  "description": "יומן משותף לזוג: פגישות, משמרות ותזכורות בסנכרון חי",
-  "lang": "he",
-  "dir": "rtl",
-  "start_url": "/?source=pwa",
-  "scope": "/",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#f4f5fa",
-  "theme_color": "#4f46e5",
-  "categories": ["productivity", "lifestyle"],
-  "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "/icons/monochrome-512.png", "sizes": "512x512", "type": "image/png", "purpose": "monochrome" }
-  ],
-  "shortcuts": [
-    { "name": "אירוע חדש", "url": "/?new=1", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
-  ]
+ "id": "/",
+ "name": "היומן שלנו",
+ "short_name": "היומן שלנו",
+ "description": "יומן משותף לזוג: פגישות, משמרות ותזכורות בסנכרון חי",
+ "lang": "he",
+ "dir": "rtl",
+ "start_url": "/?source=pwa",
+ "scope": "/",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#f6f6f3",
+ "theme_color": "#f6f6f3",
+ "categories": [
+  "productivity",
+  "lifestyle"
+ ],
+ "icons": [
+  {
+   "src": "/icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "/icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "/icons/maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  },
+  {
+   "src": "/icons/monochrome-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "monochrome"
+  }
+ ],
+ "shortcuts": [
+  {
+   "name": "הוספה מהירה",
+   "short_name": "הוספה",
+   "url": "/?new=1",
+   "icons": [
+    {
+     "src": "/icons/icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "משימות",
+   "short_name": "משימות",
+   "url": "/?tasks=1",
+   "icons": [
+    {
+     "src": "/icons/icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  }
+ ]
 }

@@ -1,4 +1,4 @@
--- היומן שלנו – Supabase schema (run once in a fresh project)
+-- היומן שלנו – Supabase schema 1.1 (run once in a fresh project; existing 1.0 projects: migration-1.1.sql)
 create extension if not exists pg_net;
 create extension if not exists pg_cron;
 
@@ -35,6 +35,8 @@ create table if not exists public.shift_types (
   end_time time not null,
   color text not null default '#cbd5e1',
   sort int not null default 0,
+  kind text not null default 'shift' check (kind in ('shift','event')),
+  icon text,
   created_at timestamptz not null default now()
 );
 create index if not exists shift_types_household_idx on public.shift_types(household_id);
@@ -162,6 +164,59 @@ drop policy if exists act_select on public.activity;
 create policy act_select on public.activity for select to authenticated using (household_id = public.my_household());
 -- reminder_log / digest_log: no policies (service role only)
 
+-- ---------- tasks (couple errands without a fixed time) ----------
+create table if not exists public.tasks (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references public.households(id) on delete cascade,
+  title text not null check (char_length(title) between 1 and 200),
+  owner_id uuid references public.members(user_id) on delete set null,
+  done boolean not null default false,
+  done_at timestamptz,
+  created_by uuid default auth.uid(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists tasks_household_idx on public.tasks(household_id, created_at);
+alter table public.tasks enable row level security;
+drop policy if exists tk_all on public.tasks;
+create policy tk_all on public.tasks for all to authenticated using (household_id = public.my_household()) with check (household_id = public.my_household());
+grant select, insert, update, delete on public.tasks to authenticated;
+revoke all on public.tasks from anon;
+
+create or replace function public.tasks_touch() returns trigger
+language plpgsql as $$
+begin
+  new.updated_at := now();
+  if new.done and not old.done then new.done_at := coalesce(new.done_at, now());
+  elsif not new.done then new.done_at := null; end if;
+  return new;
+end $$;
+drop trigger if exists trg_tasks_touch on public.tasks;
+create trigger trg_tasks_touch before update on public.tasks for each row execute function public.tasks_touch();
+
+create or replace function public.tasks_activity() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare v public.tasks; v_act text;
+begin
+  if coalesce(current_setting('app.silent', true), '') = 'on' then return null; end if;
+  if tg_op = 'DELETE' then
+    if old.done then return null; end if;            -- clearing finished tasks is silent
+    v := old; v_act := 'delete';
+  elsif tg_op = 'INSERT' then v := new; v_act := 'insert';
+  else
+    v := new;
+    if new.done and not old.done then v_act := 'done';
+    elsif new.title is distinct from old.title or new.owner_id is distinct from old.owner_id or (old.done and not new.done) then v_act := 'update';
+    else return null; end if;
+  end if;
+  if not exists (select 1 from households where id = v.household_id) then return null; end if;
+  insert into activity(household_id, actor_id, action, kind, title, event_id, owner_id)
+  values (v.household_id, auth.uid(), v_act, 'task', v.title, v.id, v.owner_id);
+  return null;
+end $$;
+drop trigger if exists trg_tasks_activity on public.tasks;
+create trigger trg_tasks_activity after insert or update or delete on public.tasks for each row execute function public.tasks_activity();
+
 -- ---------- RPCs ----------
 create or replace function public.create_household(p_display_name text, p_gender text, p_color text, p_name text default null)
 returns uuid language plpgsql security definer set search_path = public as $$
@@ -173,11 +228,13 @@ begin
   loop v_code := gen_code(); exit when not exists (select 1 from households where invite_code = v_code); end loop;
   insert into households(name, invite_code, created_by) values (coalesce(nullif(trim(p_name), ''), 'היומן שלנו'), v_code, v_uid) returning id into v_hh;
   insert into members(user_id, household_id, display_name, gender, color)
-    values (v_uid, v_hh, left(trim(p_display_name), 40), case when p_gender = 'f' then 'f' else 'm' end, coalesce(p_color, '#2563eb'));
-  insert into shift_types(household_id, name, start_time, end_time, color, sort) values
-    (v_hh, 'בוקר', '07:00', '15:00', '#facc15', 1),
-    (v_hh, 'ערב', '15:00', '23:00', '#fb923c', 2),
-    (v_hh, 'לילה', '23:00', '07:00', '#818cf8', 3);
+    values (v_uid, v_hh, left(trim(p_display_name), 40), case when p_gender = 'f' then 'f' else 'm' end, coalesce(p_color, '#4a78e0'));
+  insert into shift_types(household_id, name, start_time, end_time, color, sort, kind, icon) values
+    (v_hh, 'בוקר', '07:00', '15:00', '#cbd5e1', 1, 'shift', '☀️'),
+    (v_hh, 'ערב', '15:00', '23:00', '#cbd5e1', 2, 'shift', '🌆'),
+    (v_hh, 'לילה', '23:00', '07:00', '#cbd5e1', 3, 'shift', '🌙'),
+    (v_hh, 'תורנות', '08:00', '08:00', '#cbd5e1', 4, 'shift', '🚨'),
+    (v_hh, 'אימון', '19:00', '20:00', '#cbd5e1', 5, 'event', '🏋️');
   return v_hh;
 end $$;
 
@@ -214,14 +271,16 @@ begin
     if v_color is null then v_color := p_color; end if;
   end if;
   insert into members(user_id, household_id, display_name, gender, color)
-    values (v_uid, v_hh, left(trim(p_display_name), 40), case when p_gender = 'f' then 'f' else 'm' end, coalesce(v_color, '#db2777'));
+    values (v_uid, v_hh, left(trim(p_display_name), 40), case when p_gender = 'f' then 'f' else 'm' end, coalesce(v_color, '#d9607e'));
   if p_replace is not null and exists (select 1 from members where user_id = p_replace and household_id = v_hh) then
     update events set owner_id = v_uid where owner_id = p_replace and household_id = v_hh;
     update events set created_by = v_uid where created_by = p_replace and household_id = v_hh;
     update events set updated_by = v_uid where updated_by = p_replace and household_id = v_hh;
+    update tasks set owner_id = v_uid where owner_id = p_replace and household_id = v_hh;
+    update tasks set created_by = v_uid where created_by = p_replace and household_id = v_hh;
     update activity set actor_id = v_uid where actor_id = p_replace and household_id = v_hh;
     update members m set notify_changes = o.notify_changes, notify_reminders = o.notify_reminders, notify_daily = o.notify_daily,
-      notify_weekly = o.notify_weekly, daily_hour = o.daily_hour
+      notify_weekly = o.notify_weekly, daily_hour = o.daily_hour, joined_at = o.joined_at
       from members o where o.user_id = p_replace and m.user_id = v_uid;
     delete from push_subs where user_id = p_replace;
     delete from members where user_id = p_replace;
@@ -273,6 +332,10 @@ begin
     r := null;
     if o->>'op' = 'delete' then
       delete from events where id = (o->>'id')::uuid and household_id = v_hh;
+    elsif o->>'op' = 'task_delete' then
+      perform set_config('app.silent', 'on', true);
+      delete from tasks where id = (o->>'id')::uuid and household_id = v_hh;
+      perform set_config('app.silent', '', true);
     elsif o->>'op' = 'insert' then
       insert into events select * from jsonb_populate_record(null::public.events,
         defaults || (o->'row') || jsonb_build_object('id', gen_random_uuid(), 'household_id', v_hh,
@@ -357,6 +420,7 @@ do $$ begin
   begin alter publication supabase_realtime add table public.shift_types; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table public.members; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table public.activity; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.tasks; exception when duplicate_object then null; end;
 end $$;
 
 -- ---------- grants ----------
@@ -375,3 +439,8 @@ revoke execute on function public.leave_household() from anon;
 revoke execute on function public.regenerate_invite() from anon;
 revoke execute on function public.save_push_sub(text, text, text, text) from anon;
 revoke execute on function public.apply_ops(jsonb) from anon;
+
+-- ---------- housekeeping: guests who opened the app but never created/joined a calendar ----------
+select cron.schedule('hayoman-guest-cleanup', '23 3 * * *',
+  $$delete from auth.users u where u.is_anonymous and u.created_at < now() - interval '3 days'
+      and not exists (select 1 from public.members m where m.user_id = u.id)$$);
