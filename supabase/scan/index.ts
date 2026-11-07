@@ -1,7 +1,7 @@
 // היומן שלנו – "מתמונה ליומן": reads a photo or screenshot of a schedule and returns calendar items.
 // Provider: Google Gemini API on the free tier (no billing account linked → $0, rate-limited per model).
 //   Secret GEMINI_API_KEY (required). Optional: SCAN_MODELS (comma list, tried in order when one is busy or
-//   out of its free daily quota), SCAN_THINKING (low|medium|high, default medium), SCAN_DAILY_LIMIT (per calendar, default 40).
+//   out of its free daily quota), SCAN_THINKING (low|medium|high, default low), SCAN_DAILY_LIMIT (per calendar, default 40).
 // Paid alternative: SCAN_PROVIDER=claude + ANTHROPIC_API_KEY (+ SCAN_MODEL, default claude-haiku-5-5).
 // Deployed with JWT verification ON: only signed-in members of a calendar can call it.
 import { createClient } from 'npm:@supabase/supabase-js@2.119.0';
@@ -20,9 +20,10 @@ const PROVIDER = env('SCAN_PROVIDER', GEMINI_KEY || !CLAUDE_KEY ? 'gemini' : 'cl
 // gemini-flash-latest always points at Google's newest Flash, so a retired version never breaks the app;
 // when its free daily quota is used up we fall back to an older Flash and then to the newest Flash-Lite.
 const MODELS = env('SCAN_MODELS', 'gemini-flash-latest,gemini-3.6-flash,gemini-flash-lite-latest').split(',').map(s => s.trim()).filter(Boolean);
-const THINKING = env('SCAN_THINKING', 'medium').toLowerCase();
+const THINKING = env('SCAN_THINKING', 'low').toLowerCase();
 const CLAUDE_MODEL = env('SCAN_MODEL', 'claude-haiku-5-5');
 const LIMIT = parseInt(env('SCAN_DAILY_LIMIT', '40'), 10) || 40;
+const ATTEMPT_MS = 60_000; // one model call that runs longer than this is cut and the next model is tried
 const BUDGET_MS = 110_000; // stay well inside the Edge Function wall-clock limit
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-region', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
@@ -145,7 +146,7 @@ async function scanGemini(img: string, mt: string, text: string, t0: number) {
     let tries = 0;
     while (Date.now() - t0 < BUDGET_MS) {
       tries++;
-      const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), Math.max(5000, BUDGET_MS - (Date.now() - t0)));
+      const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), Math.max(5000, Math.min(ATTEMPT_MS, BUDGET_MS - (Date.now() - t0))));
       let status = 0, j: any = {};
       try {
         const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
@@ -153,7 +154,7 @@ async function scanGemini(img: string, mt: string, text: string, t0: number) {
           body: JSON.stringify(geminiBody(img, mt, text, o)), signal: ctl.signal
         });
         status = r.status; j = await r.json().catch(() => ({}));
-      } catch (e) { j = { error: { message: String(e) } }; }
+      } catch (e) { j = { error: { message: String(e) } }; if (ctl.signal.aborted) { last = `${model} timeout`; console.log('gemini', last); break; } }
       finally { clearTimeout(timer); }
       if (status === 200) {
         const u = j.usageMetadata || {};
