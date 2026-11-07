@@ -578,6 +578,7 @@ export class GameApp {
     const bld = this.atHub && !this.busy ? this.museum.pick(x, y) : null;
     if (bld === 'cinema') { this.sound.ui(); this.openCinema(); return; }
     if (bld === 'shop') { this.sound.ui(); this.openShop(); return; }
+    if (bld === 'museum') { this.sound.ui(); M.openAlbum(this); return; }
     if (this.sm.overviewOn) { if (this.board.hitsBoard(x, y)) { this.sound.ui(); this.sm.toGameplay(1.1, this.viewSide()); } return; }
     const sq = this.board.pickSquare(x, y, this.preferredSquares());
     if (!sq) { if (this.selected) this.deselect(); return; }
@@ -1140,6 +1141,7 @@ export class GameApp {
       this.sm.world.add(this.islandMonument);
     }
     this.museum?.setActive(id === HUB_ID);
+    if (id !== HUB_ID) this.sm.setIslandRadius(27);
     this.horizon?.setAround(id, { count: this.sm.quality?.level === 'low' ? 7 : 12 });
   }
 

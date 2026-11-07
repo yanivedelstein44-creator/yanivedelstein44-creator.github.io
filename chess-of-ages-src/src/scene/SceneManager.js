@@ -229,6 +229,23 @@ export class SceneManager {
     this.cloudMat = cloudMat;
   }
 
+  /**
+   * גודל האי: base — רדיוס האי הבסיסי (האי המרכזי מתחיל קטן), extent — עד איפה הוא הגיע
+   * עם האריחים שהצטרפו. משפיע על מסגור המבט הרחב, על טווח הטיול ועל האיונים מסביב.
+   */
+  setIslandRadius(extent = 27, base = extent, shape = null) {
+    this.islandR = extent;
+    this.islandShape = shape; // נקודות קו החוף (אי לא עגול — האי המרכזי עם האריחים)
+    this.island.scale.setScalar(base / 27);
+    this.roamRadius = Math.max(ROAM_RADIUS, extent * 0.72);
+    for (const g of this.islets) {
+      const r0 = (g.userData.r0 ??= Math.hypot(g.position.x, g.position.z));
+      const r = r0 + Math.max(0, extent - 27) * 1.15;
+      const k = r / Math.hypot(g.position.x, g.position.z);
+      g.position.x *= k; g.position.z *= k;
+    }
+  }
+
   // ---------- פלטת עידן ----------
   applyPalette(p, duration = 1.6) {
     const from = {
@@ -328,7 +345,8 @@ export class SceneManager {
     if (this.freeLook) {
       // טיול: נשארים מעל האי; ככל שמתרחקים מהלוח המצלמה נוטה לאופק
       const r = Math.hypot(t.x, t.z);
-      if (r > ROAM_RADIUS) { const k = ROAM_RADIUS / r; const dx = t.x * k - t.x, dz = t.z * k - t.z; t.x += dx; t.z += dz; this.camera.position.x += dx; this.camera.position.z += dz; }
+      const RR = this.roamRadius ?? ROAM_RADIUS;
+      if (r > RR) { const k = RR / r; const dx = t.x * k - t.x, dz = t.z * k - t.z; t.x += dx; t.z += dz; this.camera.position.x += dx; this.camera.position.z += dz; }
       const st = this.controls.state;
       const off = this._off || (this._off = new V3());
       const sph = this._sph || (this._sph = new THREE.Spherical());
@@ -463,12 +481,12 @@ export class SceneManager {
    * מבט רחב שבו כל האי נכנס למסך. ברירת מחדל: כל המסך (לפתיחה הקולנועית);
    * עם yTop/yBot — בין הסרגל העליון לתחתון (מבט־על באי המרכזי).
    */
-  fitIslandWide(az = this.view.azimuth, { polarDeg = 48, rimR = 25, xMax = 0.94, yTop = 0.78, yBot = -0.78 } = {}) {
+  fitIslandWide(az = this.view.azimuth, { polarDeg = 48, rimR = 25, xMax = 0.94, yTop = 0.78, yBot = -0.78, pts = null } = {}) {
     const cam = this.camera.clone();
     cam.updateProjectionMatrix();
     const polar = THREE.MathUtils.degToRad(polarDeg);
-    const rim = [];
-    for (let i = 0; i < 32; i++) { const a = (i / 32) * TAU; rim.push(new V3(Math.cos(a) * rimR, 0, Math.sin(a) * rimR)); }
+    const rim = pts || [];
+    if (!pts) for (let i = 0; i < 32; i++) { const a = (i / 32) * TAU; rim.push(new V3(Math.cos(a) * rimR, 0, Math.sin(a) * rimR)); }
     const dir = new V3(Math.sin(az), 0, Math.cos(az)); // מהמרכז לכיוון המצלמה
     const tg = new V3(), v = new V3(), off = new V3();
     let r = 80, o = 0;
@@ -493,7 +511,7 @@ export class SceneManager {
     const H = this.height;
     const yTop = 1 - (2 * (safe.top + 10)) / H;
     const yBot = -1 + (2 * (Math.max(safe.bottom, safe.clear || 0) + 8)) / H;
-    return this.fitIslandWide(az, { polarDeg: 48, rimR: 27, xMax: 0.97, yTop, yBot });
+    return this.fitIslandWide(az, { polarDeg: 48, rimR: this.islandR ?? 27, xMax: 0.97, yTop, yBot, pts: this.islandShape });
   }
 
   /** מצב מבט־על: טיול חופשי מסביב לאי, עם טווח זום שמתאים למרחק */
@@ -525,7 +543,7 @@ export class SceneManager {
     this.endFreeLook();
     this.fitGameplay(side);
     const az0 = this.view.azimuth;
-    const W = this.fitIslandWide(az0 - 0.3);
+    const W = this.fitIslandWide(az0 - 0.3, { rimR: (this.islandR ?? 27) * 0.93, pts: this.islandShape });
     const O = overview ? this.overviewFrame(az0) : null;
     const from = W.target.clone();
     const st = { az: az0 - 0.7, r: W.radius * 1.06, k: 0 };

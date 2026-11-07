@@ -1,8 +1,10 @@
 /**
  * מוזיאון הזמן — האי המרכזי.
  * - בית הקולנוע המרכזי (נוגעים בו → סרט הסיפור / סרט ההדרכה) והחנות (בוטים, חיות ובגדים).
- * - פסיפס חי: כל אי שנכבש שולח חלק פיזי ממנו — קרקע באקלים שלו, המונומנט שלו ומעט צמחייה —
- *   שעף מעבר לים ונצמד לחוף של האי המרכזי. 10 רובעים (אחד לכל עולם), 2 טבעות.
+ * - האי מתחיל קטן ומתרחב: כל אי שנכבש שולח אריח אדמה גדול ממנו — קרקע באקלים שלו, המונומנט שלו
+ *   על כן אבן ומעט צמחייה — שעף מעבר לים ונצמד לחוף. האריחים מסודרים בטבעות (קודם בחזית האי),
+ *   כך שהאי גדל טבעת אחרי טבעת: מ-17 יחידות רדיוס עד יותר מפי 3 (כל אריח מרחיב את החוף בכ-40%).
+ * - בניין "מוזיאון הזמן" עם שעון מעל הרחבה (נגיעה → אלבום האיים).
  * - מיקרו-אקלים מעל כל חלק: שלג, עלי דובדבן, גחלים, בועות, נצנוצים…
  * כל החלקים מאוחדים לשתי רשתות (מוצק + זוהר) כדי שגם 98 חלקים יעלו מעט קריאות ציור.
  */
@@ -42,18 +44,23 @@ const MICRO = {
   rune: { color: 0xff4a2a, vy: 0.4, add: true }, zenith: { color: 0xfff0b0, vy: 0.4, add: true },
 };
 
-/** מיקום החלק של אי בפסיפס (איי הפרימיום — טבעת שלישית, 30 מקומות שווים) */
-export function hubSlot(id) {
-  if (id >= PREMIUM_FIRST) {
-    const a = -Math.PI / 2 + ((id - PREMIUM_FIRST + 0.5) / 30) * TAU;
-    const rad = 38.4;
-    return { x: Math.cos(a) * rad, z: Math.sin(a) * rad, a, rad, row: 2 };
-  }
-  const r = regionOf(id), idx = (id - 1) % 10;
-  const row = idx < 5 ? 0 : 1, col = idx % 5;
-  const a = -Math.PI / 2 + SECTOR_OFF[r] * SECTOR + (col - 2) * (SECTOR / 5.3);
-  const rad = row ? 32.8 : 27.6;
-  return { x: Math.cos(a) * rad, z: Math.sin(a) * rad, a, rad, row };
+/** האי המרכזי בהתחלה (רדיוס), רוחב כל טבעת של אריחים, ומספר האריחים בכל טבעת */
+export const HUB_BASE_R = 17;
+const RING_W = 7.5;
+const RING_N = [15, 21, 26, 32, 37, 43];
+
+/**
+ * מקום האריח לפי סדר הכיבוש (0 = האי הראשון שנכבש). מתחילים בחזית האי (מול המצלמה, הכי גלוי)
+ * ומתפשטים לסירוגין שמאלה/ימינה; כל טבעת מוזזת בחצי אריח (כמו לבנים).
+ */
+export function hubSlot(index) {
+  let k = 0, i = index;
+  while (k < RING_N.length - 1 && i >= RING_N[k]) { i -= RING_N[k]; k++; }
+  const n = RING_N[k], span = TAU / n;
+  const j = i % 2 ? Math.ceil(i / 2) : -i / 2;
+  const a = Math.PI / 2 + j * span + (k % 2 ? span / 2 : 0);
+  const rIn = HUB_BASE_R + k * RING_W, rOut = rIn + RING_W, rad = (rIn + rOut) / 2;
+  return { x: Math.cos(a) * rad, z: Math.sin(a) * rad, a, rad, rIn, rOut, span, ring: k };
 }
 
 function dotTex() {
@@ -108,6 +115,30 @@ function cinemaGeometry() {
   return b.build();
 }
 
+/** "מוזיאון הזמן": מקדש קלאסי עם עמודים, גמלון ושעון גדול — מאחורי הלוח */
+function museumGeometry() {
+  const b = new Builder();
+  b.box(6.8, 0.22, 3.6, C.lstone, [0, 0.11, 0]).box(6.4, 0.22, 3.2, C.marble, [0, 0.33, -0.05]);
+  b.box(5.6, 2.9, 2.1, C.cream, [0, 1.89, -0.55]);
+  for (let i = 0; i < 6; i++) {
+    const x = -2.6 + i * 1.04;
+    b.cyl(0.2, 0.23, 2.9, C.marble, [x, 1.89, 1.05], 10).box(0.5, 0.16, 0.5, C.gold, [x, 3.42, 1.05]).box(0.5, 0.12, 0.5, C.lstone, [x, 0.5, 1.05]);
+  }
+  b.box(6.4, 0.42, 3.1, C.cream, [0, 3.71, -0.05]).box(6.5, 0.1, 3.2, C.gold, [0, 3.97, -0.05]);
+  b.prism(6.4, 1.25, 3.0, C.cream, [0, 4.02, -0.05]);
+  b.box(1.1, 0.12, 1.2, C.dark, [0, 1.05, 0.46]).box(1.0, 1.7, 0.08, C.dark, [0, 1.3, 0.47]).box(0.06, 1.7, 0.1, C.gold, [0, 1.3, 0.5]);
+  // השעון הגדול בגמלון
+  b.cyl(0.62, 0.62, 0.1, C.white, [0, 4.5, 1.47], 24, [Math.PI / 2, 0, 0]).tor(0.64, 0.06, C.gold, [0, 4.5, 1.5]);
+  b.box(0.05, 0.42, 0.04, C.dark, [0, 4.66, 1.55]).box(0.3, 0.05, 0.04, C.dark, [0.12, 4.5, 1.55]);
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; b.box(0.05, 0.1, 0.03, C.gold, [Math.sin(a) * 0.5, 4.5 + Math.cos(a) * 0.5, 1.53], [0, 0, -a]); }
+  // כיפה עם שעון חול
+  b.cyl(0.95, 1.05, 0.7, C.cream, [0, 5.05, -0.6], 14).hemi(0.95, C.gold, [0, 5.4, -0.6]).cyl(0.06, 0.06, 0.5, C.gold, [0, 6.55, -0.6], 6);
+  b.cone(0.22, 0.32, C.gold, [0, 7.0, -0.6], 8, [Math.PI, 0, 0]).cone(0.22, 0.32, C.gold, [0, 7.3, -0.6], 8).sph(0.07, C.flame, [0, 7.15, -0.6], undefined, 6, true);
+  // לפידים בכניסה
+  [-3.0, 3.0].forEach((x) => b.cyl(0.07, 0.09, 1.2, C.iron, [x, 0.9, 1.55], 8).sph(0.13, C.flame, [x, 1.6, 1.55], undefined, 8, true));
+  return b.build();
+}
+
 function shopGeometry() {
   const b = new Builder();
   b.box(3.8, 0.25, 3.0, C.lstone, [0, 0.12, 0.1]);
@@ -121,29 +152,46 @@ function shopGeometry() {
   return b.build();
 }
 
-/** חלק פסיפס של אי: קרקע באקלים שלו + צלע סלע + המונומנט + צמחייה */
-function chunkGeometry(id) {
+/** אריח של אי: טבעת־מקטע בקרקע של האקלים שלו, לוח סלע וזיז מתחת, כן אבן עם המונומנט וצמחייה. קואורדינטות מקומיות (מרכז האריח) */
+function chunkGeometry(id, slot) {
   const d = islandDef(id);
   const cl = d.era.climate;
-  const slot = hubSlot(id);
-  const R = slot.row === 2 ? 2.2 : slot.row ? 2.35 : 2.05;
+  const { a, span, rIn, rOut, rad } = slot;
+  const cx = slot.x, cz = slot.z;
   const b = new Builder();
-  b.cyl(R, R * 0.97, 0.32, GROUND[cl] ?? C.grass, [0, -0.12, 0], 9);
-  b.cyl(R * 0.96, R * 0.35, 2.6, ROCK[cl] ?? 0x6a5848, [0, -1.58, 0], 9);
+  const local = (g) => g.translate(-cx, 0, -cz);
+  // פני הקרקע (מעט מעל לוח הסלע)
+  const top = new THREE.RingGeometry(rIn, rOut, 14, 1, -(a + span / 2), span).rotateX(-Math.PI / 2);
+  b.add(local(top), GROUND[cl] ?? C.grass);
+  // לוח סלע עבה
+  const sh = new THREE.Shape();
+  sh.moveTo(Math.cos(a - span / 2) * rIn, Math.sin(a - span / 2) * rIn);
+  sh.absarc(0, 0, rOut, a - span / 2, a + span / 2, false);
+  sh.absarc(0, 0, rIn, a + span / 2, a - span / 2, true);
+  const slab = new THREE.ExtrudeGeometry(sh, { depth: 1.1, bevelEnabled: false, curveSegments: 10 }).rotateX(Math.PI / 2).translate(0, -0.03, 0);
+  b.add(local(slab), ROCK[cl] ?? 0x6a5848);
+  // זיז סלע מתחת (מראה של אי מרחף)
+  const keelR = Math.min(RING_W, span * rad) * 0.42;
+  b.cyl(keelR, 0.35, 3.6, ROCK[cl] ?? 0x6a5848, [0, -1.13 - 1.8, 0], 7);
+  // כן אבן + המונומנט, פונה אל מרכז האי
+  b.cyl(1.85, 2.0, 0.28, C.lstone, [0, 0.14, 0], 12).cyl(1.93, 1.93, 0.06, C.gold, [0, 0.29, 0], 12);
+  // צמחייה סביב
   const veg = { snow: C.snow, snowNight: C.snow, desert: 0x6a8a3a, blossom: C.pink, autumn: 0xe0802a, underwater: C.coral, stars: C.crystal, aurora: C.ice, embers: C.dstone, marsDust: C.mars }[cl] ?? C.leaf;
   const glowVeg = cl === 'stars' || cl === 'aurora';
-  for (let i = 0; i < 3; i++) {
-    const a = id * 1.7 + i * 2.1, rr = R * 0.72;
-    const x = Math.cos(a) * rr, z = Math.sin(a) * rr;
-    if (cl === 'underwater') b.cone(0.1, 0.6, veg, [x, 0.3, z], 6);
-    else if (cl === 'desert' || cl === 'marsDust') b.dod(0.22, ROCK[cl], [x, 0.12, z]);
-    else if (glowVeg) b.oct(0.16, veg, [x, 0.3, z], [1, 1.6, 1], true);
-    else { b.cyl(0.05, 0.06, 0.4, C.wood, [x, 0.2, z], 5); b.cone(0.26, 0.7, veg, [x, 0.65, z], 7); }
+  for (let i = 0; i < 8; i++) {
+    const u = 0.14 + ((id * 7 + i * 3) % 10) / 10 * 0.72, v = 0.12 + ((id * 3 + i * 5) % 10) / 10 * 0.76;
+    const rr = rIn + (rOut - rIn) * u, aa = a - span / 2 + span * v;
+    const x = Math.cos(aa) * rr - cx, z = Math.sin(aa) * rr - cz;
+    if (Math.hypot(x, z) < 2.5) continue;
+    if (cl === 'underwater') b.cone(0.14, 0.8, veg, [x, 0.4, z], 6);
+    else if (cl === 'desert' || cl === 'marsDust') b.dod(0.3, ROCK[cl], [x, 0.16, z]);
+    else if (glowVeg) b.oct(0.22, veg, [x, 0.4, z], [1, 1.6, 1], true);
+    else { b.cyl(0.07, 0.08, 0.55, C.wood, [x, 0.27, z], 5); b.cone(0.38, 1.0, veg, [x, 0.9, z], 7); }
   }
   const { solid, glow } = b.build();
   const out = { solid: [solid], glow: glow ? [glow] : [] };
   const mon = monumentGeometry(d.era.monument);
-  const mm = new THREE.Matrix4().compose(new V3(0, 0.03, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -slot.a - Math.PI / 2, 0)), new V3(0.95, 0.95, 0.95));
+  const mm = new THREE.Matrix4().compose(new V3(0, 0.32, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -a - Math.PI / 2, 0)), new V3(2.0, 2.0, 2.0));
   if (mon.solid) out.solid.push(mon.solid.clone().applyMatrix4(mm));
   if (mon.glow) out.glow.push(mon.glow.clone().applyMatrix4(mm));
   return out;
@@ -176,7 +224,7 @@ export class HubMuseum {
       sg.position.set(0, 2.67, 2.02);
       g.add(sg);
       const lab = labelSprite(label, ic);
-      lab.position.set(0, label === 'cinema' ? 7.3 : 5.4, 0.6);
+      lab.position.set(0, label === 'cinema' ? 7.3 : label === 'museum' ? 8.6 : 5.4, 0.6);
       g.add(lab);
       g.position.set(...pos);
       g.rotation.y = pos[0] < 0 ? 0.42 : -0.42; // פונים אל המצלמה, מעט פנימה
@@ -186,12 +234,17 @@ export class HubMuseum {
     };
     this.cinema = mk(cinemaGeometry(), [-6.6, 0, -11.6], 'cinema', 'play', 'CINEMA');
     this.shop = mk(shopGeometry(), [6.6, 0, -11.6], 'shop', 'gem', 'SHOP');
+    this.museumHall = mk(museumGeometry(), [0, 0, -13.4], 'museum', 'temple', 'TIME MUSEUM');
+    this.museumHall.rotation.y = 0;
+    const ms = this.museumHall.children.find((c) => c.geometry?.type === 'PlaneGeometry');
+    if (ms) { ms.position.set(0, 3.71, 1.47); ms.scale.set(1.9, 0.62, 1); }
+    this.museumHall.userData.label.position.set(0, 8.6, 0);
     this.relabel();
   }
 
   /** שלטים בשפה הנוכחית */
   relabel() {
-    for (const [g, key, ic] of [[this.cinema, 'cinema', 'play'], [this.shop, 'shop', 'gem']]) {
+    for (const [g, key, ic] of [[this.cinema, 'cinema', 'play'], [this.shop, 'shop', 'gem'], [this.museumHall, 'museum', 'temple']]) {
       const old = g.userData.label;
       const lab = labelSprite(t(key), ic);
       lab.position.copy(old.position);
@@ -216,17 +269,19 @@ export class HubMuseum {
   }
   randomSpot() {
     for (let i = 0; i < 30; i++) {
-      const a = Math.random() * TAU, r = 9 + Math.random() * 12;
+      const a = Math.random() * TAU, r = 9 + Math.random() * (HUB_BASE_R - 10.5);
       const x = Math.cos(a) * r, z = Math.sin(a) * r;
       if (Math.abs(x) < 6.4 && Math.abs(z) < 8) continue;
       if (Math.hypot(Math.abs(x) - 6.6, z + 11.6) < 3.6) continue;
+      if (Math.abs(x) < 4 && z < -10) continue;
       return new V3(x, 0, z);
     }
     return new V3(0, 0, 12);
   }
   spawnResidents() {
     this.clearResidents();
-    const max = this.sm.quality?.level === 'low' ? 3 : 6;
+    // בכל כניסה לאי: 5–7 בוטים אחרים מתוך אלה שקנית (במכשירים חלשים — עד 4)
+    const max = this.sm.quality?.level === 'low' ? 4 : 5 + Math.floor(Math.random() * 3);
     const ids = [...this.residentIds].sort(() => Math.random() - 0.5).slice(0, max);
     for (const id of ids) {
       const b = islandDef(id).bot;
@@ -289,10 +344,12 @@ export class HubMuseum {
     this.chunksGroup.clear();
     const solids = [], glows = [];
     this.pieces = [];
+    let outer = HUB_BASE_R;
     for (const id of this.app.progression.conqueredList()) {
       if (id === HUB_ID || skip.has(id)) continue;
-      const slot = hubSlot(id);
-      const g = chunkGeometry(id);
+      const slot = this.slotOf(id);
+      outer = Math.max(outer, slot.rOut);
+      const g = chunkGeometry(id, slot);
       const m = new THREE.Matrix4().makeTranslation(slot.x, 0, slot.z);
       g.solid.forEach((x) => solids.push(x.applyMatrix4(m)));
       g.glow.forEach((x) => glows.push(x.applyMatrix4(m)));
@@ -300,7 +357,27 @@ export class HubMuseum {
     }
     if (solids.length) { const mesh = new THREE.Mesh(mergeGeometries(solids, false), MONUMENT_SOLID); mesh.receiveShadow = true; this.chunksGroup.add(mesh); }
     if (glows.length) this.chunksGroup.add(new THREE.Mesh(mergeGeometries(glows, false), MONUMENT_GLOW));
+    this.extent = outer;
+    this.shape = this.shapePoints();
+    if (this.active) this.sm.setIslandRadius(outer, HUB_BASE_R, this.shape);
     this.buildMicro();
+  }
+
+  /** קו החוף של האי כרגע: האי הבסיסי + הקצה החיצוני של כל אריח (למסגור המבט הרחב) */
+  shapePoints(extra = null) {
+    const pts = [];
+    for (let i = 0; i < 24; i++) { const a = (i / 24) * TAU; pts.push(new V3(Math.cos(a) * HUB_BASE_R, 0, Math.sin(a) * HUB_BASE_R)); }
+    for (const p of [...(this.pieces || []).map((x) => x.slot), ...(extra ? [extra] : [])]) {
+      for (const k of [-0.5, 0, 0.5]) pts.push(new V3(Math.cos(p.a + k * p.span) * p.rOut, 0, Math.sin(p.a + k * p.span) * p.rOut));
+    }
+    return pts;
+  }
+
+  /** מקום האריח של אי — לפי הסדר שבו נכבש (כך המקומות לא זזים כשנכבשים איים חדשים) */
+  slotOf(id) {
+    const order = this.app.progression.conqueredList().filter((x) => x !== HUB_ID);
+    const i = order.indexOf(id);
+    return hubSlot(i < 0 ? order.length : i);
   }
 
   /** מיקרו-אקלים: שכבת חלקיקים אחת לכל סוג, מעל החלקים באותו אקלים */
@@ -314,7 +391,7 @@ export class HubMuseum {
       const cfg = MICRO[cl];
       const per = 26, n = list.length * per;
       const pos = new Float32Array(n * 3), home = new Float32Array(n * 2), ph = new Float32Array(n);
-      list.forEach((p, k) => { for (let i = 0; i < per; i++) { const j = k * per + i; const a = Math.random() * TAU, r = Math.random() * 2; home[j * 2] = p.slot.x + Math.cos(a) * r; home[j * 2 + 1] = p.slot.z + Math.sin(a) * r; pos[j * 3] = home[j * 2]; pos[j * 3 + 1] = Math.random() * 5; pos[j * 3 + 2] = home[j * 2 + 1]; ph[j] = Math.random() * TAU; } });
+      list.forEach((p, k) => { for (let i = 0; i < per; i++) { const j = k * per + i; const a = Math.random() * TAU, r = Math.random() * 3.4; home[j * 2] = p.slot.x + Math.cos(a) * r; home[j * 2 + 1] = p.slot.z + Math.sin(a) * r; pos[j * 3] = home[j * 2]; pos[j * 3 + 1] = Math.random() * 5; pos[j * 3 + 2] = home[j * 2 + 1]; ph[j] = Math.random() * TAU; } });
       const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       const pts = new THREE.Points(geo, new THREE.PointsMaterial({ color: cfg.color, size: cfg.vy < -3 ? 0.18 : 0.24, map: tex, transparent: true, depthWrite: false, opacity: 0.85, blending: cfg.add ? THREE.AdditiveBlending : THREE.NormalBlending }));
       pts.frustumCulled = false;
@@ -367,22 +444,23 @@ export class HubMuseum {
     const bob = Math.sin(tt * 2) * 0.12;
     if (this.cinema) this.cinema.userData.label.position.y = 7.3 + bob;
     if (this.shop) this.shop.userData.label.position.y = 5.4 + bob;
+    if (this.museumHall) this.museumHall.userData.label.position.y = 8.6 + bob;
   }
 
   /** נגיעה בבניין: 'cinema' / 'shop' / null */
   pick(x, y) {
     if (!this.active) return null;
-    const hit = this.sm.pick(x, y, [this.cinema, this.shop])[0];
+    const hit = this.sm.pick(x, y, [this.cinema, this.shop, this.museumHall])[0];
     if (!hit) return null;
     let o = hit.object;
-    while (o && o !== this.cinema && o !== this.shop) o = o.parent;
-    return o === this.cinema ? 'cinema' : o === this.shop ? 'shop' : null;
+    while (o && o !== this.cinema && o !== this.shop && o !== this.museumHall) o = o.parent;
+    return o === this.cinema ? 'cinema' : o === this.shop ? 'shop' : o === this.museumHall ? 'museum' : null;
   }
 
   /** חלק של אי עף מעבר לים ונצמד לחוף של האי המרכזי (אנימציה עם מצלמה) */
   async dock(id) {
-    const slot = hubSlot(id);
-    const g = chunkGeometry(id);
+    const slot = this.slotOf(id);
+    const g = chunkGeometry(id, slot);
     const piece = new THREE.Group();
     const solid = mergeGeometries(g.solid, false);
     piece.add(new THREE.Mesh(solid, MONUMENT_SOLID));
@@ -396,7 +474,9 @@ export class HubMuseum {
     piece.rotation.set(0.4, 2, 0.2);
     this.group.add(piece);
     const target = to.clone().setY(1);
-    const camPos = to.clone().multiplyScalar(0.42).add(new V3(0, 10, 0)).addScaledVector(new V3(-slot.z, 0, slot.x).normalize(), 6);
+    // האי גדל לקראת האריח החדש, והמצלמה מסתכלת עליו מתוך האי
+    this.sm.setIslandRadius(Math.max(this.extent || HUB_BASE_R, slot.rOut), HUB_BASE_R, this.shapePoints(slot));
+    const camPos = to.clone().multiplyScalar(0.3).add(new V3(0, 12 + slot.ring * 2.5, 0)).addScaledVector(new V3(-slot.z, 0, slot.x).normalize(), 8);
     await this.sm.animateCamera(camPos, target, 1.3);
     this.app.sound.whoosh?.(2);
     await new Promise((resolve) => {
