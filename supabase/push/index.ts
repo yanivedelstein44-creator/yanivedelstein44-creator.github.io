@@ -248,7 +248,7 @@ function composeChange(actor, items, mems, today, to, note) {
     const it = items[0];
     return {
       title: `${name} ${V[it.action] || V.update} ${KIND1[it.kind] || 'אירוע'}`,
-      body: [[`${it.title || ''}${whose(it)}`, when(it), it.recur ? '🔁' : ''].filter(Boolean).join(' · '), note].filter(Boolean).join('\n'),
+      body: [[`${it.title || ''}${it.kids ? ' · ' + it.kids : ''}${whose(it)}`, when(it), it.recur ? '🔁' : ''].filter(Boolean).join(' · '), note].filter(Boolean).join('\n'),
       url: urlOf(it), tag: 'chg-' + (it.event_id || Date.now())
     };
   }
@@ -256,7 +256,7 @@ function composeChange(actor, items, mems, today, to, note) {
   const title = acts.length === 1 && kinds.length === 1
     ? `${name} ${V[acts[0]] || V.update} ${n} ${KINDN[kinds[0]] || 'פריטים'}`
     : `${name} ${f ? 'עדכנה' : 'עדכן'} ${n} פריטים ביומן`;
-  const lines = items.slice(0, 5).map(it => `${it.action === 'delete' ? '✖ ' : it.action === 'done' ? '✓ ' : ''}${it.title || ''}${whose(it)}${it.ev_date ? ' · ' + relDay(it.ev_date, today) : ''}`);
+  const lines = items.slice(0, 5).map(it => `${it.action === 'delete' ? '✖ ' : it.action === 'done' ? '✓ ' : ''}${it.title || ''}${it.kids ? ' · ' + it.kids : ''}${whose(it)}${it.ev_date ? ' · ' + relDay(it.ev_date, today) : ''}`);
   if (n > 5) lines.push(`ועוד ${n - 5}…`);
   if (note) lines.push(note);
   return { title, body: lines.join('\n'), url: kinds.length === 1 && kinds[0] === 'task' ? '/?tasks=1' : '/?feed=1', tag: 'chg-batch-' + Date.now() };
@@ -295,6 +295,14 @@ async function handleChange(b) {
   return { sent };
 }
 
+// ---------- kids ----------
+let kidsMemo = null;
+async function kidsMap() {
+  if (!kidsMemo) { const { data } = await db.from('kids').select('id, name, emoji'); kidsMemo = new Map((data || []).map(k => [k.id, `${k.emoji || '🧒'} ${k.name}`])); }
+  return kidsMemo;
+}
+const kidsTxt = (ev, KM) => (ev.kid_ids || []).map(id => KM.get(id)).filter(Boolean).join(', ');
+
 // ---------- reminders ----------
 const WINDOW = 10; // minutes of tolerance for a missed tick
 function reminderMsg(x, today) {
@@ -309,6 +317,7 @@ function reminderMsg(x, today) {
   else rel = relDay(x.d, today);
   const parts = [rel];
   if (!ev.all_day) parts.push(fmtT(s) + (ev.end_time ? '-' + String(ev.end_time).slice(0, 5) : ''));
+  if (x.kids) parts.push(x.kids);
   if (ev.location) parts.push(ev.location);
   return { title: `${ev.kind === 'shift' ? '🕒' : '⏰'} ${ev.title}`, body: parts.join(' · '), url: `/?d=${x.d}`, tag: `rem-${ev.id}-${x.d}`, sticky: !ev.all_day && x.off <= 60 };
 }
@@ -333,9 +342,11 @@ async function doReminders(now, mems) {
   if (e2) throw e2;
   const fresh = new Set((ins || []).map(r => `${r.event_id}|${r.occ_key}|${r.offset_min}`));
   const today = localAt(now).date;
+  const KM = due.some(x => (x.ev.kid_ids || []).length) ? await kidsMap() : new Map();
   let sent = 0;
   for (const x of due) {
     if (!fresh.has(`${x.ev.id}|${x.key}|${x.off}`)) continue;
+    x.kids = kidsTxt(x.ev, KM);
     const hh = mems.filter(m => m.household_id === x.ev.household_id && m.notify_reminders);
     const targets = (x.ev.owner_id ? hh.filter(m => m.user_id === x.ev.owner_id) : hh).map(m => m.user_id);
     const r = await sendToUsers(targets, reminderMsg(x, today), { ttl: Math.max(600, Math.min(x.off * 60, 6 * 3600)), urgency: 'high' });
@@ -360,8 +371,9 @@ async function digest(m, kind, L, mems) {
   const evs = await hhEvents(m.household_id, L.date);
   const hhm = mems.filter(x => x.household_id === m.household_id);
   const nameOf = id => (hhm.find(x => x.user_id === id) || {}).display_name || '';
+  const KM = await kidsMap();
   const fmt = (o, withOwner) => {
-    const own = withOwner && o.ev.owner_id && o.ev.owner_id !== m.user_id ? ` (${nameOf(o.ev.owner_id)})` : '';
+    const kt = kidsTxt(o.ev, KM), own = (withOwner && o.ev.owner_id && o.ev.owner_id !== m.user_id ? ` (${nameOf(o.ev.owner_id)})` : '') + (kt ? ` · ${kt}` : '');
     if (o.ev.kind === 'shift') return `${o.ev.title} ${fmtT(o.s)}-${fmtT(o.e)}${own}`;
     return `${o.allDay ? '' : fmtT(o.s) + ' '}${o.ev.title}${own}`;
   };
@@ -402,6 +414,7 @@ async function digest(m, kind, L, mems) {
 }
 async function handleTick() {
   const now = Date.now(), L = localAt(now), out = { reminders: 0, daily: 0, weekly: 0 };
+  evCache.clear(); kidsMemo = null;
   const { data: mems, error } = await db.from('members').select('*');
   if (error) throw error;
   out.reminders = await doReminders(now, mems || []);
