@@ -17,7 +17,9 @@ const db = createClient(SB_URL, serviceKey(), { auth: { persistSession: false, a
 const GEMINI_KEY = env('GEMINI_API_KEY');
 const CLAUDE_KEY = env('ANTHROPIC_API_KEY');
 const PROVIDER = env('SCAN_PROVIDER', GEMINI_KEY || !CLAUDE_KEY ? 'gemini' : 'claude').toLowerCase();
-const MODELS = env('SCAN_MODELS', 'gemini-3.8-flash,gemini-3.6-flash,gemini-3.5-flash-lite').split(',').map(s => s.trim()).filter(Boolean);
+// gemini-flash-latest always points at Google's newest Flash, so a retired version never breaks the app;
+// when its free daily quota is used up we fall back to an older Flash and then to the newest Flash-Lite.
+const MODELS = env('SCAN_MODELS', 'gemini-flash-latest,gemini-3.6-flash,gemini-flash-lite-latest').split(',').map(s => s.trim()).filter(Boolean);
 const THINKING = env('SCAN_THINKING', 'medium').toLowerCase();
 const CLAUDE_MODEL = env('SCAN_MODEL', 'claude-haiku-5-5');
 const LIMIT = parseInt(env('SCAN_DAILY_LIMIT', '40'), 10) || 40;
