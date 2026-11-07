@@ -1,6 +1,6 @@
 // היומן שלנו – service worker
 // Bump VERSION on every release: installed apps (browser, home screen, APK) pick up the new version automatically.
-const VERSION = '1.2.0';
+const VERSION = '1.3.0';
 const CACHE = 'hayoman-' + VERSION;
 const SB_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js';
 const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/badge-96.png', '/icons/favicon-48.png'];
@@ -47,7 +47,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   if (url.origin === self.location.origin) {
     if (req.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') { e.respondWith(networkFirst(req, '/')); return; }
-    if (url.pathname.startsWith('/icons/') || url.pathname === '/manifest.webmanifest') { e.respondWith(cacheFirst(req)); return; }
+    if (url.pathname.startsWith('/icons/') || url.pathname.startsWith('/fonts/') || url.pathname === '/manifest.webmanifest') { e.respondWith(cacheFirst(req)); return; }
     return;
   }
   if (req.url === SB_JS) e.respondWith(cacheFirst(req));

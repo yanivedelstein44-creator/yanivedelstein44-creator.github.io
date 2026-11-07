@@ -8,6 +8,7 @@ create table if not exists public.households (
   name text not null default 'היומן שלנו',
   invite_code text not null unique,
   tz text not null default 'Asia/Jerusalem',
+  theme jsonb,
   created_by uuid,
   created_at timestamptz not null default now()
 );
@@ -421,6 +422,7 @@ do $$ begin
   begin alter publication supabase_realtime add table public.members; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table public.activity; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table public.tasks; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.households; exception when duplicate_object then null; end;
 end $$;
 
 -- ---------- grants ----------
