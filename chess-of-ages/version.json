@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.3.5",
-  "build": "1.3.5-1794020766135",
-  "buildTime": 1794020766135,
-  "date": "2026-11-07T03:06:06.135Z",
+  "version": "1.3.6",
+  "build": "1.3.6-1794055595415",
+  "buildTime": 1794055595415,
+  "date": "2026-11-07T12:46:35.415Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.3.5-1794020766135.zip",
-  "checksum": "9c467363772ecdba41f115cc374e71ac2d5973c5a37de12cfdb207c9c94d0dcc",
+  "bundle": "update/bundle-1.3.6-1794055595415.zip",
+  "checksum": "c4dec1da6821ca45d1ede200432a3a2d01007f08e59f465b0c75b5c27cb4dbc7",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "White flag fixed: it always responds - during a move it waits a moment, and after a game (or before the first move) it offers a new game"
+  "notes": "The Central Island is now a real Time Museum: it starts small and every conquered island joins as a big tile with its monument, growing the island ring by ring. New Time Museum building (tap for the album), and 5-7 of your bought bots stroll around on each visit"
 }
