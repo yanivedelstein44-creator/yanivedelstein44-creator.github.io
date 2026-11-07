@@ -23,7 +23,7 @@ const MODELS = env('SCAN_MODELS', 'gemini-flash-latest,gemini-3.6-flash,gemini-f
 const THINKING = env('SCAN_THINKING', 'low').toLowerCase();
 const CLAUDE_MODEL = env('SCAN_MODEL', 'claude-haiku-5-5');
 const LIMIT = parseInt(env('SCAN_DAILY_LIMIT', '40'), 10) || 40;
-const ATTEMPT_MS = 60_000; // one model call that runs longer than this is cut and the next model is tried
+const ATTEMPT_MS = 40_000; // one model call that runs longer than this is cut and the next model is tried
 const BUDGET_MS = 110_000; // stay well inside the Edge Function wall-clock limit
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-region', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
