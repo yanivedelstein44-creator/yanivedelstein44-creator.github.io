@@ -9,33 +9,33 @@
  "scope": "/",
  "display": "standalone",
  "orientation": "portrait",
- "background_color": "#f6f6f3",
- "theme_color": "#f6f6f3",
+ "background_color": "#f8eee6",
+ "theme_color": "#b3582f",
  "categories": [
   "productivity",
   "lifestyle"
  ],
  "icons": [
   {
-   "src": "/icons/icon-192.png",
+   "src": "/icons/hy-192.png",
    "sizes": "192x192",
    "type": "image/png",
    "purpose": "any"
   },
   {
-   "src": "/icons/icon-512.png",
+   "src": "/icons/hy-512.png",
    "sizes": "512x512",
    "type": "image/png",
    "purpose": "any"
   },
   {
-   "src": "/icons/maskable-512.png",
+   "src": "/icons/hy-maskable-512.png",
    "sizes": "512x512",
    "type": "image/png",
    "purpose": "maskable"
   },
   {
-   "src": "/icons/monochrome-512.png",
+   "src": "/icons/hy-mono-512.png",
    "sizes": "512x512",
    "type": "image/png",
    "purpose": "monochrome"
@@ -48,7 +48,7 @@
    "url": "/?new=1",
    "icons": [
     {
-     "src": "/icons/icon-192.png",
+     "src": "/icons/hy-192.png",
      "sizes": "192x192"
     }
    ]
@@ -59,7 +59,7 @@
    "url": "/?tasks=1",
    "icons": [
     {
-     "src": "/icons/icon-192.png",
+     "src": "/icons/hy-192.png",
      "sizes": "192x192"
     }
    ]

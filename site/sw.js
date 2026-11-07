@@ -1,9 +1,9 @@
 // היומן שלנו – service worker
 // Bump VERSION on every release: installed apps (browser, home screen, APK) pick up the new version automatically.
-const VERSION = '1.3.0';
+const VERSION = '1.3.1';
 const CACHE = 'hayoman-' + VERSION;
 const SB_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js';
-const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/badge-96.png', '/icons/favicon-48.png'];
+const SHELL = ['/', '/manifest.webmanifest', '/icons/hy-192.png', '/icons/hy-512.png', '/icons/hy-badge-96.png', '/icons/hy-48.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
@@ -59,7 +59,7 @@ self.addEventListener('push', e => {
   e.waitUntil((async () => {
     await self.registration.showNotification(d.title || 'היומן שלנו', {
       body: d.body || '', tag: d.tag || undefined, renotify: !!d.tag, dir: 'rtl', lang: 'he',
-      icon: '/icons/icon-192.png', badge: '/icons/badge-96.png', data: { url: d.url || '/' },
+      icon: '/icons/hy-192.png', badge: '/icons/hy-badge-96.png', data: { url: d.url || '/' },
       requireInteraction: !!d.sticky
     });
     for (const c of await self.clients.matchAll({ type: 'window', includeUncontrolled: true })) c.postMessage({ type: 'push', data: d });
