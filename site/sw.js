@@ -1,6 +1,6 @@
 // היומן שלנו – service worker
 // Bump VERSION on every release: installed apps (browser, home screen, APK) pick up the new version automatically.
-const VERSION = '1.5.2';
+const VERSION = '1.6.0';
 const CACHE = 'hayoman-' + VERSION;
 const SB_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js';
 const SHELL = ['/', '/manifest.webmanifest', '/icons/hy-192.png', '/icons/hy-512.png', '/icons/hy-badge-96.png', '/icons/hy-48.png'];

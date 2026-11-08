@@ -63,8 +63,54 @@ const SCHEMA = {
   },
   required: ['summary', 'people', 'items']
 };
+const CHANGE = {
+  type: 'object',
+  properties: {
+    action: { type: 'string', enum: ['add', 'update', 'delete'] },
+    id: { type: 'string', description: 'The id of the existing event, copied exactly from the list. Only for update and delete.' },
+    title: { type: 'string', description: 'Short Hebrew title, max 40 characters.' },
+    kind: { type: 'string', enum: ['shift', 'event'] },
+    date: { type: 'string', description: 'YYYY-MM-DD (the new date for update)' },
+    all_day: { type: 'boolean' },
+    start: { type: 'string', description: 'HH:MM, 24-hour' },
+    end: { type: 'string', description: 'HH:MM, 24-hour' },
+    owner: { type: 'string', enum: ['me', 'partner', 'both'] },
+    kids: { type: 'array', items: { type: 'string' } },
+    location: { type: 'string' },
+    notes: { type: 'string' }
+  },
+  required: ['action']
+};
+const ASSIST_SCHEMA = {
+  type: 'object',
+  properties: {
+    reply: { type: 'string', description: 'One or two short Hebrew sentences: what you are proposing, or the question you need answered.' },
+    changes: { type: 'array', items: CHANGE }
+  },
+  required: ['reply', 'changes']
+};
+const ASSIST_SYSTEM = 'You help a couple manage their shared Hebrew family calendar. Turn the request into a list of changes (add, update, delete) in the requested JSON structure. The person reviews and approves every change before it is applied. Write titles, places and the reply in Hebrew. Never invent event ids.';
 const SYSTEM = 'You read photos and screenshots of schedules for a Hebrew family calendar app and report the calendar items in the requested JSON structure. Never invent items; when the image has no schedule, return an empty list. Write titles, places and the summary in Hebrew.';
 
+function assistInstructions(today: string, me: any, partner: any, kids: string[], events: any[], request: string) {
+  const dow = HE_DAY[new Date(today + 'T12:00:00Z').getUTCDay()];
+  const line = (e: any) => [e.id, clean(e.t, 60), e.k === 'shift' ? 'shift' : 'event', e.a ? `${e.d} all-day` : `${e.d} ${e.s || ''}-${e.f || ''}${e.e && e.e !== e.d ? ' until ' + e.e : ''}`, e.o, (e.kids || []).join('+') || '-', e.r ? 'recurring' : '-', clean(e.l, 40) || '-'].join(' | ');
+  return [
+    `Today is ${today} (יום ${dow}). Time zone: Asia/Jerusalem.`,
+    `The couple: \"me\" = ${me.display_name} (the person asking), \"partner\" = ${partner ? partner.display_name : '(not joined yet)'}.`,
+    kids.length ? `Children: ${kids.join(', ')}.` : 'No children are registered.',
+    'Existing events (id | title | kind | when | owner | kids | recurring | place):',
+    events.length ? events.map(line).join('\n') : '(none)',
+    `The request: \"${request}\"`,
+    'Rules:',
+    '1. add: a full new event (title, kind \"event\", date, start, end or all_day, owner, kids, place). No end given: one hour. No time given: all_day true. Owner defaults to \"me\"; \"both\" for shared or family items; kids: names from the list.',
+    '2. update: the id of an existing event plus ONLY the fields that change. To move an event give the new date and, if the time changes, start and end. Moving to another time on the same day: give start and end, no date.',
+    '3. delete: only the id.',
+    '4. Resolve relative dates (מחר, יום שלישי, next week) from today; the next upcoming date when it is ambiguous.',
+    '5. Match events by meaning (title, date, owner, kids). If more than one event could match, or nothing matches, or the request is unclear, return an empty changes list and put the question in the reply. Never guess an id.',
+    '6. Touch only what was asked. A request about one event never changes others.'
+  ].join('\n');
+}
 function instructions(today: string, me: any, partner: any, kids: string[], note = '') {
   const alias = (m: any) => m && m.roster_name && m.roster_name.trim() && m.roster_name.trim() !== m.display_name ? ` (in schedules written as "${m.roster_name.trim()}")` : '';
   const dow = HE_DAY[new Date(today + 'T12:00:00Z').getUTCDay()];
@@ -116,17 +162,46 @@ function sanitize(items: unknown) {
   return out;
 }
 
+const OWNERS = ['me', 'partner', 'both'];
+function sanitizeChanges(list: unknown, ids: Set<string>) {
+  const out: any[] = [];
+  for (const c of Array.isArray(list) ? list.slice(0, 25) as any[] : []) {
+    if (!c || typeof c !== 'object') continue;
+    if (c.action === 'add') {
+      const [it] = sanitize([c]); if (it) out.push({ action: 'add', ...it, owner: OWNERS.includes(c.owner) ? c.owner : 'me' });
+    } else if (c.action === 'delete') {
+      if (typeof c.id === 'string' && ids.has(c.id)) out.push({ action: 'delete', id: c.id });
+    } else if (c.action === 'update') {
+      if (typeof c.id !== 'string' || !ids.has(c.id)) continue;
+      const u: any = { action: 'update', id: c.id };
+      if (clean(c.title, 60)) u.title = clean(c.title, 60);
+      if (c.kind === 'shift' || c.kind === 'event') u.kind = c.kind;
+      if (ymd(c.date)) u.date = ymd(c.date);
+      if (typeof c.all_day === 'boolean') u.all_day = c.all_day;
+      if (hhmm(c.start)) u.start = hhmm(c.start);
+      if (hhmm(c.end)) u.end = hhmm(c.end);
+      if (OWNERS.includes(c.owner)) u.owner = c.owner;
+      if (Array.isArray(c.kids)) u.kids = names(c.kids, 6);
+      if (typeof c.location === 'string') u.location = clean(c.location, 120);
+      if (typeof c.notes === 'string') u.notes = clean(c.notes, 300);
+      if (Object.keys(u).length > 2) out.push(u);
+    }
+  }
+  return out;
+}
+
 // ---------- Gemini (free tier) ----------
 type Opts = { media: boolean; thinking: boolean; schema: boolean };
-function geminiBody(img: string, mt: string, text: string, o: Opts) {
-  const image: any = { inlineData: { mimeType: mt, data: img } };
-  if (o.media) image.mediaResolution = { level: 'media_resolution_high' }; // small print in rosters needs the sharper view
+function geminiBody(img: string, mt: string, text: string, o: Opts, assist = false) {
+  const SC = assist ? ASSIST_SCHEMA : SCHEMA, SY = assist ? ASSIST_SYSTEM : SYSTEM;
+  const image: any = img ? { inlineData: { mimeType: mt, data: img } } : null;
+  if (image && o.media) image.mediaResolution = { level: 'media_resolution_high' }; // small print in rosters needs the sharper view
   const gc: any = { responseMimeType: 'application/json', maxOutputTokens: 16384 };
-  if (o.schema) gc.responseJsonSchema = SCHEMA;
+  if (o.schema) gc.responseJsonSchema = SC;
   if (o.thinking) gc.thinkingConfig = { thinkingLevel: THINKING };
   return {
-    systemInstruction: { parts: [{ text: o.schema ? SYSTEM : `${SYSTEM}\nAnswer with JSON only, following this JSON Schema: ${JSON.stringify(SCHEMA)}` }] },
-    contents: [{ role: 'user', parts: [image, { text }] }],
+    systemInstruction: { parts: [{ text: o.schema ? SY : `${SY}\nAnswer with JSON only, following this JSON Schema: ${JSON.stringify(SC)}` }] },
+    contents: [{ role: 'user', parts: image ? [image, { text }] : [{ text }] }],
     generationConfig: gc
   };
 }
@@ -141,7 +216,7 @@ function readGemini(j: any) {
   try { if (a >= 0 && b > a) return JSON.parse(text.slice(a, b + 1)); } catch { /* fall through */ }
   throw new ScanError('failed', 502, 'bad json, finish ' + fr);
 }
-async function scanGemini(img: string, mt: string, text: string, t0: number) {
+async function scanGemini(img: string, mt: string, text: string, t0: number, assist = false) {
   let o: Opts = { media: true, thinking: true, schema: true };
   let busy = false, last = '';
   for (const model of MODELS) {
@@ -153,7 +228,7 @@ async function scanGemini(img: string, mt: string, text: string, t0: number) {
       try {
         const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
           method: 'POST', headers: { 'x-goog-api-key': GEMINI_KEY, 'content-type': 'application/json' },
-          body: JSON.stringify(geminiBody(img, mt, text, o)), signal: ctl.signal
+          body: JSON.stringify(geminiBody(img, mt, text, o, assist)), signal: ctl.signal
         });
         status = r.status; j = await r.json().catch(() => ({}));
       } catch (e) { j = { error: { message: String(e) } }; if (ctl.signal.aborted) { last = `${model} timeout`; console.log('gemini', last); break; } }
@@ -226,6 +301,23 @@ Deno.serve(async req => {
     if ((count || 0) >= LIMIT) return json({ error: 'limit', limit: LIMIT }, 429);
 
     const b = await req.json().catch(() => ({}));
+    const request = clean(b.text, 500);
+    if (request && !b.image) {
+      if (PROVIDER === 'claude') return json({ error: 'failed' }, 501);
+      const today0 = ymd(b.today) || new Date().toISOString().slice(0, 10);
+      const evs = (Array.isArray(b.events) ? b.events.slice(0, 250) : []).filter((e: any) => e && typeof e.id === 'string' && /^[0-9a-f-]{20,40}$/i.test(e.id) && ymd(e.d));
+      const [{ data: mems0 }, kq0] = await Promise.all([
+        db.from('members').select('user_id, display_name').eq('household_id', me.household_id).order('joined_at'),
+        db.from('kids').select('name').eq('household_id', me.household_id).order('sort')
+      ]);
+      const partner0 = (mems0 || []).find((m: any) => m.user_id !== uid) || null;
+      const text0 = assistInstructions(today0, me, partner0, ((kq0 && kq0.data) || []).map((k: any) => k.name), evs, request);
+      called = true;
+      const r0 = await scanGemini('', 'image/jpeg', text0, t0, true);
+      const changes = sanitizeChanges(r0.out && r0.out.changes, new Set(evs.map((e: any) => e.id)));
+      await db.from('scan_log').insert({ household_id: me.household_id, user_id: uid, model: r0.model, input_tokens: r0.usage.input, output_tokens: r0.usage.output, items: changes.length, ok: true });
+      return json({ reply: clean(r0.out && r0.out.reply, 300), changes, model: r0.model, usage: r0.usage });
+    }
     const img = typeof b.image === 'string' ? b.image.replace(/^data:[^,]+,/, '') : '';
     const mt = ['image/jpeg', 'image/png', 'image/webp'].includes(b.mediaType) ? b.mediaType : 'image/jpeg';
     if (!img || img.length > 8_000_000) return json({ error: 'image' }, 413);
