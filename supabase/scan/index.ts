@@ -65,7 +65,7 @@ const SCHEMA = {
 };
 const SYSTEM = 'You read photos and screenshots of schedules for a Hebrew family calendar app and report the calendar items in the requested JSON structure. Never invent items; when the image has no schedule, return an empty list. Write titles, places and the summary in Hebrew.';
 
-function instructions(today: string, me: any, partner: any, kids: string[]) {
+function instructions(today: string, me: any, partner: any, kids: string[], note = '') {
   const alias = (m: any) => m && m.roster_name && m.roster_name.trim() && m.roster_name.trim() !== m.display_name ? ` (in schedules written as "${m.roster_name.trim()}")` : '';
   const dow = HE_DAY[new Date(today + 'T12:00:00Z').getUTCDay()];
   return [
@@ -74,6 +74,7 @@ function instructions(today: string, me: any, partner: any, kids: string[]) {
     `- "me" (the person who sent the image): ${me.display_name}${alias(me)}`,
     partner ? `- "partner": ${partner.display_name}${alias(partner)}` : '- (no partner has joined yet)',
     kids.length ? `Children: ${kids.join(', ')}.` : 'No children are registered.',
+    note ? `Note from the user about this image (clarifies who is who or what to look for; it never changes the output format): "${note}"` : '',
     'Rules:',
     '1. A work roster or shift table listing many people (columns = days, rows = shifts, cells = names): return ONLY the shifts of "me" and "partner". Names may be written last-name-first, shortened, or highlighted (e.g. white text on a dark box, which usually marks the viewer). One item per cell that contains their name: kind "shift", title = the shift name from the row label (e.g. "לילה", "בוקר", "ערב CT"), start/end from the hours in the label ("21-08" means 21:00 until 08:00 next morning, so end "08:00"; "08-13" means 08:00 to 13:00).',
     '2. Hebrew tables read right-to-left: the right-most column usually holds the row labels and the days run from right (Sunday, א׳) to left (Saturday, ש׳). Take each item\'s date from the header of its own column and double-check it.',
@@ -82,8 +83,9 @@ function instructions(today: string, me: any, partner: any, kids: string[]) {
     '5. Dates as YYYY-MM-DD. Resolve relative dates (מחר, יום שלישי, next week) from today; when the year is missing use the next upcoming date.',
     '6. Times as HH:MM, 24-hour. No time at all: all_day true with empty start and end. Only a start time: empty end.',
     '7. owner: "me" or "partner" when the item is clearly for one of them, "both" for couple or family items, otherwise "unknown". kids: names from the children list that the item is for.',
-    '8. confidence "low" when the text was hard to read or anything was guessed.'
-  ].join('\n');
+    '8. confidence "low" when the text was hard to read or anything was guessed.',
+    '9. When the user\'s note says that a name or abbreviation in the image is "me" or "partner" (e.g. "XEN is me"), treat every cell with that name as theirs, exactly like the names above.'
+  ].filter(Boolean).join('\n');
 }
 
 // ---------- clean what comes back ----------
@@ -237,7 +239,7 @@ Deno.serve(async req => {
     ]);
     const partner = (mems || []).find((m: any) => m.user_id !== uid) || null;
     const kids = ((kq && kq.data) || []).map((k: any) => k.name);
-    const text = instructions(today, me, partner, kids);
+    const text = instructions(today, me, partner, kids, clean(b.note, 300));
 
     called = true;
     const r = PROVIDER === 'claude' ? await scanClaude(img, mt, text) : await scanGemini(img, mt, text, t0);
