@@ -319,7 +319,8 @@ function reminderMsg(x, today) {
   if (!ev.all_day) parts.push(fmtT(s) + (ev.end_time ? '-' + String(ev.end_time).slice(0, 5) : ''));
   if (x.kids) parts.push(x.kids);
   if (ev.location) parts.push(ev.location);
-  return { title: `${ev.kind === 'shift' ? '🕒' : '⏰'} ${ev.title}`, body: parts.join(' · '), url: `/?d=${x.d}`, tag: `rem-${ev.id}-${x.d}`, sticky: !ev.all_day && x.off <= 60 };
+  const st = ['strong', 'normal', 'quiet'].includes(ev.remind_style) ? ev.remind_style : null;
+  return { title: `${ev.kind === 'shift' ? '🕒' : '⏰'} ${ev.title}`, body: parts.join(' · '), url: `/?d=${x.d}`, tag: `rem-${ev.id}-${x.d}`, sticky: st ? st === 'strong' : (!ev.all_day && x.off <= 60), ...(st ? { style: st } : {}) };
 }
 async function doReminders(now, mems) {
   const { data: evs, error } = await db.from('events').select('*').neq('reminders', '{}');
@@ -348,7 +349,8 @@ async function doReminders(now, mems) {
     if (!fresh.has(`${x.ev.id}|${x.key}|${x.off}`)) continue;
     x.kids = kidsTxt(x.ev, KM);
     const hh = mems.filter(m => m.household_id === x.ev.household_id && m.notify_reminders);
-    const targets = (x.ev.owner_id ? hh.filter(m => m.user_id === x.ev.owner_id) : hh).map(m => m.user_id);
+    const rt = x.ev.remind_to, who = rt === 'both' ? null : (rt || x.ev.owner_id);
+    const targets = (who ? hh.filter(m => m.user_id === who) : hh).map(m => m.user_id);
     const r = await sendToUsers(targets, reminderMsg(x, today), { ttl: Math.max(600, Math.min(x.off * 60, 6 * 3600)), urgency: 'high' });
     sent += r.sent;
   }
