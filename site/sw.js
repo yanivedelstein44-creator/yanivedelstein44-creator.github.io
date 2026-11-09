@@ -1,6 +1,6 @@
 // היומן שלנו – service worker
 // Bump VERSION on every release: installed apps (browser, home screen, APK) pick up the new version automatically.
-const VERSION = '1.7.0';
+const VERSION = '1.8.0';
 const CACHE = 'hayoman-' + VERSION;
 const SB_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js';
 const SHELL = ['/', '/manifest.webmanifest', '/icons/hy-192.png', '/icons/hy-512.png', '/icons/hy-badge-96.png', '/icons/hy-48.png'];
@@ -60,7 +60,10 @@ self.addEventListener('push', e => {
     await self.registration.showNotification(d.title || 'היומן שלנו', {
       body: d.body || '', tag: d.tag || undefined, renotify: !!d.tag, dir: 'rtl', lang: 'he',
       icon: '/icons/hy-192.png', badge: '/icons/hy-badge-96.png', data: { url: d.url || '/' },
-      requireInteraction: !!d.sticky
+      requireInteraction: !!d.sticky || d.style === 'strong',
+      // strong = long vibration + stays on screen until dismissed; quiet = no sound / vibration; normal = the phone's default
+      ...(d.style === 'strong' ? { vibrate: [700, 250, 700, 250, 700, 250, 700], renotify: true, tag: d.tag || 'strong' } : {}),
+      ...(d.style === 'quiet' ? { silent: true } : {})
     });
     for (const c of await self.clients.matchAll({ type: 'window', includeUncontrolled: true })) c.postMessage({ type: 'push', data: d });
   })());

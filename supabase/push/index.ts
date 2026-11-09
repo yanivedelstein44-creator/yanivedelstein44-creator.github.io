@@ -355,6 +355,29 @@ async function doReminders(now, mems) {
   return sent;
 }
 
+// ---------- task reminders (a task can carry its own time, recipient and alert style) ----------
+async function doTaskReminders(now, mems) {
+  const { data: tks, error } = await db.from('tasks').select('*').eq('done', false).not('remind_at', 'is', null)
+    .lte('remind_at', new Date(now).toISOString()).gt('remind_at', new Date(now - WINDOW * 60000).toISOString());
+  if (error) throw error;
+  if (!tks || !tks.length) return 0;
+  const { data: ins, error: e2 } = await db.from('task_reminder_log')
+    .upsert(tks.map(t => ({ task_id: t.id, remind_at: t.remind_at })), { onConflict: 'task_id,remind_at', ignoreDuplicates: true }).select();
+  if (e2) throw e2;
+  const fresh = new Set((ins || []).map(r => r.task_id + '|' + new Date(r.remind_at).getTime()));
+  let sent = 0;
+  for (const t of tks) {
+    if (!fresh.has(t.id + '|' + new Date(t.remind_at).getTime())) continue;
+    const hh = mems.filter(m => m.household_id === t.household_id && m.notify_reminders);
+    const targets = (t.remind_to ? hh.filter(m => m.user_id === t.remind_to) : hh).map(m => m.user_id);
+    const by = mems.find(m => m.user_id === t.created_by);
+    const style = ['strong', 'normal', 'quiet'].includes(t.remind_style) ? t.remind_style : 'strong';
+    const r = await sendToUsers(targets, { title: `⏰ ${t.title}`, body: `תזכורת למשימה${by ? ` · מ${by.display_name}` : ''}`, url: '/?tasks=1', tag: `task-${t.id}`, style, sticky: style === 'strong' }, { ttl: 3600, urgency: 'high' });
+    sent += r.sent;
+  }
+  return sent;
+}
+
 // ---------- digests ----------
 const evCache = new Map();
 async function hhEvents(hh, from) {
@@ -418,6 +441,7 @@ async function handleTick() {
   const { data: mems, error } = await db.from('members').select('*');
   if (error) throw error;
   out.reminders = await doReminders(now, mems || []);
+  try { out.tasks = await doTaskReminders(now, mems || []); } catch (e) { console.log('task reminders error', String(e)); out.tasks = 0; }
   for (const m of mems || []) {
     if (m.notify_daily && L.min >= m.daily_hour * 60 && L.min < m.daily_hour * 60 + 15) out.daily += await digest(m, 'daily', L, mems);
     if (m.notify_weekly && dowOf(L.date) === 6 && L.min >= 21 * 60 && L.min < 21 * 60 + 15) out.weekly += await digest(m, 'weekly', L, mems);
@@ -425,6 +449,7 @@ async function handleTick() {
   if (L.min === 3 * 60 + 30) {
     await db.from('reminder_log').delete().lt('sent_at', new Date(now - 40 * 864e5).toISOString());
     await db.from('digest_log').delete().lt('sent_at', new Date(now - 40 * 864e5).toISOString());
+    await db.from('task_reminder_log').delete().lt('sent_at', new Date(now - 40 * 864e5).toISOString());
   }
   evCache.clear();
   return out;
