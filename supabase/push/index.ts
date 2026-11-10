@@ -319,26 +319,28 @@ function reminderMsg(x, today) {
   if (!ev.all_day) parts.push(fmtT(s) + (ev.end_time ? '-' + String(ev.end_time).slice(0, 5) : ''));
   if (x.kids) parts.push(x.kids);
   if (ev.location) parts.push(ev.location);
-  const st = ['strong', 'normal', 'quiet'].includes(ev.remind_style) ? ev.remind_style : null;
+  const st = x.alr && ['strong', 'normal', 'quiet'].includes(ev.remind_style) ? ev.remind_style : null;
   return { title: `${ev.kind === 'shift' ? '🕒' : '⏰'} ${ev.title}`, body: parts.join(' · '), url: `/?d=${x.d}`, tag: `rem-${ev.id}-${x.d}`, sticky: st ? st === 'strong' : (!ev.all_day && x.off <= 60), ...(st ? { style: st } : {}) };
 }
 async function doReminders(now, mems) {
-  const { data: evs, error } = await db.from('events').select('*').neq('reminders', '{}');
+  const { data: evs, error } = await db.from('events').select('*').or('reminders.neq.{},alerts.neq.{}');
   if (error) throw error;
   const due = [];
   for (const ev of evs || []) {
     const s = ev.all_day ? 9 * 60 : (tmin(ev.start_time) || 0);
-    for (const off of ev.reminders || []) {
+    // reminders (תזכורת): to the owner / both; alerts (התראה): to the chosen recipient with the chosen style. Alerts use offset_min + ALR so both can share an offset.
+    const sets = [[ev.reminders || [], 0, false], [ev.alerts || [], 1000000, true]];
+    for (const [offs, shift, alr] of sets) for (const off of offs) {
       const hi = now + off * 60000, lo = hi - WINDOW * 60000;
       for (const d of occDates(ev, localAt(lo - 864e5).date, localAt(hi + 864e5).date)) {
         const t = localToUtcMs(d, s);
-        if (t > lo && t <= hi) due.push({ ev, d, off, key: `${d} ${fmtT(s)}` });
+        if (t > lo && t <= hi) due.push({ ev, d, off, alr, lk: off + shift, key: `${d} ${fmtT(s)}` });
       }
     }
   }
   if (!due.length) return 0;
   const { data: ins, error: e2 } = await db.from('reminder_log')
-    .upsert(due.map(x => ({ event_id: x.ev.id, occ_key: x.key, offset_min: x.off })), { onConflict: 'event_id,occ_key,offset_min', ignoreDuplicates: true })
+    .upsert(due.map(x => ({ event_id: x.ev.id, occ_key: x.key, offset_min: x.lk })), { onConflict: 'event_id,occ_key,offset_min', ignoreDuplicates: true })
     .select();
   if (e2) throw e2;
   const fresh = new Set((ins || []).map(r => `${r.event_id}|${r.occ_key}|${r.offset_min}`));
@@ -346,10 +348,10 @@ async function doReminders(now, mems) {
   const KM = due.some(x => (x.ev.kid_ids || []).length) ? await kidsMap() : new Map();
   let sent = 0;
   for (const x of due) {
-    if (!fresh.has(`${x.ev.id}|${x.key}|${x.off}`)) continue;
+    if (!fresh.has(`${x.ev.id}|${x.key}|${x.lk}`)) continue;
     x.kids = kidsTxt(x.ev, KM);
     const hh = mems.filter(m => m.household_id === x.ev.household_id && m.notify_reminders);
-    const rt = x.ev.remind_to, who = rt === 'both' ? null : (rt || x.ev.owner_id);
+    const rt = x.alr ? x.ev.remind_to : null, who = rt === 'both' ? null : (rt || x.ev.owner_id);
     const targets = (who ? hh.filter(m => m.user_id === who) : hh).map(m => m.user_id);
     const r = await sendToUsers(targets, reminderMsg(x, today), { ttl: Math.max(600, Math.min(x.off * 60, 6 * 3600)), urgency: 'high' });
     sent += r.sent;
