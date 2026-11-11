@@ -27,6 +27,9 @@ class Prefs(context: Context) {
     var lastUpdateCheck by LongPref("last_update_check", 0L)
     var browserHome by StrPref("browser_home", "https://www.google.com/")
 
+    /** איזו שיטה פותחת מסך מפוצל בטלפון הזה: "" (עוד לא ידוע), "toggle" או "recents" */
+    var splitMethod by StrPref("split_method", "")
+
     /** מפתח Claude API – נשמר מוצפן במפתח של Android Keystore. */
     var apiKey: String
         get() {

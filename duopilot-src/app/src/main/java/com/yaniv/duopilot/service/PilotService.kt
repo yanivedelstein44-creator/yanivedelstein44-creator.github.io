@@ -290,7 +290,7 @@ class PilotService : AccessibilityService() {
     // ------------------------------------------------------------------ צמדים
 
     fun launchPair(pair: AppPair) = Bg.ui {
-        overlays.showPanel("🪟 פותח צמד", "${AppCatalog.label(this, pair.top)} ⬆  ·  ${AppCatalog.label(this, pair.bottom)} ⬇")
+        overlays.showPanel("🪟 פותח צמד", "למעלה: ${AppCatalog.label(this, pair.top)} · למטה: ${AppCatalog.label(this, pair.bottom)}")
         launcher.launch(pair) { ok, msg ->
             if (ok) overlays.hidePanel(700) else overlays.finishPanel("⚠️ $msg", 8000)
         }

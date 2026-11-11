@@ -211,14 +211,31 @@ class ScrollMemory(private val svc: PilotService) {
         return best
     }
 
+    /** ב-ScrollView יש בדרך כלל ילד אחד שעוטף הכול – יורדים דרכו עד לרמה שיש בה כמה פריטים */
+    private fun itemsContainer(list: AccessibilityNodeInfo): AccessibilityNodeInfo {
+        var n = list
+        repeat(4) {
+            val kids = (0 until n.childCount).mapNotNull {
+                try {
+                    n.getChild(it)
+                } catch (e: Exception) {
+                    null
+                }
+            }.filter { it.isVisibleToUser }
+            if (kids.size == 1 && kids[0].childCount > 0) n = kids[0] else return n
+        }
+        return n
+    }
+
     /** הטקסטים של עד 3 הפריטים הראשונים שגלויים במלואם ברשימה */
     private fun anchorsOf(list: AccessibilityNodeInfo): List<String> {
         val lr = Rect()
         list.getBoundsInScreen(lr)
         val out = ArrayList<String>()
-        for (i in 0 until list.childCount) {
+        val container = itemsContainer(list)
+        for (i in 0 until container.childCount) {
             val c = try {
-                list.getChild(i)
+                container.getChild(i)
             } catch (e: Exception) {
                 null
             } ?: continue

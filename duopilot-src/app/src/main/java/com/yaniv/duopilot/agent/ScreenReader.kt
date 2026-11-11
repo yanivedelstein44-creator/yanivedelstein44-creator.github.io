@@ -59,7 +59,35 @@ class ScreenState(
 object ScreenReader {
     private const val MAX_ELEMENTS = 320
 
+    /**
+     * צילום מצב המסך. אם באמצע מעבר בין חלונות לא נמצא כלום, או שדף אינטרנט עוד לא חשף את התוכן שלו
+     * לנגישות (WebView בונה את העץ רק אחרי הבקשה הראשונה) – מחכים רגע ומנסים שוב.
+     */
     fun capture(svc: PilotService, includeScreenshot: Boolean): ScreenState {
+        var last: ScreenState? = null
+        for (attempt in 0..2) {
+            emptyWebView = false
+            val s = captureOnce(svc)
+            last = s
+            val retry = s.elements.isEmpty() || (emptyWebView && attempt == 0)
+            if (!retry) break
+            Bg.sleep(if (attempt == 0) 600 else 900)
+        }
+        val s = last ?: captureOnce(svc)
+        if (!includeScreenshot) return s
+        val bmp = Screenshot.take(svc) ?: return s
+        val scaled = scale(bmp, 1280)
+        val shot = toJpegB64(scaled, 70)
+        val result = ScreenState(s.elements, s.windowsText, s.elementsText, s.screenW, s.screenH, shot, scaled.width, scaled.height, s.splitActive)
+        if (scaled !== bmp) scaled.recycle()
+        bmp.recycle()
+        return result
+    }
+
+    @Volatile
+    private var emptyWebView = false
+
+    private fun captureOnce(svc: PilotService): ScreenState {
         val (sw, sh) = svc.screenSize()
         val screen = Rect(0, 0, sw, sh)
         val split = svc.isSplitActive()
@@ -84,21 +112,7 @@ object ScreenReader {
             val budget = if (w.type == AccessibilityWindowInfo.TYPE_APPLICATION) MAX_ELEMENTS / appWins else 70
             walk(root, tag, screen, elements, esb, elements.size + budget, insideClickable = false, depth = 0)
         }
-        var shot: String? = null
-        var shotW = 0
-        var shotH = 0
-        if (includeScreenshot) {
-            val bmp = Screenshot.take(svc)
-            if (bmp != null) {
-                val scaled = scale(bmp, 1280)
-                shot = toJpegB64(scaled, 70)
-                shotW = scaled.width
-                shotH = scaled.height
-                if (scaled !== bmp) scaled.recycle()
-                bmp.recycle()
-            }
-        }
-        return ScreenState(elements, wsb.toString(), esb.toString(), sw, sh, shot, shotW, shotH, split)
+        return ScreenState(elements, wsb.toString(), esb.toString(), sw, sh, null, 0, 0, split)
     }
 
     private fun order(type: Int) = when (type) {
@@ -198,7 +212,12 @@ object ScreenReader {
             sb.append(" @").append(r.centerX()).append(',').append(r.centerY())
             sb.append(' ').append(r.width()).append('x').append(r.height()).append('\n')
         }
-        val inside = insideClickable || (clickable && !scrollable)
+        val cls = n.className?.toString() ?: ""
+        val isWeb = cls == "android.webkit.WebView"
+        if (isWeb && n.childCount == 0) emptyWebView = true
+        // מכולה גדולה ולחיצה (דף אינטרנט, כרטיס ענק) – לא "בולעים" את הטקסטים שבתוכה
+        val big = r.width().toLong() * r.height() > screen.width().toLong() * screen.height() / 4
+        val inside = insideClickable || (clickable && !scrollable && !isWeb && !big)
         for (i in 0 until n.childCount) {
             val c = try {
                 n.getChild(i)

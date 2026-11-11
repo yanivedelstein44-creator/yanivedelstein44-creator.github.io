@@ -133,7 +133,7 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER
             setPadding(0, dp(16), 0, dp(4))
         })
-        overlay.addView(label("${AppCatalog.label(this, pair.top)} ⬆   ·   ${AppCatalog.label(this, pair.bottom)} ⬇", 15f, Palette.SUB).apply {
+        overlay.addView(label("למעלה: ${AppCatalog.label(this, pair.top)}\nלמטה: ${AppCatalog.label(this, pair.bottom)}", 15f, Palette.SUB).apply {
             gravity = Gravity.CENTER
         })
         val bar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
@@ -213,9 +213,9 @@ class MainActivity : Activity() {
     private fun lastPairButton() {
         val last = store.last() ?: return
         content.gap(this, 12)
-        val b = button("▶  ${AppCatalog.label(this, last.top)} ⬆  ·  ${AppCatalog.label(this, last.bottom)} ⬇") { openPair(last) }
-        b.textSize = 16f
-        b.setPadding(dp(16), dp(16), dp(16), dp(16))
+        val b = button("▶  פתח את הצמד האחרון\nלמעלה: ${AppCatalog.label(this, last.top)}  ·  למטה: ${AppCatalog.label(this, last.bottom)}") { openPair(last) }
+        b.textSize = 15f
+        b.setPadding(dp(16), dp(14), dp(16), dp(14))
         content.addView(b, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
     }
 
@@ -276,8 +276,8 @@ class MainActivity : Activity() {
             setImageBitmap(IconComposer.pairIcon(this@MainActivity, p.top, p.bottom, dp(48)))
         }, LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginEnd = dp(12) })
         val texts = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        texts.addView(label("⬆ " + AppCatalog.label(this, p.top), 15f, bold = true))
-        texts.addView(label("⬇ " + AppCatalog.label(this, p.bottom), 14f, Palette.SUB))
+        texts.addView(label("למעלה: " + AppCatalog.label(this, p.top), 15f, bold = true))
+        texts.addView(label("למטה: " + AppCatalog.label(this, p.bottom), 14f, Palette.SUB))
         row.addView(texts, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         row.addView(button("פתח") { openPair(p) }.apply {
             textSize = 13f
@@ -319,7 +319,7 @@ class MainActivity : Activity() {
                 Shortcuts.refreshDynamic(this)
                 AlertDialog.Builder(this, THEME)
                     .setTitle("הצמד נשמר ✓")
-                    .setMessage("${AppCatalog.label(this, top)} למעלה, ${AppCatalog.label(this, bottom)} למטה.\nלפתוח אותו עכשיו?")
+                    .setMessage("למעלה: ${AppCatalog.label(this, top)}\nלמטה: ${AppCatalog.label(this, bottom)}\n\nלפתוח אותו עכשיו?")
                     .setPositiveButton("פתח עכשיו") { _, _ -> openPair(p) }
                     .setNeutralButton("הוסף למסך הבית") { _, _ -> Shortcuts.pin(this, p) }
                     .setNegativeButton("אחר כך", null)
