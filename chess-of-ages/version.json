@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.3.11",
-  "build": "1.3.11-1794386848291",
-  "buildTime": 1794386848291,
-  "date": "2026-11-11T08:47:28.291Z",
+  "version": "1.3.12",
+  "build": "1.3.12-1794387532348",
+  "buildTime": 1794387532348,
+  "date": "2026-11-11T08:58:52.348Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.3.11-1794386848291.zip",
-  "checksum": "542c03e8420f47f50ac66889a4f4575360a18f0a8a854048fd5d10dabd583062",
+  "bundle": "update/bundle-1.3.12-1794387532348.zip",
+  "checksum": "5d49bb6ddd614c56e0e8591a6efef8d95716dbe5e3869308dfdd51df5590219d",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Two new shops on the Central Island: the Pet House (a red barn with a golden paw, a paddock and a bouncing ball) and the Golden Vault for premium (a vault door with a spinning wheel and a giant gold coin). Three buildings now stand on each side of the board. Pinch with two fingers on any island, even over the board, to zoom out and see the whole island"
+  "notes": "Premium is now a flying golden ring above the Time Museum with Premium written around it: it spins slowly, sparkles and opens the premium shop when tapped (it replaces the Golden Vault)"
 }
