@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@mipmap/ic_voice"
+        android:shortcutId="voice"
+        android:shortcutLongLabel="@string/sc_voice_long"
+        android:shortcutShortLabel="@string/sc_voice_short">
+        <intent
+            android:action="com.yaniv.duopilot.VOICE"
+            android:targetClass="com.yaniv.duopilot.ui.VoiceEntryActivity"
+            android:targetPackage="com.yaniv.duopilot" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutId="settings"
+        android:shortcutLongLabel="@string/sc_settings_long"
+        android:shortcutShortLabel="@string/sc_settings_short">
+        <intent
+            android:action="com.yaniv.duopilot.SETTINGS"
+            android:targetClass="com.yaniv.duopilot.ui.MainActivity"
+            android:targetPackage="com.yaniv.duopilot" />
+    </shortcut>
+</shortcuts>

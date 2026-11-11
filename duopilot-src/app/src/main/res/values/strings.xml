@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DuoPilot</string>
+    <string name="voice_launcher_label">פקודה קולית</string>
+    <string name="browser_label">דפדפן DuoPilot</string>
+    <string name="browser_label_b">דפדפן DuoPilot 2</string>
+    <string name="service_label">DuoPilot – מסך מפוצל ועוזר קולי</string>
+    <string name="service_description">DuoPilot משתמש בנגישות כדי: לפתוח שתי אפליקציות במסך מפוצל ולזכור את הצמד, לזכור איפה גללת בכל אפליקציה בצמד ולחזור לשם, ולתת לעוזר הקולי לקרוא את המסך וללחוץ בשבילך. תוכן המסך (טקסט ותמונה מוקטנת) נשלח ל-Claude רק בזמן שאתה נותן פקודה קולית. כל השאר נשמר רק בטלפון.</string>
+    <string name="sc_voice_short">פקודה קולית</string>
+    <string name="sc_voice_long">פקודה קולית ל-DuoPilot</string>
+    <string name="sc_settings_short">הגדרות</string>
+    <string name="sc_settings_long">הגדרות DuoPilot</string>
+</resources>

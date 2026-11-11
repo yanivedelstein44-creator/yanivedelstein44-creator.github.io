@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- אנדרואיד אוטו: האפליקציה משתמשת בהתראות הודעות (MessagingStyle + תשובה קולית) -->
+<automotiveApp>
+    <uses name="notification" />
+</automotiveApp>
