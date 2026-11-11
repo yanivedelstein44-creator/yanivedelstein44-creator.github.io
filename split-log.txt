@@ -1,0 +1,760 @@
+
+===== start com.android.settings + duopilot:browser split=false
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:53 | 11:53 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "Search" Rect(75, 2125 - 1004, 2290) com.google.android.apps.nexuslauncher:id/search_container_hotseat
+  [c] android.widget.TextView "Phone | Phone" Rect(76, 1873 - 249, 2068) 
+  [c] android.widget.TextView "Messages | Messages" Rect(328, 1873 - 501, 2068) 
+  [c] android.widget.TextView "Chrome | Chrome" Rect(580, 1873 - 753, 2068) 
+  [c] android.widget.TextView "DuoPilot | Predicted app: DuoPilot" Rect(832, 1873 - 1004, 2068) 
+  [c] android.widget.ImageView "Google app" Rect(86, 2144 - 212, 2270) com.google.android.apps.nexuslauncher:id/g_icon
+  [c] android.widget.TextView "Gmail | Gmail" Rect(309, 1479 - 519, 1751) 
+  [c] android.widget.TextView "Photos | Photos" Rect(561, 1479 - 771, 1751) 
+  [c] android.widget.TextView "YouTube | YouTube" Rect(813, 1479 - 1023, 1751) 
+  [c] android.widget.ImageView "Voice search" Rect(741, 2125 - 867, 2290) com.google.android.apps.nexuslauncher:id/mic_icon
+  [c] android.widget.ImageButton "Google Lens" Rect(867, 2125 - 993, 2290) com.google.android.apps.nexuslauncher:id/lens_icon
+  [c] android.view.ViewGroup "" Rect(99, 224 - 1023, 495) 
+  [c] android.widget.TextView "Wed, Nov 11 | Wed, Nov 11" Rect(99, 292 - 1023, 354) com.google.android.apps.nexuslauncher:id/date
+
+===== toggle attempt 1 split=false split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.android.settings
+      android.widget.TextView "11:53 | 11:53 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+  [c] android.widget.ImageView "Profile picture, double tap to open Google Account" Rect(891, 275 - 1017, 401) com.android.settings:id/account_avatar
+      android.widget.TextView "Settings" Rect(63, 401 - 408, 528) com.android.settings:id/homepage_title
+  [c] android.view.ViewGroup "" Rect(42, 591 - 1038, 728) com.android.settings:id/search_action_bar
+      android.widget.TextView "Search settings" Rect(200, 624 - 553, 695) com.android.settings:id/search_action_bar_title
+  [c] android.widget.LinearLayout "" Rect(0, 770 - 1080, 1001) 
+  [c] android.widget.LinearLayout "" Rect(0, 1001 - 1080, 1232) 
+  [c] android.widget.LinearLayout "" Rect(0, 1232 - 1080, 1463) 
+  [c] android.widget.LinearLayout "" Rect(0, 1463 - 1080, 1694) 
+  [c] android.widget.LinearLayout "" Rect(0, 1694 - 1080, 1925) 
+  [c] android.widget.LinearLayout "" Rect(0, 1925 - 1080, 2156) 
+  [c] android.widget.LinearLayout "" Rect(0, 2156 - 1080, 2337) 
+      android.widget.TextView "Network & internet" Rect(189, 824 - 625, 895) android:id/title
+      android.widget.TextView "Mobile, Wi‑Fi, hotspot" Rect(189, 895 - 540, 946) android:id/summary
+      android.widget.TextView "Connected devices" Rect(189, 1055 - 636, 1126) android:id/title
+      android.widget.TextView "Bluetooth, pairing" Rect(189, 1126 - 476, 1177) android:id/summary
+      android.widget.TextView "Apps" Rect(189, 1286 - 311, 1357) android:id/title
+      android.widget.TextView "Assistant, recent apps, default apps" Rect(189, 1357 - 774, 1408) android:id/summary
+      android.widget.TextView "Notifications" Rect(189, 1517 - 489, 1588) android:id/title
+      android.widget.TextView "Notification history, conversations" Rect(189, 1588 - 745, 1639) android:id/summary
+      android.widget.TextView "Battery" Rect(189, 1748 - 357, 1819) android:id/title
+      android.widget.TextView "100%" Rect(189, 1819 - 279, 1870) android:id/summary
+      android.widget.TextView "Storage" Rect(189, 1979 - 371, 2050) android:id/title
+      android.widget.TextView "34% used - 5.29 GB free" Rect(189, 2050 - 580, 2101) android:id/summary
+      android.widget.TextView "Sound & vibration" Rect(189, 2210 - 601, 2281) android:id/title
+      android.widget.TextView "Volume, haptics, Do Not Disturb" Rect(189, 2281 - 707, 2332) android:id/summary
+
+===== [1] recents opened, top card=Settings split=false
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:54 | 11:54 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone three bars." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [1] menu opened (icon=icon), split item=null split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:54 | 11:54 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone three bars." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [2] recents opened, top card=Settings split=false
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:54 | 11:54 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone three bars." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [2] menu opened (icon=icon), split item=Split screen split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:54 | 11:54 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+  [c] android.widget.TextView "Settings" Rect(194, 396 - 886, 495) com.google.android.apps.nexuslauncher:id/task_name
+  [c] android.widget.LinearLayout "" Rect(194, 500 - 886, 637) 
+  [c] android.widget.LinearLayout "" Rect(194, 642 - 886, 779) 
+      android.widget.TextView "App info" Rect(331, 543 - 469, 594) com.google.android.apps.nexuslauncher:id/text
+      android.widget.TextView "Split screen" Rect(331, 685 - 524, 736) com.google.android.apps.nexuslauncher:id/text
+
+===== [2] split select, second card=DuoPilot דפדפן DuoPilot split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:54 | 11:54 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "" Rect(42, 0 - 1038, 275) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(173, 396 - 907, 2195) 
+      android.widget.TextView "Tap another app to use split screen" Rect(252, 2159 - 828, 2210) com.google.android.apps.nexuslauncher:id/split_instructions_text
+  [c] android.view.View "" Rect(477, 396 - 603, 522) com.google.android.apps.nexuslauncher:id/icon
+
+===== [2] after choosing second ok=true split=true
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=5 Rect(414, 1137 - 666, 1263) com.android.systemui
+window type=1 Rect(0, 1213 - 1080, 2400) com.yaniv.duopilot
+window type=1 Rect(0, 0 - 1080, 1187) com.android.settings
+      android.widget.TextView "11:54 | 11:54 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+  [c] android.widget.ImageView "Profile picture, double tap to open Google Account" Rect(891, 275 - 1017, 401) com.android.settings:id/account_avatar
+      android.widget.TextView "Settings" Rect(63, 401 - 408, 528) com.android.settings:id/homepage_title
+  [c] android.view.ViewGroup "" Rect(42, 591 - 1038, 728) com.android.settings:id/search_action_bar
+      android.widget.TextView "Search settings" Rect(200, 624 - 553, 695) com.android.settings:id/search_action_bar_title
+  [c] android.widget.LinearLayout "" Rect(0, 770 - 1080, 1001) 
+  [c] android.widget.LinearLayout "" Rect(0, 1001 - 1080, 1187) 
+      android.widget.TextView "Network & internet" Rect(189, 824 - 625, 895) android:id/title
+      android.widget.TextView "Mobile, Wi‑Fi, hotspot" Rect(189, 895 - 540, 946) android:id/summary
+      android.widget.TextView "Connected devices" Rect(189, 1055 - 636, 1126) android:id/title
+      android.widget.TextView "Bluetooth, pairing" Rect(189, 1126 - 476, 1177) android:id/summary
+
+===== result ok=true split=true
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=5 Rect(414, 1137 - 666, 1263) com.android.systemui
+window type=1 Rect(0, 1213 - 1080, 2400) com.yaniv.duopilot
+window type=1 Rect(0, 0 - 1080, 1187) com.android.settings
+      android.widget.TextView "11:54 | 11:54 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+  [c] android.widget.ImageView "Profile picture, double tap to open Google Account" Rect(891, 275 - 1017, 401) com.android.settings:id/account_avatar
+      android.widget.TextView "Settings" Rect(63, 401 - 408, 528) com.android.settings:id/homepage_title
+  [c] android.view.ViewGroup "" Rect(42, 591 - 1038, 728) com.android.settings:id/search_action_bar
+      android.widget.TextView "Search settings" Rect(200, 624 - 553, 695) com.android.settings:id/search_action_bar_title
+  [c] android.widget.LinearLayout "" Rect(0, 770 - 1080, 1001) 
+  [c] android.widget.LinearLayout "" Rect(0, 1001 - 1080, 1187) 
+      android.widget.TextView "Network & internet" Rect(189, 824 - 625, 895) android:id/title
+      android.widget.TextView "Mobile, Wi‑Fi, hotspot" Rect(189, 895 - 540, 946) android:id/summary
+      android.widget.TextView "Connected devices" Rect(189, 1055 - 636, 1126) android:id/title
+      android.widget.TextView "Bluetooth, pairing" Rect(189, 1126 - 476, 1177) android:id/summary
+
+===== start com.android.settings + duopilot:browser split=false
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:54 | 11:54 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "Search" Rect(75, 2125 - 1004, 2290) com.google.android.apps.nexuslauncher:id/search_container_hotseat
+  [c] android.widget.TextView "Phone | Phone" Rect(76, 1873 - 249, 2068) 
+  [c] android.widget.TextView "Messages | Messages" Rect(328, 1873 - 501, 2068) 
+  [c] android.widget.TextView "Chrome | Chrome" Rect(580, 1873 - 753, 2068) 
+  [c] android.widget.TextView "DuoPilot | Predicted app: DuoPilot" Rect(832, 1873 - 1004, 2068) 
+  [c] android.widget.ImageView "Google app" Rect(86, 2144 - 212, 2270) com.google.android.apps.nexuslauncher:id/g_icon
+  [c] android.widget.TextView "Gmail | Gmail" Rect(309, 1479 - 519, 1751) 
+  [c] android.widget.TextView "Photos | Photos" Rect(561, 1479 - 771, 1751) 
+  [c] android.widget.TextView "YouTube | YouTube" Rect(813, 1479 - 1023, 1751) 
+  [c] android.widget.ImageView "Voice search" Rect(741, 2125 - 867, 2290) com.google.android.apps.nexuslauncher:id/mic_icon
+  [c] android.widget.ImageButton "Google Lens" Rect(867, 2125 - 993, 2290) com.google.android.apps.nexuslauncher:id/lens_icon
+  [c] android.view.ViewGroup "" Rect(99, 224 - 1023, 495) 
+  [c] android.widget.TextView "Wed, Nov 11 | Wed, Nov 11" Rect(99, 292 - 1023, 354) com.google.android.apps.nexuslauncher:id/date
+
+===== [1] recents opened, top card=Settings split=false
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:55 | 11:55 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [1] menu opened (icon=icon), split item=null split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:55 | 11:55 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [2] recents opened, top card=Settings split=false
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:55 | 11:55 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [2] menu opened (icon=icon), split item=null split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:55 | 11:55 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 62 - 907, 1861) 
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [3] recents opened, top card=Settings split=false
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:55 | 11:55 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [3] menu opened (icon=null), split item=null split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:55 | 11:55 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "Search" Rect(75, 2125 - 1004, 2290) com.google.android.apps.nexuslauncher:id/search_container_hotseat
+  [c] android.widget.TextView "Phone | Phone" Rect(76, 1873 - 249, 2068) 
+  [c] android.widget.TextView "Messages | Messages" Rect(328, 1873 - 501, 2068) 
+  [c] android.widget.TextView "Chrome | Chrome" Rect(580, 1873 - 753, 2068) 
+  [c] android.widget.TextView "DuoPilot | Predicted app: DuoPilot" Rect(832, 1873 - 1004, 2068) 
+  [c] android.widget.ImageView "Google app" Rect(86, 2144 - 212, 2270) com.google.android.apps.nexuslauncher:id/g_icon
+  [c] android.widget.TextView "Gmail | Gmail" Rect(309, 1479 - 519, 1751) 
+  [c] android.widget.TextView "Photos | Photos" Rect(561, 1479 - 771, 1751) 
+  [c] android.widget.TextView "YouTube | YouTube" Rect(813, 1479 - 1023, 1751) 
+  [c] android.widget.ImageView "Voice search" Rect(741, 2125 - 867, 2290) com.google.android.apps.nexuslauncher:id/mic_icon
+  [c] android.widget.ImageButton "Google Lens" Rect(867, 2125 - 993, 2290) com.google.android.apps.nexuslauncher:id/lens_icon
+  [c] android.view.ViewGroup "" Rect(99, 224 - 1023, 495) 
+  [c] android.widget.TextView "Wed, Nov 11 | Wed, Nov 11" Rect(99, 292 - 1023, 354) com.google.android.apps.nexuslauncher:id/date
+
+===== result ok=false split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:55 | 11:55 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "Search" Rect(75, 2125 - 1004, 2290) com.google.android.apps.nexuslauncher:id/search_container_hotseat
+  [c] android.widget.TextView "Phone | Phone" Rect(76, 1873 - 249, 2068) 
+  [c] android.widget.TextView "Messages | Messages" Rect(328, 1873 - 501, 2068) 
+  [c] android.widget.TextView "Chrome | Chrome" Rect(580, 1873 - 753, 2068) 
+  [c] android.widget.TextView "DuoPilot | Predicted app: DuoPilot" Rect(832, 1873 - 1004, 2068) 
+  [c] android.widget.ImageView "Google app" Rect(86, 2144 - 212, 2270) com.google.android.apps.nexuslauncher:id/g_icon
+  [c] android.widget.TextView "Gmail | Gmail" Rect(309, 1479 - 519, 1751) 
+  [c] android.widget.TextView "Photos | Photos" Rect(561, 1479 - 771, 1751) 
+  [c] android.widget.TextView "YouTube | YouTube" Rect(813, 1479 - 1023, 1751) 
+  [c] android.widget.ImageView "Voice search" Rect(741, 2125 - 867, 2290) com.google.android.apps.nexuslauncher:id/mic_icon
+  [c] android.widget.ImageButton "Google Lens" Rect(867, 2125 - 993, 2290) com.google.android.apps.nexuslauncher:id/lens_icon
+  [c] android.view.ViewGroup "" Rect(99, 224 - 1023, 495) 
+  [c] android.widget.TextView "Wed, Nov 11 | Wed, Nov 11" Rect(99, 292 - 1023, 354) com.google.android.apps.nexuslauncher:id/date
+
+===== start com.android.settings + duopilot:browser split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:55 | 11:55 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "Search" Rect(75, 2125 - 1004, 2290) com.google.android.apps.nexuslauncher:id/search_container_hotseat
+  [c] android.widget.TextView "Phone | Phone" Rect(76, 1873 - 249, 2068) 
+  [c] android.widget.TextView "Messages | Messages" Rect(328, 1873 - 501, 2068) 
+  [c] android.widget.TextView "Chrome | Chrome" Rect(580, 1873 - 753, 2068) 
+  [c] android.widget.TextView "DuoPilot | Predicted app: DuoPilot" Rect(832, 1873 - 1004, 2068) 
+  [c] android.widget.ImageView "Google app" Rect(86, 2144 - 212, 2270) com.google.android.apps.nexuslauncher:id/g_icon
+  [c] android.widget.TextView "Gmail | Gmail" Rect(309, 1479 - 519, 1751) 
+  [c] android.widget.TextView "Photos | Photos" Rect(561, 1479 - 771, 1751) 
+  [c] android.widget.TextView "YouTube | YouTube" Rect(813, 1479 - 1023, 1751) 
+  [c] android.widget.ImageView "Voice search" Rect(741, 2125 - 867, 2290) com.google.android.apps.nexuslauncher:id/mic_icon
+  [c] android.widget.ImageButton "Google Lens" Rect(867, 2125 - 993, 2290) com.google.android.apps.nexuslauncher:id/lens_icon
+  [c] android.view.ViewGroup "" Rect(99, 224 - 1023, 495) 
+  [c] android.widget.TextView "Wed, Nov 11 | Wed, Nov 11" Rect(99, 292 - 1023, 354) com.google.android.apps.nexuslauncher:id/date
+
+===== toggle attempt 1 split=false split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.android.settings
+      android.widget.TextView "11:55 | 11:55 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+  [c] android.widget.ImageView "Profile picture, double tap to open Google Account" Rect(891, 275 - 1017, 401) com.android.settings:id/account_avatar
+      android.widget.TextView "Settings" Rect(63, 401 - 408, 528) com.android.settings:id/homepage_title
+  [c] android.view.ViewGroup "" Rect(42, 591 - 1038, 728) com.android.settings:id/search_action_bar
+      android.widget.TextView "Search settings" Rect(200, 624 - 553, 695) com.android.settings:id/search_action_bar_title
+  [c] android.widget.LinearLayout "" Rect(0, 770 - 1080, 1001) 
+  [c] android.widget.LinearLayout "" Rect(0, 1001 - 1080, 1232) 
+  [c] android.widget.LinearLayout "" Rect(0, 1232 - 1080, 1463) 
+  [c] android.widget.LinearLayout "" Rect(0, 1463 - 1080, 1694) 
+  [c] android.widget.LinearLayout "" Rect(0, 1694 - 1080, 1925) 
+  [c] android.widget.LinearLayout "" Rect(0, 1925 - 1080, 2156) 
+  [c] android.widget.LinearLayout "" Rect(0, 2156 - 1080, 2337) 
+      android.widget.TextView "Network & internet" Rect(189, 824 - 625, 895) android:id/title
+      android.widget.TextView "Mobile, Wi‑Fi, hotspot" Rect(189, 895 - 540, 946) android:id/summary
+      android.widget.TextView "Connected devices" Rect(189, 1055 - 636, 1126) android:id/title
+      android.widget.TextView "Bluetooth, pairing" Rect(189, 1126 - 476, 1177) android:id/summary
+      android.widget.TextView "Apps" Rect(189, 1286 - 311, 1357) android:id/title
+      android.widget.TextView "Assistant, recent apps, default apps" Rect(189, 1357 - 774, 1408) android:id/summary
+      android.widget.TextView "Notifications" Rect(189, 1517 - 489, 1588) android:id/title
+      android.widget.TextView "Notification history, conversations" Rect(189, 1588 - 745, 1639) android:id/summary
+      android.widget.TextView "Battery" Rect(189, 1748 - 357, 1819) android:id/title
+      android.widget.TextView "100%" Rect(189, 1819 - 279, 1870) android:id/summary
+      android.widget.TextView "Storage" Rect(189, 1979 - 371, 2050) android:id/title
+      android.widget.TextView "37% used - 5.04 GB free" Rect(189, 2050 - 580, 2101) android:id/summary
+      android.widget.TextView "Sound & vibration" Rect(189, 2210 - 601, 2281) android:id/title
+      android.widget.TextView "Volume, haptics, Do Not Disturb" Rect(189, 2281 - 707, 2332) android:id/summary
+
+===== [1] recents opened, top card=Settings split=false
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:55 | 11:55 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [1] menu opened (icon=icon), split item=null split=false
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:55 | 11:55 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [2] recents opened, top card=Settings split=false
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:55 | 11:55 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [2] menu opened (icon=icon), split item=null split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:55 | 11:55 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== result ok=false split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:56 | 11:56 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "Search" Rect(75, 2125 - 1004, 2290) com.google.android.apps.nexuslauncher:id/search_container_hotseat
+  [c] android.widget.TextView "Phone | Phone" Rect(76, 1873 - 249, 2068) 
+  [c] android.widget.TextView "Messages | Messages" Rect(328, 1873 - 501, 2068) 
+  [c] android.widget.TextView "Chrome | Chrome" Rect(580, 1873 - 753, 2068) 
+  [c] android.widget.TextView "DuoPilot | Predicted app: DuoPilot" Rect(832, 1873 - 1004, 2068) 
+  [c] android.widget.ImageView "Google app" Rect(86, 2144 - 212, 2270) com.google.android.apps.nexuslauncher:id/g_icon
+  [c] android.widget.TextView "Gmail | Gmail" Rect(309, 1479 - 519, 1751) 
+  [c] android.widget.TextView "Photos | Photos" Rect(561, 1479 - 771, 1751) 
+  [c] android.widget.TextView "YouTube | YouTube" Rect(813, 1479 - 1023, 1751) 
+  [c] android.widget.ImageView "Voice search" Rect(741, 2125 - 867, 2290) com.google.android.apps.nexuslauncher:id/mic_icon
+  [c] android.widget.ImageButton "Google Lens" Rect(867, 2125 - 993, 2290) com.google.android.apps.nexuslauncher:id/lens_icon
+  [c] android.view.ViewGroup "" Rect(99, 224 - 1023, 495) 
+  [c] android.widget.TextView "Wed, Nov 11 | Wed, Nov 11" Rect(99, 292 - 1023, 354) com.google.android.apps.nexuslauncher:id/date
+
+===== start com.android.chrome + com.android.settings split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:56 | 11:56 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "Search" Rect(75, 2125 - 1004, 2290) com.google.android.apps.nexuslauncher:id/search_container_hotseat
+  [c] android.widget.TextView "Phone | Phone" Rect(76, 1873 - 249, 2068) 
+  [c] android.widget.TextView "Messages | Messages" Rect(328, 1873 - 501, 2068) 
+  [c] android.widget.TextView "Chrome | Chrome" Rect(580, 1873 - 753, 2068) 
+  [c] android.widget.TextView "DuoPilot | Predicted app: DuoPilot" Rect(832, 1873 - 1004, 2068) 
+  [c] android.widget.ImageView "Google app" Rect(86, 2144 - 212, 2270) com.google.android.apps.nexuslauncher:id/g_icon
+  [c] android.widget.TextView "Gmail | Gmail" Rect(309, 1479 - 519, 1751) 
+  [c] android.widget.TextView "Photos | Photos" Rect(561, 1479 - 771, 1751) 
+  [c] android.widget.TextView "YouTube | YouTube" Rect(813, 1479 - 1023, 1751) 
+  [c] android.widget.ImageView "Voice search" Rect(741, 2125 - 867, 2290) com.google.android.apps.nexuslauncher:id/mic_icon
+  [c] android.widget.ImageButton "Google Lens" Rect(867, 2125 - 993, 2290) com.google.android.apps.nexuslauncher:id/lens_icon
+  [c] android.view.ViewGroup "" Rect(99, 224 - 1023, 495) 
+  [c] android.widget.TextView "Wed, Nov 11 | Wed, Nov 11" Rect(99, 292 - 1023, 354) com.google.android.apps.nexuslauncher:id/date
+
+===== toggle attempt 1 split=false split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.android.chrome
+      android.widget.TextView "11:56 | 11:56 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.widget.TextView "By continuing, you agree to the Terms of Service. To help improve the app, Chrom" Rect(63, 2188 - 1017, 2274) com.android.chrome:id/signin_fre_footer
+      android.widget.TextView "Welcome to Chrome" Rect(0, 994 - 1080, 1067) com.android.chrome:id/title
+  [c] android.widget.Button "Add account to device" Rect(63, 1904 - 1017, 2030) com.android.chrome:id/signin_fre_continue_button
+  [c] android.widget.Button "Use without an account" Rect(63, 2030 - 1017, 2156) com.android.chrome:id/signin_fre_dismiss_button
+
+===== [1] recents opened, top card=Chrome split=false
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:56 | 11:56 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone three bars." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "Settings" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Chrome" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [1] menu opened (icon=icon), split item=null split=false
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:56 | 11:56 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone three bars." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "Settings" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Chrome" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== result ok=false split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:56 | 11:56 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone three bars." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "Search" Rect(75, 2125 - 1004, 2290) com.google.android.apps.nexuslauncher:id/search_container_hotseat
+  [c] android.widget.TextView "Phone | Phone" Rect(76, 1873 - 249, 2068) 
+  [c] android.widget.TextView "Messages | Messages" Rect(328, 1873 - 501, 2068) 
+  [c] android.widget.TextView "Chrome | Chrome" Rect(580, 1873 - 753, 2068) 
+  [c] android.widget.TextView "DuoPilot | Predicted app: DuoPilot" Rect(832, 1873 - 1004, 2068) 
+  [c] android.widget.ImageView "Google app" Rect(86, 2144 - 212, 2270) com.google.android.apps.nexuslauncher:id/g_icon
+  [c] android.widget.TextView "Gmail | Gmail" Rect(309, 1479 - 519, 1751) 
+  [c] android.widget.TextView "Photos | Photos" Rect(561, 1479 - 771, 1751) 
+  [c] android.widget.TextView "YouTube | YouTube" Rect(813, 1479 - 1023, 1751) 
+  [c] android.widget.ImageView "Voice search" Rect(741, 2125 - 867, 2290) com.google.android.apps.nexuslauncher:id/mic_icon
+  [c] android.widget.ImageButton "Google Lens" Rect(867, 2125 - 993, 2290) com.google.android.apps.nexuslauncher:id/lens_icon
+  [c] android.view.ViewGroup "" Rect(99, 224 - 1023, 495) 
+  [c] android.widget.TextView "Wed, Nov 11 | Wed, Nov 11" Rect(99, 292 - 1023, 354) com.google.android.apps.nexuslauncher:id/date
+
+===== start com.android.settings + duopilot:browser split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:56 | 11:56 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone three bars." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "Search" Rect(75, 2125 - 1004, 2290) com.google.android.apps.nexuslauncher:id/search_container_hotseat
+  [c] android.widget.TextView "Phone | Phone" Rect(76, 1873 - 249, 2068) 
+  [c] android.widget.TextView "Messages | Messages" Rect(328, 1873 - 501, 2068) 
+  [c] android.widget.TextView "Chrome | Chrome" Rect(580, 1873 - 753, 2068) 
+  [c] android.widget.TextView "DuoPilot | Predicted app: DuoPilot" Rect(832, 1873 - 1004, 2068) 
+  [c] android.widget.ImageView "Google app" Rect(86, 2144 - 212, 2270) com.google.android.apps.nexuslauncher:id/g_icon
+  [c] android.widget.TextView "Gmail | Gmail" Rect(309, 1479 - 519, 1751) 
+  [c] android.widget.TextView "Photos | Photos" Rect(561, 1479 - 771, 1751) 
+  [c] android.widget.TextView "YouTube | YouTube" Rect(813, 1479 - 1023, 1751) 
+  [c] android.widget.ImageView "Voice search" Rect(741, 2125 - 867, 2290) com.google.android.apps.nexuslauncher:id/mic_icon
+  [c] android.widget.ImageButton "Google Lens" Rect(867, 2125 - 993, 2290) com.google.android.apps.nexuslauncher:id/lens_icon
+  [c] android.view.ViewGroup "" Rect(99, 224 - 1023, 495) 
+  [c] android.widget.TextView "Wed, Nov 11 | Wed, Nov 11" Rect(99, 292 - 1023, 354) com.google.android.apps.nexuslauncher:id/date
+
+===== toggle attempt 1 split=false split=false
+window type=4 Rect(31, 1967 - 1048, 2164) com.yaniv.duopilot
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.android.settings
+      android.widget.TextView "11:56 | 11:56 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone three bars." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+  [c] android.widget.ImageView "Profile picture, double tap to open Google Account" Rect(891, 275 - 1017, 401) com.android.settings:id/account_avatar
+      android.widget.TextView "Settings" Rect(63, 401 - 408, 528) com.android.settings:id/homepage_title
+  [c] android.view.ViewGroup "" Rect(42, 591 - 1038, 728) com.android.settings:id/search_action_bar
+      android.widget.TextView "Search settings" Rect(200, 624 - 553, 695) com.android.settings:id/search_action_bar_title
+  [c] android.widget.LinearLayout "" Rect(0, 770 - 1080, 1001) 
+  [c] android.widget.LinearLayout "" Rect(0, 1001 - 1080, 1232) 
+  [c] android.widget.LinearLayout "" Rect(0, 1232 - 1080, 1463) 
+  [c] android.widget.LinearLayout "" Rect(0, 1463 - 1080, 1694) 
+  [c] android.widget.LinearLayout "" Rect(0, 1694 - 1080, 1925) 
+  [c] android.widget.LinearLayout "" Rect(0, 1925 - 1080, 2156) 
+  [c] android.widget.LinearLayout "" Rect(0, 2156 - 1080, 2337) 
+      android.widget.TextView "Network & internet" Rect(189, 824 - 625, 895) android:id/title
+      android.widget.TextView "Mobile, Wi‑Fi, hotspot" Rect(189, 895 - 540, 946) android:id/summary
+      android.widget.TextView "Connected devices" Rect(189, 1055 - 636, 1126) android:id/title
+      android.widget.TextView "Bluetooth, pairing" Rect(189, 1126 - 476, 1177) android:id/summary
+      android.widget.TextView "Apps" Rect(189, 1286 - 311, 1357) android:id/title
+      android.widget.TextView "Assistant, recent apps, default apps" Rect(189, 1357 - 774, 1408) android:id/summary
+      android.widget.TextView "Notifications" Rect(189, 1517 - 489, 1588) android:id/title
+      android.widget.TextView "Notification history, conversations" Rect(189, 1588 - 745, 1639) android:id/summary
+      android.widget.TextView "Battery" Rect(189, 1748 - 357, 1819) android:id/title
+      android.widget.TextView "100%" Rect(189, 1819 - 279, 1870) android:id/summary
+      android.widget.TextView "Storage" Rect(189, 1979 - 371, 2050) android:id/title
+      android.widget.TextView "37% used - 5.04 GB free" Rect(189, 2050 - 580, 2101) android:id/summary
+      android.widget.TextView "Sound & vibration" Rect(189, 2210 - 601, 2281) android:id/title
+      android.widget.TextView "Volume, haptics, Do Not Disturb" Rect(189, 2281 - 707, 2332) android:id/summary
+
+===== [1] recents opened, top card=Settings split=false
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:56 | 11:56 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone three bars." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [1] menu opened (icon=icon), split item=null split=false
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:56 | 11:56 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone three bars." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [2] recents opened, top card=Settings split=false
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:56 | 11:56 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [2] menu opened (icon=icon), split item=null split=false
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:56 | 11:56 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [3] recents opened, top card=Settings split=false
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:56 | 11:56 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== [3] menu opened (icon=icon), split item=null split=false
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:57 | 11:57 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "DuoPilot דפדפן DuoPilot" Rect(0, 207 - 131, 2006) 
+  [c] android.widget.FrameLayout "Settings" Rect(173, 207 - 907, 2006) 
+  [c] android.view.View "" Rect(477, 207 - 603, 333) com.google.android.apps.nexuslauncher:id/icon
+  [c] android.widget.Button "Screenshot" Rect(212, 2069 - 534, 2195) com.google.android.apps.nexuslauncher:id/action_screenshot
+  [c] android.widget.Button "Select" Rect(629, 2069 - 867, 2195) com.google.android.apps.nexuslauncher:id/action_select
+
+===== result ok=false split=false
+window type=4 Rect(922, 1135 - 1064, 1277) com.yaniv.duopilot
+window type=3 Rect(0, 0 - 1080, 128) com.android.systemui
+window type=1 Rect(0, 0 - 1080, 2400) com.google.android.apps.nexuslauncher
+      android.widget.TextView "11:57 | 11:57 AM" Rect(50, 1 - 157, 128) com.android.systemui:id/clock
+      android.widget.LinearLayout "Battery charging, 100 percent." Rect(986, 1 - 1006, 128) com.android.systemui:id/battery
+      android.widget.FrameLayout "Phone signal full." Rect(931, 35 - 970, 93) com.android.systemui:id/mobile_combo
+      android.widget.ImageView "Android System notification:" Rect(157, 1 - 215, 128) 
+      android.widget.ImageView "Wifi signal full." Rect(892, 44 - 931, 83) com.android.systemui:id/wifi_signal
+      android.view.View "Home" Rect(0, 128 - 1080, 2337) 
+  [c] android.widget.FrameLayout "Search" Rect(75, 2125 - 1004, 2290) com.google.android.apps.nexuslauncher:id/search_container_hotseat
+  [c] android.widget.TextView "Phone | Phone" Rect(76, 1873 - 249, 2068) 
+  [c] android.widget.TextView "Messages | Messages" Rect(328, 1873 - 501, 2068) 
+  [c] android.widget.TextView "Chrome | Chrome" Rect(580, 1873 - 753, 2068) 
+  [c] android.widget.TextView "DuoPilot | Predicted app: DuoPilot" Rect(832, 1873 - 1004, 2068) 
+  [c] android.widget.ImageView "Google app" Rect(86, 2144 - 212, 2270) com.google.android.apps.nexuslauncher:id/g_icon
+  [c] android.widget.TextView "Gmail | Gmail" Rect(309, 1479 - 519, 1751) 
+  [c] android.widget.TextView "Photos | Photos" Rect(561, 1479 - 771, 1751) 
+  [c] android.widget.TextView "YouTube | YouTube" Rect(813, 1479 - 1023, 1751) 
+  [c] android.widget.ImageView "Voice search" Rect(741, 2125 - 867, 2290) com.google.android.apps.nexuslauncher:id/mic_icon
+  [c] android.widget.ImageButton "Google Lens" Rect(867, 2125 - 993, 2290) com.google.android.apps.nexuslauncher:id/lens_icon
+  [c] android.view.ViewGroup "" Rect(99, 224 - 1023, 495) 
+  [c] android.widget.TextView "Wed, Nov 11 | Wed, Nov 11" Rect(99, 292 - 1023, 354) com.google.android.apps.nexuslauncher:id/date

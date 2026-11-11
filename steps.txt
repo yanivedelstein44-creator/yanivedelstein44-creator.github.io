@@ -1,0 +1,390 @@
+=== device
+14
+Physical size: 1080x2400
+Physical density: 420
+=== install (debug-apk/app-debug.apk)
+Performing Streamed Install
+Success
+=== enable accessibility service
+     Bound services:{Service[label=DuoPilot – מסך מפוצל ועוזר קולי, feedbackType[FEEDBACK_GENERIC], capabilities=161, eventTypes=[TYPE_WINDOW_STATE_CHANGED, TYPE_VIEW_SCROLLED, TYPE_WINDOWS_CHANGED], notificationTimeout=100, requestA11yBtn=false]}
+     Enabled services:{{com.yaniv.duopilot/com.yaniv.duopilot.service.PilotService}}
+[com.google.android.apps.youtube.music][com.google.android.youtube][com.google.android.apps.wellbeing][com.google.android.googlequicksearchbox][com.google.android.inputmethod.latin][com.google.android.apps.nexuslauncher][com.google.android.apps.nexuslauncher][com.android.systemui][com.google.android.as][com.yaniv.duopilot][com.google.android.contacts][com.google.android.apps.nexuslauncher]}]
+shot 00-home-with-bubble
+=== 0. warm up Recents once (first-time tip on a fresh emulator)
+Starting: Intent { cmp=com.android.settings/.Settings }
+shot 00b-recents-warmup
+=== 1. browser: load a long page
+Starting: Intent { cmp=com.yaniv.duopilot/.browser.BrowserActivity (has extras) }
+
+Exception occurred while executing 'start':
+java.lang.SecurityException: Permission Denial: starting Intent { flg=0x10000000 cmp=com.yaniv.duopilot/.browser.BrowserActivity (has extras) } from null (pid=4510, uid=2000) not exported from uid 10192
+	at com.android.server.wm.ActivityTaskSupervisor.checkStartAnyActivityPermission(ActivityTaskSupervisor.java:1136)
+	at com.android.server.wm.ActivityStarter.executeRequest(ActivityStarter.java:1069)
+	at com.android.server.wm.ActivityStarter.execute(ActivityStarter.java:742)
+	at com.android.server.wm.ActivityTaskManagerService.startActivityAsUser(ActivityTaskManagerService.java:1288)
+	at com.android.server.wm.ActivityTaskManagerService.startActivityAsUser(ActivityTaskManagerService.java:1239)
+	at com.android.server.am.ActivityManagerService.startActivityAsUserWithFeature(ActivityManagerService.java:3248)
+	at com.android.server.am.ActivityManagerShellCommand.runStartActivity(ActivityManagerShellCommand.java:724)
+	at com.android.server.am.ActivityManagerShellCommand.onCommand(ActivityManagerShellCommand.java:233)
+	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
+	at android.os.ShellCommand.exec(ShellCommand.java:38)
+	at com.android.server.am.ActivityManagerService.onShellCommand(ActivityManagerService.java:9697)
+	at android.os.Binder.shellCommand(Binder.java:1068)
+	at android.os.Binder.onTransact(Binder.java:888)
+	at android.app.IActivityManager$Stub.onTransact(IActivityManager.java:5267)
+	at com.android.server.am.ActivityManagerService.onTransact(ActivityManagerService.java:2720)
+	at android.os.Binder.execTransactInternal(Binder.java:1344)
+	at android.os.Binder.execTransact(Binder.java:1275)
+shot 01-browser-full
+=== 2. open pair: Settings (top) + DuoPilot browser (bottom) - first time (tries both methods)
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+shot 02-pair-8s
+shot 03-pair-16s
+shot 03b-pair-24s
+--- windows: after-pair
+  Window #0 Window{144f4c9 u0 ScreenDecorOverlayBottom}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #1 Window{3989927 u0 ScreenDecorOverlay}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #2 Window{3df4f0 u0 com.yaniv.duopilot}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #3 Window{ca243cc u0 com.yaniv.duopilot}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #4 Window{9a09d53 u0 SecondaryHomeHandle0}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #5 Window{a14407b u0 EdgeBackGestureHandler0}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #6 Window{9f8eb95 u0 NavigationBar0}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #7 Window{3bc603b u0 NotificationShade}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #8 Window{4581288 u0 StatusBar}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #9 Window{4b793e u0 ShellDropTarget}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #10 Window{e013c40 u0 InputMethod}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #11 Window{30e8edd u0 com.yaniv.duopilot/com.yaniv.duopilot.browser.BrowserActivity}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #12 Window{d7e1502 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}:
+    mHasSurface=true isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #13 Window{5577761 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}:
+    mHasSurface=true isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #14 Window{2b692c3 u0 com.android.settings/com.android.settings.Settings}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #15 Window{84f412c u0 com.android.settings/com.android.settings.Settings}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #16 Window{6a7ad7a u0 com.android.settings/com.android.settings.Settings}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #17 Window{18a284a u0 com.android.systemui.wallpapers.ImageWallpaper}:
+    mHasSurface=true isReadyForDisplay()=false mWindowRemovalAllowed=false
+  * Task{52fe52c #9 type=standard A=10192:com.yaniv.duopilot.browser U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    topResumedActivity=ActivityRecord{4803900 u0 com.yaniv.duopilot/.browser.BrowserActivity t9}
+      rootOfTask=true task=Task{52fe52c #9 type=standard A=10192:com.yaniv.duopilot.browser}
+  * Task{adb7f12 #1 type=home U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+    * Task{44f478b #7 type=home I=com.google.android.apps.nexuslauncher/.NexusLauncherActivity U=0 rootTaskId=1 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+        rootOfTask=true task=Task{44f478b #7 type=home I=com.google.android.apps.nexuslauncher/.NexusLauncherActivity}
+  * Task{15d2347 #8 type=standard A=1000:com.android.settings.root U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=3}
+      rootOfTask=false task=Task{15d2347 #8 type=standard A=1000:com.android.settings.root}
+      rootOfTask=false task=Task{15d2347 #8 type=standard A=1000:com.android.settings.root}
+      rootOfTask=true task=Task{15d2347 #8 type=standard A=1000:com.android.settings.root}
+  * Task{9eafce1 #2 type=undefined U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+    * Task{9bf28c7 #4 type=undefined U=0 rootTaskId=2 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+    * Task{9206a06 #3 type=undefined U=0 rootTaskId=2 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+  ResumedActivity: ActivityRecord{4803900 u0 com.yaniv.duopilot/.browser.BrowserActivity t9}
+  topDisplayFocusedRootTask=Task{52fe52c #9 type=standard A=10192:com.yaniv.duopilot.browser}
+      mPreferredTopFocusableRootTask=Task{52fe52c #9 type=standard A=10192:com.yaniv.duopilot.browser}
+      mLastFocusedRootTask=Task{52fe52c #9 type=standard A=10192:com.yaniv.duopilot.browser}
+      * Task{52fe52c #9 type=standard A=10192:com.yaniv.duopilot.browser U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+      * Task{adb7f12 #1 type=home U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+        * Task{44f478b #7 type=home I=com.google.android.apps.nexuslauncher/.NexusLauncherActivity U=0 rootTaskId=1 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+      * Task{15d2347 #8 type=standard A=1000:com.android.settings.root U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=3}
+      * Task{9eafce1 #2 type=undefined U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+        * Task{9bf28c7 #4 type=undefined U=0 rootTaskId=2 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+        * Task{9206a06 #3 type=undefined U=0 rootTaskId=2 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+        (fullscreen) Task{adb7f12 #1 type=home}
+        (fullscreen) Task{9eafce1 #2 type=undefined}
+        (multi-window) Task{9206a06 #3 type=undefined}
+        (multi-window) Task{9bf28c7 #4 type=undefined}
+        (fullscreen) Task{15d2347 #8 type=standard A=1000:com.android.settings.root}
+        (fullscreen) Task{52fe52c #9 type=standard A=10192:com.yaniv.duopilot.browser}
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+--- state-1.txt
+split=false
+divider=null
+ratio=null
+windows=[]
+pairs={"id":"9e1dbe72","top":"com.android.settings","bottom":"duopilot:browser","ratio":-1,"lastUsed":1794398033623}
+scroll=
+
+
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+--- dump-1.txt
+Screen 1080x2400
+Windows:
+- FULL: Settings (com.android.settings) [0,0-1080,2400] (focused)
+Elements:
+[1] FULL list @540,1232 1080x2209
+[2] FULL button "Profile picture, double tap to open Google Account" @954,338 126x126
+[3] FULL text "Settings" @235,464 345x127
+[4] FULL item "Search settings" @540,659 996x137
+[5] FULL list @540,1553 1080x1567
+[6] FULL item "Network & internet · Mobile, Wi‑Fi, hotspot" @540,885 1080x231
+[7] FULL item "Connected devices · Bluetooth, pairing" @540,1116 1080x231
+[8] FULL item "Apps · Assistant, recent apps, default apps" @540,1347 1080x231
+[9] FULL item "Notifications · Notification history, conversations" @540,1578 1080x231
+[10] FULL item "Battery · 100%" @540,1809 1080x231
+[11] FULL item "Storage · 35% used - 5.21 GB free" @540,2040 1080x231
+[12] FULL item "Sound & vibration · Volume, haptics, Do Not Disturb" @540,2246 1080x181
+
+=== 3. scroll both halves (the memory should keep the positions)
+shot 04-both-scrolled
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+--- state-2.txt
+split=true
+divider=Rect(414, 1137 - 666, 1263)
+ratio=0.5
+windows=[AppWin(target=com.android.settings, bounds=Rect(0, 0 - 1080, 1187)), AppWin(target=duopilot:browser, bounds=Rect(0, 1213 - 1080, 2400))]
+pairs={"id":"9e1dbe72","top":"com.android.settings","bottom":"duopilot:browser","ratio":0.5,"lastUsed":1794398033623}
+scroll=
+
+
+=== 4. close everything (browser activity + Settings process) and reopen the last pair
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+shot 06-reopened-10s
+shot 07-reopened-20s
+--- windows: after-reopen
+  Window #0 Window{144f4c9 u0 ScreenDecorOverlayBottom}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #1 Window{3989927 u0 ScreenDecorOverlay}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #2 Window{a6d2ae3 u0 com.yaniv.duopilot}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #3 Window{ca243cc u0 com.yaniv.duopilot}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #4 Window{9a09d53 u0 SecondaryHomeHandle0}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #5 Window{a14407b u0 EdgeBackGestureHandler0}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #6 Window{9f8eb95 u0 NavigationBar0}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #7 Window{3bc603b u0 NotificationShade}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #8 Window{4581288 u0 StatusBar}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #9 Window{4b793e u0 ShellDropTarget}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #10 Window{52df293 u0 Acetone}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #11 Window{e013c40 u0 InputMethod}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #12 Window{5577761 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  Window #13 Window{724fc53 u0 com.android.settings/com.android.settings.Settings}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #14 Window{d7b6da u0 com.yaniv.duopilot/com.yaniv.duopilot.browser.BrowserActivity}:
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #15 Window{18a284a u0 com.android.systemui.wallpapers.ImageWallpaper}:
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+  * Task{adb7f12 #1 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    * Task{44f478b #7 type=home I=com.google.android.apps.nexuslauncher/.NexusLauncherActivity U=0 rootTaskId=1 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+      topResumedActivity=ActivityRecord{aad2505 u0 com.google.android.apps.nexuslauncher/.NexusLauncherActivity t7}
+        rootOfTask=true task=Task{44f478b #7 type=home I=com.google.android.apps.nexuslauncher/.NexusLauncherActivity}
+  * Task{293b741 #11 type=standard A=1000:com.android.settings.root U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+      rootOfTask=true task=Task{293b741 #11 type=standard A=1000:com.android.settings.root}
+  * Task{fbd593b #10 type=standard A=10192:com.yaniv.duopilot.browser U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+      rootOfTask=true task=Task{fbd593b #10 type=standard A=10192:com.yaniv.duopilot.browser}
+  * Task{9eafce1 #2 type=undefined U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+    * Task{9bf28c7 #4 type=undefined U=0 rootTaskId=2 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+    * Task{9206a06 #3 type=undefined U=0 rootTaskId=2 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+  ResumedActivity: ActivityRecord{aad2505 u0 com.google.android.apps.nexuslauncher/.NexusLauncherActivity t7}
+  topDisplayFocusedRootTask=Task{adb7f12 #1 type=home}
+      mPreferredTopFocusableRootTask=Task{adb7f12 #1 type=home}
+      mLastFocusedRootTask=Task{adb7f12 #1 type=home}
+      * Task{adb7f12 #1 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+        * Task{44f478b #7 type=home I=com.google.android.apps.nexuslauncher/.NexusLauncherActivity U=0 rootTaskId=1 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+      * Task{293b741 #11 type=standard A=1000:com.android.settings.root U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+      * Task{fbd593b #10 type=standard A=10192:com.yaniv.duopilot.browser U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+      * Task{9eafce1 #2 type=undefined U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=2}
+        * Task{9bf28c7 #4 type=undefined U=0 rootTaskId=2 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+        * Task{9206a06 #3 type=undefined U=0 rootTaskId=2 visible=false visibleRequested=false mode=multi-window translucent=true sz=0}
+        (fullscreen) Task{adb7f12 #1 type=home}
+        (fullscreen) Task{9eafce1 #2 type=undefined}
+        (multi-window) Task{9206a06 #3 type=undefined}
+        (multi-window) Task{9bf28c7 #4 type=undefined}
+        (fullscreen) Task{fbd593b #10 type=standard A=10192:com.yaniv.duopilot.browser}
+        (fullscreen) Task{293b741 #11 type=standard A=1000:com.android.settings.root}
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+--- state-3.txt
+split=false
+divider=null
+ratio=null
+windows=[AppWin(target=com.google.android.apps.nexuslauncher, bounds=Rect(0, 0 - 1080, 2400))]
+pairs={"id":"9e1dbe72","top":"com.android.settings","bottom":"duopilot:browser","ratio":0.5,"lastUsed":1794398093200}
+scroll=
+
+
+=== 5. move the divider up and reopen (ratio memory)
+shot 08-divider-moved
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+--- state-4.txt
+split=false
+divider=null
+ratio=null
+windows=[]
+pairs={"id":"9e1dbe72","top":"com.android.settings","bottom":"duopilot:browser","ratio":0.5,"lastUsed":1794398093200}
+scroll=
+
+
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+shot 09-ratio-restored
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+--- state-5.txt
+split=false
+divider=null
+ratio=null
+windows=[AppWin(target=com.google.android.apps.nexuslauncher, bounds=Rect(0, 0 - 1080, 2400))]
+pairs={"id":"9e1dbe72","top":"com.android.settings","bottom":"duopilot:browser","ratio":0.5,"lastUsed":1794398134004}
+scroll=
+
+
+=== 5b. switch to another pair while a split is open: Chrome (top) + Settings (bottom)
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+shot 09b-second-pair
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+--- state-6.txt
+split=false
+divider=null
+ratio=null
+windows=[AppWin(target=com.google.android.apps.nexuslauncher, bounds=Rect(0, 0 - 1080, 2400))]
+pairs={"id":"9e1dbe72","top":"com.android.settings","bottom":"duopilot:browser","ratio":0.5,"lastUsed":1794398134004}, {"id":"a81f8531","top":"com.android.chrome","bottom":"com.android.settings","ratio":-1,"lastUsed":1794398162451}
+scroll=
+
+
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+shot 09c-back-to-first-pair
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+--- state-7.txt
+split=false
+divider=null
+ratio=null
+windows=[AppWin(target=duopilot:browser, bounds=Rect(0, 0 - 1080, 2400))]
+pairs={"id":"9e1dbe72","top":"com.android.settings","bottom":"duopilot:browser","ratio":0.5,"lastUsed":1794398184126}, {"id":"a81f8531","top":"com.android.chrome","bottom":"com.android.settings","ratio":-1,"lastUsed":1794398162451}
+scroll=
+
+
+=== 6. assistant tools without AI: dump, tap by label, scroll the bottom list
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+--- dump-2.txt
+Screen 1080x2400
+Windows:
+- FULL: com.google.android.apps.nexuslauncher (com.google.android.apps.nexuslauncher) [0,0-1080,2400] (focused)
+Elements:
+[1] FULL list @540,1199 1078x2395
+[2] FULL list @540,1200 1080x2400
+[3] FULL item @65,1106 131x1799
+[4] FULL item "Settings" @540,1106 734x1799
+[5] FULL item @540,270 126x126
+[6] FULL text "Home" @540,1232 1080x2209
+[7] FULL button "Screenshot" @373,2132 322x126
+[8] FULL button "Select" @748,2132 238x126
+
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+shot 10-tap-network
+--- tap-1.txt
+Network -> null not found
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+shot 11-scroll-bottom
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+shot 11b-typed-search
+--- type-1.txt
+null web=null error: no input field
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+--- dump-3.txt
+Screen 1080x2400
+Windows:
+- FULL: com.google.android.apps.nexuslauncher (com.google.android.apps.nexuslauncher) [0,0-1080,2400] (focused)
+Elements:
+[1] FULL list @540,1200 1080x2400
+[2] FULL item @561,359 924x271
+[3] FULL item @561,359 924x271
+[4] FULL item "Wed, Nov 11" @561,323 924x62
+[5] FULL item "Gmail" @414,1615 210x272
+[6] FULL item "Photos" @666,1615 210x272
+[7] FULL item "YouTube" @918,1615 210x272
+[8] FULL text "Home" @540,1232 1080x2209
+[9] FULL item "Phone" @162,1970 173x195
+[10] FULL item "Messages" @414,1970 173x195
+[11] FULL item "Chrome" @666,1970 173x195
+[12] FULL item "DuoPilot | Predicted app: DuoPilot" @918,1970 172x195
+[13] FULL item "Search" @539,2207 929x165
+[14] FULL button "Google app" @149,2207 126x126
+[15] FULL button "Voice search" @804,2207 126x165
+[16] FULL button "Google Lens" @930,2207 126x165
+
+=== 7. Android Auto bridge: conversation notification + a reply (no API key -> polite message)
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+shot 12-car-notification
+Broadcasting: Intent { act=com.yaniv.duopilot.DEBUG flg=0x400000 pkg=com.yaniv.duopilot (has extras) }
+Broadcast completed: result=0
+    NotificationRecord(0x0d852919: pkg=com.yaniv.duopilot user=UserHandle{0} id=4242 tag=null importance=4 key=0|com.yaniv.duopilot|4242|null|10192: Notification(channel=duopilot_car shortcut=null contentView=null vibrate=null sound=null defaults=0x0 flags=0x0 color=0x00000000 category=msg actions=2 vis=PRIVATE))
+      opPkg=com.yaniv.duopilot
+      icon=Icon(typ=RESOURCE pkg=com.yaniv.duopilot id=0x7f020006)
+      key=0|com.yaniv.duopilot|4242|null|10192
+      groupKey=0|com.yaniv.duopilot|4242|null|10192
+            contentIntent=PendingIntent{68e4dde: PendingIntentRecord{8d4d774 com.yaniv.duopilot startActivity (allowlist: 2cf33a5:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            actions={
+                [0] "פקודה" -> PendingIntent{e04fbbf: PendingIntentRecord{3fd449d com.yaniv.duopilot broadcastIntent (allowlist: 2cf33a5:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+                [1] "סמן כנקרא" -> PendingIntent{18d928c: PendingIntentRecord{c2c3d12 com.yaniv.duopilot broadcastIntent (allowlist: 2cf33a5:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+                android.title=String (DuoPilot)
+                android.text=String (צריך להכניס מפתח Claude API באפליקציה DuoPilot, ואז לנסות שוב.)
+                android.appInfo=ApplicationInfo (ApplicationInfo{363dd5 com.yaniv.duopilot})
+                android.messages=Parcelable[] (3)
+                  [0] Bundle[{extras=Bundle[{}], sender_person=android.app.Person@a730ebd1, sender=DuoPilot, text=בדיקה, time=1794398234865}]
+                  [2] Bundle[{extras=Bundle[{}], sender_person=android.app.Person@bfba3642, sender=DuoPilot, text=צריך להכניס מפתח Claude API באפליקציה DuoPilot, ואז לנסות שוב., time=1794398240937}]
+      effectiveNotificationChannel=NotificationChannel{mId='duopilot_car', mName=שיחה עם DuoPilot (אנדרואיד אוטו), mDescription=hasDescription , mImportance=4, mBypassDnd=false, mLockscreenVisibility=-1000, mSound=content://settings/system/notification_sound, mLights=false, mLightColor=0, mVibration=null, mUserLockedFields=0, mUserVisibleTaskShown=false, mVibrationEnabled=false, mShowBadge=true, mDeleted=false, mDeletedTimeMs=-1, mGroup='null', mAudioAttributes=AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null, mBlockableSystem=false, mAllowBubbles=-1, mImportanceLockedDefaultApp=false, mOriginalImp=4, mParent=null, mConversationId=null, mDemoted=false, mImportantConvo=false}
+                android.text=String (Performance is impacted. To disable, check bootloader.)
+                android.text=String (Tap to select language and layout)
+  mSoundNotificationKey=0|com.yaniv.duopilot|4242|null|10192
+      AppSettings: com.yaniv.duopilot (10192) importance=DEFAULT userSet=false
+        NotificationChannel{mId='duopilot_car', mName=שיחה עם DuoPilot (אנדרואיד אוטו), mDescription=hasDescription , mImportance=4, mBypassDnd=false, mLockscreenVisibility=-1000, mSound=content://settings/system/notification_sound, mLights=false, mLightColor=0, mVibration=null, mUserLockedFields=0, mUserVisibleTaskShown=false, mVibrationEnabled=false, mShowBadge=true, mDeleted=false, mDeletedTimeMs=-1, mGroup='null', mAudioAttributes=AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null, mBlockableSystem=false, mAllowBubbles=-1, mImportanceLockedDefaultApp=false, mOriginalImp=4, mParent=null, mConversationId=null, mDemoted=false, mImportantConvo=false}
+        NotificationChannel{mId='duopilot_updates', mName=עדכוני DuoPilot, mDescription=, mImportance=2, mBypassDnd=false, mLockscreenVisibility=-1000, mSound=content://settings/system/notification_sound, mLights=false, mLightColor=0, mVibration=null, mUserLockedFields=0, mUserVisibleTaskShown=false, mVibrationEnabled=false, mShowBadge=true, mDeleted=false, mDeletedTimeMs=-1, mGroup='null', mAudioAttributes=AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null, mBlockableSystem=false, mAllowBubbles=-1, mImportanceLockedDefaultApp=false, mOriginalImp=2, mParent=null, mConversationId=null, mDemoted=false, mImportantConvo=false}
+      numWithActions=1,
+      numWithActions=0,
+      key='com.yaniv.duopilot',
+      numWithActions=3,
+      numWithActions=0,
+      numWithActions=0,
+      numWithActions=4,
+shot 13-car-after-reply
+=== 8. main screen
+Starting: Intent { cmp=com.yaniv.duopilot/.ui.MainActivity (has extras) }
+shot 14-main-1
+shot 15-main-2
+shot 16-main-3
+shot 17-main-4
+shot 18-main-5
+=== split log
+=== logcat
+done

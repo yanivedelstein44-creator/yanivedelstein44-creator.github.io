@@ -1,0 +1,20 @@
+Screen 1080x2400
+Windows:
+- FULL: com.google.android.apps.nexuslauncher (com.google.android.apps.nexuslauncher) [0,0-1080,2400] (focused)
+Elements:
+[1] FULL list @540,1200 1080x2400
+[2] FULL item @561,359 924x271
+[3] FULL item @561,359 924x271
+[4] FULL item "Wed, Nov 11" @561,323 924x62
+[5] FULL item "Gmail" @414,1615 210x272
+[6] FULL item "Photos" @666,1615 210x272
+[7] FULL item "YouTube" @918,1615 210x272
+[8] FULL text "Home" @540,1232 1080x2209
+[9] FULL item "Phone" @162,1970 173x195
+[10] FULL item "Messages" @414,1970 173x195
+[11] FULL item "Chrome" @666,1970 173x195
+[12] FULL item "DuoPilot | Predicted app: DuoPilot" @918,1970 172x195
+[13] FULL item "Search" @539,2207 929x165
+[14] FULL button "Google app" @149,2207 126x126
+[15] FULL button "Voice search" @804,2207 126x165
+[16] FULL button "Google Lens" @930,2207 126x165

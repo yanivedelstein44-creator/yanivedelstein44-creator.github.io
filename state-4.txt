@@ -1,0 +1,7 @@
+split=false
+divider=null
+ratio=null
+windows=[]
+pairs={"id":"9e1dbe72","top":"com.android.settings","bottom":"duopilot:browser","ratio":0.5,"lastUsed":1794398093200}
+scroll=
+

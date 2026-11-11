@@ -1,0 +1,16 @@
+Screen 1080x2400
+Windows:
+- FULL: Settings (com.android.settings) [0,0-1080,2400] (focused)
+Elements:
+[1] FULL list @540,1232 1080x2209
+[2] FULL button "Profile picture, double tap to open Google Account" @954,338 126x126
+[3] FULL text "Settings" @235,464 345x127
+[4] FULL item "Search settings" @540,659 996x137
+[5] FULL list @540,1553 1080x1567
+[6] FULL item "Network & internet · Mobile, Wi‑Fi, hotspot" @540,885 1080x231
+[7] FULL item "Connected devices · Bluetooth, pairing" @540,1116 1080x231
+[8] FULL item "Apps · Assistant, recent apps, default apps" @540,1347 1080x231
+[9] FULL item "Notifications · Notification history, conversations" @540,1578 1080x231
+[10] FULL item "Battery · 100%" @540,1809 1080x231
+[11] FULL item "Storage · 35% used - 5.21 GB free" @540,2040 1080x231
+[12] FULL item "Sound & vibration · Volume, haptics, Do Not Disturb" @540,2246 1080x181

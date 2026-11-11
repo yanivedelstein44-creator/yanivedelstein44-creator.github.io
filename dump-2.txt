@@ -1,0 +1,12 @@
+Screen 1080x2400
+Windows:
+- FULL: com.google.android.apps.nexuslauncher (com.google.android.apps.nexuslauncher) [0,0-1080,2400] (focused)
+Elements:
+[1] FULL list @540,1199 1078x2395
+[2] FULL list @540,1200 1080x2400
+[3] FULL item @65,1106 131x1799
+[4] FULL item "Settings" @540,1106 734x1799
+[5] FULL item @540,270 126x126
+[6] FULL text "Home" @540,1232 1080x2209
+[7] FULL button "Screenshot" @373,2132 322x126
+[8] FULL button "Select" @748,2132 238x126
