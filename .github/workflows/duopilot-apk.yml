@@ -1,7 +1,7 @@
 # DuoPilot — בניית APK לאנדרואיד מתוך duopilot-src/ (Kotlin, בלי ספריות צד שלישי).
 # רץ כשמשנים את duopilot-src/ (או ידנית). התוצר נדחף לענף duopilot-build:
 #   DuoPilot-unsigned.apk (מיושר, לא חתום) + apksigner.jar + build.log + errors.txt + STATUS.txt
-# החתימה במפתח הקבוע נעשית אחר כך, והקובץ החתום עולה ל-duopilot/ באתר (ראה duopilot-src/CLAUDE.md).
+# אם קיים ה-Secret בשם DUOPILOT_KS_PASS – ה-APK נחתם כאן במפתח הקבוע ועולה לבד ל-duopilot/ באתר (ראה duopilot-src/CLAUDE.md).
 # אם בהודעת ה-commit יש [emu] (או בהרצה ידנית) – רצה גם בדיקה על אמולטור, והתוצאות נדחפות לענף duopilot-emulator.
 name: DuoPilot APK
 
@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  pages: write
 
 concurrency:
   group: duopilot-apk
@@ -48,6 +49,36 @@ jobs:
           name: duopilot-debug
           path: duopilot-src/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 3
+
+      # חתימה ופרסום אוטומטיים: רק אם קיים ה-Secret בשם DUOPILOT_KS_PASS (הסיסמה של keystore/duopilot.p12)
+      # ורק כש-versionCode חדש יותר ממה שכבר באתר. הטלפונים מוצאים את הגרסה ב-duopilot/version.json ומתעדכנים לבד.
+      - name: Sign and publish to the site
+        if: success() && github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          DUOPILOT_KS_PASS: ${{ secrets.DUOPILOT_KS_PASS }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$DUOPILOT_KS_PASS" ]; then echo "No DUOPILOT_KS_PASS secret - unsigned APK goes to branch duopilot-build only"; exit 0; fi
+          CODE=$(grep -E '^versionCode=' duopilot-src/version.properties | cut -d= -f2 | tr -d '[:space:]')
+          PUB=$(python3 -c "import json;print(json.load(open('duopilot/version.json'))['versionCode'])" 2>/dev/null || echo 0)
+          if [ "$CODE" -le "$PUB" ]; then echo "versionCode $CODE is already published ($PUB) - nothing to do"; exit 0; fi
+          BT="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          REL="$RUNNER_TEMP/rel"; mkdir -p "$REL"
+          "$BT/zipalign" -p -f 4 duopilot-src/app/build/outputs/apk/release/app-release-unsigned.apk "$REL/DuoPilot-unsigned.apk"
+          cp "$BT/lib/apksigner.jar" "$REL/"
+          "$BT/aapt" dump badging "$REL/DuoPilot-unsigned.apk" > "$REL/badging.txt"
+          echo "outcome=success" > "$REL/STATUS.txt"
+          DUOPILOT_KS=duopilot-src/keystore/duopilot.p12 bash duopilot-src/ci/sign-and-publish.sh "$REL"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add duopilot
+          git commit -qm "Publish DuoPilot $(grep -E '^versionName=' duopilot-src/version.properties | cut -d= -f2) (signed in CI)"
+          for attempt in 1 2 3; do
+            git pull -q --rebase origin main && git push -q origin HEAD:main && break
+            sleep $((attempt * 5))
+          done
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" >/dev/null 2>&1 || true
 
       - name: Publish result to branch duopilot-build
         if: always()

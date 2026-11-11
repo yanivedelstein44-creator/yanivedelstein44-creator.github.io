@@ -3,7 +3,7 @@ build/
 app/build/
 local.properties
 *.jks
-*.p12
-keystore/
+keystore/*
+!keystore/duopilot.p12
 .idea/
 *.iml
