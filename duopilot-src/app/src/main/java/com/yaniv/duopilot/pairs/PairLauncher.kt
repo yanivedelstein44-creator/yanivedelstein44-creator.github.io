@@ -168,8 +168,12 @@ class PairLauncher(private val svc: PilotService) {
         Bg.sleep(ms(800))
         if (gen != generation) return false
 
+        // קודם למסך הבית ורק אז לאחרונות: כך כל הכרטיסים הם "תמונות" ולא האפליקציה החיה,
+        // והתפריט של האייקון נפתח בצורה אמינה
+        svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME)
+        Bg.sleep(ms(800))
         svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
-        Bg.sleep(ms(900))
+        Bg.sleep(ms(1000))
         val card = waitForHit(ms(3500)) { RecentsUi.findLabel(svc, topLabel, smallest = false) }
         RecentsUi.debugDump(svc, "[$attempt] recents opened, top card=${card?.text}")
         if (card == null) return false

@@ -45,6 +45,12 @@ adb shell input keyevent KEYCODE_HOME
 sleep 2
 shot 00-home-with-bubble
 
+step "0. warm up Recents once (first-time tip on a fresh emulator)"
+adb shell am start -n com.android.settings/.Settings >> "$LOG" 2>&1; sleep 3
+adb shell input keyevent KEYCODE_APP_SWITCH; sleep 3; shot 00b-recents-warmup
+adb shell input keyevent KEYCODE_BACK; sleep 1
+adb shell input keyevent KEYCODE_HOME; sleep 2
+
 step "1. browser: load a long page"
 adb shell am start -n $PKG/.browser.BrowserActivity --es url "https://en.m.wikipedia.org/wiki/Android_version_history" >> "$LOG" 2>&1
 sleep 12
