@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction
 import com.yaniv.duopilot.Bg
+import com.yaniv.duopilot.browser.BrowserRegistry
 import com.yaniv.duopilot.service.PilotService
 
 /** הפעולות שהעוזר עושה על המסך: לחיצה, לחיצה ארוכה, הקלדה, גלילה. */
@@ -20,6 +21,7 @@ object Actions {
 
     /** לחיצה: קודם "לחיצת נגישות" על הרכיב (או על ההורה הלחיץ שלו), ואם אין – נגיעה במרכז שלו */
     fun tap(svc: PilotService, e: Element): String {
+        if (e.web) return if (tapAt(svc, e.bounds.exactCenterX(), e.bounds.exactCenterY())) "tapped" else "tap failed"
         val node = e.node
         if (fresh(node)) {
             var n: AccessibilityNodeInfo? = node
@@ -38,7 +40,7 @@ object Actions {
 
     fun longPress(svc: PilotService, e: Element): String {
         val node = e.node
-        if (fresh(node)) {
+        if (!e.web && fresh(node)) {
             var n: AccessibilityNodeInfo? = node
             var depth = 0
             while (n != null && depth < 4) {
@@ -66,6 +68,15 @@ object Actions {
     }
 
     fun typeText(svc: PilotService, e: Element?, text: String, submit: Boolean): String {
+        // שדה בדף של הדפדפן המובנה: נגיעה כדי לבחור אותו, ואז הקלדה דרך הדף עצמו
+        val browser = e?.let { BrowserRegistry.slotAt(it.bounds) }
+        if (e != null && e.web && browser != null) {
+            tapAt(svc, e.bounds.exactCenterX(), e.bounds.exactCenterY())
+            Bg.sleep(400)
+            return if (BrowserRegistry.typeIntoFocused(browser, text, submit)) {
+                if (submit) "typed and submitted" else "typed"
+            } else "error: could not type into this web field"
+        }
         var node: AccessibilityNodeInfo? = e?.node?.takeIf { fresh(it) }
         if (node == null || !node.isEditable) {
             val focused = try {
@@ -74,6 +85,12 @@ object Actions {
                 null
             }
             if (focused != null && focused.isEditable) node = focused
+        }
+        if ((node == null || !node.isEditable) && browser != null) {
+            // רכיב בתוך הדפדפן המובנה: אולי שדה בדף שכבר נבחר
+            if (BrowserRegistry.typeIntoFocused(browser, text, submit)) {
+                return if (submit) "typed and submitted" else "typed"
+            }
         }
         if (node == null) return "error: no input field"
         if (!node.isEditable) {

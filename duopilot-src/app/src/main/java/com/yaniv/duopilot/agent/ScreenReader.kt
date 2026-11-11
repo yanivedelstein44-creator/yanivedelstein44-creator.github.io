@@ -26,6 +26,8 @@ class Element(
     val label: String,
     val kind: String,
     val where: String,
+    /** פריט מתוך דף בדפדפן המובנה (נמצא דרך JavaScript) – לוחצים עליו בנגיעה במיקום שלו */
+    val web: Boolean = false,
 ) {
     fun short(): String = label.take(40).ifEmpty { kind }
 }
@@ -41,6 +43,7 @@ class ScreenState(
     val shotW: Int,
     val shotH: Int,
     val splitActive: Boolean,
+    val pageText: String = "",
 ) {
     fun byId(id: Int): Element? = elements.firstOrNull { it.id == id }
 
@@ -53,7 +56,8 @@ class ScreenState(
     fun describe(): String =
         "Screen ${screenW}x$screenH" + (if (splitActive) " (split screen is ON)" else "") +
             "\nWindows:\n" + windowsText.ifEmpty { "(none)\n" } +
-            "Elements:\n" + elementsText.ifEmpty { "(no readable elements)\n" }
+            "Elements:\n" + elementsText.ifEmpty { "(no readable elements)\n" } +
+            (if (pageText.isNotEmpty()) "Visible text in the DuoPilot browser:\n" + pageText + "\n" else "")
 }
 
 object ScreenReader {
@@ -78,7 +82,7 @@ object ScreenReader {
         val bmp = Screenshot.take(svc) ?: return s
         val scaled = scale(bmp, 1280)
         val shot = toJpegB64(scaled, 70)
-        val result = ScreenState(s.elements, s.windowsText, s.elementsText, s.screenW, s.screenH, shot, scaled.width, scaled.height, s.splitActive)
+        val result = ScreenState(s.elements, s.windowsText, s.elementsText, s.screenW, s.screenH, shot, scaled.width, scaled.height, s.splitActive, s.pageText)
         if (scaled !== bmp) scaled.recycle()
         bmp.recycle()
         return result
@@ -86,6 +90,9 @@ object ScreenReader {
 
     @Volatile
     private var emptyWebView = false
+    private var webNode: AccessibilityNodeInfo? = null
+    private var webAdded = 0
+    private val pageText = StringBuilder()
 
     private fun captureOnce(svc: PilotService): ScreenState {
         val (sw, sh) = svc.screenSize()
@@ -110,9 +117,33 @@ object ScreenReader {
             if (w.isFocused) wsb.append(" (focused)")
             wsb.append('\n')
             val budget = if (w.type == AccessibilityWindowInfo.TYPE_APPLICATION) MAX_ELEMENTS / appWins else 70
-            walk(root, tag, screen, elements, esb, elements.size + budget, insideClickable = false, depth = 0)
+            val limit = elements.size + budget
+            webNode = null
+            webAdded = 0
+            walk(root, tag, screen, elements, esb, limit, insideClickable = false, depth = 0)
+            // הדפדפן המובנה: אם הדף לא חשוף לנגישות – קוראים אותו ישירות (JavaScript)
+            val wn = webNode
+            val browser = if (pkg == svc.packageName) BrowserRegistry.slotAt(r) else null
+            if (browser != null && wn != null && webAdded <= 1) {
+                val snap = BrowserRegistry.snapshot(browser)
+                if (snap != null) {
+                    for (item in snap.items) {
+                        if (elements.size >= limit) break
+                        val id = elements.size + 1
+                        val label = item.text.replace('"', '\'')
+                        elements.add(Element(id, wn, item.bounds, label, item.kind, tag, web = true))
+                        esb.append('[').append(id).append("] ").append(tag).append(' ').append(item.kind)
+                        if (label.isNotEmpty()) esb.append(" \"").append(label).append('"')
+                        esb.append(" @").append(item.bounds.centerX()).append(',').append(item.bounds.centerY())
+                            .append(' ').append(item.bounds.width()).append('x').append(item.bounds.height()).append('\n')
+                    }
+                    if (snap.text.isNotEmpty()) pageText.append(snap.text.take(2500)).append('\n')
+                }
+            }
         }
-        return ScreenState(elements, wsb.toString(), esb.toString(), sw, sh, null, 0, 0, split)
+        val text = pageText.toString().trim()
+        pageText.setLength(0)
+        return ScreenState(elements, wsb.toString(), esb.toString(), sw, sh, null, 0, 0, split, text)
     }
 
     private fun order(type: Int) = when (type) {
@@ -218,6 +249,7 @@ object ScreenReader {
         // מכולה גדולה ולחיצה (דף אינטרנט, כרטיס ענק) – לא "בולעים" את הטקסטים שבתוכה
         val big = r.width().toLong() * r.height() > screen.width().toLong() * screen.height() / 4
         val inside = insideClickable || (clickable && !scrollable && !isWeb && !big)
+        val before = out.size
         for (i in 0 until n.childCount) {
             val c = try {
                 n.getChild(i)
@@ -225,6 +257,10 @@ object ScreenReader {
                 null
             } ?: continue
             walk(c, tag, screen, out, sb, limit, inside, depth + 1)
+        }
+        if (isWeb) {
+            webNode = n
+            webAdded = out.size - before
         }
     }
 

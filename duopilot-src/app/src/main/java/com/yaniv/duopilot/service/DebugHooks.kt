@@ -69,6 +69,13 @@ object DebugHooks {
                 val list = s.elements.filter { it.kind == "list" && it.where == where }.maxByOrNull { it.bounds.width() * it.bounds.height() }
                 Log.i(TAG, "scroll_down $where -> ${list?.id} ${Actions.scroll(svc, s, list, "down")}")
             }
+            "type_first_input" -> Bg.async {
+                val s = ScreenReader.capture(svc, includeScreenshot = false)
+                val e = s.elements.filter { it.kind == "input" }.let { l -> l.firstOrNull { it.web } ?: l.firstOrNull() }
+                val res = Actions.typeText(svc, e, i.getStringExtra("text") ?: "DuoPilot", submit = true)
+                Log.i(TAG, "type_first_input -> ${e?.id} ${e?.web} $res")
+                File(svc.filesDir, "type.txt").writeText("${e?.id} web=${e?.web} $res")
+            }
             "finish_browser" -> Bg.ui { BrowserRegistry.instances["A"]?.get()?.finish() }
             "car" -> CarBridge.postAssistant(svc, i.getStringExtra("text") ?: "בדיקה")
             "carreply" -> CarBridge.onUserReply(svc, i.getStringExtra("text") ?: "מה השעה?")

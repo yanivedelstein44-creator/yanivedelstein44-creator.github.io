@@ -39,6 +39,13 @@ class ScrollMemory(private val svc: PilotService) {
     @Volatile
     private var quietUntil = 0L
 
+    /** מתי כל אפליקציה הופיעה לאחרונה – גלילות בשניות הראשונות הן של האפליקציה עצמה, לא שלך */
+    private val shownAt = java.util.concurrent.ConcurrentHashMap<String, Long>()
+
+    fun onWindowShown(pkg: String) {
+        shownAt[pkg] = SystemClock.uptimeMillis()
+    }
+
     data class Record(
         val viewId: String,
         val cls: String,
@@ -55,7 +62,9 @@ class ScrollMemory(private val svc: PilotService) {
     fun onScrolled(e: AccessibilityEvent) {
         val pkg = e.packageName?.toString() ?: return
         if (pkg !in tracked) return
-        if (pkg == restoringPkg || SystemClock.uptimeMillis() < quietUntil) return
+        val now = SystemClock.uptimeMillis()
+        if (pkg == restoringPkg || now < quietUntil) return
+        if (now - (shownAt[pkg] ?: 0L) < 5000) return
         val from = e.fromIndex
         val cls = e.className?.toString() ?: ""
         pending[pkg]?.let { worker.removeCallbacks(it) }
@@ -120,7 +129,11 @@ class ScrollMemory(private val svc: PilotService) {
                 val n = node?.takeIf { it.refresh() } ?: findScrollable(svc.rootsOf(pkg), rec.viewId, rec.cls)
                 node = n
                 if (n == null) return
-                if (anchorVisible(n, rec.anchors)) return
+                val found = anchorRect(n, rec.anchors)
+                if (found != null) {
+                    alignToTop(n, found)
+                    return
+                }
                 val sig = anchorsOf(n).joinToString("|")
                 if (sig == lastSig) {
                     if (++stuck >= 2) break
@@ -145,11 +158,12 @@ class ScrollMemory(private val svc: PilotService) {
             Log.w(App.TAG, "scroll restore $pkg", e)
         } finally {
             restoringPkg = null
-            quietUntil = SystemClock.uptimeMillis() + 1500
+            quietUntil = SystemClock.uptimeMillis() + 3000
         }
     }
 
-    private fun anchorVisible(list: AccessibilityNodeInfo, anchors: List<String>): Boolean {
+    /** איפה העוגן על המסך (null אם הוא לא גלוי ברשימה) */
+    private fun anchorRect(list: AccessibilityNodeInfo, anchors: List<String>): Rect? {
         val lr = Rect()
         list.getBoundsInScreen(lr)
         for (a in anchors.take(2)) {
@@ -162,10 +176,22 @@ class ScrollMemory(private val svc: PilotService) {
                 if (!f.isVisibleToUser) continue
                 val r = Rect()
                 f.getBoundsInScreen(r)
-                if (r.top >= lr.top - 4 && r.bottom <= lr.bottom + 4) return true
+                if (r.top >= lr.top - 4 && r.bottom <= lr.bottom + 4) return r
             }
         }
-        return false
+        return null
+    }
+
+    /** העוגן נמצא אבל נמוך – גרירה איטית (בלי "זריקה") שמעלה אותו לראש הרשימה, כמו שהיה */
+    private fun alignToTop(list: AccessibilityNodeInfo, anchor: Rect) {
+        val lr = Rect()
+        list.getBoundsInScreen(lr)
+        val delta = anchor.top - lr.top
+        if (delta < 80 || delta < lr.height() * 0.2f) return
+        val x = lr.exactCenterX()
+        val from = (anchor.top + 30).coerceAtMost(lr.bottom - 20)
+        val to = (from - delta).coerceAtLeast(lr.top + 10)
+        com.yaniv.duopilot.agent.Actions.swipe(svc, x, from.toFloat(), x, to.toFloat(), 1000)
     }
 
     /** הרשימה שנגללה: לפי מזהה, ואם אין – הרשימה הגלויה הגדולה ביותר (עדיפות לאותו סוג רכיב) */

@@ -89,6 +89,39 @@ object BrowserRegistry {
         else -> Targets.BROWSER_A
     }
 
+    /** מה רואים עכשיו בדף (קישורים, כפתורים, שדות וטקסט) – דרך JavaScript. חוסם עד 2 שניות; לא מה-UI thread. */
+    fun snapshot(target: String): WebSnapshot? {
+        val slot = if (target == Targets.BROWSER_B) "B" else "A"
+        val act = instances[slot]?.get() ?: return null
+        if (act.isFinishing) return null
+        val latch = java.util.concurrent.CountDownLatch(1)
+        var out: WebSnapshot? = null
+        act.runOnUiThread {
+            act.snapshotPage { snap ->
+                out = snap
+                latch.countDown()
+            }
+        }
+        latch.await(2000, java.util.concurrent.TimeUnit.MILLISECONDS)
+        return out
+    }
+
+    /** הקלדה לשדה שנבחר בדף (כשהשדה לא חשוף לנגישות) */
+    fun typeIntoFocused(target: String, text: String, submit: Boolean): Boolean {
+        val slot = if (target == Targets.BROWSER_B) "B" else "A"
+        val act = instances[slot]?.get() ?: return false
+        val latch = java.util.concurrent.CountDownLatch(1)
+        var ok = false
+        act.runOnUiThread {
+            act.typeIntoFocused(text, submit) { r ->
+                ok = r
+                latch.countDown()
+            }
+        }
+        latch.await(2000, java.util.concurrent.TimeUnit.MILLISECONDS)
+        return ok
+    }
+
     fun open(ctx: Context, target: String, url: String) {
         val slot = if (target == Targets.BROWSER_B) "B" else "A"
         val act = instances[slot]?.get()
@@ -100,6 +133,11 @@ object BrowserRegistry {
         ctx.startActivity(Intent(ctx, cls).putExtra(BrowserActivity.EXTRA_URL, url).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 }
+
+/** פריט בדף: סוג, טקסט, ומלבן בקואורדינטות של המסך */
+class WebItem(val kind: String, val text: String, val bounds: Rect)
+
+class WebSnapshot(val title: String, val url: String, val items: List<WebItem>, val text: String)
 
 /** מיקום גלילה לכל כתובת (עד 150 אחרונות) + הכתובת האחרונה. */
 class WebState(ctx: Context, slot: String) {
@@ -464,6 +502,52 @@ open class BrowserActivity : Activity() {
         return true
     }
 
+    // ------------------------------------------------------------------ העוזר הקולי קורא את הדף
+
+    /** אוסף את מה שגלוי בדף ומתרגם את המיקומים לפיקסלים של המסך */
+    fun snapshotPage(cb: (WebSnapshot?) -> Unit) {
+        if (isFinishing || isDestroyed) {
+            cb(null)
+            return
+        }
+        web.evaluateJavascript(SNAPSHOT_JS) { raw ->
+            val snap = try {
+                // evaluateJavascript מחזיר מחרוזת JSON בתוך מחרוזת JSON
+                val json = JSONObject(org.json.JSONTokener(raw).nextValue() as String)
+                val vw = json.optDouble("w", 0.0)
+                val loc = IntArray(2)
+                web.getLocationOnScreen(loc)
+                val f = if (vw > 0) web.width / vw else 1.0
+                val arr = json.optJSONArray("items") ?: org.json.JSONArray()
+                val items = ArrayList<WebItem>()
+                for (i in 0 until arr.length()) {
+                    val a = arr.optJSONArray(i) ?: continue
+                    val l = loc[0] + (a.optDouble(2) * f).roundToInt()
+                    val t = loc[1] + (a.optDouble(3) * f).roundToInt()
+                    val r = Rect(l, t, l + (a.optDouble(4) * f).roundToInt(), t + (a.optDouble(5) * f).roundToInt())
+                    // רק מה שבתוך החלק הגלוי של הדפדפן
+                    if (r.bottom <= loc[1] || r.top >= loc[1] + web.height) continue
+                    items.add(WebItem(a.optString(0), a.optString(1), r))
+                }
+                WebSnapshot(json.optString("title"), json.optString("url"), items, json.optString("text"))
+            } catch (e: Exception) {
+                null
+            }
+            cb(snap)
+        }
+    }
+
+    fun typeIntoFocused(text: String, submit: Boolean, cb: (Boolean) -> Unit) {
+        val js = "(function(t,s){var e=document.activeElement;if(!e||!('value' in e))return false;" +
+            "var p=Object.getPrototypeOf(e),d=Object.getOwnPropertyDescriptor(p,'value');if(d&&d.set)d.set.call(e,t);else e.value=t;" +
+            "e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));" +
+            "if(s){var o={key:'Enter',code:'Enter',keyCode:13,which:13,bubbles:true};e.dispatchEvent(new KeyboardEvent('keydown',o));" +
+            "e.dispatchEvent(new KeyboardEvent('keypress',o));e.dispatchEvent(new KeyboardEvent('keyup',o));" +
+            "if(e.form){if(e.form.requestSubmit)e.form.requestSubmit();else e.form.submit();}}return true;})(" +
+            JSONObject.quote(text) + "," + submit + ")"
+        web.evaluateJavascript(js) { r -> cb(r == "true") }
+    }
+
     // ------------------------------------------------------------------ זיכרון גלילה
 
     @Suppress("DEPRECATION")
@@ -543,6 +627,19 @@ open class BrowserActivity : Activity() {
     companion object {
         const val EXTRA_URL = "url"
         private const val REQ_FILE = 41
+
+        /** קישורים/כפתורים/שדות גלויים + טקסט גלוי (כותרות ופסקאות), עד גבול סביר */
+        private const val SNAPSHOT_JS = """(function(){
+var vw=window.innerWidth,vh=window.innerHeight,out=[],seen=new Set();
+function vis(e,r){if(r.width<3||r.height<3||r.bottom<0||r.top>vh||r.right<0||r.left>vw)return false;var s=getComputedStyle(e);return s.visibility!=='hidden'&&s.display!=='none'&&s.opacity!=='0';}
+function lab(e){var t=(e.getAttribute('aria-label')||e.innerText||e.value||e.getAttribute('title')||e.getAttribute('placeholder')||e.getAttribute('alt')||'');if(!t){var i=e.querySelector&&e.querySelector('img[alt]');if(i)t=i.getAttribute('alt');}return t.replace(/\s+/g,' ').trim().slice(0,100);}
+var els=document.querySelectorAll('a[href],button,input:not([type=hidden]),textarea,select,[role=button],[role=link],[role=tab],[role=menuitem],[onclick],summary');
+for(var i=0;i<els.length&&out.length<150;i++){var e=els[i];if(seen.has(e))continue;seen.add(e);var r=e.getBoundingClientRect();if(!vis(e,r))continue;var tg=e.tagName.toLowerCase();
+var k=(tg==='input'||tg==='textarea'||tg==='select')?'input':(tg==='a'?'link':'button');out.push([k,lab(e),r.left,r.top,r.width,r.height]);}
+var txt=[],n=0,bl=document.querySelectorAll('h1,h2,h3,h4,p,li,blockquote,td,figcaption');
+for(var j=0;j<bl.length&&n<2500;j++){var b=bl[j],r2=b.getBoundingClientRect();if(!vis(b,r2))continue;var s=(b.innerText||'').replace(/\s+/g,' ').trim();if(s.length<2)continue;s=s.slice(0,220);if(txt.indexOf(s)>=0)continue;txt.push(s);n+=s.length;}
+return JSON.stringify({w:vw,h:vh,title:document.title,url:location.href,items:out,text:txt.join('\n')});
+})()"""
         private val DELAYS = longArrayOf(150, 300, 500, 800, 1200, 1800, 2500, 3500)
     }
 }

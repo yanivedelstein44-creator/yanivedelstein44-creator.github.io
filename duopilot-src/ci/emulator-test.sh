@@ -101,6 +101,8 @@ step "6. assistant tools without AI: dump, tap by label, scroll the bottom list"
 dbg --es cmd dump; sleep 5; pullf dump.txt dump-2.txt
 dbg --es cmd tap_label --es label "Network"; sleep 4; shot 10-tap-network; pullf tap.txt tap-1.txt
 dbg --es cmd scroll_down --es where BOTTOM; sleep 3; shot 11-scroll-bottom
+dbg --es cmd type_first_input --es text "android split screen"; sleep 8; shot 11b-typed-search; pullf type.txt type-1.txt
+dbg --es cmd dump; sleep 6; pullf dump.txt dump-3.txt
 
 step "7. Android Auto bridge: conversation notification + a reply (no API key -> polite message)"
 dbg --es cmd car --es text "בדיקה מהאמולטור"
