@@ -319,10 +319,14 @@ export class SceneManager {
   /** זווית מבט המשחק (מעלות מהאנך) */
   get gameplayPolarDeg() { return this.gameplayPolar || GAMEPLAY_POLAR; }
 
-  /** מגע על הלוח = בלי תזוזת מצלמה בכלל (רק בחירת כלים). מחוץ ללוח = טיול חופשי */
+  /**
+   * אצבע אחת על הלוח = בלי הזזת מצלמה (רק בחירת כלים); מחוץ ללוח = טיול חופשי.
+   * שתי אצבעות = צביטה לזום (וסיבוב) בכל מקום — גם מעל הלוח
+   */
   setGestureBlocked(b) {
     this.gestureBlocked = b;
-    this.controls.enabled = !b && !this.animatingCamera;
+    this.controls.enablePan = !b && !this.panoramaOn;
+    this.controls.enabled = !this.animatingCamera;
   }
 
   /** התחלת גרירה מחוץ ללוח: מרחיבים את גבולות המצלמה (אופק, שמיים, כל האי) */
@@ -330,6 +334,13 @@ export class SceneManager {
     if (this.panoramaOn || this.animatingCamera || this.freeLook) return;
     this.freeLook = true;
     this.controls.maxPolarAngle = ROAM_MAX_POLAR;
+    // צביטה החוצה: אפשר להתרחק עד מבט על כל האי
+    this.controls.maxDistance = Math.max(this.controls.maxDistance, this.zoomOutRadius());
+  }
+
+  /** המרחק שממנו רואים את כל האי (בערך כמו מבט־העל) */
+  zoomOutRadius() {
+    try { return this.overviewFrame(this.view.azimuth).radius * 1.15; } catch { return this.view.radius * 2.6; }
   }
 
   endFreeLook() {
@@ -470,7 +481,7 @@ export class SceneManager {
         this.camera.lookAt(tg);
         this.controls.target.copy(tg);
       };
-      const done = () => { apply(); this.animatingCamera = false; this.controls.enabled = !this.gestureBlocked; this.controls.update(); resolve(); };
+      const done = () => { apply(); this.animatingCamera = false; this.controls.enabled = true; this.controls.update(); resolve(); };
       if (duration <= 0) { done(); return; }
       const tw = gsap.to(st, { t: 1, duration, ease, onUpdate: apply, onComplete: () => { if (this._camTween === tw) this._camTween = null; done(); } });
       this._camTween = tw;
@@ -575,7 +586,7 @@ export class SceneManager {
       reveal();
       this.enterOverview(O);
       this.animatingCamera = false;
-      this.controls.enabled = !this.gestureBlocked;
+      this.controls.enabled = true;
       this.controls.update();
       this.introFog = false;
       return;
@@ -649,7 +660,7 @@ export class SceneManager {
       });
     });
     this.animatingCamera = false;
-    this.controls.enabled = !this.gestureBlocked;
+    this.controls.enabled = true;
     this.controls.update();
   }
 
@@ -769,7 +780,7 @@ export class SceneManager {
       sh.amp *= Math.exp(-sh.decay * dt);
     } else sh.offset.set(0, 0, 0);
     this.camera.position.add(sh.offset);
-    const fb = (this.introFog || this.overviewOn) ? Math.max(0, this.camera.position.distanceTo(this.controls.target) - this.view.radius * 1.2) : 0;
+    const fb = (this.introFog || this.overviewOn || this.freeLook) ? Math.max(0, this.camera.position.distanceTo(this.controls.target) - this.view.radius * 1.2) : 0;
     if (fb) { this.fog.near += fb; this.fog.far += fb; }
     this.renderer.render(this.scene, this.camera);
     if (fb) { this.fog.near -= fb; this.fog.far -= fb; }

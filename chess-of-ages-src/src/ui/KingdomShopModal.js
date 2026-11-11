@@ -22,8 +22,9 @@ const AURA_ICON = { aura_none: 'noAura', aura_golden_sparks: 'sparkle', aura_fir
 const SLOT_ICON = { head: 'crown', armor: 'shirt', weapon: 'swords', aura: 'sparkle' };
 const SLOT_SHORT = { head: ['כתרים', 'Crowns'], armor: ['גלימות', 'Armor'], weapon: ['נשקים', 'Weapons'], aura: ['הילות', 'Auras'] };
 // חנויות הלבוש שסביב הלוח באי המרכזי: כל מבנה פותח חנות של קטגוריה אחת
-const SINGLE_TITLE = { head: ['בית הכתרים', 'Crown House'], armor: ['אוהל הגלימות', 'Robe Pavilion'], weapon: ['נפחיית הנשקים', 'Weapon Forge'], aura: ['מקדש ההילות', 'Aura Sanctum'], boards: ['בית הלוחות', 'Board House'] };
-const SINGLE_ICON = { ...SLOT_ICON, boards: 'checker' };
+const SINGLE_TITLE = { head: ['בית הכתרים', 'Crown House'], armor: ['אוהל הגלימות', 'Robe Pavilion'], weapon: ['נפחיית הנשקים', 'Weapon Forge'], aura: ['מקדש ההילות', 'Aura Sanctum'], boards: ['בית הלוחות', 'Board House'], pets: ['בית החיות', 'Pet House'], premium: ['כספת הזהב', 'Golden Vault'] };
+const SINGLE_ICON = { ...SLOT_ICON, boards: 'checker', pets: 'paw', premium: 'crown' };
+const SINGLE_TABS = ['boards', 'pets', 'premium'];
 
 // תמונות תצוגה של סקינים — נבנות בהדרגה (כדי לא לתקוע את הממשק) ונשמרות לכל ההפעלה
 const SKIN_PREVIEWS = new Map();
@@ -123,8 +124,8 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
   const maxEra = app.progression.maxEraReached();
   let preview = { ...economy.loadout };
   let previewPet = economy.pet;
-  const single = !solo ? null : tab === 'boards' ? 'boards' : WEARABLES[wantSlot] ? wantSlot : null;
-  let curTab = single === 'boards' ? 'boards' : single ? 'wardrobe' : ['pets', 'bots', 'boards', 'premium'].includes(tab) ? tab : 'wardrobe';
+  const single = !solo ? null : SINGLE_TABS.includes(tab) ? tab : WEARABLES[wantSlot] ? wantSlot : null;
+  let curTab = SINGLE_TABS.includes(single) ? single : single ? 'wardrobe' : ['pets', 'bots', 'boards', 'premium'].includes(tab) ? tab : 'wardrobe';
   let previewBot = null;
   let slot = WEARABLES[wantSlot] ? wantSlot : 'head';
   const title = single ? tn(...SINGLE_TITLE[single]) : t('shopTitle');
@@ -341,7 +342,7 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
       box, h('span', { class: 'region-tag' }, `${t('island')} ${id}`), h('b', { class: 'nm' }, name), h('div', { class: 'card-foot' }, foot));
   }
 
-  focus(curTab === 'pets' ? 'pets' : curTab === 'bots' || single === 'boards' ? 'all' : slot);
+  focus(curTab === 'pets' ? 'pets' : curTab === 'bots' || single === 'boards' || single === 'premium' ? 'all' : slot);
   render();
   return m;
 }

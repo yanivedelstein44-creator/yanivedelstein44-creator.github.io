@@ -580,7 +580,7 @@ export class GameApp {
     // באי המרכזי: נגיעה בבית הקולנוע, בחנות הכללית או באחת מחנויות הלבוש שסביב הלוח
     const bld = this.atHub && !this.busy ? this.museum.pick(x, y) : null;
     if (bld === 'cinema') { this.sound.ui(); this.openCinema(); return; }
-    if (bld === 'shop_boards') { this.sound.ui(); this.openShop('boards', null, true); return; }
+    if (bld === 'shop_boards' || bld === 'shop_pets' || bld === 'shop_premium') { this.sound.ui(); this.openShop(bld.slice(5), null, true); return; }
     if (bld?.startsWith('shop_')) { this.sound.ui(); this.openShop('wardrobe', bld.slice(5), true); return; }
     if (bld === 'museum') { this.sound.ui(); M.openAlbum(this); return; }
     if (this.sm.overviewOn) { if (this.board.hitsBoard(x, y)) { this.sound.ui(); this.sm.toGameplay(1.1, this.viewSide()); } return; }
