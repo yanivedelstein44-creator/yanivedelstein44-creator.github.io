@@ -64,7 +64,7 @@ class ScrollMemory(private val svc: PilotService) {
         if (pkg !in tracked) return
         val now = SystemClock.uptimeMillis()
         if (pkg == restoringPkg || now < quietUntil) return
-        if (now - (shownAt[pkg] ?: 0L) < 5000) return
+        if (now - (shownAt[pkg] ?: 0L) < 3500) return
         val from = e.fromIndex
         val cls = e.className?.toString() ?: ""
         pending[pkg]?.let { worker.removeCallbacks(it) }

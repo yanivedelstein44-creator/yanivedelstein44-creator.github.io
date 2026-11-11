@@ -118,7 +118,8 @@ class PilotService : AccessibilityService() {
             AccessibilityEvent.TYPE_VIEW_SCROLLED -> scroll.onScrolled(event)
             AccessibilityEvent.TYPE_WINDOWS_CHANGED -> split.onWindowsChanged()
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
-                event.packageName?.toString()?.let { scroll.onWindowShown(it) }
+                // רק מסך/אפליקציה חדשים (לא שינוי כותרת בזמן גלילה – גם הוא נשלח כ-WINDOW_STATE_CHANGED)
+                if (event.contentChangeTypes == 0) event.packageName?.toString()?.let { scroll.onWindowShown(it) }
                 val now = SystemClock.uptimeMillis()
                 if (now - lastPeriodic > 60_000) {
                     lastPeriodic = now

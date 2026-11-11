@@ -216,7 +216,12 @@ object ScreenReader {
             val kids = childText(n, 3, label)
             if (kids.isNotEmpty()) label = if (label.isEmpty()) kids else "$label · $kids"
         }
-        val emit = interactive || scrollable || (label.isNotEmpty() && !insideClickable)
+        var emit = interactive || scrollable || (label.isNotEmpty() && !insideClickable)
+        // אותו פריט פעמיים (כרטיס לחיץ ובתוכו קישור עם אותו טקסט) – מספיק פעם אחת
+        if (emit && label.isNotEmpty() && out.isNotEmpty()) {
+            val prev = out[out.size - 1]
+            if (prev.label == label && Rect(prev.bounds).let { it.intersect(r) && it.width().toLong() * it.height() >= r.width().toLong() * r.height() * 0.7 }) emit = false
+        }
         if (emit) {
             val cls = n.className?.toString() ?: ""
             val kind = when {
