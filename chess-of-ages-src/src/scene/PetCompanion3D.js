@@ -1,5 +1,5 @@
 /**
- * חיות מחמד תלת-ממדיות על כן מעוטר: 9 יצורים פרוצדורליים עם שלד פשוט,
+ * חיות מחמד תלת-ממדיות על כן מעוטר: 9 יצורים פרוצדורליים + 12 החיות המעופפות של קן השמיים, עם שלד פשוט,
  * אנימציית מנוחה (נשימה, ריחוף, מבט לכלי הפעיל, זנב/כנפיים) ותגובות למשחק.
  */
 import * as THREE from 'three';
@@ -49,8 +49,20 @@ function wingShape(span = 1, feather = false) {
   return new THREE.ShapeGeometry(s, 8);
 }
 
-function addWings(rig, mat, span, y, z, feather = false) {
+/** UV לפי תיבת הגבול של הצורה (0..1) — כך שמעבר צבעים במרקם הכנף נמתח מהגוף ועד הקצה */
+function fitUV(geo) {
+  geo.computeBoundingBox();
+  const b = geo.boundingBox, p = geo.attributes.position, uv = geo.attributes.uv;
+  const w = b.max.x - b.min.x || 1, h = b.max.y - b.min.y || 1;
+  for (let i = 0; i < p.count; i++) uv.setXY(i, (p.getX(i) - b.min.x) / w, (p.getY(i) - b.min.y) / h);
+  uv.needsUpdate = true;
+  return geo;
+}
+
+function addWings(rig, mat, span, y, z, feather = false, { fit = false } = {}) {
   const geo = wingShape(span, feather);
+  // כנפי קן השמיים: בלי תאורת שוליים — במבט מהצד היא מלבינה את כל הכנף הדקה
+  if (fit) { fitUV(geo); mat.userData.noCharRim = true; }
   for (const s of [-1, 1]) {
     const pivot = new THREE.Group();
     pivot.position.set(s * 0.12, y, z);
@@ -145,7 +157,7 @@ function bird(rig, o) {
   rig.head.add(rig.mouth);
   if (o.tufts) for (const s of [-1, 1]) rig.head.add(mesh(G.cone(0.05, 0.16, 6), o.bodyMat, { pos: [s * 0.13, 0.22, 0], rot: [0, 0, -s * 0.4] }));
   if (o.crest) for (let i = 0; i < 5; i++) rig.head.add(mesh(G.cone(0.03, 0.26, 6), o.crest, { pos: [0, 0.22, -0.05 - i * 0.03], rot: [-0.5 - i * 0.18, 0, 0] }));
-  addWings(rig, o.wingMat, o.wingSpan ?? 0.55, 0.12, -0.02, true);
+  addWings(rig, o.wingMat, o.wingSpan ?? 0.55, 0.12, -0.02, true, { fit: o.wingFit });
   for (const s of [-1, 1]) {
     const leg = new THREE.Group();
     leg.position.set(s * 0.1, -0.33, 0.05);
@@ -164,6 +176,43 @@ function bird(rig, o) {
     rig.tails.push(chain);
   }
   return rig;
+}
+
+// ---------- עזרים לחיות המעופפות ----------
+/** מרקם כנף: מעבר צבעים מהגוף (שמאל) לקצה (ימין) + עורקים / נקודות אופציונליים */
+function wingTex(key, stops, { veins = null, dots = null } = {}) {
+  return drawnTexture(key, 128, (c, sz) => {
+    const g = c.createLinearGradient(0, 0, sz, 0);
+    stops.forEach((col, i) => g.addColorStop(i / (stops.length - 1), col));
+    c.fillStyle = g; c.fillRect(0, 0, sz, sz);
+    if (veins) { c.strokeStyle = veins; c.lineWidth = 2.5; for (let i = 0; i < 6; i++) { c.beginPath(); c.moveTo(0, sz * 0.5); c.quadraticCurveTo(sz * 0.5, sz * (0.5 + (i - 2.5) * 0.08), sz, (i / 5) * sz); c.stroke(); } }
+    if (dots) { c.fillStyle = dots; for (let i = 0; i < 44; i++) { c.beginPath(); c.arc(((i * 37) % 97) / 97 * sz, ((i * 61) % 89) / 89 * sz, 0.6 + (i % 3) * 0.7, 0, TAU); c.fill(); } }
+  });
+}
+const featherMat = (key, stops, { metal = 0, glow = 0, ...o } = {}) => {
+  const map = wingTex(key, stops, o);
+  // מחזירות סביבה חלשה: כנף דקה במבט מהצד אחרת משקפת את כל השמיים ונראית לבנה
+  return new THREE.MeshStandardMaterial({ map, side: THREE.DoubleSide, roughness: 0.72, metalness: metal * 0.6, envMapIntensity: 0.3, ...(glow ? { emissive: 0xffffff, emissiveMap: map, emissiveIntensity: glow } : {}) });
+};
+/** כנף בצורה חופשית (פרפר, סנפיר) — מונחת אופקית; ‎+y של הצורה פונה אחורה */
+function flatWing(shape, mat, side) {
+  const geo = fitUV(new THREE.ShapeGeometry(shape, 12));
+  geo.rotateX(-Math.PI / 2);
+  const m = new THREE.Mesh(geo, mat);
+  m.scale.x = side;
+  m.castShadow = true;
+  mat.userData.noCharRim = true;
+  return m;
+}
+/** טבעת קטנה של חלקיקים שחגה סביב החיה (מסתובבת בתוך spinners) */
+function orbitRing(rig, mat, n, r, { y = 0.05, scale = [1, 1, 1], tilt = 0 } = {}) {
+  const g = new THREE.Group();
+  g.rotation.x = Math.PI / 2 + tilt;
+  g.position.y = y;
+  for (let i = 0; i < n; i++) { const a = (i / n) * TAU; g.add(mesh(G.octa(0.035), mat, { pos: [Math.cos(a) * r, Math.sin(a) * r, Math.sin(a * 2) * 0.05], rot: [0, 0, a], scale })); }
+  rig.body.add(g);
+  (rig.spinners ||= []).push(g);
+  return g;
 }
 
 // ---------- 8 החיות ----------
@@ -273,6 +322,248 @@ const BUILDERS = {
     rig.aura = aura;
     for (let i = 0; i < 6; i++) rig.head.parent?.add(mesh(G.box(0.04, 0.1, 0.06), std(['#ff6a8a', '#ffd06a', '#6ad8ff', '#b06aff'][i % 4], 0.5), { pos: [0, 0.08 + i * 0.06, -0.06] }));
     rig.voice = 'unicorn'; rig.fxColor = [0xff8ad8, 0x8ad8ff, 0xfff08a, 0xffffff];
+  },
+  // ---------- קן השמיים: 12 החיות המעופפות ----------
+  sky_parrot(rig) {
+    const red = std(0xe3262e, 0.45, 0.05), ivory = std(0xf4ead8, 0.35);
+    bird(rig, {
+      bodyMat: red, headMat: red, bellyMat: std(0xf2502a, 0.5), faceDisc: std(0xfff8ee, 0.85, 0, { side: THREE.DoubleSide }), eyeMat: eyeMat(0xffe060), eyeR: 0.045,
+      beakMat: ivory, wingMat: featherMat('parrotWing', ['#ffd23a', '#38c46a', '#1f5fd0', '#16348a']), tailFeathers: std(0x1f5fd0, 0.45, 0.1), wingSpan: 0.62, wingFit: true,
+    });
+    // מקור מעוקל: כיפה בהירה למעלה ולסת כהה למטה
+    rig.head.add(mesh(G.sph(0.075, 12, 10), ivory, { pos: [0, -0.03, 0.235], scale: [0.85, 1, 1.15], cast: true }));
+    rig.head.add(mesh(G.cone(0.035, 0.11, 8), ivory, { pos: [0, -0.1, 0.285], rot: [Math.PI - 0.3, 0, 0] }));
+    rig.head.add(mesh(G.sph(0.045, 10, 8), std(0x2a2420, 0.5), { pos: [0, -0.1, 0.2] }));
+    rig.hover = true; rig.flap = 1.1; rig.sky = true;
+    rig.voice = 'parrot'; rig.fxColor = [0xff3a3a, 0xffd23a, 0x3a8aff];
+  },
+  sky_raven(rig) {
+    const ink = addRim(std(0x17161f, 0.3, 0.45), 0x8a6aff, 2.6, 0.7);
+    bird(rig, {
+      bodyMat: ink, headMat: ink, eyeMat: eyeMat(0x5ad8ff), eyeR: 0.05, beakMat: std(0x2a2a33, 0.3, 0.6), crest: ink, tailFeathers: ink,
+      wingMat: featherMat('ravenWing', ['#0e0e16', '#1c1a2e', '#3a2a6a', '#5a8aff'], { veins: 'rgba(160,140,255,0.35)' }), wingSpan: 0.68, wingFit: true,
+    });
+    // ניצוצות ברק שחגים סביב
+    const bolt = std(0x9ad8ff, 0.3, 0, { emissive: 0x6ab8ff, emissiveIntensity: 2.2 });
+    orbitRing(rig, bolt, 3, 0.44, { y: 0.1, scale: [0.6, 2.4, 0.6], tilt: 0.4 });
+    orbitRing(rig, bolt, 3, 0.4, { y: 0.02, scale: [0.6, 2.2, 0.6], tilt: -0.4 });
+    rig.hover = true; rig.flap = 1; rig.sky = true; rig.thunder = true;
+    rig.voice = 'raven'; rig.fxColor = [0x9ad8ff, 0xffffff, 0x9a6aff];
+  },
+  sky_eagle(rig) {
+    const brown = std(0x7a4a22, 0.6, 0.15), white = std(0xf6f0e2, 0.75), gold = std(0xffc21a, 0.3, 0.3);
+    bird(rig, {
+      bodyMat: brown, headMat: white, eyeMat: eyeMat(0xffb000), eyeR: 0.045, beakMat: gold, tailFeathers: white,
+      wingMat: featherMat('eagleWing', ['#5a3216', '#8a5a26', '#c8962a', '#ffe08a'], { metal: 0.45 }), wingSpan: 0.86, wingFit: true,
+    });
+    rig.head.add(mesh(G.cone(0.04, 0.1, 8), gold, { pos: [0, -0.11, 0.3], rot: [Math.PI - 0.5, 0, 0] })); // קצה מקור מעוקל
+    for (const s of [-1, 1]) rig.head.add(mesh(G.box(0.11, 0.03, 0.07), white, { pos: [s * 0.085, 0.085, 0.2], rot: [0.2, 0, s * 0.35] })); // גבות — מבט חד
+    rig.hover = true; rig.flap = 0.8; rig.sky = true;
+    rig.voice = 'eagle'; rig.fxColor = [0xffd36a, 0xffffff, 0xc8a060];
+  },
+  sky_bat(rig) {
+    const fur = std(0x3b2c4e, 0.85), light = std(0x6e5c84, 0.85), pink = std(0xd88aa8, 0.6);
+    rig.body.position.y = 0.46;
+    rig.body.add(mesh(G.sph(0.2, 16, 12), fur, { scale: [1, 1.15, 0.95], cast: true }));
+    rig.body.add(mesh(G.sph(0.16, 12, 10), light, { pos: [0, -0.04, 0.08], scale: [1, 1.1, 0.8] }));
+    rig.head.position.set(0, 0.26, 0.05);
+    rig.body.add(rig.head);
+    rig.head.add(mesh(G.sph(0.16, 16, 12), fur, { cast: true }));
+    rig.head.add(mesh(G.sph(0.07, 10, 8), light, { pos: [0, -0.04, 0.13], scale: [1.1, 0.8, 0.9] }));
+    rig.head.add(mesh(G.sph(0.02, 6, 4), std(0x111111, 0.4), { pos: [0, -0.01, 0.2] }));
+    for (const s of [-1, 1]) {
+      const ear = new THREE.Group();
+      ear.position.set(s * 0.09, 0.12, -0.01); ear.rotation.set(-0.15, 0, -s * 0.32);
+      ear.add(mesh(G.cone(0.065, 0.24, 8), fur, { pos: [0, 0.11, 0], cast: true }));
+      ear.add(mesh(G.cone(0.04, 0.17, 8), pink, { pos: [0, 0.1, 0.03] }));
+      rig.head.add(ear);
+      const e = mesh(G.sph(0.035, 10, 8), eyeMat(0xd8f0ff), { pos: [s * 0.065, 0.03, 0.135] });
+      rig.head.add(e); rig.eyes.push(e);
+      rig.head.add(mesh(G.cone(0.012, 0.04, 5), std(0xffffff, 0.3), { pos: [s * 0.025, -0.1, 0.16], rot: [Math.PI, 0, 0] })); // ניבים
+      const leg = new THREE.Group(); leg.position.set(s * 0.07, -0.22, 0);
+      leg.add(mesh(G.cyl(0.018, 0.018, 0.12, 6), fur, { pos: [0, -0.04, 0] }));
+      rig.body.add(leg); rig.legs.push(leg);
+    }
+    rig.mouth.position.set(0, -0.08, 0.17); rig.head.add(rig.mouth);
+    addWings(rig, featherMat('batWing', ['#2a1a3a', '#4a2a6a', '#8a5ab8'], { veins: 'rgba(16,8,26,0.75)' }), 0.72, 0.08, 0, false, { fit: true });
+    // ירח קטן זוהר מעל הראש
+    const moon = new THREE.Shape();
+    moon.absarc(0, 0, 0.11, 1.038, 5.245, false);
+    moon.absarc(0.05, 0, 0.095, 4.774, 1.51, true);
+    const mg = new THREE.Group(); mg.position.set(0.14, 0.62, -0.04); mg.rotation.z = 0.5;
+    mg.add(new THREE.Mesh(new THREE.ShapeGeometry(moon, 12), new THREE.MeshBasicMaterial({ color: 0xfff2b0, side: THREE.DoubleSide, toneMapped: false })));
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: 0xfff2b0, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false }));
+    halo.scale.setScalar(0.5); mg.add(halo);
+    rig.body.add(mg);
+    rig.hover = true; rig.flap = 1.4; rig.sky = true; rig.trail = [0xd8e8ff, 0xb08aff, 0xffffff];
+    rig.voice = 'bat'; rig.fxColor = [0xd8f0ff, 0xb08aff, 0xffffff];
+  },
+  sky_pegasus(rig) {
+    const coat = std(0xf8f6f2, 0.45, 0.05), gold = std(0xf2c14e, 0.25, 1), mane = std(0x9ad8ff, 0.4, 0, { emissive: 0x4a8aff, emissiveIntensity: 0.45 });
+    quadruped(rig, {
+      bodyMat: coat, headMat: coat, eyeMat: eyeMat(0x6ab8ff), neck: true, headR: 0.13, headScale: [0.85, 0.9, 1.35], snout: [0.11, 0.11, 0.12], ears: [0.04, 0.11],
+      legLen: 0.4, legR: 0.045, hoofMat: gold, bodyR: 0.18, bodyLen: 0.52, tailMat: mane, fluffyTail: true, tailR: 0.045, tailLen: 0.11, tailSegs: 4, tailUp: 0.3,
+    });
+    const white = std(0xffffff, 0.5, 0, { emissive: 0x9ad8ff, emissiveIntensity: 0.3 });
+    for (let i = 0; i < 6; i++) rig.head.parent?.add(mesh(G.box(0.045, 0.1, 0.07), i % 2 ? mane : white, { pos: [0, 0.08 + i * 0.06, -0.06] }));
+    addWings(rig, featherMat('pegasusWing', ['#ffffff', '#f6f0e2', '#ffe9a8', '#f2c14e'], { metal: 0.2 }), 0.82, 0.2, 0.12, true, { fit: true });
+    rig.hover = true; rig.flap = 0.9; rig.sky = true;
+    rig.voice = 'pegasus'; rig.fxColor = [0xffffff, 0x9ad8ff, 0xffd36a];
+  },
+  sky_ice_dragon(rig) {
+    const ice = std(0x8ecfea, 0.22, 0.35), frost = std(0xeaf8ff, 0.3, 0.1);
+    const crystal = new THREE.MeshPhysicalMaterial({ color: 0xdff6ff, roughness: 0.05, metalness: 0.1, clearcoat: 1, iridescence: 0.6, emissive: 0x4ac8ff, emissiveIntensity: 0.35, flatShading: true });
+    quadruped(rig, { bodyMat: ice, bellyMat: frost, headMat: ice, snoutMat: ice, eyeMat: eyeMat(0x7af0ff), snout: [0.13, 0.09, 0.22], ears: [0.03, 0.22], earMat: crystal, bodyR: 0.19, bodyLen: 0.5, legLen: 0.22, tailMat: ice, tailSegs: 6, tailR: 0.07, tailLen: 0.13, tailUp: 0.3 });
+    addWings(rig, featherMat('frostWing', ['#1a4a7a', '#4a9ad0', '#bfeaff', '#ffffff'], { veins: 'rgba(255,255,255,0.6)', metal: 0.2, glow: 0.25 }), 0.86, 0.16, 0.08, false, { fit: true });
+    for (let i = 0; i < 5; i++) rig.body.add(mesh(G.octa(0.06), crystal, { pos: [0, 0.21, 0.22 - i * 0.12], scale: [0.55, 1.5, 0.8] }));
+    const lastTail = rig.tails[0][rig.tails[0].length - 1];
+    lastTail.add(mesh(G.octa(0.08), crystal, { pos: [0, 0, -0.2], scale: [0.6, 0.6, 1.8] }));
+    rig.hover = true; rig.flap = 1; rig.sky = true;
+    rig.voice = 'dragon'; rig.fxColor = [0xdff6ff, 0x9ad8ff, 0xffffff]; rig.breath = [0xffffff, 0xbfefff, 0x6fb8e8];
+  },
+  sky_wyvern(rig) {
+    const jade = std(0x1f8a5e, 0.35, 0.3), pale = std(0xbfe8c8, 0.5), gold = std(0xf2c14e, 0.25, 1);
+    quadruped(rig, { bodyMat: jade, bellyMat: pale, headMat: jade, snoutMat: jade, eyeMat: eyeMat(0xffe040), snout: [0.12, 0.08, 0.24], ears: [0.03, 0.24], earMat: gold, bodyR: 0.17, bodyLen: 0.48, legLen: 0.24, tailMat: jade, tailSegs: 7, tailR: 0.065, tailLen: 0.13, tailUp: 0.25 });
+    rig.legs.splice(0, 2).forEach((l) => rig.body.remove(l)); // ווירן: רק רגליים אחוריות — הכנפיים הן הידיים
+    addWings(rig, featherMat('jadeWing', ['#0e4a32', '#1f8a5e', '#7ad8a0', '#f2c14e'], { veins: 'rgba(242,193,78,0.6)', metal: 0.35 }), 1.0, 0.15, 0.12, false, { fit: true });
+    for (let i = 0; i < 6; i++) rig.body.add(mesh(G.cone(0.03, 0.09, 4), gold, { pos: [0, 0.19, 0.24 - i * 0.1] }));
+    const lastTail = rig.tails[0][rig.tails[0].length - 1];
+    lastTail.add(mesh(G.octa(0.09), gold, { pos: [0, 0, -0.18], scale: [1.3, 0.25, 1.4] })); // סנפיר בקצה הזנב
+    rig.head.add(mesh(G.torus(0.15, 0.022, 6, 18, Math.PI), gold, { pos: [0, 0.02, -0.08] })); // צווארון זהב מאחורי הראש
+    rig.hover = true; rig.flap = 0.85; rig.sky = true;
+    rig.voice = 'dragon'; rig.fxColor = [0x8affc0, 0xf2c14e, 0xffffff]; rig.breath = [0xd8ffe8, 0x6ae8a0, 0x1a9a62];
+  },
+  sky_butterfly(rig) {
+    const velvet = std(0x2a1a3a, 0.5, 0.1);
+    rig.body.position.y = 0.5;
+    rig.body.add(mesh(G.capsule(0.045, 0.3, 4, 10), velvet, { rot: [Math.PI / 2, 0, 0], cast: true }));
+    rig.head.position.set(0, 0.02, 0.21);
+    rig.body.add(rig.head);
+    rig.head.add(mesh(G.sph(0.06, 12, 10), velvet, { cast: true }));
+    const tip = std(0xffd06a, 0.3, 0, { emissive: 0xff9a30, emissiveIntensity: 0.8 });
+    for (const s of [-1, 1]) {
+      const e = mesh(G.sph(0.028, 8, 6), eyeMat(0xffe0ff), { pos: [s * 0.04, 0.01, 0.04] });
+      rig.head.add(e); rig.eyes.push(e);
+      const ant = new THREE.Group(); ant.position.set(s * 0.025, 0.04, 0.02); ant.rotation.set(-0.7, 0, -s * 0.35);
+      ant.add(mesh(G.cyl(0.006, 0.006, 0.2, 4), velvet, { pos: [0, 0.1, 0] }));
+      ant.add(mesh(G.sph(0.018, 8, 6), tip, { pos: [0, 0.2, 0] }));
+      rig.head.add(ant);
+    }
+    rig.mouth.position.set(0, -0.02, 0.06); rig.head.add(rig.mouth);
+    const tex = drawnTexture('rainbowWing', 256, (c, sz) => {
+      const g = c.createRadialGradient(0, sz / 2, sz * 0.04, 0, sz / 2, sz * 1.02);
+      ['#fff4a8', '#ffb04a', '#ff4a8a', '#a04aff', '#4ad8ff', '#1a2a6a'].forEach((col, i, a) => g.addColorStop(i / (a.length - 1), col));
+      c.fillStyle = g; c.fillRect(0, 0, sz, sz);
+      c.fillStyle = 'rgba(255,255,255,0.92)';
+      for (let i = 0; i < 7; i++) { c.beginPath(); c.arc(sz * (0.8 + 0.08 * Math.sin(i * 1.7)), sz * (0.12 + i * 0.125), sz * 0.028, 0, TAU); c.fill(); }
+    });
+    const wm = new THREE.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: 0xffffff, emissiveIntensity: 0.35, side: THREE.DoubleSide, roughness: 0.4, transparent: true, opacity: 0.96 });
+    const fore = new THREE.Shape();
+    fore.moveTo(0, 0.02);
+    fore.bezierCurveTo(0.12, -0.06, 0.36, -0.34, 0.5, -0.3);
+    fore.bezierCurveTo(0.57, -0.2, 0.5, -0.04, 0.42, 0.02);
+    fore.bezierCurveTo(0.3, 0.06, 0.12, 0.06, 0, 0.02);
+    const hind = new THREE.Shape();
+    hind.moveTo(0, 0);
+    hind.bezierCurveTo(0.15, 0.02, 0.36, 0.06, 0.38, 0.2);
+    hind.bezierCurveTo(0.4, 0.32, 0.24, 0.37, 0.14, 0.3);
+    hind.bezierCurveTo(0.06, 0.24, 0.02, 0.12, 0, 0);
+    for (const s of [-1, 1]) {
+      const pivot = new THREE.Group();
+      pivot.position.set(s * 0.03, 0.02, 0.03);
+      pivot.add(flatWing(fore, wm, s), flatWing(hind, wm, s));
+      pivot.userData.side = s;
+      rig.body.add(pivot); rig.wings.push(pivot);
+    }
+    rig.hover = true; rig.flap = 1.7; rig.sky = true; rig.restWing = 0.95; rig.trail = [0xff6a8a, 0xffd06a, 0x6ad8ff, 0xb06aff];
+    rig.voice = 'butterfly'; rig.fxColor = [0xff8ad8, 0x8ad8ff, 0xfff08a, 0xb08aff];
+  },
+  sky_star_phoenix(rig) {
+    const cosmos = std(0x2a2a9a, 0.3, 0.4, { emissive: 0x3a2aff, emissiveIntensity: 0.55 });
+    const starM = featherMat('starFlame', ['#1a1a6a', '#4a2ad0', '#9a5aff', '#ff8ad8'], { dots: 'rgba(255,255,255,0.95)', glow: 0.9 });
+    bird(rig, { bodyMat: cosmos, headMat: cosmos, eyeMat: eyeMat(0xffffff), beakMat: std(0xe8f0ff, 0.25, 1), wingMat: starM, crest: starM, tailFeathers: starM, wingSpan: 0.72, wingFit: true });
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: 0x8a6aff, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+    glow.scale.setScalar(1.7); rig.body.add(glow);
+    orbitRing(rig, new THREE.MeshBasicMaterial({ color: 0xfff6c0, toneMapped: false }), 5, 0.5);
+    rig.hover = true; rig.flap = 1.2; rig.sky = true; rig.trail = [0x9ad8ff, 0xffffff, 0xb08aff];
+    rig.voice = 'phoenix'; rig.fxColor = [0xb08aff, 0xffffff, 0x9ad8ff];
+  },
+  sky_thunder_dragon(rig) {
+    const navy = addRim(std(0x16224a, 0.28, 0.55), 0x5ae0ff, 2.2, 1.0), volt = std(0x9af6ff, 0.2, 0, { emissive: 0x3ad8ff, emissiveIntensity: 2.2 });
+    const belly = std(0x2a4aa8, 0.3, 0.4, { emissive: 0x1a3aff, emissiveIntensity: 0.5 });
+    quadruped(rig, { bodyMat: navy, bellyMat: belly, headMat: navy, snoutMat: navy, eyeMat: eyeMat(0xbffcff), snout: [0.14, 0.09, 0.24], ears: [0.035, 0.26], earMat: volt, bodyR: 0.21, bodyLen: 0.56, legLen: 0.23, tailMat: navy, tailSegs: 7, tailR: 0.075, tailLen: 0.13, tailUp: 0.3 });
+    const wt = drawnTexture('voltWing', 128, (c, sz) => {
+      const g = c.createLinearGradient(0, 0, sz, 0); g.addColorStop(0, '#0a1030'); g.addColorStop(1, '#1f3f9a'); c.fillStyle = g; c.fillRect(0, 0, sz, sz);
+      c.strokeStyle = '#7af6ff'; c.lineWidth = 3; c.shadowColor = '#7af6ff'; c.shadowBlur = 8;
+      for (let k = 0; k < 4; k++) { c.beginPath(); let x = 4, y = sz * (0.2 + k * 0.2); c.moveTo(x, y); for (let j = 0; x < sz; j++) { x += 12 + ((j * 7 + k * 5) % 9); y += (((j * 13 + k * 3) % 7) - 3) * 4; c.lineTo(x, y); } c.stroke(); }
+    });
+    addWings(rig, new THREE.MeshStandardMaterial({ map: wt, emissiveMap: wt, emissive: 0xffffff, emissiveIntensity: 0.6, side: THREE.DoubleSide, roughness: 0.7, metalness: 0.15, envMapIntensity: 0.3 }), 0.95, 0.18, 0.08, false, { fit: true });
+    for (let i = 0; i < 5; i++) rig.body.add(mesh(G.octa(0.06), volt, { pos: [0, 0.23, 0.24 - i * 0.12], scale: [0.4, 1.6, 0.7] }));
+    const lastTail = rig.tails[0][rig.tails[0].length - 1];
+    lastTail.add(mesh(G.octa(0.07), volt, { pos: [0, 0, -0.2], scale: [0.5, 0.5, 2] }));
+    orbitRing(rig, volt, 4, 0.52, { y: 0.04, scale: [0.5, 3, 0.5] });
+    rig.hover = true; rig.flap = 1; rig.sky = true; rig.thunder = true;
+    rig.voice = 'dragon'; rig.fxColor = [0x9af6ff, 0xffffff, 0x5a8aff];
+  },
+  sky_crystal_griffin(rig) {
+    const crystal = new THREE.MeshPhysicalMaterial({ color: 0x9fb8ff, roughness: 0.08, metalness: 0.25, iridescence: 1, iridescenceIOR: 1.35, clearcoat: 1, flatShading: true, emissive: 0x3a4aa8, emissiveIntensity: 0.25 });
+    const head = new THREE.MeshPhysicalMaterial({ color: 0xe6eeff, roughness: 0.08, metalness: 0.1, iridescence: 1, clearcoat: 1, flatShading: true });
+    const rose = std(0xff8ad8, 0.2, 0.4, { emissive: 0xff4ac8, emissiveIntensity: 0.9 });
+    quadruped(rig, { bodyMat: crystal, headMat: head, eyeMat: eyeMat(0xff9af0), headR: 0.17, ears: [0.04, 0.16], earMat: rose, bodyR: 0.2, bodyLen: 0.5, legLen: 0.28, legMat: crystal, tailMat: crystal, tailSegs: 5, tailR: 0.035, tailLen: 0.13, tailUp: 0.3 });
+    rig.head.add(mesh(G.cone(0.075, 0.22, 6), std(0xf2c14e, 0.2, 1, { emissive: 0xff8a3a, emissiveIntensity: 0.25 }), { pos: [0, -0.05, 0.22], rot: [Math.PI / 2 + 0.5, 0, 0] }));
+    for (let i = 0; i < 4; i++) rig.body.add(mesh(G.octa(0.05), rose, { pos: [0, 0.21, 0.18 - i * 0.12], scale: [0.5, 1.4, 0.7] })); // קוצי קריסטל על הגב
+    rig.mouth.position.set(0, -0.08, 0.32);
+    rig.tails[0][rig.tails[0].length - 1].add(mesh(G.octa(0.07), rose, { pos: [0, 0, -0.16] }));
+    rig.body.add(mesh(G.octa(0.08), rose, { pos: [0, 0.02, 0.29], scale: [1, 1.3, 0.6] })); // אבן חן על החזה
+    const wt = wingTex('crystalWing', ['#9fd0ff', '#a08aff', '#e07ae8', '#fff0ff'], { veins: 'rgba(255,255,255,0.9)' });
+    addWings(rig, new THREE.MeshPhysicalMaterial({ map: wt, emissiveMap: wt, emissive: 0xffffff, emissiveIntensity: 0.4, side: THREE.DoubleSide, roughness: 0.35, metalness: 0.1, iridescence: 1, envMapIntensity: 0.35, transparent: true, opacity: 0.9 }), 0.9, 0.16, 0.1, true, { fit: true });
+    rig.hover = true; rig.flap = 0.7; rig.sky = true;
+    rig.voice = 'griffin'; rig.fxColor = [0xbfe8ff, 0xff9af0, 0xffffff];
+  },
+  sky_whale(rig) {
+    const deep = addRim(std(0x2a4aa0, 0.45, 0.15), 0x9ad8ff, 2.4, 0.8), finMat = std(0x2a4aa0, 0.45, 0.15, { side: THREE.DoubleSide });
+    rig.body.position.y = 0.55;
+    rig.body.add(mesh(G.sph(0.3, 24, 16), deep, { scale: [0.95, 0.85, 1.6], cast: true }));
+    const stripes = drawnTexture('whaleBelly', 64, (c, sz) => { c.fillStyle = '#eef4fb'; c.fillRect(0, 0, sz, sz); c.fillStyle = '#b8c8e0'; for (let i = 0; i < 8; i++) c.fillRect(0, i * 8, sz, 2); });
+    rig.body.add(mesh(G.sph(0.27, 20, 14), new THREE.MeshStandardMaterial({ map: stripes, roughness: 0.6 }), { pos: [0, -0.07, 0.05], scale: [0.85, 0.7, 1.55] }));
+    // הראש לא מסתובב (העיניים על הגוף); rig.head נשאר ריק
+    rig.head.position.set(0, 0.04, 0.4); rig.body.add(rig.head);
+    for (const s of [-1, 1]) {
+      const e = mesh(G.sph(0.032, 10, 8), eyeMat(0xbfe8ff), { pos: [s * 0.215, 0.04, 0.3] });
+      rig.body.add(e); rig.eyes.push(e);
+    }
+    rig.mouth.position.set(0, -0.06, 0.46); rig.body.add(rig.mouth);
+    const star = new THREE.MeshBasicMaterial({ color: 0xfff6c0, toneMapped: false });
+    [[0, 0.3], [0.09, 0.12], [-0.1, 0.05], [0.05, -0.12], [-0.06, -0.24], [0.12, -0.3], [-0.12, 0.22]].forEach(([x, z]) => {
+      const y = 0.255 * Math.sqrt(Math.max(0, 1 - (x / 0.285) ** 2 - (z / 0.48) ** 2));
+      rig.body.add(mesh(G.octa(0.022), star, { pos: [x, y + 0.008, z] }));
+    });
+    // סנפירים (מתנופפים לאט במקום כנפיים)
+    const fin = new THREE.Shape();
+    fin.moveTo(0, 0.05); fin.bezierCurveTo(0.12, 0.08, 0.3, 0.04, 0.34, -0.04); fin.bezierCurveTo(0.3, -0.1, 0.12, -0.08, 0, -0.05); fin.lineTo(0, 0.05);
+    for (const s of [-1, 1]) {
+      const pivot = new THREE.Group(); pivot.position.set(s * 0.22, -0.1, 0.12);
+      const m = flatWing(fin, finMat, s); m.rotation.y = s * -0.55; pivot.add(m);
+      pivot.userData.side = s; rig.body.add(pivot); rig.wings.push(pivot);
+    }
+    // זנב עבה שעולה מעט למעלה: 3 חוליות שמתנופפות למעלה-למטה (הבסיס מגולגל ב-90° כך שהנפנוף הצידי הופך לאנכי), וסנפיר זנב רחב
+    const tilt = new THREE.Group(); tilt.position.set(0, 0.03, -0.36); tilt.rotation.x = 0.28; rig.body.add(tilt);
+    const tb = new THREE.Group(); tb.rotation.z = Math.PI / 2; tilt.add(tb);
+    const chain = [];
+    let parent = tb, r = 0.17;
+    for (let i = 0; i < 3; i++) {
+      const g = new THREE.Group(); if (i) g.position.z = -0.16;
+      g.add(mesh(G.sph(r, 12, 10), deep, { pos: [0, 0, -0.06], scale: [1, 1, 1.5], cast: true }));
+      parent.add(g); chain.push(g); parent = g; r *= 0.68;
+    }
+    const fl = new THREE.Shape();
+    fl.moveTo(0, -0.02); fl.bezierCurveTo(0.1, 0, 0.28, 0.04, 0.36, 0.22); fl.bezierCurveTo(0.24, 0.2, 0.1, 0.14, 0, 0.16);
+    fl.bezierCurveTo(-0.1, 0.14, -0.24, 0.2, -0.36, 0.22); fl.bezierCurveTo(-0.28, 0.04, -0.1, 0, 0, -0.02);
+    const flukes = flatWing(fl, finMat, 1); flukes.position.z = -0.1; flukes.rotation.z = -Math.PI / 2;
+    parent.add(flukes);
+    rig.tails.push(chain);
+    rig.hover = true; rig.flap = 0.45; rig.wag = -1.6; rig.wagAmp = 0.16; rig.sky = true;
+    rig.voice = 'whale'; rig.fxColor = [0xbfe8ff, 0xffffff, 0xfff6c0];
   },
 };
 
@@ -432,9 +723,9 @@ export class PetCompanion3D {
     const r = this.rig;
     const m = this.worldOf(r.mouth);
     const toBoard = new THREE.Vector3(-this.group.position.x, 0, -this.group.position.z).normalize();
-    if (this.id === 'fire_dragon') {
+    if (this.id === 'fire_dragon' || r.breath) {
       let n = 0;
-      const iv = setInterval(() => { this.fx.flame([m.x, m.y, m.z], 12, [toBoard.x, -0.15, toBoard.z]); if (++n > 14) clearInterval(iv); }, 45);
+      const iv = setInterval(() => { this.fx.flame([m.x, m.y, m.z], 12, [toBoard.x, -0.15, toBoard.z], r.breath); if (++n > 14) clearInterval(iv); }, 45);
     } else if (this.id === 'golden_phoenix') {
       this.fx.flame([m.x, m.y, m.z], 30, [toBoard.x, 0.2, toBoard.z], [0xfff0a0, 0xffd060, 0xffa020]);
     } else if (r.thunder) this.thunder();
@@ -476,7 +767,7 @@ export class PetCompanion3D {
     const yaw = Math.atan2(local.x, local.z);
     const targetYaw = Math.max(-0.9, Math.min(0.9, yaw)) + Math.sin(tt * 0.7) * 0.08;
     if (!gsap.isTweening(r.head.rotation)) r.head.rotation.y += (targetYaw - r.head.rotation.y) * Math.min(1, dt * 3);
-    r.tails.forEach((chain, ci) => chain.forEach((seg, i) => { seg.rotation.y = Math.sin(tt * (3 + r.wag) + i * 0.6 + ci) * (0.25 + r.wag * 0.08); }));
+    r.tails.forEach((chain, ci) => chain.forEach((seg, i) => { seg.rotation.y = Math.sin(tt * (3 + r.wag) + i * 0.6 + ci) * (r.wagAmp ?? (0.25 + r.wag * 0.08)); }));
     r.wings.forEach((w) => {
       const s = w.userData.side;
       const flap = r.hover ? Math.sin(tt * 7) * 0.55 : Math.sin(tt * 1.4) * 0.06;
@@ -492,6 +783,17 @@ export class PetCompanion3D {
 }
 
 export const PET_BUILDERS = BUILDERS;
+
+/**
+ * אנימציית שלד לחיה שמחוץ לכן (החיות המעופפות שמעל העיר): זנב, כנפיים, טבעות שחגות, הילה.
+ * flapPh — שלב הנפנוף (מצטבר, כדי ששינוי מהירות לא יקפיץ את הכנפיים); flapAmp — עוצמת הנפנוף
+ */
+export function tickRig(r, dt, tt, { flapPh = tt * 7, flapAmp = 0.55, sweep = 0 } = {}) {
+  r.tails.forEach((chain, ci) => chain.forEach((seg, i) => { seg.rotation.y = Math.sin(tt * (3 + r.wag) + i * 0.6 + ci) * (r.wagAmp ?? (0.25 + r.wag * 0.08)) * 0.8; }));
+  r.wings.forEach((w) => { w.rotation.z = w.userData.side * (0.2 + sweep + Math.sin(flapPh) * flapAmp * Math.max(0.6, r.flap || 0.3)); });
+  (r.spinners || []).forEach((g, i) => { g.rotation.z += dt * (i % 2 ? -2.6 : 2.6); });
+  if (r.aura) r.aura.rotation.z += dt * 0.8;
+}
 
 const _hsl = { h: 0, s: 0, l: 0 };
 /** בונה חיה עצמאית (גם לתמונות ממוזערות). hue מסיט את גוון החומרים (העיניים והזוהר נשארים) */
@@ -513,6 +815,8 @@ export function buildPetRig(id, { hue = 0 } = {}) {
       o.material = done.get(o.material);
     });
   }
+  // חיות קן השמיים: כנפיים מורמות במנוחה — רואים אותן גם בתמונות הממוזערות (האנימציה דורסת את זה במשחק)
+  if (rig.sky) rig.wings.forEach((w) => { w.rotation.z = w.userData.side * (rig.restWing ?? 0.42); });
   addCharacterRim(rig.root);
   rig.root.scale.setScalar(1.15);
   return rig;

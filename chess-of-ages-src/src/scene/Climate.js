@@ -131,6 +131,7 @@ export function climatePalette(base, climate) {
   for (const k of COLOR_KEYS) { if (base[k] == null || cp[k] == null) continue; out[k] = _a.setHex(base[k]).lerp(_b.setHex(cp[k]), w).getHex(); }
   for (const k of NUM_KEYS) { if (cp[k] == null) continue; out[k] = (base[k] ?? cp[k]) + (cp[k] - (base[k] ?? cp[k])) * w; }
   for (const k of ['sunDir', 'keyDir']) { const a = base[k] || cp[k], b = cp[k]; const v = new THREE.Vector3(...a).lerp(new THREE.Vector3(...b), w).normalize(); out[k] = [v.x, v.y, v.z]; }
+  out.climate = climate; // לים שמסביב לאי (מים / קרח / לבה / ים לילה / קרקעית)
   return out;
 }
 

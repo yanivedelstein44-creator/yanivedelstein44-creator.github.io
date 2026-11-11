@@ -1,7 +1,8 @@
 /**
  * החנות (באי המרכזי): במת תצוגה תלת-ממדית חזיתית עם סיבוב איטי (Idle Orbit) ומיקוד מצלמה לפי הפריט,
  * ורשת כרטיסים (2 בשורה) עם תמונת תלת-ממד לכל פריט, שם קצר וכפתור רכישה ביהלומים.
- * יהלומים מרוויחים בקרבות. בכסף אמיתי (לשונית פרימיום ולוחות): איי הפרימיום, בוסט יהלומים כפולים לשבוע וסקינים ללוח.
+ * יהלומים מרוויחים בקרבות. בכסף אמיתי (לשונית פרימיום, לוחות ומעופפות): איי הפרימיום, בוסט יהלומים כפולים לשבוע, סקינים ללוח
+ * ושלוש החיות המעופפות האגדיות של קן השמיים.
  */
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
@@ -12,7 +13,7 @@ import { WEARABLES, RARITY, formatGems, BOARD_SKINS, FULL_GAME, GEM_BOOST, forma
 import { PaymentProvider } from '../core/Economy.js';
 import { eraMaterials } from '../scene/Materials.js';
 import { skinPreview } from '../scene/PieceSprites.js';
-import { PETS, PET_IDS } from '../config/Pets.js';
+import { PETS, PET_IDS, SKY_PET_IDS, CLASSIC_FLYER_IDS, isFlyer } from '../config/Pets.js';
 import { PlayerAvatar3D } from '../scene/PlayerAvatar3D.js';
 import { PetCompanion3D } from '../scene/PetCompanion3D.js';
 import { FX } from '../scene/Particles.js';
@@ -22,9 +23,9 @@ const AURA_ICON = { aura_none: 'noAura', aura_golden_sparks: 'sparkle', aura_fir
 const SLOT_ICON = { head: 'crown', armor: 'shirt', weapon: 'swords', aura: 'sparkle' };
 const SLOT_SHORT = { head: ['כתרים', 'Crowns'], armor: ['גלימות', 'Armor'], weapon: ['נשקים', 'Weapons'], aura: ['הילות', 'Auras'] };
 // חנויות הלבוש שסביב הלוח באי המרכזי: כל מבנה פותח חנות של קטגוריה אחת
-const SINGLE_TITLE = { head: ['בית הכתרים', 'Crown House'], armor: ['אוהל הגלימות', 'Robe Pavilion'], weapon: ['נפחיית הנשקים', 'Weapon Forge'], aura: ['מקדש ההילות', 'Aura Sanctum'], boards: ['בית הלוחות', 'Board House'], pets: ['בית החיות', 'Pet House'], premium: ['פרימיום', 'Premium'] };
-const SINGLE_ICON = { ...SLOT_ICON, boards: 'checker', pets: 'paw', premium: 'crown' };
-const SINGLE_TABS = ['boards', 'pets', 'premium'];
+const SINGLE_TITLE = { head: ['בית הכתרים', 'Crown House'], armor: ['אוהל הגלימות', 'Robe Pavilion'], weapon: ['נפחיית הנשקים', 'Weapon Forge'], aura: ['מקדש ההילות', 'Aura Sanctum'], boards: ['בית הלוחות', 'Board House'], pets: ['בית החיות', 'Pet House'], sky: ['קן השמיים', 'Sky Nest'], premium: ['פרימיום', 'Premium'] };
+const SINGLE_ICON = { ...SLOT_ICON, boards: 'checker', pets: 'paw', sky: 'wing', premium: 'crown' };
+const SINGLE_TABS = ['boards', 'pets', 'sky', 'premium'];
 
 // תמונות תצוגה של סקינים — נבנות בהדרגה (כדי לא לתקוע את הממשק) ונשמרות לכל ההפעלה
 const SKIN_PREVIEWS = new Map();
@@ -113,11 +114,12 @@ const FOCUS = {
   weapon: [[AV[0] + 0.25, 1.0, AV[2] + 0.2], 3.1, 0.25],
   aura: [[AV[0] + 0.1, 0.95, AV[2]], 4.0, 0.4],
   pets: [[1.15, 1.0, -0.1], 3.0, 0.3],
+  sky: [[1.1, 1.6, -0.1], 3.9, 0.3], // החיות המעופפות מרחפות גבוה מעל הכן
 };
 
 /**
  * החנות. single — חנות של קטגוריה אחת בלבד (בלי לשוניות), כשנכנסים מאחד המבנים שבאי המרכזי:
- * קטגוריית לבוש לפי slot, או הלוחות (tab: 'boards')
+ * קטגוריית לבוש לפי slot, או לשונית אחת: 'boards' / 'pets' / 'sky' (קן השמיים) / 'premium'
  */
 export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, single: solo = false } = {}) {
   const { economy, ui, sound } = app;
@@ -125,7 +127,9 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
   let preview = { ...economy.loadout };
   let previewPet = economy.pet;
   const single = !solo ? null : SINGLE_TABS.includes(tab) ? tab : WEARABLES[wantSlot] ? wantSlot : null;
-  let curTab = SINGLE_TABS.includes(single) ? single : single ? 'wardrobe' : ['pets', 'bots', 'boards', 'premium'].includes(tab) ? tab : 'wardrobe';
+  let curTab = SINGLE_TABS.includes(single) ? single : single ? 'wardrobe' : ['pets', 'sky', 'bots', 'boards', 'premium'].includes(tab) ? tab : 'wardrobe';
+  // בקן השמיים מציגים חיה מעופפת על הבמה: המולבשת אם היא מעופפת, אחרת זו שחגה מעל העיר
+  if (curTab === 'sky' && !isFlyer(previewPet)) previewPet = app.museum?.sky?.id || SKY_PET_IDS[0];
   let previewBot = null;
   let slot = WEARABLES[wantSlot] ? wantSlot : 'head';
   const title = single ? tn(...SINGLE_TITLE[single]) : t('shopTitle');
@@ -157,7 +161,7 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
   const pet = new PetCompanion3D(stage, miniFx, sound);
   pet.place(1.15, -0.1, -0.35);
   pet.setEraMaterials(app.currentEraMaterials());
-  let previewHue = economy.petHue;
+  let previewHue = previewPet === economy.pet ? economy.petHue : 0;
   const refreshPreview = () => {
     if (previewBot) { const b = islandDef(previewBot).bot; avatar.setLoadout(b.loadout); avatar.setLook(b.look); pet.setPet(b.pet, { hue: b.petHue }); return; }
     avatar.setLoadout(preview); avatar.setLook({}); pet.setPet(previewPet, { hue: previewHue });
@@ -174,16 +178,27 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
     ui.toast(res.needGems ? tn(`חסרים ${formatGems(res.needGems)} יהלומים — נצח עוד קרבות!`, `${formatGems(res.needGems)} more gems needed — win more battles!`) : res.reason, { kind: 'bad', icon: 'gem' });
   };
 
-  function setTab(id) { curTab = id; if (id !== 'bots' && previewBot) { previewBot = null; refreshPreview(); } focus(id === 'pets' ? 'pets' : id === 'bots' ? 'all' : slot); render(); }
+  const tabFocus = (id) => (id === 'pets' || id === 'sky' ? id : id === 'bots' || id === 'boards' || id === 'premium' ? 'all' : slot);
+  function setTab(id) {
+    curTab = id;
+    if (id !== 'bots' && previewBot) previewBot = null;
+    // מעבר בין החיות למעופפות: על הבמה עומדת חיה מהלשונית הנוכחית
+    if (id === 'sky' && !isFlyer(previewPet)) { previewPet = app.museum?.sky?.id || SKY_PET_IDS[0]; previewHue = 0; }
+    else if (id === 'pets' && PETS[previewPet]?.sky) { previewPet = economy.pet; previewHue = economy.petHue; }
+    refreshPreview();
+    focus(tabFocus(id));
+    render();
+  }
   function render() {
-    tabs.classList.add('five');
+    tabs.classList.add('six');
     tabs.hidden = !!single;
-    tabs.replaceChildren(...[['wardrobe', 'shirt', t('tabWardrobe')], ['pets', 'paw', t('tabPets')], ['bots', 'users', t('tabBots')], ['boards', 'checker', t('tabBoards')], ['premium', 'crown', t('tabPremium')]].map(([id, ic, label]) => h('button', { class: 'tap', role: 'tab', 'aria-selected': String(curTab === id), onclick: () => setTab(id) }, icon(ic, { size: 20 }), h('span', {}, label))));
+    tabs.replaceChildren(...[['wardrobe', 'shirt', t('tabWardrobe')], ['pets', 'paw', t('tabPets')], ['sky', 'wing', t('tabSky')], ['bots', 'users', t('tabBots')], ['boards', 'checker', t('tabBoards')], ['premium', 'crown', t('tabPremium')]].map(([id, ic, label]) => h('button', { class: 'tap', role: 'tab', 'aria-selected': String(curTab === id), onclick: () => setTab(id) }, icon(ic, { size: 20 }), h('span', {}, label))));
     sub.hidden = !!single || curTab !== 'wardrobe';
     if (curTab === 'wardrobe') sub.replaceChildren(...Object.keys(WEARABLES).map((s) => h('button', { class: 'tap', 'aria-pressed': String(slot === s), onclick: () => { slot = s; focus(s); render(); } }, icon(SLOT_ICON[s], { size: 18 }), h('span', {}, tn(...SLOT_SHORT[s])))));
     const won = app.progression.conqueredList().filter((id) => id !== HUB_ID || app.progression.isConquered(HUB_ID)).sort((a, b) => a - b);
     if (curTab === 'wardrobe') grid.replaceChildren(...WEARABLES[slot].map(itemCard));
-    else if (curTab === 'pets') grid.replaceChildren(...PET_IDS.map(petCard), ...won.filter((id) => islandDef(id).bot.petHue).map(petColorCard));
+    else if (curTab === 'pets') grid.replaceChildren(...PET_IDS.map((id) => petCard(id)), ...won.filter((id) => islandDef(id).bot.petHue).map(petColorCard));
+    else if (curTab === 'sky') grid.replaceChildren(h('p', { class: 'shop-note' }, ...withIcon('gift', t('skyNote'), 14)), ...SKY_PET_IDS.map(skyCard), ...CLASSIC_FLYER_IDS.map((id) => petCard(id, 'sky')));
     else if (curTab === 'boards') grid.replaceChildren(h('p', { class: 'shop-note' }, ...withIcon('gift', t('boardsNote'), 14)), ...BOARD_SKINS.map(skinCard));
     else if (curTab === 'premium') grid.replaceChildren(...premiumCards());
     else grid.replaceChildren(...won.map(botCard), h('div', { class: 'card hint-card' }, icon('flag', { size: 34 }), h('small', {}, won.length ? t('moreBotsHint') : t('noBotsHint'))));
@@ -278,7 +293,7 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
       h('div', { class: 'card-foot' }, foot));
   }
 
-  function petCard(id) {
+  function petCard(id, fk = 'pets') {
     const p = PETS[id];
     const owned = economy.ownsPet(id, maxEra);
     const equipped = economy.pet === id && !economy.petHue;
@@ -290,10 +305,31 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
     else if (p.premium) foot = buyBtn(p.price, () => result(economy.buyPet(id)), name);
     else foot = h('span', { class: 'state' }, icon('lock', { size: 14 }), `${t('era')} ${p.unlockEra}`);
     return h('div', { class: `card rar-${p.premium ? 'legendary' : 'common'} ${previewPet === id ? 'sel' : ''}`, role: 'button', tabindex: '0', 'aria-label': name,
-      onclick: () => { previewBot = null; previewPet = id; previewHue = 0; refreshPreview(); focus('pets'); sound.petVoice(p.voice); render(); },
+      onclick: () => { previewBot = null; previewPet = id; previewHue = 0; refreshPreview(); focus(fk); sound.petVoice(p.voice); render(); },
       onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } } },
       thumb('pet', id),
       regionTag(p.island),
+      h('b', { class: 'nm' }, name),
+      h('div', { class: 'card-foot' }, foot));
+  }
+
+  /** חיה מעופפת של קן השמיים: חינם על כל 10 איים שנכבשים, או אחת משלוש האגדיות בכסף אמיתי */
+  function skyCard(id) {
+    const p = PETS[id];
+    const owned = economy.ownsPet(id, maxEra);
+    const equipped = economy.pet === id && !economy.petHue;
+    const name = shortName(id);
+    const wear = () => { economy.equipPet(id, maxEra); previewPet = id; previewHue = 0; refreshPreview(); app.applyLoadout(); };
+    let foot;
+    if (equipped) foot = h('span', { class: 'state on' }, icon('check', { size: 16 }), t('equipped'));
+    else if (owned) foot = h('button', { class: 'equip tap', onclick: (e) => { e.stopPropagation(); wear(); sound.pop?.(); } }, t('equip'));
+    else if (p.earn) foot = h('span', { class: 'earn' }, icon('lock', { size: 14 }), `${t('earnSkinAt').replace('{n}', p.earn)} (${Math.min(p.earn, app.progression.conqueredCount())}/${p.earn})`);
+    else foot = realBtn({ id: p.product, price: p.price }, () => realBuy((c) => economy.purchaseSkyPet(id, c), wear), name);
+    return h('div', { class: `card rar-${p.product ? 'legendary' : 'epic'} ${previewPet === id ? 'sel' : ''}`, role: 'button', tabindex: '0', 'aria-label': name,
+      onclick: () => { previewBot = null; previewPet = id; previewHue = 0; refreshPreview(); focus('sky'); sound.petVoice(p.voice); render(); },
+      onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } } },
+      thumb('pet', id),
+      h('span', { class: 'region-tag' }, p.product ? t('premiumTag') : `${p.earn}`),
       h('b', { class: 'nm' }, name),
       h('div', { class: 'card-foot' }, foot));
   }
@@ -342,7 +378,7 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
       box, h('span', { class: 'region-tag' }, `${t('island')} ${id}`), h('b', { class: 'nm' }, name), h('div', { class: 'card-foot' }, foot));
   }
 
-  focus(curTab === 'pets' ? 'pets' : curTab === 'bots' || single === 'boards' || single === 'premium' ? 'all' : slot);
+  focus(tabFocus(curTab));
   render();
   return m;
 }

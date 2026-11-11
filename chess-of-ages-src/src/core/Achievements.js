@@ -14,7 +14,7 @@ export const ACHIEVEMENTS = [
   { id: 'base_done', icon: 'star', he: 'אוצר המוזיאון', en: 'Museum Curator', desc: 'הבא 10 חלקים למוזיאון הזמן', descEn: 'Bring 10 pieces to the Time Museum', gems: 300 },
   { id: 'pass_play', icon: 'handshake', he: 'שחמט עם חברים', en: 'Friendly Duel', desc: 'שחק משחק שלם באותו מכשיר', descEn: 'Finish a pass & play game', gems: 40 },
   { id: 'online1', icon: 'globe', he: 'יריבים מרחוק', en: 'Rivals Afar', desc: 'סיים משחק אונליין נגד חבר שהזמנת', descEn: 'Finish an online game with a friend you invited', gems: 40 },
-  { id: 'wheel10', icon: 'wheel', he: 'גלגל המזל', en: 'Wheel Spinner', desc: 'סובב את הגלגל 10 פעמים', descEn: 'Spin the wheel 10 times', gems: 60 },
+  { id: 'gifts10', icon: 'gift', he: 'אספן המתנות', en: 'Gift Collector', desc: 'אסוף 10 מתנות יומיות', descEn: 'Collect 10 daily gifts', gems: 60 },
   { id: 'streak7', icon: 'calendar', he: 'נאמן לממלכה', en: 'Loyal Subject', desc: 'רצף התחברות של 7 ימים', descEn: '7-day login streak', gems: 150 },
   { id: 'brilliant', icon: 'gem', he: 'מהלך מבריק', en: 'Brilliancy', desc: 'בצע מהלך מבריק', descEn: 'Play a brilliant move', gems: 80 },
   { id: 'island5', icon: 'flag', he: 'כובש איים', en: 'Island Raider', desc: 'כבוש 5 איים', descEn: 'Conquer 5 islands', gems: 60 },
@@ -56,7 +56,7 @@ export class Achievements {
     this.counters[key] = (this.counters[key] || 0) + n;
     this.save();
     if (key === 'captures' && this.counters.captures >= 100) this.unlock('captures100');
-    if (key === 'spins' && this.counters.spins >= 10) this.unlock('wheel10');
+    if (key === 'gifts' && this.counters.gifts >= 10) this.unlock('gifts10');
   }
 
   resetStreak() { this.counters.streak = 0; this.save(); }

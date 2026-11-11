@@ -482,6 +482,32 @@ export class SoundEngine {
       case 'unicorn':
         for (let i = 0; i < 8; i++) this.tone(mtof(76 + [0, 2, 4, 7, 9, 12, 14, 16][i]), t + i * 0.05, 0.5, { gain: 0.05, dest: d });
         break;
+      // ---------- קן השמיים ----------
+      case 'parrot':
+        [0, 0.2].forEach((dt, i) => { this.tone(i ? 1500 : 1100, t + dt, 0.16, { type: 'sawtooth', freqEnd: i ? 1900 : 700, gain: 0.07, dest: d }); this.noise(t + dt, 0.12, { type: 'bandpass', freq: 2200, q: 4, gain: 0.12, dest: d }); });
+        break;
+      case 'raven':
+        [0, 0.28].forEach((dt) => { this.tone(520, t + dt, 0.22, { type: 'sawtooth', freqEnd: 380, gain: 0.08, dest: d }); this.noise(t + dt, 0.2, { type: 'bandpass', freq: 1200, q: 2.5, gain: 0.18, dest: d }); });
+        if (angry) this.noise(t + 0.3, 1.0, { type: 'lowpass', freq: 300, gain: 0.5, freqEnd: 120, buffer: this.brown, dest: d });
+        break;
+      case 'eagle':
+        this.tone(2600, t, 0.6, { type: 'sawtooth', freqEnd: 1600, gain: 0.06, dest: d });
+        this.noise(t, 0.5, { type: 'bandpass', freq: 3400, q: 3, gain: 0.12, dest: d });
+        break;
+      case 'bat':
+        [0, 0.07, 0.14].forEach((dt, i) => this.tone(3000 + i * 500, t + dt, 0.05, { type: 'sine', freqEnd: 4200 + i * 400, gain: 0.08, dest: d }));
+        break;
+      case 'pegasus':
+        this.tone(700, t, 0.6, { type: 'sawtooth', freqEnd: 320, gain: 0.07, dest: d });
+        [1568, 2093, 2637].forEach((f, i) => this.tone(f, t + 0.12 + i * 0.07, 0.6, { gain: 0.045, dest: d }));
+        break;
+      case 'butterfly':
+        [0, 4, 7, 12, 16].forEach((st, i) => this.tone(mtof(84 + st), t + i * 0.06, 0.45, { gain: 0.035, dest: d }));
+        break;
+      case 'whale':
+        this.tone(170, t, 1.3, { type: 'sine', freqEnd: 320, gain: 0.2, attack: 0.3, dest: d });
+        this.tone(300, t + 0.9, 1.0, { type: 'sine', freqEnd: 210, gain: 0.14, attack: 0.25, dest: d });
+        break;
       default:
     }
   }

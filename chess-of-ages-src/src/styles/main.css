@@ -566,6 +566,10 @@ button:focus-visible, [role='button']:focus-visible, input:focus-visible, select
 /* ---------- חנות: לוחות ופרימיום ---------- */
 .tabs.five button { font-size: 11.5px; gap: 3px; padding: 0 2px; }
 .tabs.five button svg { width: 18px; height: 18px; }
+/* שש לשוניות בחנות הראשית: אייקון מעל הטקסט, כדי שהשמות ייכנסו גם במסך צר */
+.tabs.six { gap: 4px; }
+.tabs.six button { flex-direction: column; gap: 1px; min-height: 48px; padding: 3px 1px; font-size: 11px; line-height: 1.05; }
+.tabs.six button svg { width: 19px; height: 19px; }
 .card.skin .thumb img { object-fit: cover; border-radius: 10px; }
 .card.skin .earn { font-size: 11.5px; font-weight: 800; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; min-height: 38px; }
 .card .buy.real { background: linear-gradient(180deg, #ffe7a3, #f2c94c 55%, #c8962a); color: #2a1806; border-color: #fff3c8; box-shadow: 0 3px 0 var(--gold-dark), inset 0 1.5px 0 rgba(255, 255, 255, 0.6); text-shadow: none; }

@@ -8,6 +8,7 @@
  *   1) 30 איי הפרימיום (100–129) + דרקון השעונים הזהוב — Economy.purchaseFullGame()
  *   2) בוסט x2 יהלומים לשבוע (אפשר לקנות שוב — כל קנייה מוסיפה 7 ימים) — Economy.purchaseBoost()
  *   3) סקינים ללוח ולכלים — Economy.purchaseSkin(id)
+ *   4) 3 החיות המעופפות האגדיות של קן השמיים (pet_thunder_dragon / pet_crystal_griffin / pet_sky_whale) — Economy.purchaseSkyPet(id)
  */
 export const ECONOMY = {
   currencySymbol: '₪', // אפשר גם '$'
@@ -110,14 +111,15 @@ export const ALL_WEARABLES = Object.entries(WEARABLES).flatMap(([slot, items]) =
 export const findWearable = (id) => ALL_WEARABLES.find((w) => w.id === id);
 
 /** רצף התחברות יומי — 7 ימים */
+/** המתנה היומית (בועה מעל בית המתנות): סכום קבוע וידוע מראש לכל יום ברצף — בלי הגרלות */
 export const DAILY_STREAK = [
   { day: 1, gems: 30 },
   { day: 2, gems: 50 },
-  { day: 3, gems: 80, trial: 'cosmetic' },
+  { day: 3, gems: 80 },
   { day: 4, gems: 120 },
   { day: 5, gems: 200 },
   { day: 6, gems: 350 },
-  { day: 7, chest: true, label: 'תיבת האוצר המלכותית', labelEn: 'Royal Treasure Chest' },
+  { day: 7, gems: 600 },
 ];
 
 /** תוצאות תיבת היום השביעי (סיכויים שקופים) */

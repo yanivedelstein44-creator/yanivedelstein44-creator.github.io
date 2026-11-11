@@ -30,7 +30,7 @@ import { eraMaterials } from '../scene/Materials.js';
 import { detectSeason, buildSeason } from '../scene/SeasonalEvents.js';
 import { SoundEngine } from '../audio/SoundEngine.js';
 import { UI, h } from '../ui/UI.js';
-import { t, tn, setLang, PET_EN, islandName, islandLabel } from '../ui/i18n.js';
+import { t, tn, setLang, PET_EN, islandName, islandLabel, shortName } from '../ui/i18n.js';
 import * as M from '../ui/Modals.js';
 import { buildMapUi } from '../ui/MapPanel.js';
 import * as CloudWipe from '../ui/CloudWipe.js';
@@ -174,12 +174,15 @@ export class GameApp {
     this.ui.setGems(this.economy.gems, false);
     this.economy.onChange((evt) => {
       if (evt.type === 'gems' || evt.type === 'buy' || evt.type === 'daily') this.ui.setGems(this.economy.gems);
+      // החיה שחגה מעל העיר מתעדכנת כשמקבלים / קונים / מלבישים חיה
+      if ((evt.type === 'equip' && evt.slot === 'pet') || evt.type === 'skyPets' || evt.type === 'buy') this.museum?.syncSkyPet?.();
       if (evt.type === 'equip' && evt.slot === 'board') this.board.setSkin(this.economy.boardSkin, { flash: true });
       if (evt.type === 'boost' || evt.type === 'buy') this.ui.setBoost?.(this.economy.boostLeftMs());
       this.refreshBadges();
     });
     this.board.setSkin(this.economy.boardSkin);
     this.grantEarnedSkins(false);
+    this.grantEarnedSkyPets(false);
     this.ui.setBoost(this.economy.boostLeftMs());
     setInterval(() => this.ui.setBoost(this.economy.boostLeftMs()), 30000);
     this.achievements.onUnlock((a) => { this.ui.toast(`${t('achievementUnlocked')} ${tn(a.he, a.en)} · +${a.gems}`, { kind: 'gold', duration: 3800, icon: a.icon }); this.sound.notify(); });
@@ -238,7 +241,7 @@ export class GameApp {
     if (!this.store.get('seenCinemaHint')) { this.store.set({ seenCinemaHint: true }); setTimeout(() => this.ui.toast(t('cinemaHint'), { icon: 'play', duration: 4200 }), 1600); }
     else if (resumed) setTimeout(() => this.ui.toast(t('gameResumed'), { icon: 'knight' }), 1200);
     else this.afterIntro(() => this.botSay('intro', true), 500);
-    if (this.economy.hasDailyBadge() && this.store.get('seenTutorial')) setTimeout(() => this.ui.toast(t('dailyGift'), { kind: 'gold', icon: 'gift' }), 3200);
+    if (this.economy.hasDailyBadge() && this.store.get('seenTutorial')) setTimeout(() => this.ui.toast(t('giftWaiting'), { kind: 'gold', icon: 'gift' }), 3200);
     if (this.isAITurn()) this.afterIntro(() => this.opponentMove(), 400);
     // תמונות ממוזערות לכרטיסי השחקנים — ברקע, אחרי שהסצנה עלתה
     setTimeout(() => { this.thumbsReady = true; this.refreshPetThumbs(); }, 2500);
@@ -584,8 +587,11 @@ export class GameApp {
   onTap(x, y) {
     if (this.introPlaying) return;
     // באי המרכזי: נגיעה בבית הקולנוע, בחנות הכללית או באחת מחנויות הלבוש שסביב הלוח
-    const bld = this.atHub && !this.busy ? this.museum.pick(x, y) : null;
+    let bld = this.atHub && !this.busy ? this.museum.pick(x, y) : null;
+    // החיה המעופפת לא "גונבת" נגיעות מהלוח (למשל כשהיא צוללת מעליו)
+    if (bld === 'shop_sky' && this.board.hitsBoard(x, y)) bld = null;
     if (bld === 'cinema') { this.sound.ui(); this.openCinema(); return; }
+    if (bld === 'shop_sky') { if (this.museum.sky?.loopT >= 0) return; this.sound.ui(); this.museum.skyLoop(); setTimeout(() => { if (this.atHub && !this.ui.modalOpen) this.openShop('sky', null, true); }, 600); return; }
     if (bld === 'shop_gifts') { this.sound.ui(); this.openDaily(); return; }
     if (bld === 'shop_boards' || bld === 'shop_pets' || bld === 'shop_premium') { this.sound.ui(); this.openShop(bld.slice(5), null, true); return; }
     if (bld?.startsWith('shop_')) { this.sound.ui(); this.openShop('wardrobe', bld.slice(5), true); return; }
@@ -927,6 +933,7 @@ export class GameApp {
           if ((this.opponent?.rating || 0) >= 2050) this.achievements.unlock('beat_hard');
           this.checkIslandAchievements();
           this.grantEarnedSkins(true);
+          this.grantEarnedSkyPets(true);
           // עולם שלם נכבש → תיבת אוצר
           const r = regionOf(islandId);
           if (this.progression.regionConquered(r) === regionIslands(r).length) { const chest = this.economy.openRoyalChest(); this.ui.toast(`${t('regionComplete')} · ${t('royalChest')}`, { kind: 'gold', duration: 4200, icon: 'chest' }); if (chest?.id) this.applyLoadout(); }
@@ -966,6 +973,18 @@ export class GameApp {
         this.ui.toast(`${tn('סקין לוח חדש נפתח!', 'New board skin unlocked!')} ${tn(sk.he, sk.en)}`, { kind: 'gold', duration: 4200, icon: 'gem' });
         this.sound.notify?.();
       }, 2400 + i * 1600));
+    }
+    return fresh;
+  }
+
+  /** חיה מעופפת חינמית על כל 10 איים שנכבשים (10/20/…/90) — עם הודעה; היא מצטרפת לחיה שחגה מעל העיר */
+  grantEarnedSkyPets(announce = true) {
+    const fresh = this.economy.grantEarnedSkyPets(this.progression.conqueredCount());
+    if (announce) {
+      fresh.forEach((id, i) => setTimeout(() => {
+        this.ui.toast(`${t('skyPetUnlocked')} ${shortName(id)} — ${t('skyWaiting')}`, { kind: 'gold', duration: 4600, icon: 'wing' });
+        this.sound.notify?.();
+      }, 4400 + i * 1800));
     }
     return fresh;
   }

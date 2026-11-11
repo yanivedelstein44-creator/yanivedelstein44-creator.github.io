@@ -8,6 +8,7 @@
  *   על כן אבן ומעט צמחייה — שעף מעבר לים ונצמד לחוף. האריחים מסודרים בטבעות (קודם בחזית האי),
  *   כך שהאי גדל טבעת אחרי טבעת: מ-17 יחידות רדיוס עד יותר מפי 3 (כל אריח מרחיב את החוף בכ-40%).
  * - בניין "מוזיאון הזמן" עם שעון מעל הרחבה (נגיעה → אלבום האיים).
+ * - חיה מעופפת חגה בשמינייה מעל הרחבה (עם צלילה נמוכה מדי פעם); נגיעה בה → לולאה באוויר וקן השמיים.
  * - מיקרו-אקלים מעל כל חלק: שלג, עלי דובדבן, גחלים, בועות, נצנוצים…
  * כל החלקים מאוחדים לשתי רשתות (מוצק + זוהר) כדי שגם 98 חלקים יעלו מעט קריאות ציור.
  */
@@ -19,12 +20,17 @@ import { HUB_ID, PREMIUM_FIRST, regionOf, islandDef } from '../config/Islands.js
 import { GROUND } from '../config/IslandEras.js';
 import { islandPos } from './WorldMap.js';
 import { PlayerAvatar3D } from './PlayerAvatar3D.js';
-import { buildPetRig } from './PetCompanion3D.js';
+import { buildPetRig, tickRig } from './PetCompanion3D.js';
+import { PETS, SKY_PET_IDS } from '../config/Pets.js';
 import { drawIcon } from '../ui/icons.js';
 import { t } from '../ui/i18n.js';
 
 const TAU = Math.PI * 2;
 const V3 = THREE.Vector3;
+// החיה המעופפת שמעל העיר: גודל, שמינייה (רוחב, עומק, מרכז, גובה), עומק הצלילה ומשך הלולאה בנגיעה
+const SKY_SCALE = 2.6, SKY_A = 8.6, SKY_B = 3.4, SKY_CZ = -4.6, SKY_H = 7.4, SKY_DIP = 3.8, SKY_LOOP = 0.75;
+/** כדור נגיעה שקוף (גדול מהחיה) — כדי שקל לתפוס חיה שעפה באצבע */
+const hitBall = (r, y) => { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), new THREE.MeshBasicMaterial({ visible: false })); m.position.y = y; return m; };
 // הרובעים: העולמות המוקדמים בצפון (מול המצלמה), השאר מתפזרים לצדדים ומאחור
 const SECTOR_OFF = { 1: 0, 2: -1, 3: 1, 4: -2, 5: 2, 6: -3, 7: 3, 8: -4, 9: 4, 10: 5 };
 const SECTOR = TAU / 10;
@@ -411,7 +417,7 @@ function petBarnGeometry() {
   };
 }
 
-/** בית המתנות: קופסת מתנה ענקית כחולה עם סרט ופרח מזהב; כשמחכה מתנה יומית — המכסה קופץ ומעליו סימן קריאה */
+/** בית המתנות: קופסת מתנה ענקית כחולה עם סרט ופרח מזהב; פעם ביום מרחפת מעליו בועת מתנה — נגיעה אוספת אותה */
 function giftHouseGeometry(hub) {
   const b = new Builder();
   const BOX = 0x2a5ad8, RIB = C.gold, DGOLD = 0xb8862a;
@@ -430,32 +436,56 @@ function giftHouseGeometry(hub) {
   gift(-0.98, 1.62, 0.32, 0x8a5ad8, C.gold);
   gift(1.42, 1.38, 0.46, 0x3ac87a, C.red);
   gift(1.42, 1.38, 0.3, 0xffd23a, C.purple, 0.32 + 0.46);
-  // המכסה עם הפרח (נע) וסימן הקריאה של "מתנה מחכה"
+  // המכסה עם הפרח (מתנדנד קלות כשמחכה מתנה)
   const lid = new Builder();
   lid.box(2.8, 0.42, 2.6, BOX, [0, 0, 0]).box(0.74, 0.44, 2.62, RIB, [0, 0, 0]).box(2.82, 0.44, 0.38, RIB, [0, 0, 0]);
   lid.tor(0.36, 0.11, RIB, [-0.36, 0.5, 0], [0, 0, 0.5], TAU, false, 20).tor(0.36, 0.11, RIB, [0.36, 0.5, 0], [0, 0, -0.5], TAU, false, 20);
   lid.sph(0.17, DGOLD, [0, 0.36, 0], [1.2, 1, 1], 10);
   for (const sx of [-1, 1]) lid.box(0.15, 0.03, 0.62, DGOLD, [sx * 0.2, 0.23, 0.5], [0, sx * 0.4, 0]);
-  const c = document.createElement('canvas'); c.width = c.height = 128;
-  const x = c.getContext('2d');
-  x.fillStyle = '#e8283a'; x.beginPath(); x.arc(64, 64, 56, 0, TAU); x.fill(); x.lineWidth = 8; x.strokeStyle = '#ffffff'; x.stroke();
-  x.fillStyle = '#ffffff'; x.font = '900 84px Rubik, Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('!', 64, 70);
-  const bt = new THREE.CanvasTexture(c); bt.colorSpace = THREE.SRGBColorSpace;
-  const badge = new THREE.Sprite(new THREE.SpriteMaterial({ map: bt, depthWrite: false, transparent: true }));
-  badge.position.set(0, 1.35, 0);
-  badge.scale.setScalar(0.7);
-  let ready = false, checked = -9;
+  // בועת המתנה: פעם ביום מרחפת מעל הפרח, ובתוכה מתנה קטנה שמסתובבת. נגיעה = איסוף (הבועה מתפוצצת)
+  const mini = new Builder();
+  mini.box(0.34, 0.3, 0.34, 0xe8283a, [0, 0, 0]).box(0.08, 0.31, 0.35, RIB, [0, 0, 0]).box(0.35, 0.31, 0.08, RIB, [0, 0, 0]).box(0.38, 0.08, 0.38, 0xe8283a, [0, 0.17, 0]);
+  mini.tor(0.07, 0.025, RIB, [-0.07, 0.25, 0], [0, 0, 0.5], TAU, false, 10).tor(0.07, 0.025, RIB, [0.07, 0.25, 0], [0, 0, -0.5], TAU, false, 10);
+  const giftMesh = new THREE.Group();
+  const mg = mini.build();
+  giftMesh.add(new THREE.Mesh(mg.solid, MONUMENT_SOLID));
+  const bubbleMat = new THREE.MeshStandardMaterial({ color: 0xcfeeff, transparent: true, opacity: 0.32, roughness: 0.08, metalness: 0.1, emissive: 0x4a7aa8, emissiveIntensity: 0.35, depthWrite: false });
+  const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.5, 24, 16), bubbleMat);
+  const shine = new THREE.Sprite(new THREE.SpriteMaterial({ map: puffTex(), color: 0xffffff, transparent: true, opacity: 0.85, depthWrite: false }));
+  shine.position.set(-0.17, 0.2, 0.36); shine.scale.setScalar(0.24);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.012, 6, 40), new THREE.MeshBasicMaterial({ color: 0xbff4ff, transparent: true, opacity: 0.5, depthWrite: false }));
+  let ready = false, checked = -9, shown = 0;
+  const isReady = (tt) => { if (tt - checked > 1) { checked = tt; ready = !!hub?.app?.economy?.dailyStatus?.().ready; } return ready; };
   return {
     ...b.build(),
-    parts: [{ ...lid.build(), sprites: [badge], pos: [0, 2.53, -0.3], tick: (o, tt, dt, y0) => {
-      if (tt - checked > 1) { checked = tt; ready = !!hub?.app?.economy?.hasDailyBadge?.(); }
-      badge.visible = ready;
-      if (ready) {
-        o.position.y = y0 + Math.abs(Math.sin(tt * 5)) * 0.16;
-        o.rotation.z = Math.sin(tt * 10) * 0.03;
-        badge.scale.setScalar(0.7 + Math.sin(tt * 6) * 0.06);
-      } else { o.position.y = y0; o.rotation.z = 0; }
-    } }],
+    parts: [
+      { ...lid.build(), pos: [0, 2.53, -0.3], tick: (o, tt, dt, y0) => {
+        const on = isReady(tt);
+        o.position.y = y0 + (on ? Math.abs(Math.sin(tt * 2.4)) * 0.05 : 0);
+        o.rotation.z = on ? Math.sin(tt * 4.8) * 0.015 : 0;
+      } },
+      { sprites: [shine], pos: [0, 4.25, -0.3], init: (o) => { o.add(bubble, rim, giftMesh); }, tick: (o, tt, dt, y0) => {
+        const on = isReady(tt);
+        const popT = hub?.giftPopT;
+        if (popT != null) {
+          // פיצוץ: הבועה מתנפחת ונעלמת, המתנה עפה למעלה (והיא לא חוזרת עד המתנה הבאה)
+          ready = false; checked = tt;
+          const k = Math.min(1, (tt - popT) / 0.5);
+          o.visible = k < 1;
+          o.scale.setScalar(1 + k * 0.9);
+          bubbleMat.opacity = 0.32 * (1 - k); rim.material.opacity = 0.5 * (1 - k); shine.material.opacity = 0.85 * (1 - k);
+          giftMesh.position.y = k * 0.9;
+          if (k >= 1) { hub.giftPopT = null; shown = 0; giftMesh.position.y = 0; bubbleMat.opacity = 0.32; rim.material.opacity = 0.5; shine.material.opacity = 0.85; o.scale.setScalar(1); }
+          return;
+        }
+        shown += ((on ? 1 : 0) - shown) * Math.min(1, dt * 4);
+        o.visible = shown > 0.02;
+        o.scale.setScalar(Math.max(0.001, shown));
+        o.position.y = y0 + Math.sin(tt * 1.6) * 0.12;
+        giftMesh.rotation.y = tt * 0.9;
+        rim.rotation.set(Math.PI / 2 + Math.sin(tt * 0.9) * 0.3, 0, Math.cos(tt * 0.7) * 0.3);
+      } },
+    ],
   };
 }
 
@@ -477,7 +507,7 @@ const SLOT_SHOPS = [
   // באמצע כל צד: בית החיות (שמאל) ובית המתנות (ימין — המתנה היומית)
   { slot: 'pets', key: 'shopPets', icon: 'paw', sign: 'PETS', geo: petBarnGeometry, pos: [-13.4, 0, 0.6], r: 2.3, labelY: 4.6,
     signAt: [0, 1.74, 0.5], signSize: [1.2, 0.34], style: { bg: '#24502a', fg: '#fff3d6' } },
-  { slot: 'gifts', key: 'shopGifts', icon: 'gift', sign: 'GIFTS', geo: giftHouseGeometry, pos: [13.4, 0, 0.6], r: 2.3, labelY: 4.75,
+  { slot: 'gifts', key: 'shopGifts', icon: 'gift', sign: 'GIFTS', geo: giftHouseGeometry, pos: [13.4, 0, 0.6], r: 2.3, labelY: 5.55,
     signAt: [0, 1.9, 0.95], signSize: [1.2, 0.34], style: { bg: '#123a8a', fg: '#ffe9a8' } },
 ];
 
@@ -584,6 +614,7 @@ export class HubMuseum {
         if (p.solid) { const m = new THREE.Mesh(p.solid, MONUMENT_SOLID); m.castShadow = true; o.add(m); }
         if (p.glow) o.add(new THREE.Mesh(p.glow, MONUMENT_GLOW));
         for (const s of p.sprites || []) o.add(s);
+        p.init?.(o);
         o.position.set(...p.pos);
         g.add(o);
         this.anims.push({ o, tick: p.tick, y0: p.pos[1] });
@@ -649,8 +680,17 @@ export class HubMuseum {
     this.premiumBand = band;
   }
 
+  /** המתנה היומית נאספה: הבועה שמעל בית המתנות מתפוצצת בנצנוצים */
+  popGiftBubble() {
+    if (!this.active) return;
+    this.giftPopT = this.sm.time;
+    const g = this.slotShops?.find((x) => x.userData.bid === 'shop_gifts');
+    if (g) { const p = new V3(0, 4.25, -0.3); g.localToWorld(p); this.app.fx?.sparkle?.([p.x, p.y, p.z], 42, [0xffe08a, 0xbff4ff, 0xff8ab8]); }
+  }
+
   /** שלטים בשפה הנוכחית */
   relabel() {
+    if (this.sky) { const o = this.sky.label, lab = labelSprite(t('shopSky'), 'wing'); lab.scale.copy(o.scale); lab.position.copy(o.position); this.group.remove(o); o.material.map.dispose(); o.material.dispose(); this.group.add(lab); this.sky.label = lab; }
     if (this.premiumBand) { const old = this.premiumBand.material.map; this.premiumBand.material.map = premiumRingTexture(t('shopPremium')); this.premiumBand.material.needsUpdate = true; old?.dispose(); }
     for (const g of this.buildings) {
       const old = g.userData.label;
@@ -672,6 +712,7 @@ export class HubMuseum {
   setActive(on) {
     this.active = on;
     this.syncDragon();
+    this.syncSkyPet();
     this.group.visible = on;
     if (on) { this.rebuild(); this.spawnResidents(); } else this.clearResidents();
     this.placeSeason(on);
@@ -862,14 +903,15 @@ export class HubMuseum {
     }
   }
 
-  /** דרקון השעונים הזהוב מרחף מעל האי המרכזי — למי שפתח את איי הפרימיום */
+  /** דרקון השעונים הזהוב מרחף מעל האי המרכזי — למי שפתח את איי הפרימיום. גם הוא פותח את קן השמיים בנגיעה */
   syncDragon() {
     const own = (this.app.economy.s.pets || []).includes('clockwork_dragon');
     if (own && !this.dragon) {
       const rig = buildPetRig('clockwork_dragon');
       rig.root.scale.setScalar(3.4);
       const g = new THREE.Group();
-      g.add(rig.root);
+      g.add(rig.root, hitBall(1.9, 1.5));
+      g.userData.bid = 'shop_sky';
       this.group.add(g);
       this.dragon = { rig, g };
     }
@@ -882,15 +924,107 @@ export class HubMuseum {
     const a = tt * 0.2, R = 16;
     d.g.position.set(Math.cos(a) * R, 11.5 + Math.sin(tt * 0.9) * 0.8, Math.sin(a) * R);
     d.g.rotation.set(0, -a, Math.sin(tt * 0.5) * 0.08 - 0.12);
-    const r = d.rig;
-    r.wings.forEach((w) => { w.rotation.z = w.userData.side * (0.25 + Math.sin(tt * 6) * 0.6); });
-    (r.spinners || []).forEach((s, i) => { s.rotation.z += dt * (i % 2 ? -2.4 : 2.4); });
-    r.tails.forEach((chain) => chain.forEach((seg, i) => { seg.rotation.y = Math.sin(tt * 2 + i * 0.6) * 0.18; }));
+    tickRig(d.rig, dt, tt, { flapPh: tt * 6, flapAmp: 0.6 });
+  }
+
+  // ---------- החיה המעופפת שחגה מעל העיר — נגיעה בה פותחת את קן השמיים ----------
+  /**
+   * איזו חיה חגה: החיה המעופפת האחרונה שקיבלת (חוץ מזו שמלווה אותך ליד הלוח),
+   * ואם עוד אין — הבאה בתור בקן השמיים (כפרסומת קטנה: "כבוש 10 איים וקבל אותי")
+   */
+  skyShowcase() {
+    const e = this.app.economy, own = e.s.pets || [];
+    const mine = SKY_PET_IDS.filter((id) => own.includes(id) && id !== e.pet);
+    if (mine.length) return mine[mine.length - 1];
+    return SKY_PET_IDS.find((id) => !own.includes(id) && id !== e.pet) || SKY_PET_IDS.find((id) => id !== e.pet);
+  }
+
+  syncSkyPet() {
+    const id = this.skyShowcase();
+    if (this.sky?.id === id) return;
+    const old = this.sky;
+    if (old) { this.group.remove(old.g, old.label); old.label.material.map.dispose(); old.label.material.dispose(); }
+    const rig = buildPetRig(id);
+    rig.root.scale.setScalar(SKY_SCALE);
+    const g = new THREE.Group();
+    g.rotation.order = 'YXZ'; // כיוון → עלרוד → הטיה
+    const body = new THREE.Group(); // הלולאה בנגיעה מסובבת את הגוף בלבד
+    body.add(rig.root);
+    g.add(body, hitBall(1.8, 1.3));
+    g.userData.bid = 'shop_sky';
+    const label = labelSprite(t('shopSky'), 'wing');
+    label.scale.multiplyScalar(0.72);
+    label.userData.bid = 'shop_sky';
+    this.group.add(g, label);
+    this.sky = { id, rig, g, body, label, u: old?.u ?? Math.random() * TAU, side: old?.side ?? this.viewSign(), prev: new V3(), vel: new V3(), yaw: old?.yaw ?? 0, pitch: 0, roll: 0, flapPh: 0, flapAmp: 0.5, sweep: 0, k: null, dipOn: false, loopT: -1, started: false };
+  }
+
+  /** 1 כשמשחקים מצד הלבן (המצלמה בדרום), ‎-1 מצד השחור — החיה חגה תמיד מאחורי הלוח, לא בינו לבין המצלמה */
+  viewSign() { return this.sm.view?.side === 'b' ? -1 : 1; }
+
+  /** נגיעה בחיה: לולאה באוויר + קול + נצנוצים (ואז נפתח קן השמיים) */
+  skyLoop() {
+    const s = this.sky;
+    if (!s || s.loopT >= 0) return;
+    s.loopT = 0;
+    this.app.sound?.petVoice?.(s.rig.voice || 'phoenix');
+    const p = s.g.position;
+    this.app.fx?.sparkle?.([p.x, p.y + 1.2, p.z], 40, s.rig.fxColor || [0xffe08a, 0xffffff, 0x9ad8ff], 0.9);
+  }
+
+  /**
+   * מסלול: שמינייה גבוהה מעל הרחבה שמאחורי הלוח, ובכל מעבר שלישי באמצע — צלילה נמוכה ועלייה חזרה
+   * (רק כשאין משחק באמצע, כדי לא להסיח את הדעת). הכנפיים מתקפלות בצלילה ומנפנפות חזק בעלייה.
+   */
+  updateSkyPet(dt, tt) {
+    const s = this.sky;
+    if (!s) return;
+    const app = this.app, game = app.game;
+    const calm = app.sm.overviewOn || !(game?.ply > 0) || !!game?.result;
+    s.u += dt * 0.3;
+    const u = s.u, k = Math.round(u / Math.PI), d = u - k * Math.PI;
+    if (k !== s.k) { s.k = k; s.dipOn = calm && k % 3 === 0; }
+    const W = 1.05;
+    const dip = s.dipOn && Math.abs(d) < W ? SKY_DIP * (0.5 + 0.5 * Math.cos((d / W) * Math.PI)) : 0;
+    const g = s.g;
+    s.side += (this.viewSign() - s.side) * Math.min(1, dt * 0.6);
+    g.position.set(SKY_A * Math.sin(u), SKY_H + Math.sin(u * 3) * 0.5 - dip, s.side * (SKY_CZ + SKY_B * Math.sin(2 * u)));
+    if (!s.started) { s.prev.copy(g.position); s.started = true; }
+    if (dt > 0) s.vel.subVectors(g.position, s.prev).divideScalar(dt);
+    s.prev.copy(g.position);
+    const v = s.vel, hz = Math.hypot(v.x, v.z);
+    if (hz > 0.01) {
+      const yaw = Math.atan2(v.x, v.z);
+      let dy = yaw - s.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+      const kk = 1 - Math.exp(-dt * 5);
+      s.yaw += dy * kk;
+      s.roll += (THREE.MathUtils.clamp(-(dy / Math.max(dt, 1e-3)) * 0.35, -0.55, 0.55) - s.roll) * kk;
+      s.pitch += (THREE.MathUtils.clamp(Math.atan2(-v.y, hz), -0.6, 0.6) - s.pitch) * kk;
+    }
+    g.rotation.set(s.pitch, s.yaw, s.roll);
+    // לולאה: הגוף מסתובב סביב ציר הכנפיים ומתרומם מעל המסלול
+    if (s.loopT >= 0) {
+      s.loopT += dt;
+      const f = Math.min(1, s.loopT / SKY_LOOP), ph = f * TAU;
+      s.body.rotation.x = -ph;
+      s.body.position.set(0, (1 - Math.cos(ph)) * 1.6, Math.sin(ph) * 1.6);
+      if (f >= 1) { s.loopT = -1; s.body.rotation.x = 0; s.body.position.set(0, 0, 0); }
+    }
+    // נפנוף: גלישה בצלילה, נפנוף חזק בעלייה ובלולאה
+    const diving = v.y < -1.2, climbing = v.y > 0.9 || s.loopT >= 0;
+    const amp = diving ? 0.1 : climbing ? 0.95 : 0.5, speed = diving ? 3 : climbing ? 9 : 6;
+    s.flapAmp += (amp - s.flapAmp) * Math.min(1, dt * 4);
+    s.sweep += ((diving ? -0.35 : 0) - s.sweep) * Math.min(1, dt * 4);
+    s.flapPh += dt * speed;
+    tickRig(s.rig, dt, tt, { flapPh: s.flapPh, flapAmp: s.flapAmp, sweep: s.sweep });
+    if (s.rig.trail && Math.random() < dt * 10) app.fx?.embers?.([g.position.x, g.position.y + 1.1, g.position.z], 1, s.rig.trail);
+    s.label.position.set(g.position.x, g.position.y + 3.1 + Math.sin(tt * 2) * 0.12, g.position.z);
   }
 
   update(dt, tt) {
     if (!this.active) return;
     this.updateDragon(dt, tt);
+    this.updateSkyPet(dt, tt);
     this.updateWalkers(dt, tt);
     for (const l of this.micro || []) {
       const { pos, home, ph, n, vy } = l;
@@ -918,10 +1052,11 @@ export class HubMuseum {
     }
   }
 
-  /** נגיעה בבניין: 'cinema' / 'museum' / 'shop_head' / 'shop_armor' / 'shop_weapon' / 'shop_aura' / 'shop_boards' / 'shop_pets' / 'shop_gifts' / 'shop_premium' / null */
+  /** נגיעה בבניין: 'cinema' / 'museum' / 'shop_head' / 'shop_armor' / 'shop_weapon' / 'shop_aura' / 'shop_boards' / 'shop_pets' / 'shop_gifts' / 'shop_premium' / 'shop_sky' (החיה המעופפת) / null */
   pick(x, y) {
     if (!this.active) return null;
-    const hit = this.sm.pick(x, y, this.premiumRing ? [...this.buildings, this.premiumRing] : this.buildings)[0];
+    const objs = [...this.buildings, this.premiumRing, this.sky?.g, this.sky?.label, this.dragon?.g.visible ? this.dragon.g : null].filter(Boolean);
+    const hit = this.sm.pick(x, y, objs)[0];
     if (!hit) return null;
     let o = hit.object;
     while (o && !o.userData.bid) o = o.parent;

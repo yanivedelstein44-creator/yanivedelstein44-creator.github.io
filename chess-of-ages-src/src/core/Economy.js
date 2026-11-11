@@ -6,7 +6,7 @@ import {
   ECONOMY, FULL_GAME, EXPANSION, GEM_BOOST, BOARD_SKINS, findSkin, ALL_WEARABLES, findWearable, DEFAULT_LOADOUT,
   DAILY_STREAK, ROYAL_CHEST, WHEEL_SEGMENTS, DUPLICATE_ITEM_GEMS, DUPLICATE_FRAGMENT_GEMS,
 } from '../config/EconomyConfig.js';
-import { PETS, PREMIUM_PET_IDS } from '../config/Pets.js';
+import { PETS, PREMIUM_PET_IDS, SKY_PET_IDS } from '../config/Pets.js';
 import { ERAS } from '../config/Eras.js';
 import { readJSON, writeJSON } from './Storage.js';
 import { tn, ITEM_EN } from '../ui/i18n.js';
@@ -124,6 +124,30 @@ export class Economy {
     this.save();
     this.emit({ type: 'skins', ids: fresh.map((x) => x.id) });
     return fresh;
+  }
+  // ---------- קן השמיים: חיות מעופפות ----------
+  /** חיות מעופפות חינמיות: אחת על כל 10 איים שנכבשים. מחזיר את מה שנפתח עכשיו (להודעה) */
+  grantEarnedSkyPets(conqueredCount) {
+    const fresh = SKY_PET_IDS.filter((id) => PETS[id].earn && conqueredCount >= PETS[id].earn && !this.s.pets.includes(id));
+    if (!fresh.length) return [];
+    this.s.pets = [...this.s.pets, ...fresh];
+    this.save();
+    this.emit({ type: 'skyPets', ids: fresh });
+    return fresh;
+  }
+  /** החיות המעופפות האגדיות — בכסף אמיתי */
+  async purchaseSkyPet(id, confirmSandbox) {
+    const p = PETS[id];
+    if (!p || !p.sky || !p.product) return { ok: false, reason: tn('לא ניתן לקנייה', 'Not for sale') };
+    if (this.s.pets.includes(id)) return { ok: true, already: true };
+    const product = { id: p.product, price: p.price };
+    const r = await this.realPurchase(product, confirmSandbox);
+    if (!r.ok) return r;
+    this.s.pets = [...this.s.pets, id];
+    this.logPurchase(product, r.tx);
+    this.save();
+    this.emit({ type: 'buy', id: p.product });
+    return { ok: true };
   }
   get boardSkin() { const id = this.s.equipped.boardSkin || ''; return this.ownsSkin(id) ? id : ''; }
   equipSkin(id) {
@@ -264,7 +288,7 @@ export class Economy {
 
   buyPet(id) {
     const p = PETS[id];
-    if (!p || !p.premium || p.exclusive) return { ok: false, reason: tn('לא ניתן לקנייה', 'Not for sale') };
+    if (!p || !p.premium || p.exclusive || p.sky) return { ok: false, reason: tn('לא ניתן לקנייה', 'Not for sale') };
     if (this.s.pets.includes(id)) return { ok: false, reason: tn('כבר בבעלותך', 'Already owned') };
     if (!this.spend(p.price)) return { ok: false, reason: tn('אין מספיק יהלומים', 'Not enough gems'), needGems: p.price - this.s.gems };
     this.s.pets.push(id);
@@ -290,12 +314,14 @@ export class Economy {
     return { ok: true };
   }
 
-  /** hook כללי: רכישה לפי מזהה (משחק מלא / פריט / חיה) */
+  /** hook כללי: רכישה לפי מזהה (משחק מלא / בוסט / סקין / חיה מעופפת / פריט / חיה) */
   async purchaseItem(itemId, confirmSandbox) {
     if (itemId === FULL_GAME.id) return this.purchaseFullGame(confirmSandbox);
     if (itemId === GEM_BOOST.id) return this.purchaseBoost(confirmSandbox);
     const sk = BOARD_SKINS.find((x) => x.product === itemId);
     if (sk) return this.purchaseSkin(sk.id, confirmSandbox);
+    const sky = SKY_PET_IDS.find((id) => PETS[id].product === itemId);
+    if (sky) return this.purchaseSkyPet(sky, confirmSandbox);
     if (PETS[itemId]) return this.buyPet(itemId);
     return this.buyItem(itemId);
   }
@@ -346,15 +372,6 @@ export class Economy {
     const def = DAILY_STREAK[st.day - 1];
     const result = { day: st.day, gems: 0, rewards: [] };
     if (def.gems) { this.addGems(def.gems, 'daily'); result.gems = def.gems; result.rewards.push({ type: 'gems', amount: def.gems }); }
-    if (def.trial === 'cosmetic') {
-      const pool = ALL_WEARABLES.filter((w) => w.price > 0 && !this.ownsItem(w.id));
-      if (pool.length) {
-        const w = pool[Math.floor(Math.random() * pool.length)];
-        this.grantTrial(w.id);
-        result.rewards.push({ type: 'trial', id: w.id, name: w.name });
-      }
-    }
-    if (def.chest) result.rewards.push(this.openRoyalChest());
     this.login = { lastClaimDay: todayKey(), streak: st.day };
     this.save();
     this.emit({ type: 'daily', result });
@@ -435,5 +452,5 @@ export class Economy {
     }
   }
 
-  hasDailyBadge() { return this.dailyStatus().ready || this.canFreeSpin(); }
+  hasDailyBadge() { return this.dailyStatus().ready; }
 }

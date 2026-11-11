@@ -335,7 +335,7 @@ export function addCharacterRim(root, { color = 0xfff0c8, power = 2.6, strength 
     if (!o.isMesh) return;
     for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
       if (!m || !(m.isMeshStandardMaterial || m.isMeshPhysicalMaterial)) continue;
-      if (m.userData.rim || m.userData.charRim || m.blending === THREE.AdditiveBlending || (m.transparent && m.opacity < 0.9)) continue;
+      if (m.userData.rim || m.userData.charRim || m.userData.noCharRim || m.blending === THREE.AdditiveBlending || (m.transparent && m.opacity < 0.9)) continue;
       const u = { uCharRimColor: { value: new THREE.Color(color) }, uCharRimPower: { value: power }, uCharRimStrength: { value: strength } };
       m.userData.charRim = u;
       const prev = m.onBeforeCompile;

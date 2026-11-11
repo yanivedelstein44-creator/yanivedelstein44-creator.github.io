@@ -1,5 +1,5 @@
 /**
- * איים באופק: כשמטיילים עם האצבע והמצלמה יורדת, רואים מסביב איים מרחפים — השכנים של האי הנוכחי
+ * איים באופק: כשמטיילים עם האצבע והמצלמה יורדת, רואים מסביב איים על הים — השכנים של האי הנוכחי
  * בעולם, כל אחד עם האדמה והמונומנט של העידן שלו. הכול מאוחד ל-3 רשתות בלבד (קל לטלפון).
  * ערפל "מקוצר" (fogScale) — האיים רחוקים אבל לא נבלעים לגמרי בערפל, כמו אובך של אופק.
  */
@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Builder, monumentGeometry, MONUMENT_SOLID, MONUMENT_GLOW } from './Monuments.js';
 import { eraOf, GROUND } from '../config/IslandEras.js';
+import { SEA_Y, beachColor } from './Sea.js';
 
 const TAU = Math.PI * 2;
 const UP = new THREE.Vector3(0, 1, 0);
@@ -35,7 +36,6 @@ export class HorizonIslands {
     this.matGlow = fogScaled(MONUMENT_GLOW.clone(), 0.6);
     this.meshes = [];
     this.key = '';
-    sm.onUpdate((dt) => { this.group.rotation.y += dt * 0.004; });
   }
 
   /** האיים השכנים של centerId (בלי האי עצמו), מסודרים סביב — יותר מהם מול מבט המשחק */
@@ -64,12 +64,13 @@ export class HorizonIslands {
       // זווית: מתחילים מול המצלמה (‎-z) ומתפזרים סביב
       const az = -Math.PI / 2 + ((i + 0.5) / n) * TAU + (rand() - 0.5) * (TAU / n) * 0.5;
       const dist = 105 + rand() * 55;
-      const y = -13 + rand() * 17;
+      // על הים: פני האי מעט מעל המים, וחוף רחב שנכנס אל המים
+      const y = SEA_Y + 0.8 + rand() * 0.9;
       const R = 7 + rand() * 5;
       const cx = Math.cos(az) * dist, cz = Math.sin(az) * dist;
       const ground = GROUND[era.climate] ?? 0x5d8a3a;
-      terrain.cyl(R, R * 0.96, 1.4, ground, [cx, y - 0.7, cz], 18);
-      terrain.cone(R * 0.96, R * 2.3, rand() < 0.5 ? 0x6a5848 : 0x5a4a3c, [cx, y - 1.4 - R * 1.15, cz], 11, [Math.PI, rand() * TAU, 0]);
+      terrain.cyl(R, R * 1.04, y - SEA_Y + 0.6, ground, [cx, (y + SEA_Y - 0.6) / 2, cz], 18);
+      terrain.cyl(R * 1.1, R * 1.32, 0.9, beachColor(era.climate), [cx, SEA_Y - 0.1, cz], 18);
       // כמה עצים / סלעים על השפה
       const trees = 2 + Math.floor(rand() * 3);
       for (let k = 0; k < trees; k++) {

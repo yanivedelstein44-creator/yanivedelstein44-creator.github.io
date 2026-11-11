@@ -7,6 +7,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import gsap from 'gsap';
 import { grassTex, stoneTex, glowTexture, mesh, G, rand, TAU } from './kit.js';
+import { Sea, SEA_Y } from './Sea.js';
 
 const V3 = THREE.Vector3;
 /** זווית מבט המשחק (מעלות מהאנך). 55 = לוח גדול יותר; 60 = יותר אדריכלות בחלק העליון */
@@ -164,7 +165,7 @@ export class SceneManager {
     });
   }
 
-  // ---------- האי המרחף ----------
+  // ---------- האי שעל הים ----------
   buildIsland() {
     const island = new THREE.Group();
     this.groundMat = new THREE.MeshStandardMaterial({ map: grassTex(), color: 0x5d8a3a, roughness: 0.95 });
@@ -198,30 +199,42 @@ export class SceneManager {
     // דשא על השפה
     const rim = mesh(new THREE.TorusGeometry(27, 0.45, 6, 96), this.groundMat, { rot: [Math.PI / 2, 0, 0], pos: [0, -0.25, 0] });
     island.add(rim);
+    // הים מסביב (במקום שמיים מתחת לאי) + חוף שמשתפל אל המים
+    this.sea = new Sea(this.world);
+    island.add(this.sea.beach(27));
     this.world.add(island);
     this.island = island;
 
-    // איונים מרחפים ועננים
+    // איונים קטנים בים: דשא, חוף חול ועץ או סלע
     this.islets = [];
+    const trunk = new THREE.MeshStandardMaterial({ color: 0x5a3c22, roughness: 0.9 }), leaves = new THREE.MeshStandardMaterial({ color: 0x3f7a30, roughness: 0.85 });
+    this.isletLeaves = leaves;
     for (let i = 0; i < 7; i++) {
       const a = (i / 7) * TAU + rand(-0.3, 0.3);
-      const r = rand(42, 70);
-      const s = rand(1.5, 4.5);
+      const r = rand(44, 72);
+      const s = rand(1.6, 4.2);
       const g = new THREE.Group();
-      g.add(mesh(G.cone(s, s * 2.4, 7), this.rockMat, { rot: [Math.PI, 0, 0], pos: [0, -s * 1.2, 0] }));
-      g.add(mesh(new THREE.CylinderGeometry(s, s, 0.35, 7), this.groundMat, { pos: [0, 0.1, 0] }));
-      g.position.set(Math.cos(a) * r, rand(-12, 6), Math.sin(a) * r);
-      g.userData.phase = rand(0, 10);
+      g.add(mesh(new THREE.CylinderGeometry(s * 1.3, s * 1.55, 0.9, 9), this.sea.sandMat, { pos: [0, -0.3, 0], receive: true }));
+      g.add(mesh(new THREE.CylinderGeometry(s, s * 1.12, 0.34, 9), this.groundMat, { pos: [0, 0.2, 0], receive: true }));
+      const trees = s > 2.6 ? 2 : 1;
+      for (let k = 0; k < trees; k++) {
+        const ta = rand(0, TAU), tr = rand(0, s * 0.5), th = rand(1.1, 1.8);
+        g.add(mesh(new THREE.CylinderGeometry(0.1 * th, 0.14 * th, 0.8 * th, 6), trunk, { pos: [Math.cos(ta) * tr, 0.37 + 0.4 * th, Math.sin(ta) * tr], cast: true }));
+        g.add(mesh(new THREE.ConeGeometry(0.6 * th, 1.4 * th, 7), leaves, { pos: [Math.cos(ta) * tr, 0.37 + 1.4 * th, Math.sin(ta) * tr], cast: true }));
+      }
+      g.position.set(Math.cos(a) * r, SEA_Y, Math.sin(a) * r);
+      g.rotation.y = rand(0, TAU);
       this.world.add(g);
       this.islets.push(g);
     }
+    // עננים גבוה בשמיים, מעל הים ועד האופק
     this.clouds = [];
-    const cloudMat = new THREE.SpriteMaterial({ map: glowTexture('cloud', 'rgba(255,255,255,0.9)'), color: 0xffffff, transparent: true, opacity: 0.32, depthWrite: false });
+    const cloudMat = new THREE.SpriteMaterial({ map: glowTexture('cloud', 'rgba(255,255,255,0.9)'), color: 0xffffff, transparent: true, opacity: 0.3, depthWrite: false });
     for (let i = 0; i < 14; i++) {
       const s = new THREE.Sprite(cloudMat);
-      const a = rand(0, TAU), r = rand(30, 85);
-      s.position.set(Math.cos(a) * r, rand(-26, -6), Math.sin(a) * r);
-      s.scale.set(rand(25, 45), rand(10, 16), 1);
+      const a = rand(0, TAU), r = rand(95, 230);
+      s.position.set(Math.cos(a) * r, rand(26, 52), Math.sin(a) * r);
+      s.scale.set(rand(40, 70), rand(12, 20), 1);
       s.userData.speed = rand(0.2, 0.6);
       this.world.add(s);
       this.clouds.push(s);
@@ -235,6 +248,7 @@ export class SceneManager {
    */
   setIslandRadius(extent = 27, base = extent, shape = null) {
     this.islandR = extent;
+    this.sea.setRadius(base * (28.3 / 27)); // קו המים על החוף של האי הבסיסי
     this.islandShape = shape; // נקודות קו החוף (אי לא עגול — האי המרכזי עם האריחים)
     this.island.scale.setScalar(base / 27);
     this.roamRadius = Math.max(ROAM_RADIUS, extent * 0.72);
@@ -264,11 +278,18 @@ export class SceneManager {
       sun: new V3(...p.sunDir).normalize(), key: C(p.key), hs: C(p.hemiSky), hg: C(p.hemiGround), fog: C(p.fog), ground: C(p.ground),
       kd: new V3(...p.keyDir).normalize().multiplyScalar(30),
     };
+    if (p.climate) this.seaClimate = p.climate;
+    const seaTarget = this.sea.target(this.seaClimate || 'day', p);
+    const seaTo = this.sea.blend(seaTarget);
+    // האיונים: מתחת למים (קרקעית) אין איונים; עצים מושלגים בים של קרח, חרוכים בים של לבה
+    this.islets.forEach((g) => { g.visible = seaTarget.kind !== 'bed'; });
+    this.isletLeaves.color.setHex({ ice: 0xe6eef4, lava: 0x3a302c, night: 0x2a4a5a }[seaTarget.kind] ?? 0x3f7a30);
     const s = { t: 0 };
     gsap.killTweensOf(this._paletteTween || {});
     this._paletteTween = s;
     const apply = () => {
       const t = s.t;
+      seaTo(t);
       this.skyUniforms.uTop.value.lerpColors(from.top, to.top, t);
       this.skyUniforms.uMid.value.lerpColors(from.mid, to.mid, t);
       this.skyUniforms.uHorizon.value.lerpColors(from.hor, to.hor, t);
@@ -783,7 +804,7 @@ export class SceneManager {
       const n = Math.sin(this.time * 11 + s.phase) * 0.5 + Math.sin(this.time * 23.7 + s.phase * 2) * 0.3 + Math.sin(this.time * 5.3) * 0.2;
       s.light.intensity += ((s.base * (1 + n * f)) - s.light.intensity) * Math.min(1, dt * 12);
     }
-    this.islets.forEach((g) => { g.position.y += Math.sin(this.time * 0.6 + g.userData.phase) * 0.004; g.rotation.y += dt * 0.03; });
+    this.sea.update(this.time);
     this.clouds.forEach((c) => {
       const a = Math.atan2(c.position.z, c.position.x) + dt * 0.006 * c.userData.speed;
       const r = Math.hypot(c.position.x, c.position.z);

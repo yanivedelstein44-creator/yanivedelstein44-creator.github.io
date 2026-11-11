@@ -14,6 +14,7 @@ import { drawIcon } from '../ui/icons.js';
 import { t, islandLabel } from '../ui/i18n.js';
 import { PlayerAvatar3D } from './PlayerAvatar3D.js';
 import { buildPetRig } from './PetCompanion3D.js';
+import { isFlyer } from '../config/Pets.js';
 import { FX } from './Particles.js';
 import { monumentGeometry, MONUMENT_SOLID, MONUMENT_GLOW } from './Monuments.js';
 import { GROUND } from '../config/IslandEras.js';
@@ -26,7 +27,7 @@ const REGION_COLORS = {
   // איי הפרימיום: חוף זהוב
   11: [0xf2d68a, 0x9a7ae0], 12: [0xf0d080, 0x5ac8c8], 13: [0xffe2a0, 0xf2c94c],
 };
-const FLYERS = new Set(['royal_owl', 'fire_dragon', 'golden_phoenix', 'mythic_griffin', 'clockwork_dragon']);
+// חיות שעפות ברכיבה (כולל כל החיות של קן השמיים) — ראה isFlyer ב-Pets.js
 const GATE_SCALE = 1.6;
 const GATE_CENTER = { 1: 0.75, 2: 0.75, 3: 0.75, 4: 1.05, 5: 1.1, 6: 0.85, 7: 0.8, 8: 0.5, 9: 0.5, 10: 1.15 };
 const HOOP_K = [3.9, 3.0, 2.15];
@@ -602,7 +603,7 @@ export class WorldMap {
       rig.body.userData.y0 = rig.body.position.y;
       this.rig = rig;
       this.petHolder.add(rig.root);
-      this.flyer = FLYERS.has(e.pet);
+      this.flyer = isFlyer(e.pet);
       this.unicorn = e.pet === 'crystal_unicorn';
       this.ground = !this.flyer && !this.unicorn;
     }
