@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.3.16",
-  "build": "1.3.16-1794430031651",
-  "buildTime": 1794430031651,
-  "date": "2026-11-11T20:47:11.651Z",
+  "version": "1.3.17",
+  "build": "1.3.17-1794430691800",
+  "buildTime": 1794430691800,
+  "date": "2026-11-11T20:58:11.800Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.3.16-1794430031651.zip",
-  "checksum": "c0da59af3019304739debd0c1b737622247b137ea84472f4215f9e0e0c8fb8fc",
+  "bundle": "update/bundle-1.3.17-1794430691800.zip",
+  "checksum": "af1354df219a4179987219feb6c96c9aa5edf11298e972db00ea6b7492eac9c2",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Growing pets (baby, grown, legendary) with XP from every battle and an evolution celebration; waving white flags on islands you won (on the island and on the map); an equipped flying pet circles the central island instead of sitting by the board"
+  "notes": "Flying pets, yours and the bots', now circle above their side of the board on every island instead of sitting on a pedestal"
 }
