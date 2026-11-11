@@ -6,6 +6,7 @@ import android.util.Log
 import com.yaniv.duopilot.App
 import com.yaniv.duopilot.Bg
 import com.yaniv.duopilot.Prefs
+import com.yaniv.duopilot.agent.Actions
 import com.yaniv.duopilot.service.PilotService
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
@@ -142,8 +143,19 @@ class PairLauncher(private val svc: PilotService) {
         return ok
     }
 
-    /** שיטה ב: דרך מסך האפליקציות האחרונות, כמו ביד */
+    /** שיטה ב: דרך מסך האפליקציות האחרונות, כמו ביד (עד 2 ניסיונות) */
     private fun viaRecents(pair: AppPair, gen: Int): Boolean {
+        for (attempt in 1..2) {
+            if (gen != generation) return false
+            if (recentsOnce(pair, gen, attempt)) return true
+            // יוצאים ממה שנשאר פתוח (תפריט / מסך האחרונות) ומנסים שוב
+            svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME)
+            Bg.sleep(ms(900))
+        }
+        return false
+    }
+
+    private fun recentsOnce(pair: AppPair, gen: Int, attempt: Int): Boolean {
         val topLabel = label(pair.top)
         val bottomLabel = label(pair.bottom)
         // שתיהן צריכות להיות ב"אחרונות": קודם התחתונה, ואז העליונה (כדי שהיא תהיה הכרטיס הנוכחי)
@@ -158,31 +170,38 @@ class PairLauncher(private val svc: PilotService) {
 
         svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
         Bg.sleep(ms(900))
-        val icon = waitForHit(ms(3500)) { RecentsUi.findLabel(svc, topLabel, smallest = true) }
-        RecentsUi.debugDump(svc, "recents opened, icon=${icon?.text}")
-        if (icon == null) {
-            svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
-            return false
+        val card = waitForHit(ms(3500)) { RecentsUi.findLabel(svc, topLabel, smallest = false) }
+        RecentsUi.debugDump(svc, "[$attempt] recents opened, top card=${card?.text}")
+        if (card == null) return false
+        // התפריט נפתח מהאייקון שבראש הכרטיס (לחיצה על הכרטיס עצמו רק פותחת את האפליקציה)
+        val icon = RecentsUi.findCardIcon(svc, card)
+        if (icon != null) {
+            RecentsUi.click(svc, icon)
+        } else {
+            Actions.tapAt(svc, card.bounds.exactCenterX(), card.bounds.top + 40f)
         }
-        RecentsUi.click(svc, icon)
         val item = waitForHit(ms(2500)) { RecentsUi.findSplitItem(svc) }
-        RecentsUi.debugDump(svc, "menu opened, split item=${item?.text}")
-        if (item == null) {
-            svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
-            Bg.sleep(300)
-            svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
-            return false
-        }
+        RecentsUi.debugDump(svc, "[$attempt] menu opened (icon=${icon?.text}), split item=${item?.text}")
+        if (item == null) return false
         RecentsUi.click(svc, item)
-        Bg.sleep(ms(1000))
-        val card = waitForHit(ms(3500)) { RecentsUi.findLabel(svc, bottomLabel, smallest = false) }
-        RecentsUi.debugDump(svc, "split select, second card=${card?.text}")
-        if (card == null) {
-            svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
-            return false
+        Bg.sleep(ms(1100))
+        var second = waitForHit(ms(3000)) { RecentsUi.findLabel(svc, bottomLabel, smallest = false) }
+        if (second == null) {
+            // הכרטיס של השנייה אולי מחוץ למסך – גוללים את רשימת האחרונות
+            val (w, h) = svc.screenSize()
+            for (dir in listOf(1f, -1f)) {
+                Actions.swipe(svc, w * (0.5f - 0.3f * dir), h * 0.55f, w * (0.5f + 0.3f * dir), h * 0.55f)
+                Bg.sleep(ms(700))
+                second = RecentsUi.findLabel(svc, bottomLabel, smallest = false)
+                if (second != null) break
+            }
         }
-        RecentsUi.click(svc, card)
-        return waitFor(ms(6000)) { svc.isSplitActive() && svc.bothVisible(pair) }
+        RecentsUi.debugDump(svc, "[$attempt] split select, second card=${second?.text}")
+        if (second == null) return false
+        RecentsUi.click(svc, second)
+        val ok = waitFor(ms(6000)) { svc.isSplitActive() && svc.bothVisible(pair) }
+        RecentsUi.debugDump(svc, "[$attempt] after choosing second ok=$ok")
+        return ok
     }
 
     /** אם נפתחו הפוך – לחיצה כפולה על הקו המפריד מחליפה ביניהם */

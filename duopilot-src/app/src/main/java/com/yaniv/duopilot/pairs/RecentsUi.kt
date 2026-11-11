@@ -78,6 +78,33 @@ object RecentsUi {
         return if (smallest) list.minByOrNull(area) else list.maxByOrNull(area)
     }
 
+    /**
+     * האייקון של כרטיס האפליקציה (בפיקסל: רכיב בלי שם עם id שנגמר ב-icon, מעל הכרטיס;
+     * בסמסונג: האייקון בראש הכרטיס). לחיצה עליו פותחת את התפריט עם "מסך מפוצל".
+     */
+    fun findCardIcon(svc: PilotService, card: Hit): Hit? {
+        val cb = card.bounds
+        var best: Hit? = null
+        var bestDist = Long.MAX_VALUE
+        forEachNode(svc) { n, r, text ->
+            if (r.isEmpty || r.width() > cb.width() * 0.6 || r.height() > cb.height() * 0.3) return@forEachNode
+            val id = n.viewIdResourceName?.substringAfter(":id/")?.lowercase() ?: ""
+            val iconish = id == "icon" || id.endsWith("_icon") || id.startsWith("icon") || id.contains("task_icon") || id.contains("app_icon")
+            if (!iconish) return@forEachNode
+            if (id.contains("lens") || id.contains("mic") || id == "g_icon") return@forEachNode
+            if (r.centerX() < cb.left || r.centerX() > cb.right) return@forEachNode
+            if (r.centerY() < cb.top - 260 || r.centerY() > cb.top + 300) return@forEachNode
+            val dx = (r.centerX() - cb.centerX()).toLong()
+            val dy = (r.centerY() - cb.top).toLong()
+            val d = dx * dx + dy * dy
+            if (d < bestDist) {
+                bestDist = d
+                best = Hit(n, r, text.ifEmpty { id })
+            }
+        }
+        return best
+    }
+
     /** פריט "מסך מפוצל" בתפריט (אם יש כמה – עדיפות ל"למעלה") */
     fun findSplitItem(svc: PilotService): Hit? {
         val hits = ArrayList<Hit>()
