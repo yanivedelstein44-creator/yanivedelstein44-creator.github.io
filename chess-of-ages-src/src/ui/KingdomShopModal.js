@@ -22,7 +22,7 @@ const AURA_ICON = { aura_none: 'noAura', aura_golden_sparks: 'sparkle', aura_fir
 const SLOT_ICON = { head: 'crown', armor: 'shirt', weapon: 'swords', aura: 'sparkle' };
 const SLOT_SHORT = { head: ['כתרים', 'Crowns'], armor: ['גלימות', 'Armor'], weapon: ['נשקים', 'Weapons'], aura: ['הילות', 'Auras'] };
 // חנויות הלבוש שסביב הלוח באי המרכזי: כל מבנה פותח חנות של קטגוריה אחת
-const SINGLE_TITLE = { head: ['בית הכתרים', 'Crown House'], armor: ['אוהל הגלימות', 'Robe Pavilion'], weapon: ['נפחיית הנשקים', 'Weapon Forge'], aura: ['מקדש ההילות', 'Aura Sanctum'], boards: ['בית הלוחות', 'Board House'], pets: ['בית החיות', 'Pet House'], premium: ['כספת הזהב', 'Golden Vault'] };
+const SINGLE_TITLE = { head: ['בית הכתרים', 'Crown House'], armor: ['אוהל הגלימות', 'Robe Pavilion'], weapon: ['נפחיית הנשקים', 'Weapon Forge'], aura: ['מקדש ההילות', 'Aura Sanctum'], boards: ['בית הלוחות', 'Board House'], pets: ['בית החיות', 'Pet House'], premium: ['פרימיום', 'Premium'] };
 const SINGLE_ICON = { ...SLOT_ICON, boards: 'checker', pets: 'paw', premium: 'crown' };
 const SINGLE_TABS = ['boards', 'pets', 'premium'];
 

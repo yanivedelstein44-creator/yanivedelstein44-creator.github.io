@@ -1,8 +1,9 @@
 /**
  * מוזיאון הזמן — האי המרכזי.
  * - בית הקולנוע המרכזי (נוגעים בו → סרט הסיפור / סרט ההדרכה) ובית הלוחות (סקינים ללוח).
- * - שש חנויות מקיפות את הלוח, כל אחת בעיצוב משלה: בית הכתרים, אוהל הגלימות, נפחיית הנשקים, מקדש ההילות,
- *   בית החיות וכספת הזהב (פרימיום). הבוטים — בכפתור החנות שבסרגל התחתון.
+ * - חמש חנויות מקיפות את הלוח, כל אחת בעיצוב משלה: בית הכתרים, אוהל הגלימות, נפחיית הנשקים, מקדש ההילות
+ *   ובית החיות. מעל מוזיאון הזמן מרחפת טבעת זהב שכתוב עליה "פרימיום" (חנות הפרימיום).
+ *   הבוטים — בכפתור החנות שבסרגל התחתון.
  * - האי מתחיל קטן ומתרחב: כל אי שנכבש שולח אריח אדמה גדול ממנו — קרקע באקלים שלו, המונומנט שלו
  *   על כן אבן ומעט צמחייה — שעף מעבר לים ונצמד לחוף. האריחים מסודרים בטבעות (קודם בחזית האי),
  *   כך שהאי גדל טבעת אחרי טבעת: מ-17 יחידות רדיוס עד יותר מפי 3 (כל אריח מרחיב את החוף בכ-40%).
@@ -410,57 +411,10 @@ function petBarnGeometry() {
   };
 }
 
-/** כספת הזהב: בניין כחול-לילה עם פסי זהב ודלת כספת עגולה (הגלגל מסתובב), גג מדרגות ועליו מטבע זהב ענק שמסתובב; תיבות אוצר, מטבעות ומטילים */
-function goldVaultGeometry() {
-  const b = new Builder();
-  const DGOLD = 0xb8862a, PALE = 0xfff0b0;
-  b.box(4.0, 0.22, 3.4, C.marble, [0, 0.11, 0.1]).box(3.7, 0.12, 3.1, C.gold, [0, 0.28, 0.05]).box(1.5, 0.12, 0.5, C.gold, [0, 0.06, 1.9]);
-  b.box(3.2, 2.3, 2.3, C.navy, [0, 1.49, -0.4]);
-  for (const x of [-1.62, 1.62]) b.box(0.18, 2.3, 0.18, C.gold, [x, 1.49, 0.76]);
-  b.box(3.4, 0.16, 2.5, C.gold, [0, 2.72, -0.4]).box(3.3, 0.12, 2.4, C.gold, [0, 0.4, -0.4]);
-  // גג מדרגות
-  b.box(2.7, 0.24, 2.0, C.navy, [0, 2.92, -0.4]).box(2.1, 0.12, 1.5, C.gold, [0, 3.1, -0.4]).box(1.4, 0.2, 1.0, C.navy, [0, 3.26, -0.4]).cyl(0.35, 0.42, 0.18, C.gold, [0, 3.45, -0.4], 12);
-  // דלת הכספת
-  b.cyl(0.82, 0.82, 0.16, C.gold, [0, 1.42, 0.8], 28, [Math.PI / 2, 0, 0]).tor(0.82, 0.06, DGOLD, [0, 1.42, 0.89], undefined, TAU, false, 32).tor(0.55, 0.04, DGOLD, [0, 1.42, 0.89], undefined, TAU, false, 28);
-  for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; b.sph(0.045, PALE, [Math.cos(a) * 0.69, 1.42 + Math.sin(a) * 0.69, 0.89], undefined, 6); }
-  // תיבת אוצר סגורה (משמאל) ופתוחה עם אבני חן (מימין)
-  const chest = (x, z, open) => {
-    b.box(0.6, 0.34, 0.4, C.wood, [x, 0.51, z]);
-    for (const dx of [-0.22, 0.22]) b.box(0.06, 0.36, 0.42, C.gold, [x + dx, 0.51, z]);
-    if (open) {
-      b.box(0.6, 0.38, 0.06, C.wood, [x, 0.86, z - 0.25], [-0.35, 0, 0]);
-      for (const [dx, dz, c] of [[-0.15, -0.05, 0x7af0ff], [0.02, 0.06, 0xff6a8a], [0.16, -0.06, 0x8aff7a], [-0.02, -0.1, 0xc88aff], [0.12, 0.1, 0xffe08a]]) b.oct(0.08, c, [x + dx, 0.72, z + dz], [1, 1.3, 1], true);
-      b.cyl(0.24, 0.26, 0.05, C.gold, [x, 0.69, z], 12);
-    } else {
-      b.cyl(0.2, 0.2, 0.6, C.wood, [x, 0.68, z], 10, [0, 0, Math.PI / 2]).box(0.1, 0.12, 0.04, C.gold, [x, 0.62, z + 0.21]);
-    }
-  };
-  chest(-1.4, 1.35, false); chest(1.4, 1.35, true);
-  // ערמות מטבעות ומטילים
-  for (const [x, z, n] of [[-0.9, 1.75, 5], [-0.65, 1.62, 3], [0.75, 1.75, 4]]) for (let i = 0; i < n; i++) b.cyl(0.11, 0.11, 0.035, i % 2 ? DGOLD : C.gold, [x, 0.36 + i * 0.037, z], 12);
-  for (const [x, y, z] of [[1.0, 0.39, 1.62], [1.26, 0.39, 1.62], [1.13, 0.47, 1.62]]) b.box(0.24, 0.08, 0.12, C.gold, [x, y, z]);
-  // גלגל הפתיחה של הכספת ומטבע הזהב שעל הגג
-  const wheel = new Builder();
-  wheel.cyl(0.16, 0.16, 0.12, DGOLD, [0, 0, 0], 12, [Math.PI / 2, 0, 0]);
-  for (let i = 0; i < 3; i++) wheel.box(0.86, 0.07, 0.07, PALE, [0, 0, 0.04], [0, 0, (i * Math.PI) / 3]);
-  for (let i = 0; i < 6; i++) { const a = (i * Math.PI) / 3; wheel.sph(0.06, C.gold, [Math.cos(a) * 0.43, Math.sin(a) * 0.43, 0.04], undefined, 6); }
-  const coin = new Builder();
-  coin.cyl(0.55, 0.55, 0.1, C.gold, [0, 0, 0], 32, [Math.PI / 2, 0, 0]).tor(0.55, 0.035, DGOLD, [0, 0, 0], undefined, TAU, false, 32);
-  const star = new THREE.Shape();
-  for (let i = 0; i < 10; i++) { const a = Math.PI / 2 + (i / 10) * TAU, r = i % 2 ? 0.14 : 0.34; if (i) star.lineTo(Math.cos(a) * r, Math.sin(a) * r); else star.moveTo(Math.cos(a) * r, Math.sin(a) * r); }
-  coin.add(new THREE.ShapeGeometry(star), DGOLD, [0, 0, 0.056]).add(new THREE.ShapeGeometry(star), DGOLD, [0, 0, -0.056], [0, Math.PI, 0]);
-  return {
-    ...b.build(),
-    parts: [
-      { ...wheel.build(), pos: [0, 1.42, 0.95], tick: (o, tt) => { o.rotation.z = tt * 0.6; } },
-      { ...coin.build(), pos: [0, 4.15, -0.4], tick: (o, tt, dt, y0) => { o.rotation.y = tt * 1.3; o.position.y = y0 + Math.sin(tt * 1.6) * 0.06; } },
-    ],
-  };
-}
-
 /**
- * החנויות סביב הלוח (שלוש מכל צד, פונות אל הלוח ואל המצלמה): כל אחת פותחת את החנות של הקטגוריה
- * שלה — ארבע חנויות לבוש, בית החיות וכספת הזהב (פרימיום). r — רדיוס טביעת הרגל (לתושבים המטיילים).
+ * החנויות סביב הלוח (פונות אל הלוח ואל המצלמה): כל אחת פותחת את החנות של הקטגוריה שלה —
+ * ארבע חנויות לבוש ובית החיות. r — רדיוס טביעת הרגל (לתושבים המטיילים).
+ * הפרימיום: טבעת זהב מרחפת מעל מוזיאון הזמן (buildPremiumRing).
  */
 const SHOP_SCALE = 1.12;
 const SLOT_SHOPS = [
@@ -472,12 +426,38 @@ const SLOT_SHOPS = [
     signAt: [0, 3.0, 1.56], signSize: [1.5, 0.4], style: { bg: '#141a4a', fg: '#c8f6ff', border: '#7ae8ff', bulb: '#c8f6ff', glow: 'rgba(120,230,255,0.95)' } },
   { slot: 'armor', key: 'shopRobes', icon: 'shirt', sign: 'ROBES', geo: robeTentGeometry, pos: [10.2, 0, 7.2], r: 2.4, labelY: 5.3,
     signAt: [0, 2.32, 1.99], signSize: [1.5, 0.42], style: { bg: '#7a1020', fg: '#fff3d6', bulbs: false } },
-  // באמצע כל צד: בית החיות וכספת הזהב (חנויות של לשונית שלמה)
+  // באמצע הצד השמאלי: בית החיות
   { slot: 'pets', key: 'shopPets', icon: 'paw', sign: 'PETS', geo: petBarnGeometry, pos: [-13.4, 0, 0.6], r: 2.3, labelY: 4.6,
     signAt: [0, 1.74, 0.5], signSize: [1.2, 0.34], style: { bg: '#24502a', fg: '#fff3d6' } },
-  { slot: 'premium', key: 'shopPremium', icon: 'chest', sign: 'PREMIUM', geo: goldVaultGeometry, pos: [13.4, 0, 0.6], r: 2.3, labelY: 5.5,
-    signAt: [0, 2.47, 0.79], signSize: [1.7, 0.34], style: { bg: '#2a2006', fg: '#ffe08a', bulb: '#ffe08a' } },
 ];
+
+/** גובה טבעת הזהב: מרחפת מעל מוזיאון הזמן (מעל השלט שלו) */
+const RING_Y = 10.2;
+
+/** הטקסט על טבעת הזהב: המילה שלוש פעמים מסביב, עם כוכבים ביניהן (פס זהב בגרדיאנט) */
+function premiumRingTexture(word) {
+  const W = 2048, H = 128;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#fff3b0'); g.addColorStop(0.45, '#f2c14e'); g.addColorStop(1, '#9a6a14');
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.fillStyle = 'rgba(110,64,8,0.55)'; x.fillRect(0, 9, W, 4); x.fillRect(0, H - 13, W, 4);
+  const star = (cx, cy, r) => {
+    x.beginPath();
+    for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i / 10) * TAU, rr = i % 2 ? r * 0.42 : r; x.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); }
+    x.closePath(); x.fillStyle = '#c8282a'; x.fill(); x.lineWidth = 3; x.strokeStyle = '#fff6cf'; x.stroke();
+  };
+  x.font = '900 86px Rubik, Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  for (let k = 0; k < 3; k++) {
+    const cx = W / 6 + (k * W) / 3;
+    x.lineWidth = 7; x.strokeStyle = 'rgba(255,248,214,0.95)'; x.strokeText(word, cx, H / 2 + 4);
+    x.fillStyle = '#5a2a06'; x.fillText(word, cx, H / 2 + 4);
+    star(cx + W / 6, H / 2, 30);
+  }
+  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4;
+  return tx;
+}
 
 /** אריח של אי: טבעת־מקטע בקרקע של האקלים שלו, לוח סלע וזיז מתחת, כן אבן עם המונומנט וצמחייה. קואורדינטות מקומיות (מרכז האריח) */
 function chunkGeometry(id, slot) {
@@ -584,6 +564,7 @@ export class HubMuseum {
     this.slotShops = SLOT_SHOPS.map((s) => mk(s.geo(), s.pos, `shop_${s.slot}`, s.key, s.icon, s.sign, {
       labelY: s.labelY, signAt: s.signAt, signSize: s.signSize, style: s.style, yaw: Math.atan2(-s.pos[0], 9), scale: SHOP_SCALE,
     }));
+    this.buildPremiumRing();
     // מכשולים (מעגלים) לתושבים המטיילים: המבנים מאחור והחנויות מסביב
     this.blockers = [
       { x: -6.6, z: -11.6, r: 2.8 }, { x: 6.6, z: -11.6, r: 2.6 },
@@ -592,8 +573,35 @@ export class HubMuseum {
     ];
   }
 
+  /** טבעת הזהב המעופפת מעל מוזיאון הזמן — "פרימיום" כתוב עליה מסביב; נגיעה בה פותחת את חנות הפרימיום */
+  buildPremiumRing() {
+    const R = 2.4, H = 0.85;
+    const ring = new THREE.Group(); // נוטה מעט אל המצלמה
+    const spin = new THREE.Group(); // מסתובב סביב הציר שלו
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(R, R, H, 72, 1, true), new THREE.MeshStandardMaterial({ map: premiumRingTexture(t('shopPremium')), metalness: 0.5, roughness: 0.32, emissive: 0x6a4a10, emissiveIntensity: 0.35 }));
+    const inner = new THREE.Mesh(new THREE.CylinderGeometry(R - 0.02, R - 0.02, H, 72, 1, true), new THREE.MeshStandardMaterial({ color: 0xd8a83a, metalness: 0.6, roughness: 0.35, side: THREE.BackSide }));
+    const rimMat = new THREE.MeshStandardMaterial({ color: 0xf2c14e, metalness: 0.7, roughness: 0.25, emissive: 0x5a3a08, emissiveIntensity: 0.3 });
+    spin.add(band, inner);
+    for (const y of [-H / 2, H / 2]) { const r = new THREE.Mesh(new THREE.TorusGeometry(R, 0.075, 8, 72), rimMat); r.rotation.x = Math.PI / 2; r.position.y = y; spin.add(r); }
+    const gemMat = new THREE.MeshBasicMaterial({ color: 0xff4a6a, toneMapped: false });
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; const gm = new THREE.Mesh(new THREE.OctahedronGeometry(0.09, 0), gemMat); gm.position.set(Math.sin(a) * (R + 0.06), H / 2, Math.cos(a) * (R + 0.06)); spin.add(gm); }
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.dot ||= dotTex(), color: 0xffd36a, transparent: true, opacity: 0.4, depthWrite: false, blending: THREE.AdditiveBlending }));
+    glow.scale.set(6.5, 3.2, 1);
+    glow.material.opacity = 0.3;
+    ring.add(spin, glow);
+    ring.position.set(0, RING_Y, -13.6);
+    ring.rotation.x = 0.12;
+    ring.userData.bid = 'shop_premium';
+    band.castShadow = true;
+    this.group.add(ring);
+    this.premiumRing = ring;
+    this.premiumSpin = spin;
+    this.premiumBand = band;
+  }
+
   /** שלטים בשפה הנוכחית */
   relabel() {
+    if (this.premiumBand) { const old = this.premiumBand.material.map; this.premiumBand.material.map = premiumRingTexture(t('shopPremium')); this.premiumBand.material.needsUpdate = true; old?.dispose(); }
     for (const g of this.buildings) {
       const old = g.userData.label;
       const lab = labelSprite(t(g.userData.key), g.userData.icon);
@@ -769,7 +777,7 @@ export class HubMuseum {
 
   /** קו החוף של האי כרגע: האי הבסיסי + הקצה החיצוני של כל אריח (למסגור המבט הרחב) */
   shapePoints(extra = null) {
-    const pts = [];
+    const pts = [new V3(0, RING_Y + 0.9, -13.6)]; // טבעת הפרימיום המרחפת — גם היא בתוך מבט־העל
     for (let i = 0; i < 24; i++) { const a = (i / 24) * TAU; pts.push(new V3(Math.cos(a) * HUB_BASE_R, 0, Math.sin(a) * HUB_BASE_R)); }
     for (const p of [...(this.pieces || []).map((x) => x.slot), ...(extra ? [extra] : [])]) {
       for (const k of [-0.5, 0, 0.5]) pts.push(new V3(Math.cos(p.a + k * p.span) * p.rOut, 0, Math.sin(p.a + k * p.span) * p.rOut));
@@ -848,12 +856,22 @@ export class HubMuseum {
     const bob = Math.sin(tt * 2) * 0.12;
     for (const g of this.buildings) g.userData.label.position.y = g.userData.labelY + bob;
     for (const a of this.anims) a.tick(a.o, tt, dt, a.y0);
+    if (this.premiumRing) {
+      this.premiumSpin.rotation.y = tt * 0.35;
+      this.premiumRing.position.y = RING_Y + Math.sin(tt * 1.2) * 0.12;
+      this.ringAcc = (this.ringAcc || 0) + dt;
+      if (this.ringAcc > 0.22) {
+        this.ringAcc = 0;
+        const a = Math.random() * TAU, p = this.premiumRing.position;
+        this.app.fx?.add?.emit({ count: 1, pos: [p.x + Math.sin(a) * 2.45, p.y + (Math.random() - 0.5) * 0.75, p.z + Math.cos(a) * 2.45], vel: [0, -0.5, 0], velSpread: [0.25, 0.2, 0.25], color: [0xffe08a, 0xfff6cf, 0xffc040], size: [0.12, 0.24], life: [0.8, 1.5] });
+      }
+    }
   }
 
   /** נגיעה בבניין: 'cinema' / 'museum' / 'shop_head' / 'shop_armor' / 'shop_weapon' / 'shop_aura' / 'shop_boards' / 'shop_pets' / 'shop_premium' / null */
   pick(x, y) {
     if (!this.active) return null;
-    const hit = this.sm.pick(x, y, this.buildings)[0];
+    const hit = this.sm.pick(x, y, this.premiumRing ? [...this.buildings, this.premiumRing] : this.buildings)[0];
     if (!hit) return null;
     let o = hit.object;
     while (o && !o.userData.bid) o = o.parent;
