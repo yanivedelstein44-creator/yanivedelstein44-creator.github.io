@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.3.14",
-  "build": "1.3.14-1794388819875",
-  "buildTime": 1794388819875,
-  "date": "2026-11-11T09:20:19.875Z",
+  "version": "1.3.15",
+  "build": "1.3.15-1794393404642",
+  "buildTime": 1794393404642,
+  "date": "2026-11-11T10:36:44.642Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.3.14-1794388819875.zip",
-  "checksum": "d87de322253d0af7509a2d1fb28c4f6f611ceb818ecdf411d307caa9db119d38",
+  "bundle": "update/bundle-1.3.15-1794393404642.zip",
+  "checksum": "d23d751cc561eef4c7a01c04c3c771dd115c99975b794cd9be13b8659d40021b",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "New Gift House on the Central Island, a giant gift box that bounces with a ! when a daily gift is waiting and opens the daily gifts. On the world map, double-tap an island to fly straight into it"
+  "notes": "Islands now sit on the sea (waves, beaches, ice, lava, night sea, seabed); 12 flying pets in the new Sky Nest (free every 10 islands, 3 premium) with a flyer circling the city; daily gift bubble above the Gift House (lucky wheel removed)"
 }
