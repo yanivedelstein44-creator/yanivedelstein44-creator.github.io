@@ -88,6 +88,12 @@ export class GameApp {
     // חיים ברקע: דמויות, כלי טיס, אפקטים וצלילי אווירה לפי העידן המוצג
     this.life = new ArenaLife(this.sm, this.fx, this.sound);
     this.life.extraObstacles = () => (this.atHub && this.museum ? this.museum.obstacleBoxes() : []);
+    // פעם ראשונה שמתרחקים מהלוח: הסבר קצר איך חוזרים למשחק
+    this.sm.controls.addEventListener('end', () => {
+      if (this.store.get('seenZoomHint') || this.map.isOpen || !this.sm.isFarFromGameplay()) return;
+      this.store.set({ seenZoomHint: true });
+      this.ui.toast(t('zoomBackHint'), { icon: 'target', duration: 3600 });
+    });
     this.kingdom.onEraReady = (eraId, built) => this.life.setEra(eraId, built, this.kingdom);
     this.kingdom.onEraLeave = () => this.life.leave();
     this.kingdom.onEraHidden = () => this.life.clear();
@@ -584,6 +590,8 @@ export class GameApp {
     if (bld?.startsWith('shop_')) { this.sound.ui(); this.openShop('wardrobe', bld.slice(5), true); return; }
     if (bld === 'museum') { this.sound.ui(); M.openAlbum(this); return; }
     if (this.sm.overviewOn) { if (this.board.hitsBoard(x, y)) { this.sound.ui(); this.sm.toGameplay(1.1, this.viewSide()); } return; }
+    // בכל אי: מורחקים מהלוח (צביטה / סיבוב) — נגיעה בלוח רק מחזירה אותו לגודל הכי טוב לשחק, בלי לבחור כלי בטעות
+    if (this.sm.isFarFromGameplay() && this.board.hitsBoard(x, y)) { this.sound.ui(); this.deselect(); this.sm.toGameplay(0.9, this.viewSide()); return; }
     const sq = this.board.pickSquare(x, y, this.preferredSquares());
     if (!sq) { if (this.selected) this.deselect(); return; }
     this.onSquare(sq);

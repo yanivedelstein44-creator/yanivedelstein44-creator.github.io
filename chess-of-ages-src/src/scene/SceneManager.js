@@ -338,6 +338,24 @@ export class SceneManager {
     this.controls.maxDistance = Math.max(this.controls.maxDistance, this.zoomOutRadius());
   }
 
+  /**
+   * המצלמה רחוקה ממבט המשחק (אחרי צביטה החוצה/פנימה, סיבוב גדול או הזזה הרחק מהלוח) —
+   * אז נגיעה בלוח רק מחזירה אותו לגודל הכי טוב לשחק
+   */
+  isFarFromGameplay() {
+    if (!this.freeLook || this.panoramaOn || this.animatingCamera) return false;
+    const t = this.controls.target, r = this.view.radius;
+    const off = this._farOff || (this._farOff = new V3());
+    off.copy(this.camera.position).sub(t);
+    const d = off.length();
+    if (d > r * 1.3 || d < r * 0.7) return true;
+    if (Math.hypot(t.x - this.view.target.x, t.z - this.view.target.z) > 3.5) return true;
+    let da = Math.atan2(off.x, off.z) - this.view.azimuth;
+    while (da > Math.PI) da -= TAU;
+    while (da < -Math.PI) da += TAU;
+    return Math.abs(da) > 0.6;
+  }
+
   /** המרחק שממנו רואים את כל האי (בערך כמו מבט־העל) */
   zoomOutRadius() {
     try { return this.overviewFrame(this.view.azimuth).radius * 1.15; } catch { return this.view.radius * 2.6; }
