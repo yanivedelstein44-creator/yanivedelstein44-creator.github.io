@@ -99,10 +99,13 @@ class PairLauncher(private val svc: PilotService) {
                     prefs.splitMethod = ""
                 }
             }
+            if (!ok && gen == generation && prefs.apiKey.isNotBlank()) {
+                ok = viaAssistant(pair, gen)
+            }
             RecentsUi.debugDump(svc, "result ok=$ok")
             if (gen != generation) return false to "בוטל"
             if (!ok) {
-                return false to "לא הצלחתי לפתוח מסך מפוצל. אפשר לנסות שוב, או להפעיל 'מצב איטי' בהגדרות DuoPilot."
+                return false to "לא הצלחתי לפתוח מסך מפוצל. אפשר לנסות שוב, להפעיל 'מצב איטי', או ידנית: אחרונות ← האייקון של האפליקציה ← מסך מפוצל."
             }
             ensureOrder(pair)
             Bg.sleep(ms(500))
@@ -156,6 +159,15 @@ class PairLauncher(private val svc: PilotService) {
     }
 
     private fun recentsOnce(pair: AppPair, gen: Int, attempt: Int): Boolean {
+        svc.overlays.hideForCapture(true)
+        try {
+            return recentsSteps(pair, gen, attempt)
+        } finally {
+            svc.overlays.hideForCapture(false)
+        }
+    }
+
+    private fun recentsSteps(pair: AppPair, gen: Int, attempt: Int): Boolean {
         val topLabel = label(pair.top)
         val bottomLabel = label(pair.bottom)
         // שתיהן צריכות להיות ב"אחרונות": קודם התחתונה, ואז העליונה (כדי שהיא תהיה הכרטיס הנוכחי)
@@ -214,6 +226,35 @@ class PairLauncher(private val svc: PilotService) {
         RecentsUi.click(svc, second)
         val ok = waitFor(ms(6000)) { svc.isSplitActive() && svc.bothVisible(pair) }
         RecentsUi.debugDump(svc, "[$attempt] after choosing second ok=$ok")
+        return ok
+    }
+
+    /**
+     * שיטה ג (רק אם יש מפתח API): העוזר הקולי מסתכל על המסך ומסיים את הפיצול בעצמו –
+     * עובד גם כשמסך האחרונות בטלפון נראה אחרת ממה שהשיטות הקבועות מכירות.
+     */
+    private fun viaAssistant(pair: AppPair, gen: Int): Boolean {
+        val topLabel = label(pair.top)
+        val bottomLabel = label(pair.bottom)
+        Launch.open(svc, pair.bottom)
+        waitFor(ms(4500)) { svc.isShowing(pair.bottom) }
+        Bg.sleep(ms(600))
+        Launch.open(svc, pair.top)
+        waitFor(ms(4500)) { svc.isShowing(pair.top) }
+        Bg.sleep(ms(600))
+        svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME)
+        Bg.sleep(ms(700))
+        svc.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
+        Bg.sleep(ms(1200))
+        if (gen != generation) return false
+        val command = "Set up split screen: \"$topLabel\" in the TOP half and \"$bottomLabel\" in the BOTTOM half. " +
+            "You are on the Recent apps screen. Tap the small app icon at the top of the \"$topLabel\" card (not the card itself), " +
+            "choose the split-screen option in the menu, then tap the \"$bottomLabel\" card. " +
+            "If a card is not visible, scroll the recent apps sideways. When both apps are on screen, call finish."
+        val session = com.yaniv.duopilot.agent.AgentSession(svc, command, com.yaniv.duopilot.agent.Source.PHONE, com.yaniv.duopilot.agent.SilentUi(svc), splitSetup = true)
+        session.run()
+        val ok = waitFor(ms(4000)) { svc.isSplitActive() && svc.bothVisible(pair) }
+        RecentsUi.debugDump(svc, "assistant fallback ok=$ok")
         return ok
     }
 

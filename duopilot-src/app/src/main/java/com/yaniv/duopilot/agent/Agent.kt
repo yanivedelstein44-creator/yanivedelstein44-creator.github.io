@@ -51,6 +51,8 @@ class AgentSession(
     val command: String,
     val source: Source,
     val ui: SessionUi,
+    /** משימה פנימית של פתיחת מסך מפוצל – בלי open_pair/open_app (אחרת זה יחזור על עצמו) */
+    val splitSetup: Boolean = false,
 ) {
     @Volatile
     var cancelled = false
@@ -70,7 +72,7 @@ class AgentSession(
             ui.finish("צריך להכניס מפתח Claude API באפליקציה DuoPilot, ואז לנסות שוב.")
             return
         }
-        val maxSteps = prefs.maxSteps.coerceIn(3, 30)
+        val maxSteps = if (splitSetup) 8 else prefs.maxSteps.coerceIn(3, 30)
         try {
             for (step in 1..maxSteps) {
                 if (cancelled) return
@@ -174,6 +176,14 @@ class PhoneUi(private val svc: PilotService) : SessionUi {
         svc.voice.speak(text, prefs.language) { latch.countDown() }
         latch.await(20, TimeUnit.SECONDS)
     }
+}
+
+/** בלי קול ובלי שאלות – למשימות פנימיות (כמו השלמת מסך מפוצל) */
+class SilentUi(private val svc: PilotService) : SessionUi {
+    override fun status(text: String) = svc.overlays.setStatus("🪟 $text")
+    override fun say(text: String) {}
+    override fun ask(question: String, timeoutMs: Long): String? = null
+    override fun finish(text: String) {}
 }
 
 class CarUi(private val svc: PilotService) : SessionUi {
@@ -297,6 +307,9 @@ object Tools {
     fun execute(svc: PilotService, s: AgentSession, call: ToolCall, screen: ScreenState): ToolOutcome {
         val inp = call.input
         fun element(): Element? = if (inp.has("element_id")) screen.byId(inp.optInt("element_id", -1)) else null
+        if (s.splitSetup && call.name in setOf("open_pair", "open_app", "hand_off", "navigate", "open_url", "web_search", "ask_user")) {
+            return ToolOutcome("error: not allowed in this task – use tap, tap_point, scroll, wait or finish")
+        }
         return when (call.name) {
             "tap" -> {
                 val e = element() ?: return ToolOutcome("error: no element with that id on the current screen")
