@@ -1,7 +1,8 @@
 /**
  * מוזיאון הזמן — האי המרכזי.
- * - בית הקולנוע המרכזי (נוגעים בו → סרט הסיפור / סרט ההדרכה) והחנות הכללית (חיות, בוטים, לוחות, פרימיום).
+ * - בית הקולנוע המרכזי (נוגעים בו → סרט הסיפור / סרט ההדרכה) ובית הלוחות (סקינים ללוח).
  * - ארבע חנויות לבוש מקיפות את הלוח, כל אחת בעיצוב משלה: בית הכתרים, אוהל הגלימות, נפחיית הנשקים ומקדש ההילות.
+ *   (חיות, בוטים ופרימיום — בכפתור החנות שבסרגל התחתון)
  * - האי מתחיל קטן ומתרחב: כל אי שנכבש שולח אריח אדמה גדול ממנו — קרקע באקלים שלו, המונומנט שלו
  *   על כן אבן ומעט צמחייה — שעף מעבר לים ונצמד לחוף. האריחים מסודרים בטבעות (קודם בחזית האי),
  *   כך שהאי גדל טבעת אחרי טבעת: מ-17 יחידות רדיוס עד יותר מפי 3 (כל אריח מרחיב את החוף בכ-40%).
@@ -137,19 +138,6 @@ function museumGeometry() {
   b.cone(0.22, 0.32, C.gold, [0, 7.0, -0.6], 8, [Math.PI, 0, 0]).cone(0.22, 0.32, C.gold, [0, 7.3, -0.6], 8).sph(0.07, C.flame, [0, 7.15, -0.6], undefined, 6, true);
   // לפידים בכניסה
   [-3.0, 3.0].forEach((x) => b.cyl(0.07, 0.09, 1.2, C.iron, [x, 0.9, 1.55], 8).sph(0.13, C.flame, [x, 1.6, 1.55], undefined, 8, true));
-  return b.build();
-}
-
-function shopGeometry() {
-  const b = new Builder();
-  b.box(3.8, 0.25, 3.0, C.lstone, [0, 0.12, 0.1]);
-  b.box(3.2, 1.7, 2.2, C.wood, [0, 1.1, -0.3]).prism(3.5, 1.0, 2.5, C.red, [0, 1.95, -0.3]);
-  b.box(3.0, 0.95, 0.55, C.dwood, [0, 0.72, 1.0]).box(3.1, 0.08, 0.65, C.gold, [0, 1.22, 1.0]);
-  for (let i = 0; i < 7; i++) b.box(0.46, 0.05, 1.3, i % 2 ? C.white : C.red, [-1.38 + i * 0.46, 2.15, 1.05], [0.38, 0, 0]);
-  [-1.45, 1.45].forEach((x) => b.cyl(0.06, 0.06, 2.0, C.dwood, [x, 1.15, 1.65], 6));
-  b.cyl(0.05, 0.05, 0.9, C.gold, [0, 3.2, -0.3], 6).oct(0.48, C.cyan, [0, 3.95, -0.3], [1, 1.35, 1], true).tor(0.62, 0.05, C.gold, [0, 3.95, -0.3], [Math.PI / 2, 0, 0]);
-  b.box(0.3, 0.3, 0.3, C.gold, [-0.9, 1.42, 1.0]).sph(0.16, C.pink, [-0.4, 1.42, 1.0]).oct(0.15, C.violet, [0.2, 1.45, 1.0], [1, 1.3, 1], true).box(0.35, 0.25, 0.25, C.blue, [0.85, 1.38, 1.0]);
-  b.box(0.6, 0.5, 0.6, C.wood, [1.6, 0.5, 1.5]).box(0.5, 0.4, 0.5, C.wood, [-1.65, 0.45, 1.6]);
   return b.build();
 }
 
@@ -333,6 +321,49 @@ function auraSanctumGeometry() {
   };
 }
 
+/** בית הלוחות: גלריית שיש עם גג־לוח שחמט, מלך לבן ענק שמסתובב ומלכה שחורה; בחלונות ובכניסה לוחות לדוגמה */
+function boardHouseGeometry() {
+  const b = new Builder();
+  b.box(4.2, 0.24, 3.4, C.lstone, [0, 0.12, 0.1]).box(3.9, 0.12, 3.1, C.marble, [0, 0.3, 0.05]).box(1.5, 0.12, 0.5, C.marble, [0, 0.06, 1.95]);
+  // גוף הגלריה: שיש לבן עם עמודים וכותרות זהב
+  b.box(3.4, 2.2, 2.4, C.marble, [0, 1.46, -0.35]);
+  for (const x of [-1.62, -0.78, 0.78, 1.62]) b.box(0.22, 2.2, 0.16, C.cream, [x, 1.46, 0.88]).box(0.3, 0.12, 0.22, C.gold, [x, 2.5, 0.9]).box(0.3, 0.12, 0.22, C.gold, [x, 0.42, 0.9]);
+  // כניסה מקושתת
+  b.box(0.86, 1.25, 0.06, C.dark, [0, 0.98, 0.86]).cyl(0.43, 0.43, 0.06, C.dark, [0, 1.6, 0.86], 14, [Math.PI / 2, 0, 0]);
+  b.tor(0.46, 0.05, C.gold, [0, 1.6, 0.9], undefined, Math.PI);
+  // לוח 4×4 (במישור החזית או נטוי לאחור על כן)
+  const mini = (cx, cy, cz, c1, c2, tilt = 0, s = 0.14) => {
+    const up = [Math.cos(tilt), -Math.sin(tilt)], nrm = [Math.sin(tilt), Math.cos(tilt)];
+    b.box(s * 4 + 0.1, s * 4 + 0.1, 0.03, C.gold, [cx, cy, cz], [-tilt, 0, 0]);
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      const u = (i - 1.5) * s, v = (j - 1.5) * s;
+      b.box(s, s, 0.03, (i + j) % 2 ? c2 : c1, [cx + u, cy + v * up[0] + 0.025 * nrm[0], cz + v * up[1] + 0.025 * nrm[1]], [-tilt, 0, 0]);
+    }
+  };
+  mini(-1.2, 1.5, 0.87, 0xf2f0ea, 0x1f7a5a); // שיש אמרלד
+  mini(1.2, 1.5, 0.87, 0xdfe6f2, 0x1d3a8a); // ספיר מלכותי
+  // לוחות לדוגמה על כנים ליד הכניסה
+  for (const [x, c1, c2] of [[-1.55, 0xf6e6c8, 0x9a1428], [1.55, 0x2a2630, 0xd8a83a]]) {
+    b.box(0.08, 0.75, 0.08, C.dwood, [x, 0.66, 1.62]).box(0.5, 0.05, 0.3, C.dwood, [x, 0.66, 1.66]);
+    mini(x, 0.98, 1.58, c1, c2, 0.38, 0.13);
+  }
+  // הגג: לוח שחמט 8×8 בתוך מסגרת זהב, ועליו מלכה שחורה
+  b.box(3.7, 0.16, 2.8, C.gold, [0, 2.64, -0.35]);
+  for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) b.box(0.3, 0.04, 0.3, (i + j) % 2 ? C.dwood : C.cream, [-1.05 + i * 0.3, 2.74, -1.4 + j * 0.3]);
+  const qx = 0.6, qz = -0.85, y0 = 2.76;
+  b.cyl(0.36, 0.42, 0.16, C.black, [qx, y0 + 0.08, qz], 16).cyl(0.17, 0.3, 0.9, C.black, [qx, y0 + 0.61, qz], 14).cyl(0.29, 0.21, 0.12, C.black, [qx, y0 + 1.12, qz], 14);
+  b.cyl(0.26, 0.15, 0.32, C.black, [qx, y0 + 1.34, qz], 14).tor(0.24, 0.035, C.gold, [qx, y0 + 1.5, qz], [Math.PI / 2, 0, 0], TAU, false, 20);
+  for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; b.sph(0.05, C.gold, [qx + Math.sin(a) * 0.23, y0 + 1.56, qz + Math.cos(a) * 0.23], undefined, 6); }
+  b.sph(0.1, C.gold, [qx, y0 + 1.66, qz]);
+  // מלך לבן ענק שמסתובב לאט
+  const king = new Builder();
+  king.cyl(0.4, 0.46, 0.16, C.marble, [0, 0.08, 0], 16).tor(0.36, 0.05, C.gold, [0, 0.18, 0], [Math.PI / 2, 0, 0], TAU, false, 20);
+  king.cyl(0.2, 0.33, 0.95, C.marble, [0, 0.7, 0], 14).cyl(0.31, 0.24, 0.12, C.marble, [0, 1.22, 0], 14).tor(0.27, 0.04, C.gold, [0, 1.28, 0], [Math.PI / 2, 0, 0], TAU, false, 20);
+  king.cyl(0.25, 0.17, 0.34, C.marble, [0, 1.47, 0], 14).cyl(0.27, 0.27, 0.06, C.gold, [0, 1.66, 0], 14);
+  king.box(0.08, 0.36, 0.08, C.gold, [0, 1.88, 0]).box(0.24, 0.08, 0.08, C.gold, [0, 1.92, 0]);
+  return { ...b.build(), parts: [{ ...king.build(), pos: [-0.5, y0, -0.4], tick: (o, tt) => { o.rotation.y = tt * 0.5; } }] };
+}
+
 /**
  * ארבע החנויות סביב הלוח (שתיים מכל צד, פונות אל הלוח ואל המצלמה): כל אחת פותחת את החנות של
  * הקטגוריה שלה. r — רדיוס טביעת הרגל (לתושבים המטיילים).
@@ -444,7 +475,10 @@ export class HubMuseum {
       return g;
     };
     this.cinema = mk(cinemaGeometry(), [-6.6, 0, -11.6], 'cinema', 'cinema', 'play', 'CINEMA', { labelY: 7.3 });
-    this.shop = mk(shopGeometry(), [6.6, 0, -11.6], 'shop', 'shop', 'gem', 'SHOP');
+    // בית הלוחות — במקום החנות הכללית (שהתפצלה לחנויות לפי קטגוריה)
+    this.boardHouse = mk(boardHouseGeometry(), [6.6, 0, -11.6], 'shop_boards', 'shopBoards', 'checker', 'BOARDS', {
+      labelY: 5.55, signAt: [0, 2.31, 0.92], signSize: [1.3, 0.36], style: { bg: '#15151c', fg: '#f6f0e2' },
+    });
     this.museumHall = mk(museumGeometry(), [0, 0, -13.4], 'museum', 'museum', 'temple', 'TIME MUSEUM', { labelY: 8.6, yaw: 0, signAt: [0, 3.71, 1.47], signSize: [2.6 * 1.9, 0.62 * 0.62] });
     this.museumHall.userData.label.position.z = 0;
     // ארבע חנויות הלבוש מקיפות את הלוח
@@ -717,7 +751,7 @@ export class HubMuseum {
     for (const a of this.anims) a.tick(a.o, tt, dt, a.y0);
   }
 
-  /** נגיעה בבניין: 'cinema' / 'shop' / 'museum' / 'shop_head' / 'shop_armor' / 'shop_weapon' / 'shop_aura' / null */
+  /** נגיעה בבניין: 'cinema' / 'museum' / 'shop_head' / 'shop_armor' / 'shop_weapon' / 'shop_aura' / 'shop_boards' / null */
   pick(x, y) {
     if (!this.active) return null;
     const hit = this.sm.pick(x, y, this.buildings)[0];

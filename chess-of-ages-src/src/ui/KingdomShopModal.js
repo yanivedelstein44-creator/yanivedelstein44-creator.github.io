@@ -22,7 +22,8 @@ const AURA_ICON = { aura_none: 'noAura', aura_golden_sparks: 'sparkle', aura_fir
 const SLOT_ICON = { head: 'crown', armor: 'shirt', weapon: 'swords', aura: 'sparkle' };
 const SLOT_SHORT = { head: ['כתרים', 'Crowns'], armor: ['גלימות', 'Armor'], weapon: ['נשקים', 'Weapons'], aura: ['הילות', 'Auras'] };
 // חנויות הלבוש שסביב הלוח באי המרכזי: כל מבנה פותח חנות של קטגוריה אחת
-const SLOT_SHOP_TITLE = { head: ['בית הכתרים', 'Crown House'], armor: ['אוהל הגלימות', 'Robe Pavilion'], weapon: ['נפחיית הנשקים', 'Weapon Forge'], aura: ['מקדש ההילות', 'Aura Sanctum'] };
+const SINGLE_TITLE = { head: ['בית הכתרים', 'Crown House'], armor: ['אוהל הגלימות', 'Robe Pavilion'], weapon: ['נפחיית הנשקים', 'Weapon Forge'], aura: ['מקדש ההילות', 'Aura Sanctum'], boards: ['בית הלוחות', 'Board House'] };
+const SINGLE_ICON = { ...SLOT_ICON, boards: 'checker' };
 
 // תמונות תצוגה של סקינים — נבנות בהדרגה (כדי לא לתקוע את הממשק) ונשמרות לכל ההפעלה
 const SKIN_PREVIEWS = new Map();
@@ -113,24 +114,27 @@ const FOCUS = {
   pets: [[1.15, 1.0, -0.1], 3.0, 0.3],
 };
 
-/** החנות. slot — חנות של קטגוריית לבוש אחת בלבד (בלי לשוניות), כשנכנסים מאחת החנויות שסביב הלוח */
-export function openKingdomShop(app, { tab = 'wardrobe', slot: only = null } = {}) {
+/**
+ * החנות. single — חנות של קטגוריה אחת בלבד (בלי לשוניות), כשנכנסים מאחד המבנים שבאי המרכזי:
+ * קטגוריית לבוש לפי slot, או הלוחות (tab: 'boards')
+ */
+export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, single: solo = false } = {}) {
   const { economy, ui, sound } = app;
   const maxEra = app.progression.maxEraReached();
   let preview = { ...economy.loadout };
   let previewPet = economy.pet;
-  const single = only && WEARABLES[only] ? only : null;
-  let curTab = !single && ['pets', 'bots', 'boards', 'premium'].includes(tab) ? tab : 'wardrobe';
+  const single = !solo ? null : tab === 'boards' ? 'boards' : WEARABLES[wantSlot] ? wantSlot : null;
+  let curTab = single === 'boards' ? 'boards' : single ? 'wardrobe' : ['pets', 'bots', 'boards', 'premium'].includes(tab) ? tab : 'wardrobe';
   let previewBot = null;
-  let slot = single || 'head';
-  const title = single ? tn(...SLOT_SHOP_TITLE[single]) : t('shopTitle');
+  let slot = WEARABLES[wantSlot] ? wantSlot : 'head';
+  const title = single ? tn(...SINGLE_TITLE[single]) : t('shopTitle');
 
   const canvas = h('canvas', { role: 'img', 'aria-label': t('previewLabel') });
   const stageBox = h('div', { class: 'shop-stage' }, canvas, h('div', { class: 'stage-hint', 'aria-hidden': 'true' }, icon('chevron', { size: 12, cls: 'flip' }), t('dragRotate'), icon('chevron', { size: 12 })));
   const gemsEl = h('b', {}, formatGems(economy.gems));
   const giftBadge = h('span', { class: 'badge-dot', hidden: !economy.hasDailyBadge() }, '!');
   const head = h('div', { class: 'shop-head' },
-    h('h2', {}, icon(single ? SLOT_ICON[single] : 'chest', { size: 26 }), h('span', {}, title)),
+    h('h2', {}, icon(single ? SINGLE_ICON[single] : 'chest', { size: 26 }), h('span', {}, title)),
     h('div', { class: 'head-right' },
       h('button', { class: 'icon-btn round tap gift', 'aria-label': t('dailyGift'), onclick: () => app.openDaily() }, icon('gift', { size: 24 }), giftBadge),
       h('div', { class: 'gems-pill', 'aria-label': t('gems') }, icon('gem', { size: 20 }), gemsEl)));
@@ -337,7 +341,7 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: only = null } = {
       box, h('span', { class: 'region-tag' }, `${t('island')} ${id}`), h('b', { class: 'nm' }, name), h('div', { class: 'card-foot' }, foot));
   }
 
-  focus(curTab === 'pets' ? 'pets' : curTab === 'bots' ? 'all' : slot);
+  focus(curTab === 'pets' ? 'pets' : curTab === 'bots' || single === 'boards' ? 'all' : slot);
   render();
   return m;
 }

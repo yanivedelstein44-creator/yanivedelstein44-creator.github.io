@@ -580,8 +580,8 @@ export class GameApp {
     // באי המרכזי: נגיעה בבית הקולנוע, בחנות הכללית או באחת מחנויות הלבוש שסביב הלוח
     const bld = this.atHub && !this.busy ? this.museum.pick(x, y) : null;
     if (bld === 'cinema') { this.sound.ui(); this.openCinema(); return; }
-    if (bld === 'shop') { this.sound.ui(); this.openShop('pets'); return; }
-    if (bld?.startsWith('shop_')) { this.sound.ui(); this.openShop('wardrobe', bld.slice(5)); return; }
+    if (bld === 'shop_boards') { this.sound.ui(); this.openShop('boards', null, true); return; }
+    if (bld?.startsWith('shop_')) { this.sound.ui(); this.openShop('wardrobe', bld.slice(5), true); return; }
     if (bld === 'museum') { this.sound.ui(); M.openAlbum(this); return; }
     if (this.sm.overviewOn) { if (this.board.hitsBoard(x, y)) { this.sound.ui(); this.sm.toGameplay(1.1, this.viewSide()); } return; }
     const sq = this.board.pickSquare(x, y, this.preferredSquares());
@@ -1343,9 +1343,10 @@ export class GameApp {
   }
 
   /** החנות נמצאת באי המרכזי */
-  openShop(tab = 'wardrobe', slot = null) {
+  /** single — חנות של קטגוריה אחת (מהמבנים שבאי המרכזי): קטגוריית לבוש (slot) או הלוחות */
+  openShop(tab = 'wardrobe', slot = null, single = false) {
     if (!this.atHub) { this.ui.toast(t('shopAtHub'), { icon: 'home' }); return; }
-    openKingdomShop(this, { tab, slot });
+    openKingdomShop(this, { tab, slot, single });
   }
   openDaily() { openDailyRewards(this); }
   /** בית הקולנוע באי המרכזי: הסיפור / איך משחקים */
