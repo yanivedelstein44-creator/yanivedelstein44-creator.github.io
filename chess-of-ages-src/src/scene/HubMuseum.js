@@ -21,7 +21,7 @@ import { GROUND } from '../config/IslandEras.js';
 import { islandPos } from './WorldMap.js';
 import { PlayerAvatar3D } from './PlayerAvatar3D.js';
 import { buildPetRig, tickRig } from './PetCompanion3D.js';
-import { PETS, SKY_PET_IDS } from '../config/Pets.js';
+import { PETS, SKY_PET_IDS, isFlyer } from '../config/Pets.js';
 import { drawIcon } from '../ui/icons.js';
 import { t } from '../ui/i18n.js';
 
@@ -915,7 +915,7 @@ export class HubMuseum {
       this.group.add(g);
       this.dragon = { rig, g };
     }
-    if (this.dragon) this.dragon.g.visible = own;
+    if (this.dragon) this.dragon.g.visible = own && this.app.economy.pet !== 'clockwork_dragon';
   }
 
   updateDragon(dt, tt) {
@@ -929,11 +929,12 @@ export class HubMuseum {
 
   // ---------- החיה המעופפת שחגה מעל העיר — נגיעה בה פותחת את קן השמיים ----------
   /**
-   * איזו חיה חגה: החיה המעופפת האחרונה שקיבלת (חוץ מזו שמלווה אותך ליד הלוח),
-   * ואם עוד אין — הבאה בתור בקן השמיים (כפרסומת קטנה: "כבוש 10 איים וקבל אותי")
+   * איזו חיה חגה: החיה המעופפת שמלווה אותך (אם המולבשת עפה — היא חגה מעל העיר ולא יושבת ליד הלוח);
+   * אחרת החיה המעופפת האחרונה שקיבלת, ואם עוד אין — הבאה בתור בקן השמיים (כפרסומת קטנה: "כבוש 10 איים וקבל אותי")
    */
   skyShowcase() {
     const e = this.app.economy, own = e.s.pets || [];
+    if (isFlyer(e.pet)) return e.pet;
     const mine = SKY_PET_IDS.filter((id) => own.includes(id) && id !== e.pet);
     if (mine.length) return mine[mine.length - 1];
     return SKY_PET_IDS.find((id) => !own.includes(id) && id !== e.pet) || SKY_PET_IDS.find((id) => id !== e.pet);
@@ -941,10 +942,17 @@ export class HubMuseum {
 
   syncSkyPet() {
     const id = this.skyShowcase();
-    if (this.sky?.id === id) return;
+    const e = this.app.economy;
+    const mine = id === e.pet;
+    const stage = mine || (e.s.pets || []).includes(id) ? e.petStage(id) : 2; // חיה שלך — בשלב הגדילה שלה
+    const hue = mine ? e.petHue || 0 : 0;
+    const key = `${id}|${stage}|${hue}`;
+    // דרקון השעונים מרחף ממילא מעל העיר — כשהוא המולבש, הוא זה שחג בשמינייה
+    if (this.dragon) this.dragon.g.visible = (e.s.pets || []).includes('clockwork_dragon') && id !== 'clockwork_dragon';
+    if (this.sky?.key === key) return;
     const old = this.sky;
     if (old) { this.group.remove(old.g, old.label); old.label.material.map.dispose(); old.label.material.dispose(); }
-    const rig = buildPetRig(id);
+    const rig = buildPetRig(id, { stage, hue });
     rig.root.scale.setScalar(SKY_SCALE);
     const g = new THREE.Group();
     g.rotation.order = 'YXZ'; // כיוון → עלרוד → הטיה
@@ -956,7 +964,7 @@ export class HubMuseum {
     label.scale.multiplyScalar(0.72);
     label.userData.bid = 'shop_sky';
     this.group.add(g, label);
-    this.sky = { id, rig, g, body, label, u: old?.u ?? Math.random() * TAU, side: old?.side ?? this.viewSign(), prev: new V3(), vel: new V3(), yaw: old?.yaw ?? 0, pitch: 0, roll: 0, flapPh: 0, flapAmp: 0.5, sweep: 0, k: null, dipOn: false, loopT: -1, started: false };
+    this.sky = { id, key, rig, g, body, label, u: old?.u ?? Math.random() * TAU, side: old?.side ?? this.viewSign(), prev: new V3(), vel: new V3(), yaw: old?.yaw ?? 0, pitch: 0, roll: 0, flapPh: 0, flapAmp: 0.5, sweep: 0, k: null, dipOn: false, loopT: -1, started: false };
   }
 
   /** 1 כשמשחקים מצד הלבן (המצלמה בדרום), ‎-1 מצד השחור — החיה חגה תמיד מאחורי הלוח, לא בינו לבין המצלמה */

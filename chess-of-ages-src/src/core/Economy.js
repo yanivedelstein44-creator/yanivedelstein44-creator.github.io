@@ -1,10 +1,10 @@
 /**
- * כלכלת היהלומים: יתרה, בעלות על פריטים וחיות, ניסיונות זמניים, שברי פריטים, פרס כניסה יומי וגלגל המזל.
+ * כלכלת היהלומים: יתרה, בעלות על פריטים וחיות, ניסיון החיות (גור → בוגר → אגדי), ניסיונות זמניים, שברי פריטים ומתנה יומית.
  * יהלומים מרוויחים רק במשחק. הרכישה היחידה בכסף אמיתי: פתיחת המשחק המלא (hook מוכן ל-Google Play Billing).
  */
 import {
   ECONOMY, FULL_GAME, EXPANSION, GEM_BOOST, BOARD_SKINS, findSkin, ALL_WEARABLES, findWearable, DEFAULT_LOADOUT,
-  DAILY_STREAK, ROYAL_CHEST, WHEEL_SEGMENTS, DUPLICATE_ITEM_GEMS, DUPLICATE_FRAGMENT_GEMS,
+  DAILY_STREAK, ROYAL_CHEST, WHEEL_SEGMENTS, DUPLICATE_ITEM_GEMS, DUPLICATE_FRAGMENT_GEMS, PET_GROWTH,
 } from '../config/EconomyConfig.js';
 import { PETS, PREMIUM_PET_IDS, SKY_PET_IDS } from '../config/Pets.js';
 import { ERAS } from '../config/Eras.js';
@@ -52,9 +52,13 @@ export class Economy {
       purchases: [],
       sandbox: ECONOMY.sandboxTestMode,
       welcomed: false,
+      petXp: {}, // ניסיון לכל חיה (חיות שגדלות)
+      petXpBase: 0, // ניסיון של חיה בלי רישום: שחקן חדש — גור
     };
     const saved = readJSON(ECONOMY.storageKey, null);
     this.s = saved ? { ...fresh, ...saved, equipped: { ...fresh.equipped, ...(saved.equipped || {}) } } : fresh;
+    // שחקן מלפני "חיות שגדלות": כל החיות שכבר יש לו נשארות בוגרות (לא מתכווצות פתאום)
+    if (saved && saved.petXp == null) { this.s.petXp = {}; this.s.petXpBase = PET_GROWTH.adult; }
     this.login = readJSON(ECONOMY.lastLoginKey, { lastClaimDay: null, streak: 0 });
     this.listeners = new Set();
     this.expireTrials();
@@ -65,7 +69,7 @@ export class Economy {
 
   // ---------- איי הפרימיום, בוסט וסקינים ----------
   grantExpansionPerks() {
-    if (!this.s.pets.includes(EXPANSION.pet)) this.s.pets = [...this.s.pets, EXPANSION.pet];
+    if (!this.s.pets.includes(EXPANSION.pet)) { this.s.pets = [...this.s.pets, EXPANSION.pet]; this.startPet(EXPANSION.pet, true); }
     this.s.expansionGranted = true;
   }
   boostLeftMs() { return Math.max(0, (this.s.boostUntil || 0) - Date.now()); }
@@ -131,6 +135,7 @@ export class Economy {
     const fresh = SKY_PET_IDS.filter((id) => PETS[id].earn && conqueredCount >= PETS[id].earn && !this.s.pets.includes(id));
     if (!fresh.length) return [];
     this.s.pets = [...this.s.pets, ...fresh];
+    fresh.forEach((id) => this.startPet(id));
     this.save();
     this.emit({ type: 'skyPets', ids: fresh });
     return fresh;
@@ -144,6 +149,7 @@ export class Economy {
     const r = await this.realPurchase(product, confirmSandbox);
     if (!r.ok) return r;
     this.s.pets = [...this.s.pets, id];
+    this.startPet(id, true);
     this.logPurchase(product, r.tx);
     this.save();
     this.emit({ type: 'buy', id: p.product });
@@ -292,10 +298,37 @@ export class Economy {
     if (this.s.pets.includes(id)) return { ok: false, reason: tn('כבר בבעלותך', 'Already owned') };
     if (!this.spend(p.price)) return { ok: false, reason: tn('אין מספיק יהלומים', 'Not enough gems'), needGems: p.price - this.s.gems };
     this.s.pets.push(id);
+    this.startPet(id);
     delete this.s.trials[id];
     this.save();
     this.emit({ type: 'buy', id });
     return { ok: true };
+  }
+
+  // ---------- חיות שגדלות: גור → בוגר → אגדי ----------
+  petXp(id) { return this.s.petXp?.[id] ?? this.s.petXpBase ?? 0; }
+  /** 1 = גור, 2 = בוגר, 3 = אגדי */
+  petStage(id) { const x = this.petXp(id); return x >= PET_GROWTH.legend ? 3 : x >= PET_GROWTH.adult ? 2 : 1; }
+  /** התקדמות בתוך השלב: { stage, have, need } (באגדי — need = 0) */
+  petProgress(id) {
+    const x = this.petXp(id), st = this.petStage(id);
+    if (st === 3) return { stage: 3, have: x, need: 0, pct: 1 };
+    const lo = st === 2 ? PET_GROWTH.adult : 0, hi = st === 2 ? PET_GROWTH.legend : PET_GROWTH.adult;
+    return { stage: st, have: x, need: hi, pct: (x - lo) / (hi - lo) };
+  }
+  /** חיה חדשה מתחילה כגור (חיות בכסף אמיתי מגיעות בוגרות) */
+  startPet(id, adult = false) {
+    if (this.s.petXp?.[id] == null) this.s.petXp = { ...this.s.petXp, [id]: adult ? PET_GROWTH.adult : 0 };
+  }
+  /** ניסיון לחיה אחרי קרב; מחזיר מה השתנה (לסיכום ולחגיגת ההתפתחות) */
+  addPetXp(id, n) {
+    if (!id || !PETS[id] || !(n > 0)) return null;
+    const before = this.petXp(id), stageBefore = this.petStage(id);
+    this.s.petXp = { ...this.s.petXp, [id]: before + n };
+    const stageAfter = this.petStage(id);
+    this.save();
+    this.emit({ type: 'petXp', id, stage: stageAfter, evolved: stageAfter > stageBefore });
+    return { id, gained: n, before, after: before + n, stageBefore, stageAfter };
   }
 
   // ---------- רכישה בכסף אמיתי: המשחק המלא ----------

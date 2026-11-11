@@ -316,6 +316,18 @@ button:focus-visible, [role='button']:focus-visible, input:focus-visible, select
 .acc-row { display: flex; justify-content: space-between; font-size: 13px; }
 .acc-bar { height: 10px; border-radius: 6px; background: rgba(0, 0, 0, 0.45); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5); overflow: hidden; margin: 4px 0 10px; }
 .acc-bar i { display: block; height: 100%; background: linear-gradient(90deg, #ff4d5e, #ffd34d, #2ee59d); border-radius: 6px; }
+/* חיות שגדלות: שורת הניסיון בסיכום ופס השלב בכרטיסי החיות */
+.acc-bar.gold i { background: linear-gradient(90deg, #f2a93a, #ffe08a); }
+.pet-gain { margin-top: 10px; padding: 8px 10px; border-radius: 14px; background: rgba(255, 210, 90, 0.07); border: 1px solid rgba(255, 210, 90, 0.25); }
+.pet-gain .pg-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 13px; }
+.pet-gain .pg-head b { color: var(--gold-2); }
+.pet-gain .acc-bar { margin: 6px 0 4px; height: 8px; }
+.pet-gain small { color: var(--muted); font-size: 11.5px; }
+.pet-gain.evolved { border-color: var(--gold-2); box-shadow: 0 0 18px rgba(255, 210, 90, 0.35); }
+.pet-gain.evolved small { color: var(--gold-2); font-weight: 700; }
+.card .grow { display: flex; align-items: center; gap: 5px; width: 100%; font-size: 10.5px; color: var(--gold-2); margin: -2px 0 4px; }
+.card .grow i { flex: 1; height: 5px; border-radius: 3px; background: rgba(0, 0, 0, 0.45); overflow: hidden; }
+.card .grow i b { display: block; height: 100%; background: linear-gradient(90deg, #f2a93a, #ffe08a); }
 .moment { display: flex; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 11px; background: rgba(255, 255, 255, 0.05); margin-bottom: 4px; font-size: 13px; }
 .moment .mlab { display: inline-flex; align-items: center; gap: 4px; }
 .gold-line { color: var(--gold-2) !important; font-weight: 700; }

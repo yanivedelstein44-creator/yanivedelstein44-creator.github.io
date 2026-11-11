@@ -24,6 +24,7 @@ import { WorldMap } from '../scene/WorldMap.js';
 import { Weather, climatePalette } from '../scene/Climate.js';
 import { makeMonument } from '../scene/Monuments.js';
 import { HubMuseum } from '../scene/HubMuseum.js';
+import { WhiteFlag } from '../scene/WhiteFlag.js';
 import { HorizonIslands } from '../scene/HorizonIslands.js';
 import { ExpansionStage } from '../scene/ExpansionStage.js';
 import { eraMaterials } from '../scene/Materials.js';
@@ -43,8 +44,8 @@ import { Updater } from '../update/Updater.js';
 import { OnlineController } from './OnlineController.js';
 import { openFriendHub, joinFromLink, openEmotePicker } from '../ui/OnlineModal.js';
 import { getEra } from '../config/Eras.js';
-import { PETS } from '../config/Pets.js';
-import { ECONOMY } from '../config/EconomyConfig.js';
+import { PETS, isFlyer } from '../config/Pets.js';
+import { ECONOMY, PET_GROWTH } from '../config/EconomyConfig.js';
 import { TIME_CONTROLS, RULES, APP_VERSION, ONLINE } from '../config/AppConfig.js';
 import { ISLAND_COUNT, BASE_ISLANDS, HUB_ID, islandDef, regionOf, regionIslands, isBoss, isPremium, tierOf, conquestGems, repeatGems } from '../config/Islands.js';
 import { botLine, pirateLine } from '../config/BotLines.js';
@@ -175,7 +176,7 @@ export class GameApp {
     this.economy.onChange((evt) => {
       if (evt.type === 'gems' || evt.type === 'buy' || evt.type === 'daily') this.ui.setGems(this.economy.gems);
       // החיה שחגה מעל העיר מתעדכנת כשמקבלים / קונים / מלבישים חיה
-      if ((evt.type === 'equip' && evt.slot === 'pet') || evt.type === 'skyPets' || evt.type === 'buy') this.museum?.syncSkyPet?.();
+      if ((evt.type === 'equip' && evt.slot === 'pet') || evt.type === 'skyPets' || evt.type === 'buy' || evt.type === 'petXp') this.museum?.syncSkyPet?.();
       if (evt.type === 'equip' && evt.slot === 'board') this.board.setSkin(this.economy.boardSkin, { flash: true });
       if (evt.type === 'boost' || evt.type === 'buy') this.ui.setBoost?.(this.economy.boostLeftMs());
       this.refreshBadges();
@@ -338,7 +339,7 @@ export class GameApp {
   /** אווטאר אחד וחיה אחת שמטיילים איתך; מולך — הבוט של האי (לבוש, מראה וחיה בגוון משלו) או שחקן 2 */
   applyLoadout() {
     this.economy.expireTrials();
-    const mine = { loadout: this.economy.loadout, look: {}, pet: this.economy.pet, petHue: this.economy.petHue, petScale: 1 };
+    const mine = { loadout: this.economy.loadout, look: {}, pet: this.economy.pet, petHue: this.economy.petHue, petScale: 1, petStage: this.economy.petStage(this.economy.pet) };
     const o = this.opponent || {};
     const opp = { loadout: o.loadout || getEra(this.kingdom.eraId || 1).opponent, look: o.look || {}, pet: o.pet || 'wolf_cub', petHue: o.petHue || 0, petScale: o.petScale || 1 };
     // העמדות לפי צבע: הלבן תמיד בצד של הלבן. אונליין כשחור — אתה יושב בצד השחור
@@ -347,10 +348,11 @@ export class GameApp {
     if (this.mode === 'watch' && this.watchWhite) W = { ...this.watchWhite, look: {} };
     this.avatars.w.setLoadout(W.loadout || {});
     this.avatars.w.setLook(W.look || {});
-    this.pets.w.setPet(W.pet || 'wolf_cub', { hue: W.petHue || 0, scale: W.petScale || 1 });
+    this.pets.w.setPet(W.pet || 'wolf_cub', { hue: W.petHue || 0, scale: W.petScale || 1, stage: W.petStage || 2 });
     this.avatars.b.setLoadout(B.loadout || {});
     this.avatars.b.setLook(B.look || {});
-    this.pets.b.setPet(B.pet || 'wolf_cub', { hue: B.petHue || 0, scale: B.petScale || 1 });
+    this.pets.b.setPet(B.pet || 'wolf_cub', { hue: B.petHue || 0, scale: B.petScale || 1, stage: B.petStage || 2 });
+    this.syncFlyingCompanion();
     this.refreshHud();
     this.refreshPetThumbs();
   }
@@ -898,7 +900,10 @@ export class GameApp {
       if (winner && plies >= RULES.antiFarmPlies) { gems = ECONOMY.friendWinGems; this.economy.addGems(gems, 'friend'); }
       else if (winner) stageMsg = t('antiFarm');
     }
-    await sleep(result.reason === 'resign' ? 500 : 1400);
+    const petGain = this.awardPetXp({ vsBot, iWon, iLost, plies, reason: result.reason, myColor });
+    const evolved = petGain && petGain.stageAfter > petGain.stageBefore;
+    if (evolved) this.celebratePetEvolution(petGain);
+    await sleep((result.reason === 'resign' ? 500 : 1400) + (evolved ? 2200 : 0));
     // בוסט יהלומים כפולים (קנייה שבועית) — חל על ניצחונות נגד בוטים ופיראטים
     const gemMult = this.economy.gemMultiplier();
     if (vsBot && iWon) {
@@ -928,6 +933,7 @@ export class GameApp {
         const gained = this.progression.setStars(islandId, island.stars);
         if (gained) this.checkStarMilestones();
         if (res.first) {
+          this.syncWhiteFlag(islandId, { raise: true });
           this.ui.toast(`${t('islandConquered')}: ${islandLabel(islandId)}`, { kind: 'gold', duration: 3500, icon: 'flag' });
           if (islandId !== HUB_ID) { stageMsg = t('pieceToMuseum'); this.store.set({ pendingDocks: [...(this.store.get('pendingDocks') || []), islandId] }); }
           if ((this.opponent?.rating || 0) >= 2050) this.achievements.unlock('beat_hard');
@@ -952,9 +958,33 @@ export class GameApp {
     const front = this.progression.frontier();
     M.openSummary(this, {
       ...rt, reason: rt.reason, gems, stageMsg, acc, keyMoments, canReplay: plies >= 4, vsBot, won: !!iWon && vsBot,
-      island, nextId: front && front !== islandId ? front : null, online: online ? this.mode : null, boosted: gemMult > 1 && vsBot && iWon,
+      island, nextId: front && front !== islandId ? front : null, online: online ? this.mode : null, boosted: gemMult > 1 && vsBot && iWon, petGain,
     });
     this.refreshHud();
+  }
+
+  /**
+   * חיות שגדלות: ניסיון לחיה המלווה בסוף כל קרב (לא בצפייה; עם חבר — רק אחרי מספיק מהלכים).
+   * ניצחון 12 / תיקו 6 / הפסד 4, +1 לכל כלי שהכית (עד 6), +6 על מט מהיר. משחק על אותו מכשיר — 6 (שני הצדדים שלך).
+   */
+  awardPetXp({ vsBot, iWon, iLost, plies, reason, myColor }) {
+    if (this.mode === 'watch' || plies < (vsBot ? 2 : RULES.antiFarmPlies)) return null;
+    const X = PET_GROWTH.xp, local = this.mode === 'local';
+    const caps = (this.game.captured?.()?.by?.[myColor] || []).length;
+    const fast = !local && iWon && reason === 'checkmate' && Math.ceil(plies / 2) < ECONOMY.fastMateMaxMoves;
+    const xp = (local ? X.draw : iWon ? X.win : iLost ? X.loss : X.draw) + Math.min(X.capMax, caps) * X.capture + (fast ? X.fastMate : 0);
+    return this.economy.addPetXp(this.economy.pet, xp);
+  }
+
+  /** החיה עלתה שלב: מסתחררת בנצנצים, גדלה מול העיניים, והודעה */
+  celebratePetEvolution(g) {
+    const side = this.mode === 'online' && this.myColor === 'b' ? 'b' : 'w';
+    this.pets[side].evolve(g.stageAfter, { hue: this.economy.petHue, scale: 1 });
+    // חיה מעופפת באי המרכזי חגה מעל העיר (אין לה כן) — היא עושה לולאה עם נצנצים בשמיים
+    if (!this.pets[side].group.visible) setTimeout(() => this.museum?.skyLoop?.(), 300);
+    this.sound.jackpot?.();
+    setTimeout(() => this.ui.toast(`${t('petEvolved')} ${shortName(g.id)} · ${t(`petStage${g.stageAfter}`)}`, { kind: 'gold', icon: 'paw', duration: 4400 }), 1000);
+    this.refreshPetThumbs();
   }
 
   /** אחרי רכישת איי הפרימיום: הדרקון מתחיל לרחף מעל האי המרכזי, המפה והסרגל מתעדכנים */
@@ -1174,8 +1204,29 @@ export class GameApp {
       this.sm.world.add(this.islandMonument);
     }
     this.museum?.setActive(id === HUB_ID);
+    this.syncWhiteFlag(id);
+    this.syncFlyingCompanion();
     if (id !== HUB_ID) this.sm.setIslandRadius(27);
     this.horizon?.setAround(id, { count: this.sm.quality?.level === 'low' ? 7 : 12 });
+  }
+
+  /**
+   * חיה מעופפת באי המרכזי: היא חגה מעל העיר (במקום החיה שמעל העיר), אז אין לה כן ליד הלוח.
+   * בשאר האיים — יושבת על הכן כרגיל.
+   */
+  syncFlyingCompanion() {
+    if (!this.pets) return;
+    const mine = this.mode === 'online' && this.myColor === 'b' ? 'b' : 'w';
+    const fly = this.atHub && this.mode !== 'watch' && isFlyer(this.economy.pet);
+    this.pets[mine].group.visible = !fly;
+    this.pets[mine === 'w' ? 'b' : 'w'].group.visible = true;
+    this.museum?.syncSkyPet?.();
+  }
+
+  /** דגל לבן מתנוסס מאחורי הכס של הבוט — באי שכבר ניצחת (הבוט נכנע; גם כשפיראטי הזמן פושטים עליו) */
+  syncWhiteFlag(id = this.islandId, { raise = false } = {}) {
+    if (!this.whiteFlag) { this.whiteFlag = new WhiteFlag(this.sm); this.whiteFlag.place(-1.3, -6.9); }
+    this.whiteFlag.show(id !== HUB_ID && this.progression.isConquered(id), { raise });
   }
 
   /** קרב חדש נגד הבוט של האי הנוכחי */

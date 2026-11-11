@@ -3,7 +3,7 @@
  * בלי לוגו בכותרות המשנה — כותרת נקייה + אייקון.
  */
 import { h, withIcon } from './UI.js';
-import { t, tn, getLang } from './i18n.js';
+import { t, tn, getLang, shortName } from './i18n.js';
 import { icon, EMBLEMS, emblemIcon } from './icons.js';
 import { starRow } from './MapPanel.js';
 import { TIME_CONTROLS, APP_VERSION, APP } from '../config/AppConfig.js';
@@ -71,8 +71,18 @@ export function openPromotion(app, color) {
 }
 
 /** סיכום משחק: תוצאה, כוכבים וכיבוש, יהלומים, דיוק ורגעי מפתח + המשך (האי הבא / שוב / מפה) */
+/** שורת הניסיון של החיה בסיכום: כמה קיבלה, באיזה שלב היא ופס התקדמות לשלב הבא */
+function petGainBlock(app, g) {
+  const pr = app.economy.petProgress(g.id);
+  const evolved = g.stageAfter > g.stageBefore;
+  return h('div', { class: `pet-gain${evolved ? ' evolved' : ''}` },
+    h('div', { class: 'pg-head' }, h('span', {}, ...withIcon('paw', `${shortName(g.id)} · ${t(`petStage${pr.stage}`)}`, 15)), h('b', {}, `+${g.gained} ${t('petXp')}`)),
+    h('div', { class: 'acc-bar gold' }, h('i', { style: { width: `${Math.round(pr.pct * 100)}%` } })),
+    h('small', {}, evolved ? t(g.stageAfter === 3 ? 'petNowLegend' : 'petNowAdult') : pr.stage === 3 ? t('petMaxed') : `${pr.have}/${pr.need} ${t('petXp')}`));
+}
+
 export function openSummary(app, data) {
-  const { title, icon: ic, reason, gems, stageMsg, acc, keyMoments, canReplay, vsBot, won, island, nextId, boosted } = data;
+  const { title, icon: ic, reason, gems, stageMsg, acc, keyMoments, canReplay, vsBot, won, island, nextId, boosted, petGain } = data;
   const accBlock = (label, v) => h('div', {}, h('div', { class: 'acc-row' }, h('span', {}, label), h('b', {}, v === null ? '—' : `${v.toFixed(1)}%`)), h('div', { class: 'acc-bar' }, h('i', { style: { width: `${v || 0}%` } })));
   const conquestBlock = vsBot && island ? h('div', { class: 'conquest' },
     won ? h('div', { class: 'stars-big' }, starRow(island.stars, 34)) : null,
@@ -88,6 +98,7 @@ export function openSummary(app, data) {
       h('div', { class: 'stat' }, h('b', {}, `+${gems}`, boosted && gems > 0 ? h('span', { class: 'x2' }, 'x2') : null), h('span', {}, ...withIcon('gem', t('gemsEarned'), 14))),
       h('div', { class: 'stat' }, h('b', {}, String(app.store.get('wins'))), h('span', {}, ...withIcon('trophy', tn('ניצחונות', 'Wins'), 14))),
       h('div', { class: 'stat' }, h('b', {}, String(app.store.get('rating'))), h('span', {}, ...withIcon('chart', t('rating'), 14)))),
+    petGain ? petGainBlock(app, petGain) : null,
     h('h3', {}, ...withIcon('target', t('accuracy'), 16)), accBlock(t('yourAccuracy'), acc.me), accBlock(t('oppAccuracy'), acc.opp),
     keyMoments.length ? h('h3', {}, ...withIcon('star', t('keyMoments'), 16)) : null,
     ...keyMoments.map((k) => h('div', { class: 'moment' }, h('span', {}, `${k.moveNo}. ${k.san}`), h('span', { class: 'mlab' }, icon(k.color === 'w' ? 'dotLight' : 'dotDark', { size: 12 }), k.label))));

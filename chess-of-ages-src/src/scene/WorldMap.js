@@ -468,17 +468,35 @@ export class WorldMap {
   }
 
   buildMarkers() {
+    // דגל: עמוד זהוב ובד עם 8 עמודות קודקודים, כדי שיוכל להתנופף ברוח
     const flagGeo = () => {
-      const pole = new THREE.CylinderGeometry(0.03, 0.03, 0.9, 5).translate(0, 0.45, 0);
-      const cloth = new THREE.PlaneGeometry(0.42, 0.26).translate(0.21, 0.76, 0);
+      const pole = new THREE.CylinderGeometry(0.03, 0.03, 0.98, 5).translate(0, 0.49, 0);
+      const cloth = new THREE.PlaneGeometry(0.5, 0.31, 8, 2).translate(0.25, 0.8, 0);
       for (const g of [pole, cloth]) for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
-      return mergeGeometries([pole.toNonIndexed(), cloth.toNonIndexed()], false);
+      const paint = (g, hex) => { const c = new THREE.Color(hex), n = g.attributes.position.count, a = new Float32Array(n * 3); for (let i = 0; i < n; i++) c.toArray(a, i * 3); g.setAttribute('color', new THREE.BufferAttribute(a, 3)); return g; };
+      return mergeGeometries([paint(pole.toNonIndexed(), 0xd8b44a), paint(cloth.toNonIndexed(), 0xffffff)], false);
     };
-    this.flags = new THREE.InstancedMesh(flagGeo(), new THREE.MeshStandardMaterial({ color: 0xf2c94c, emissive: 0x7a5410, emissiveIntensity: 0.45, side: THREE.DoubleSide, roughness: 0.4 }), ISLAND_COUNT);
+    // הבד מתנופף (כל דגל בשלב אחר, לפי המיקום שלו)
+    this.flagTime = { value: 0 };
+    const wave = (mat) => {
+      mat.onBeforeCompile = (sh) => {
+        sh.uniforms.uFlagTime = this.flagTime;
+        sh.vertexShader = 'uniform float uFlagTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+          if (position.x > 0.035) {
+            float k = position.x / 0.5;
+            float ph = instanceMatrix[3].x * 1.7 + instanceMatrix[3].z * 1.3;
+            transformed.z += sin(position.x * 16.0 - uFlagTime * 6.0 + ph) * 0.045 * k;
+            transformed.y += sin(position.x * 9.0 - uFlagTime * 4.0 + ph) * 0.012 * k;
+          }`);
+      };
+      return mat;
+    };
+    // איים שניצחת: דגל לבן (הבוט נכנע) על עמוד זהוב
+    this.flags = new THREE.InstancedMesh(flagGeo(), wave(new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, emissive: 0x8c8880, emissiveIntensity: 0.55, side: THREE.DoubleSide, roughness: 0.6 })), ISLAND_COUNT);
     this.flags.count = 0;
     this.scene.add(this.flags);
     // דגל פיראטי הזמן: שחור עם שוליים אדומים
-    this.pirateFlags = new THREE.InstancedMesh(flagGeo(), new THREE.MeshStandardMaterial({ color: 0x15121c, emissive: 0x5a0a14, emissiveIntensity: 0.6, side: THREE.DoubleSide, roughness: 0.5 }), ISLAND_COUNT);
+    this.pirateFlags = new THREE.InstancedMesh(flagGeo(), wave(new THREE.MeshStandardMaterial({ color: 0x15121c, vertexColors: true, emissive: 0x5a0a14, emissiveIntensity: 0.6, side: THREE.DoubleSide, roughness: 0.5 })), ISLAND_COUNT);
     this.pirateFlags.count = 0;
     this.scene.add(this.pirateFlags);
     // ערפל מעל איים שעוד לא נפתחו
@@ -583,11 +601,12 @@ export class WorldMap {
   dressTraveler() {
     const e = this.app.economy;
     this.avatar.setLoadout(e.loadout, { instant: true });
-    const petKey = `${e.pet}:${e.petHue}`;
+    const stage = e.petStage(e.pet);
+    const petKey = `${e.pet}:${e.petHue}:${stage}`;
     if (this.petId !== petKey) {
       this.petId = petKey;
       this.petHolder.clear();
-      const rig = buildPetRig(e.pet, { hue: e.petHue });
+      const rig = buildPetRig(e.pet, { hue: e.petHue, stage });
       rig.root.updateMatrixWorld(true);
       // כל חיה בגודל אחר — מנרמלים: ברכיבה החיה ארוכה פי ~2 מהאווטאר היושב
       const sz = new THREE.Box3().setFromObject(rig.body).getSize(new V3());
@@ -663,9 +682,10 @@ export class WorldMap {
       this.baseMesh.setColorAt(id - 1, c.setHex(sand).lerp(dim, locked ? 0.45 : 0));
       this.topMesh.setColorAt(id - 1, c.setHex(grass).lerp(dim, locked ? 0.5 : 0));
       const p = this.positions[id];
+      // אי שניצחת: דגל לבן תמיד (הבוט נכנע); אם פיראטי הזמן נחתו עליו — גם דגל שחור בצד השני
       if (id !== HUB_ID && pr.isConquered(id)) {
-        m4.makeTranslation(p.x + 0.5, 0.2, p.z - 0.72);
-        if (pr.hasPirates?.(id)) this.pirateFlags.setMatrixAt(pf++, m4); else this.flags.setMatrixAt(f++, m4);
+        this.flags.setMatrixAt(f++, m4.makeTranslation(p.x + 0.5, 0.2, p.z - 0.72));
+        if (pr.hasPirates?.(id)) this.pirateFlags.setMatrixAt(pf++, m4.makeTranslation(p.x - 0.62, 0.2, p.z - 0.6));
       }
       const prem = isPremium(id);
       const foggy = id !== HUB_ID && !pr.isConquered(id) && !pr.isVisited?.(id) && (prem ? locked : id > front || id === this.fogPending);
@@ -874,6 +894,7 @@ export class WorldMap {
     this.avatar.lookAt(this.camera.position);
     this.updaters.forEach((fn) => fn(dt, tt));
     this.water.material.uniforms.uTime.value = tt;
+    this.flagTime.value = tt;
     const pulse = 0.5 + 0.5 * Math.sin(tt * 4);
     this.nextRing.scale.setScalar(1 + pulse * 0.08);
     this.nextRing.material.opacity = 0.5 + pulse * 0.45;
@@ -1120,7 +1141,7 @@ export class WorldMap {
   showDemoPirates(ids = []) {
     const m4 = new THREE.Matrix4();
     let n = this.pirateFlags.count;
-    for (const id of ids) { const p = this.positions[id]; m4.makeTranslation(p.x + 0.5, 0.2, p.z - 0.72); this.pirateFlags.setMatrixAt(n++, m4); }
+    for (const id of ids) { const p = this.positions[id]; m4.makeTranslation(p.x - 0.62, 0.2, p.z - 0.6); this.pirateFlags.setMatrixAt(n++, m4); }
     this.pirateFlags.count = n;
     this.pirateFlags.instanceMatrix.needsUpdate = true;
   }

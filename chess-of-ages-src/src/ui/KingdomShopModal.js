@@ -158,13 +158,13 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
   const avatar = new PlayerAvatar3D(stage, miniFx);
   avatar.place(AV[0], AV[2], 0.28);
   avatar.setEraMaterials(app.currentEraMaterials());
-  const pet = new PetCompanion3D(stage, miniFx, sound);
+  const pet = new PetCompanion3D(stage, miniFx, sound, { canFly: false });
   pet.place(1.15, -0.1, -0.35);
   pet.setEraMaterials(app.currentEraMaterials());
   let previewHue = previewPet === economy.pet ? economy.petHue : 0;
   const refreshPreview = () => {
     if (previewBot) { const b = islandDef(previewBot).bot; avatar.setLoadout(b.loadout); avatar.setLook(b.look); pet.setPet(b.pet, { hue: b.petHue }); return; }
-    avatar.setLoadout(preview); avatar.setLook({}); pet.setPet(previewPet, { hue: previewHue });
+    avatar.setLoadout(preview); avatar.setLook({}); pet.setPet(previewPet, { hue: previewHue, stage: economy.ownsPet(previewPet, maxEra) ? economy.petStage(previewPet) : 2 });
   };
   refreshPreview();
   avatar.lookAt(new THREE.Vector3(0, 1.3, 6));
@@ -197,7 +197,7 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
     if (curTab === 'wardrobe') sub.replaceChildren(...Object.keys(WEARABLES).map((s) => h('button', { class: 'tap', 'aria-pressed': String(slot === s), onclick: () => { slot = s; focus(s); render(); } }, icon(SLOT_ICON[s], { size: 18 }), h('span', {}, tn(...SLOT_SHORT[s])))));
     const won = app.progression.conqueredList().filter((id) => id !== HUB_ID || app.progression.isConquered(HUB_ID)).sort((a, b) => a - b);
     if (curTab === 'wardrobe') grid.replaceChildren(...WEARABLES[slot].map(itemCard));
-    else if (curTab === 'pets') grid.replaceChildren(...PET_IDS.map((id) => petCard(id)), ...won.filter((id) => islandDef(id).bot.petHue).map(petColorCard));
+    else if (curTab === 'pets') grid.replaceChildren(h('p', { class: 'shop-note' }, ...withIcon('paw', t('petGrowNote'), 14)), ...PET_IDS.map((id) => petCard(id)), ...won.filter((id) => islandDef(id).bot.petHue).map(petColorCard));
     else if (curTab === 'sky') grid.replaceChildren(h('p', { class: 'shop-note' }, ...withIcon('gift', t('skyNote'), 14)), ...SKY_PET_IDS.map(skyCard), ...CLASSIC_FLYER_IDS.map((id) => petCard(id, 'sky')));
     else if (curTab === 'boards') grid.replaceChildren(h('p', { class: 'shop-note' }, ...withIcon('gift', t('boardsNote'), 14)), ...BOARD_SKINS.map(skinCard));
     else if (curTab === 'premium') grid.replaceChildren(...premiumCards());
@@ -293,6 +293,12 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
       h('div', { class: 'card-foot' }, foot));
   }
 
+  /** שלב הגדילה של חיה שבבעלותך: גור / בוגר / אגדי ופס עד השלב הבא */
+  function growChip(id) {
+    const g = economy.petProgress(id);
+    return h('div', { class: 'grow', title: t('petGrowNote') }, h('span', {}, t(`petStage${g.stage}`)), h('i', {}, h('b', { style: { width: `${Math.round(g.pct * 100)}%` } })));
+  }
+
   function petCard(id, fk = 'pets') {
     const p = PETS[id];
     const owned = economy.ownsPet(id, maxEra);
@@ -310,6 +316,7 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
       thumb('pet', id),
       regionTag(p.island),
       h('b', { class: 'nm' }, name),
+      owned ? growChip(id) : null,
       h('div', { class: 'card-foot' }, foot));
   }
 
@@ -331,6 +338,7 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
       thumb('pet', id),
       h('span', { class: 'region-tag' }, p.product ? t('premiumTag') : `${p.earn}`),
       h('b', { class: 'nm' }, name),
+      owned ? growChip(id) : null,
       h('div', { class: 'card-foot' }, foot));
   }
 

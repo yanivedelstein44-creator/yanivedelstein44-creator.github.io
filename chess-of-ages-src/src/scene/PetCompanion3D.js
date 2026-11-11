@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { mesh, G, glowTexture, drawnTexture, addRim, rand, TAU, addCharacterRim, contactShadow } from './kit.js';
+import { isFlyer } from '../config/Pets.js';
 
 const std = (color, rough = 0.6, metal = 0, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal, ...extra });
 const eyeMat = (color = 0xffc040) => std(color, 0.2, 0, { emissive: color, emissiveIntensity: 0.6 });
@@ -568,17 +569,23 @@ const BUILDERS = {
 };
 
 export class PetCompanion3D {
-  constructor(sceneMgr, fx, sound) {
+  /** canFly: false — החיה תמיד על הכן (במה של החנות) */
+  constructor(sceneMgr, fx, sound, { canFly = true } = {}) {
     this.sm = sceneMgr;
     this.fx = fx;
     this.sound = sound;
+    this.canFly = canFly;
     this.group = new THREE.Group();
     sceneMgr.world.add(this.group);
     this.pedestal = this.buildPedestal();
-    this.group.add(this.pedestal, contactShadow(1.25, 0.55));
+    this.shadow = contactShadow(1.25, 0.55);
+    this.group.add(this.pedestal, this.shadow);
     this.holder = new THREE.Group();
     this.holder.position.y = 0.95;
+    this.holder.rotation.order = 'YXZ';
     this.group.add(this.holder);
+    this.flying = false;
+    this.flyA = rand(0, TAU);
     this.lookTarget = new THREE.Vector3(0, 0.5, 0);
     this.state = 'idle';
     this.time = rand(0, 10);
@@ -603,7 +610,7 @@ export class PetCompanion3D {
 
   /** variant: { hue (0..1 הסטת גוון), scale } — כך לכל בוט יש חיה בגוון ובגודל משלה */
   setPet(id, variant = {}) {
-    const key = `${id}|${variant.hue || 0}|${variant.scale || 1}`;
+    const key = `${id}|${variant.hue || 0}|${variant.scale || 1}|${variant.stage || 2}`;
     if (this.key === key && this.rig) return;
     this.key = key;
     this.id = id;
@@ -616,6 +623,15 @@ export class PetCompanion3D {
     if (this.danceTl) { this.danceTl.kill(); this.danceTl = null; }
     rig.root.scale.setScalar(0.01);
     gsap.to(rig.root.scale, { x: sc, y: sc, z: sc, duration: 0.6, ease: 'elastic.out(1, 0.5)' });
+    this.setFlying(this.canFly && isFlyer(id));
+  }
+
+  /** חיה מעופפת לא יושבת על כן: הכן נעלם והיא חגה במעגל מעל הצד שלה, בכל אי (גם אצל הבוטים) */
+  setFlying(on) {
+    this.flying = on;
+    this.pedestal.visible = !on;
+    this.shadow.visible = !on;
+    if (!on) { this.holder.position.set(0, 0.95, 0); this.holder.rotation.set(0, 0, 0); }
   }
 
   place(x, z, facing) {
@@ -758,6 +774,13 @@ export class PetCompanion3D {
     if (!r) return;
     this.time += dt;
     const tt = this.time;
+    // מעגל מעופף מעל העמדה (נשאר בתוך המסך גם בטלפון), עם הטיה אל תוך הסיבוב
+    if (this.flying) {
+      this.flyA += dt * 0.55;
+      const a = this.flyA, R = 1.15;
+      this.holder.position.set(Math.sin(a) * R, 2.5 + Math.sin(a * 2) * 0.25, Math.cos(a) * R + 0.1);
+      this.holder.rotation.set(Math.sin(a * 2) * 0.06, Math.atan2(Math.cos(a), -Math.sin(a)), -0.32);
+    }
     if (this.state === 'idle') {
       r.body.scale.y = 1 + Math.sin(tt * 2.2) * 0.03;
       if (r.hover && !gsap.isTweening(r.root.position)) r.root.position.y = 0.25 + Math.sin(tt * 1.6) * 0.12;
@@ -779,10 +802,47 @@ export class PetCompanion3D {
       const p = this.worldOf(r.body);
       this.fx.embers([p.x, p.y - 0.1, p.z], 1, r.trail);
     }
+    tickStage(r, dt, tt);
+    // חיה אגדית: נצנוצי זהב קטנים מדי פעם
+    if (r.stage === 3 && Math.random() < dt * 1.6) {
+      const p = this.worldOf(r.body);
+      this.fx.sparkle([p.x + (Math.random() - 0.5) * 0.8, p.y + 0.3, p.z + (Math.random() - 0.5) * 0.8], 3, [0xffe08a, 0xffffff, 0xffc83a], 0.35);
+    }
+  }
+
+  /**
+   * התפתחות (גור → בוגר → אגדי): החיה מסתחררת בתוך הבזק נצנצים, ונבנית מחדש בשלב החדש
+   * (עם קפיצת הגדילה של setPet). מחזיר Promise שמסתיים כשהחיה החדשה עומדת.
+   */
+  evolve(stage, variant = {}) {
+    const r = this.rig;
+    if (!r) return Promise.resolve();
+    const p = this.worldOf(this.flying ? this.holder : this.group);
+    this.fx.sparkle([p.x, 1.2, p.z], 50, [0xffe08a, 0xffffff, ...(r.fxColor || [])], 1.1);
+    this.sound?.petVoice?.(r.voice);
+    return new Promise((done) => {
+      gsap.to(r.root.rotation, {
+        y: r.root.rotation.y + TAU * 2, duration: 0.9, ease: 'power2.in',
+        onComplete: () => {
+          this.key = null;
+          this.setPet(this.id, { ...variant, stage });
+          this.fx.sparkle([p.x, 1.4, p.z], 80, [0xffe08a, 0xffffff, 0xffc83a], 1.6);
+          this.fx.energy?.([p.x, 1.2, p.z], 30, [0xffe08a, 0xffffff]);
+          this.sm.addShake?.(0.05);
+          setTimeout(done, 700);
+        },
+      });
+    });
   }
 }
 
 export const PET_BUILDERS = BUILDERS;
+
+/** אנימציה קטנה של סימני השלב (הילת הזהב והטבעת של חיה אגדית) — לכל מקום שמציג חיה */
+export function tickStage(r, dt, tt) {
+  if (r.legendRing) { r.legendRing.rotation.z += dt * 0.7; r.legendRing.material.opacity = 0.55 + Math.sin(tt * 2.4) * 0.2; }
+  if (r.halo) r.halo.position.y = r.halo.userData.y0 + Math.sin(tt * 2) * 0.015;
+}
 
 /**
  * אנימציית שלד לחיה שמחוץ לכן (החיות המעופפות שמעל העיר): זנב, כנפיים, טבעות שחגות, הילה.
@@ -793,11 +853,56 @@ export function tickRig(r, dt, tt, { flapPh = tt * 7, flapAmp = 0.55, sweep = 0 
   r.wings.forEach((w) => { w.rotation.z = w.userData.side * (0.2 + sweep + Math.sin(flapPh) * flapAmp * Math.max(0.6, r.flap || 0.3)); });
   (r.spinners || []).forEach((g, i) => { g.rotation.z += dt * (i % 2 ? -2.6 : 2.6); });
   if (r.aura) r.aura.rotation.z += dt * 0.8;
+  tickStage(r, dt, tt);
+}
+
+/**
+ * שלב הגדילה (stage): 1 גור — קטן, עם ראש גדול; 2 בוגר — הצורה הרגילה;
+ * 3 אגדי — גדול יותר, הילת זהב מעל הראש, טבעת זהב וזוהר מתחת, ותאורת שוליים זהובה.
+ * הכול בתוך קבוצת ביניים, כך שמי שמשנה את rig.root (גודל, ריחוף) לא דורס את השלב.
+ */
+function applyStage(rig, stage) {
+  rig.stage = stage;
+  if (stage !== 1 && stage !== 3) return;
+  const sg = new THREE.Group();
+  [...rig.root.children].forEach((c) => sg.add(c));
+  rig.root.add(sg);
+  rig.stageGroup = sg;
+  if (stage === 1) {
+    sg.scale.setScalar(0.68);
+    rig.head.scale.setScalar(1.3);
+    return;
+  }
+  sg.scale.setScalar(1.12);
+  const gold = new THREE.MeshBasicMaterial({ color: 0xffd24a, toneMapped: false });
+  rig.root.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(rig.head);
+  if (!box.isEmpty()) {
+    const top = new THREE.Vector3((box.min.x + box.max.x) / 2, box.max.y + 0.1, (box.min.z + box.max.z) / 2);
+    rig.head.worldToLocal(top);
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.016, 8, 28), gold);
+    halo.rotation.x = Math.PI / 2;
+    halo.position.copy(top);
+    halo.userData.y0 = top.y;
+    rig.head.add(halo);
+    rig.halo = halo;
+  }
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.022, 8, 48), new THREE.MeshBasicMaterial({ color: 0xffd24a, transparent: true, opacity: 0.7, toneMapped: false }));
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 0.03;
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: 0xffc83a, transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false }));
+  glow.scale.set(1.7, 1.7, 1);
+  glow.position.y = 0.45;
+  sg.add(ring, glow);
+  rig.legendRing = ring;
 }
 
 const _hsl = { h: 0, s: 0, l: 0 };
-/** בונה חיה עצמאית (גם לתמונות ממוזערות). hue מסיט את גוון החומרים (העיניים והזוהר נשארים) */
-export function buildPetRig(id, { hue = 0 } = {}) {
+/**
+ * בונה חיה עצמאית (גם לתמונות ממוזערות). hue מסיט את גוון החומרים (העיניים והזוהר נשארים);
+ * stage — שלב הגדילה (1 גור / 2 בוגר / 3 אגדי)
+ */
+export function buildPetRig(id, { hue = 0, stage = 2 } = {}) {
   const rig = newRig();
   rig.root.add(rig.body);
   (BUILDERS[id] || BUILDERS.wolf_cub)(rig);
@@ -817,7 +922,8 @@ export function buildPetRig(id, { hue = 0 } = {}) {
   }
   // חיות קן השמיים: כנפיים מורמות במנוחה — רואים אותן גם בתמונות הממוזערות (האנימציה דורסת את זה במשחק)
   if (rig.sky) rig.wings.forEach((w) => { w.rotation.z = w.userData.side * (rig.restWing ?? 0.42); });
-  addCharacterRim(rig.root);
+  applyStage(rig, stage);
+  addCharacterRim(rig.root, stage === 3 ? { color: 0xffd36a, strength: 0.8 } : undefined);
   rig.root.scale.setScalar(1.15);
   return rig;
 }
