@@ -143,9 +143,9 @@ class PairLauncher(private val svc: PilotService) {
         return ok
     }
 
-    /** שיטה ב: דרך מסך האפליקציות האחרונות, כמו ביד (עד 2 ניסיונות) */
+    /** שיטה ב: דרך מסך האפליקציות האחרונות, כמו ביד (עד 3 ניסיונות) */
     private fun viaRecents(pair: AppPair, gen: Int): Boolean {
-        for (attempt in 1..2) {
+        for (attempt in 1..3) {
             if (gen != generation) return false
             if (recentsOnce(pair, gen, attempt)) return true
             // יוצאים ממה שנשאר פתוח (תפריט / מסך האחרונות) ומנסים שוב
@@ -173,14 +173,23 @@ class PairLauncher(private val svc: PilotService) {
         val card = waitForHit(ms(3500)) { RecentsUi.findLabel(svc, topLabel, smallest = false) }
         RecentsUi.debugDump(svc, "[$attempt] recents opened, top card=${card?.text}")
         if (card == null) return false
+        // מחכים שמסך האחרונות יסיים את האנימציה – לחיצה באמצע האנימציה נבלעת
+        Bg.sleep(ms(700))
         // התפריט נפתח מהאייקון שבראש הכרטיס (לחיצה על הכרטיס עצמו רק פותחת את האפליקציה)
-        val icon = RecentsUi.findCardIcon(svc, card)
-        if (icon != null) {
-            RecentsUi.click(svc, icon)
-        } else {
-            Actions.tapAt(svc, card.bounds.exactCenterX(), card.bounds.top + 40f)
+        val icon = RecentsUi.findCardIcon(svc, RecentsUi.findLabel(svc, topLabel, smallest = false) ?: card)
+        var item: RecentsUi.Hit? = null
+        for (tryNo in 0..1) {
+            when {
+                icon != null && tryNo == 0 -> RecentsUi.click(svc, icon)
+                icon != null -> Actions.tapAt(svc, icon.bounds.exactCenterX(), icon.bounds.exactCenterY())
+                else -> Actions.tapAt(svc, card.bounds.exactCenterX(), card.bounds.top + 40f)
+            }
+            item = waitForHit(ms(2000)) { RecentsUi.findSplitItem(svc) }
+            if (item != null) break
+            // אם האפליקציה נפתחה במקום התפריט – הניסיון הזה נגמר
+            if (RecentsUi.findLabel(svc, topLabel, smallest = false) == null) break
+            Bg.sleep(ms(400))
         }
-        val item = waitForHit(ms(2500)) { RecentsUi.findSplitItem(svc) }
         RecentsUi.debugDump(svc, "[$attempt] menu opened (icon=${icon?.text}), split item=${item?.text}")
         if (item == null) return false
         RecentsUi.click(svc, item)
