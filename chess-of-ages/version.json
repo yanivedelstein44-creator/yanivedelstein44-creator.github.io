@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.3.12",
-  "build": "1.3.12-1794387532348",
-  "buildTime": 1794387532348,
-  "date": "2026-11-11T08:58:52.348Z",
+  "version": "1.3.13",
+  "build": "1.3.13-1794387925893",
+  "buildTime": 1794387925893,
+  "date": "2026-11-11T09:05:25.893Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.3.12-1794387532348.zip",
-  "checksum": "5d49bb6ddd614c56e0e8591a6efef8d95716dbe5e3869308dfdd51df5590219d",
+  "bundle": "update/bundle-1.3.13-1794387925893.zip",
+  "checksum": "717b29a23d3545a24a798f9858fec4c89afab24dd7d46f62647ecfbc6674e9f0",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Premium is now a flying golden ring above the Time Museum with Premium written around it: it spins slowly, sparkles and opens the premium shop when tapped (it replaces the Golden Vault)"
+  "notes": "On every island: after zooming out or turning the view, tapping the board brings it back to the best size for playing without picking a piece by mistake. A one-time hint explains it"
 }
