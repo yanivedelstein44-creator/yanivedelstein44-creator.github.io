@@ -132,27 +132,69 @@ object RecentsUi {
         return Actions.tapAt(svc, hit.bounds.exactCenterX(), hit.bounds.exactCenterY())
     }
 
-    /** בגרסת בדיקה בלבד: כותב את כל מה שרואים על המסך לקובץ, כדי להבין מה קרה */
+    @Volatile
+    private var launcherPkg: String? = null
+
+    private fun launcher(svc: PilotService): String {
+        launcherPkg?.let { return it }
+        val home = android.content.Intent(android.content.Intent.ACTION_MAIN).addCategory(android.content.Intent.CATEGORY_HOME)
+        val pkg = try {
+            svc.packageManager.resolveActivity(home, 0)?.activityInfo?.packageName
+        } catch (e: Exception) {
+            null
+        } ?: ""
+        launcherPkg = pkg
+        return pkg
+    }
+
+    /**
+     * יומן אבחון של פתיחת המסך המפוצל (נשמר רק בטלפון, נשלח רק כשלוחצים "שלח דוח תקלות").
+     * בגרסה הרגילה נרשם רק מה שעל מסך הבית/האחרונות – לא התוכן של האפליקציות שלך.
+     */
     fun debugDump(svc: PilotService, step: String) {
-        if (!BuildConfig.DEBUG) return
-        val sb = StringBuilder("\n===== ").append(step).append(" split=").append(svc.isSplitActive()).append('\n')
-        for (w in svc.windowsSafe()) {
-            val r = Rect()
-            w.getBoundsInScreen(r)
-            sb.append("window type=").append(w.type).append(' ').append(r).append(' ')
-                .append(try { w.root?.packageName } catch (e: Exception) { null }).append('\n')
-        }
-        var lines = 0
-        forEachNode(svc) { n, r, text ->
-            if (lines > 400) return@forEachNode
-            if (text.isEmpty() && !n.isClickable) return@forEachNode
-            sb.append("  ").append(if (n.isClickable) "[c] " else "    ").append(n.className).append(' ')
-                .append('"').append(text.take(80)).append("\" ").append(r).append(' ')
-                .append(n.viewIdResourceName ?: "").append('\n')
-            lines++
-        }
         try {
-            File(svc.filesDir, "split-log.txt").appendText(sb.toString())
+            val home = launcher(svc)
+            val sb = StringBuilder("\n===== ").append(java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.ROOT).format(java.util.Date()))
+                .append(' ').append(step).append(" split=").append(svc.isSplitActive()).append('\n')
+            for (w in svc.windowsSafe()) {
+                val r = Rect()
+                w.getBoundsInScreen(r)
+                sb.append("window type=").append(w.type).append(' ').append(r).append(' ')
+                    .append(try { w.root?.packageName } catch (e: Exception) { null }).append('\n')
+            }
+            var lines = 0
+            for (w in svc.windowsSafe()) {
+                val root = try { w.root } catch (e: Exception) { null } ?: continue
+                val pkg = root.packageName?.toString() ?: ""
+                if (!BuildConfig.DEBUG && pkg != home && !pkg.contains("systemui") && !pkg.contains("launcher")) continue
+                val q = ArrayDeque<AccessibilityNodeInfo>()
+                q.add(root)
+                var visited = 0
+                while (q.isNotEmpty() && visited < 1500 && lines < 300) {
+                    val n = q.removeFirst()
+                    visited++
+                    if (!n.isVisibleToUser) continue
+                    val r = Rect()
+                    n.getBoundsInScreen(r)
+                    val text = listOf(clean(n.text), clean(n.contentDescription)).filter { it.isNotEmpty() }.joinToString(" | ")
+                    if (text.isNotEmpty() || n.isClickable) {
+                        sb.append("  ").append(if (n.isClickable) "[c] " else "    ").append(n.className).append(' ')
+                            .append('"').append(text.take(80)).append("\" ").append(r).append(' ')
+                            .append(n.viewIdResourceName ?: "").append('\n')
+                        lines++
+                    }
+                    for (i in 0 until n.childCount) {
+                        val c = try { n.getChild(i) } catch (e: Exception) { null } ?: continue
+                        q.add(c)
+                    }
+                }
+            }
+            val f = File(svc.filesDir, "split-log.txt")
+            if (f.length() > 400_000) {
+                val keep = f.readText().takeLast(150_000)
+                f.writeText(keep)
+            }
+            f.appendText(sb.toString())
         } catch (_: Exception) {
         }
     }

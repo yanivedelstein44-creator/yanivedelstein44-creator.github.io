@@ -394,6 +394,26 @@ class MainActivity : Activity() {
         c.addView(label("גרסה ${BuildConfig.VERSION_NAME}", 14f, bold = true))
         c.addView(switchRow("עדכונים אוטומטיים", "בודק באתר שלך, מוריד ומתקין לבד. לא באמצע פקודה ולא כשמחובר לרכב", prefs.autoUpdate) { prefs.autoUpdate = it })
         c.addView(button("בדוק עכשיו", Btn.SECONDARY) { Updater.maybeCheck(this, force = true, ui = this) })
+        c.gap(this, 8)
+        c.addView(button("שלח דוח תקלות", Btn.SECONDARY) { shareDiagnostics() })
+        c.addView(label("אם הצמד לא נפתח טוב: שולחים את הדוח (למשל לעצמך בוואטסאפ) ומדביקים אותו לקלוד. יש בו רק את מסך הבית/האחרונות, לא את התוכן של האפליקציות.", 12f, Palette.SUB).apply {
+            setPadding(0, dp(6), 0, 0)
+        })
+    }
+
+    private fun shareDiagnostics() {
+        val f = java.io.File(filesDir, "split-log.txt")
+        val log = if (f.exists()) f.readText().takeLast(60_000) else "(עוד אין יומן – נסה לפתוח צמד ואז לשלוח שוב)"
+        val head = "DuoPilot ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\n" +
+            "device: ${Build.MANUFACTURER} ${Build.MODEL}, Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})\n" +
+            "split method: ${prefs.splitMethod.ifEmpty { "unknown" }}, slow mode: ${prefs.slowMode}\n" +
+            "service: ${PilotService.instance != null}, car: ${CarBridge.connected}\n"
+        val text = head + log
+        try {
+            startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text), "שלח דוח תקלות"))
+        } catch (_: Exception) {
+            toast("אין אפליקציה לשיתוף")
+        }
     }
 
     private fun footer() {
