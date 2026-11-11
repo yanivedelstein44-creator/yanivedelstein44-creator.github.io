@@ -2,7 +2,7 @@
  * מוזיאון הזמן — האי המרכזי.
  * - בית הקולנוע המרכזי (נוגעים בו → סרט הסיפור / סרט ההדרכה) ובית הלוחות (סקינים ללוח).
  * - חמש חנויות מקיפות את הלוח, כל אחת בעיצוב משלה: בית הכתרים, אוהל הגלימות, נפחיית הנשקים, מקדש ההילות
- *   ובית החיות. מעל מוזיאון הזמן מרחפת טבעת זהב שכתוב עליה "פרימיום" (חנות הפרימיום).
+ *   ובית החיות; לידן בית המתנות (המתנה היומית). מעל מוזיאון הזמן מרחפת טבעת זהב שכתוב עליה "פרימיום".
  *   הבוטים — בכפתור החנות שבסרגל התחתון.
  * - האי מתחיל קטן ומתרחב: כל אי שנכבש שולח אריח אדמה גדול ממנו — קרקע באקלים שלו, המונומנט שלו
  *   על כן אבן ומעט צמחייה — שעף מעבר לים ונצמד לחוף. האריחים מסודרים בטבעות (קודם בחזית האי),
@@ -411,6 +411,54 @@ function petBarnGeometry() {
   };
 }
 
+/** בית המתנות: קופסת מתנה ענקית כחולה עם סרט ופרח מזהב; כשמחכה מתנה יומית — המכסה קופץ ומעליו סימן קריאה */
+function giftHouseGeometry(hub) {
+  const b = new Builder();
+  const BOX = 0x2a5ad8, RIB = C.gold, DGOLD = 0xb8862a;
+  b.box(3.7, 0.22, 3.4, C.marble, [0, 0.11, 0.1]).box(3.4, 0.1, 3.1, C.gold, [0, 0.27, 0.05]);
+  // גוף הקופסה עם סרט זהב מסביב
+  b.box(2.6, 2.0, 2.4, BOX, [0, 1.32, -0.3]).box(0.72, 2.02, 2.42, RIB, [0, 1.32, -0.3]).box(2.62, 2.02, 0.36, RIB, [0, 1.32, -0.3]);
+  // דלת מקושתת בתוך הסרט וחלונות עגולים זוהרים
+  b.box(0.5, 0.95, 0.05, C.dark, [0, 0.8, 0.93]).cyl(0.25, 0.25, 0.05, C.dark, [0, 1.27, 0.93], 12, [Math.PI / 2, 0, 0]);
+  for (const x of [-0.88, 0.88]) b.cyl(0.24, 0.24, 0.05, 0xfff0a0, [x, 1.6, 0.92], 16, [Math.PI / 2, 0, 0], true).tor(0.25, 0.04, DGOLD, [x, 1.6, 0.95], undefined, TAU, false, 20);
+  // מתנות קטנות ליד הכניסה
+  const gift = (x, z, sz, c, rc, y = 0.32) => {
+    b.box(sz, sz, sz, c, [x, y + sz / 2, z]).box(sz * 0.22, sz + 0.01, sz + 0.01, rc, [x, y + sz / 2, z]).box(sz + 0.01, sz + 0.01, sz * 0.22, rc, [x, y + sz / 2, z]);
+    b.sph(sz * 0.16, rc, [x, y + sz + sz * 0.08, z], [1.4, 0.8, 1], 8);
+  };
+  gift(-1.45, 1.35, 0.5, 0xff6aa8, C.gold);
+  gift(-0.98, 1.62, 0.32, 0x8a5ad8, C.gold);
+  gift(1.42, 1.38, 0.46, 0x3ac87a, C.red);
+  gift(1.42, 1.38, 0.3, 0xffd23a, C.purple, 0.32 + 0.46);
+  // המכסה עם הפרח (נע) וסימן הקריאה של "מתנה מחכה"
+  const lid = new Builder();
+  lid.box(2.8, 0.42, 2.6, BOX, [0, 0, 0]).box(0.74, 0.44, 2.62, RIB, [0, 0, 0]).box(2.82, 0.44, 0.38, RIB, [0, 0, 0]);
+  lid.tor(0.36, 0.11, RIB, [-0.36, 0.5, 0], [0, 0, 0.5], TAU, false, 20).tor(0.36, 0.11, RIB, [0.36, 0.5, 0], [0, 0, -0.5], TAU, false, 20);
+  lid.sph(0.17, DGOLD, [0, 0.36, 0], [1.2, 1, 1], 10);
+  for (const sx of [-1, 1]) lid.box(0.15, 0.03, 0.62, DGOLD, [sx * 0.2, 0.23, 0.5], [0, sx * 0.4, 0]);
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const x = c.getContext('2d');
+  x.fillStyle = '#e8283a'; x.beginPath(); x.arc(64, 64, 56, 0, TAU); x.fill(); x.lineWidth = 8; x.strokeStyle = '#ffffff'; x.stroke();
+  x.fillStyle = '#ffffff'; x.font = '900 84px Rubik, Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('!', 64, 70);
+  const bt = new THREE.CanvasTexture(c); bt.colorSpace = THREE.SRGBColorSpace;
+  const badge = new THREE.Sprite(new THREE.SpriteMaterial({ map: bt, depthWrite: false, transparent: true }));
+  badge.position.set(0, 1.35, 0);
+  badge.scale.setScalar(0.7);
+  let ready = false, checked = -9;
+  return {
+    ...b.build(),
+    parts: [{ ...lid.build(), sprites: [badge], pos: [0, 2.53, -0.3], tick: (o, tt, dt, y0) => {
+      if (tt - checked > 1) { checked = tt; ready = !!hub?.app?.economy?.hasDailyBadge?.(); }
+      badge.visible = ready;
+      if (ready) {
+        o.position.y = y0 + Math.abs(Math.sin(tt * 5)) * 0.16;
+        o.rotation.z = Math.sin(tt * 10) * 0.03;
+        badge.scale.setScalar(0.7 + Math.sin(tt * 6) * 0.06);
+      } else { o.position.y = y0; o.rotation.z = 0; }
+    } }],
+  };
+}
+
 /**
  * החנויות סביב הלוח (פונות אל הלוח ואל המצלמה): כל אחת פותחת את החנות של הקטגוריה שלה —
  * ארבע חנויות לבוש ובית החיות. r — רדיוס טביעת הרגל (לתושבים המטיילים).
@@ -426,9 +474,11 @@ const SLOT_SHOPS = [
     signAt: [0, 3.0, 1.56], signSize: [1.5, 0.4], style: { bg: '#141a4a', fg: '#c8f6ff', border: '#7ae8ff', bulb: '#c8f6ff', glow: 'rgba(120,230,255,0.95)' } },
   { slot: 'armor', key: 'shopRobes', icon: 'shirt', sign: 'ROBES', geo: robeTentGeometry, pos: [10.2, 0, 7.2], r: 2.4, labelY: 5.3,
     signAt: [0, 2.32, 1.99], signSize: [1.5, 0.42], style: { bg: '#7a1020', fg: '#fff3d6', bulbs: false } },
-  // באמצע הצד השמאלי: בית החיות
+  // באמצע כל צד: בית החיות (שמאל) ובית המתנות (ימין — המתנה היומית)
   { slot: 'pets', key: 'shopPets', icon: 'paw', sign: 'PETS', geo: petBarnGeometry, pos: [-13.4, 0, 0.6], r: 2.3, labelY: 4.6,
     signAt: [0, 1.74, 0.5], signSize: [1.2, 0.34], style: { bg: '#24502a', fg: '#fff3d6' } },
+  { slot: 'gifts', key: 'shopGifts', icon: 'gift', sign: 'GIFTS', geo: giftHouseGeometry, pos: [13.4, 0, 0.6], r: 2.3, labelY: 4.75,
+    signAt: [0, 1.9, 0.95], signSize: [1.2, 0.34], style: { bg: '#123a8a', fg: '#ffe9a8' } },
 ];
 
 /** גובה טבעת הזהב: מרחפת מעל מוזיאון הזמן (מעל השלט שלו) */
@@ -561,7 +611,7 @@ export class HubMuseum {
     this.museumHall = mk(museumGeometry(), [0, 0, -13.4], 'museum', 'museum', 'temple', 'TIME MUSEUM', { labelY: 8.6, yaw: 0, signAt: [0, 3.71, 1.47], signSize: [2.6 * 1.9, 0.62 * 0.62] });
     this.museumHall.userData.label.position.z = 0;
     // ארבע חנויות הלבוש מקיפות את הלוח
-    this.slotShops = SLOT_SHOPS.map((s) => mk(s.geo(), s.pos, `shop_${s.slot}`, s.key, s.icon, s.sign, {
+    this.slotShops = SLOT_SHOPS.map((s) => mk(s.geo(this), s.pos, `shop_${s.slot}`, s.key, s.icon, s.sign, {
       labelY: s.labelY, signAt: s.signAt, signSize: s.signSize, style: s.style, yaw: Math.atan2(-s.pos[0], 9), scale: SHOP_SCALE,
     }));
     this.buildPremiumRing();
@@ -868,7 +918,7 @@ export class HubMuseum {
     }
   }
 
-  /** נגיעה בבניין: 'cinema' / 'museum' / 'shop_head' / 'shop_armor' / 'shop_weapon' / 'shop_aura' / 'shop_boards' / 'shop_pets' / 'shop_premium' / null */
+  /** נגיעה בבניין: 'cinema' / 'museum' / 'shop_head' / 'shop_armor' / 'shop_weapon' / 'shop_aura' / 'shop_boards' / 'shop_pets' / 'shop_gifts' / 'shop_premium' / null */
   pick(x, y) {
     if (!this.active) return null;
     const hit = this.sm.pick(x, y, this.premiumRing ? [...this.buildings, this.premiumRing] : this.buildings)[0];

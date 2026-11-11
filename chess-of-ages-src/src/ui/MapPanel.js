@@ -33,6 +33,12 @@ export function buildMapUi(app, map) {
   document.getElementById('app').appendChild(root);
   setTimeout(() => closeBtn.focus(), 80);
 
+  // נגיעה כפולה באי במפה: נכנסים אליו ישר (כמו הכפתור הראשי בכרטיס). האי שאתה עליו — חוזרים אליו
+  map.onEnter = (id) => {
+    if (id === pr.currentIsland()) { map.close(); return; }
+    if (id === HUB_ID) app.travelTo(id, { battle: false, overview: true });
+    else app.travelTo(id);
+  };
   map.onSelect = (id) => {
     const d = islandDef(id);
     const b = d.bot;

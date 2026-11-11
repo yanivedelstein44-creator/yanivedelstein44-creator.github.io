@@ -969,7 +969,16 @@ export class WorldMap {
       if (pts.size < 2) pinch = null;
       if (start && pts.size === 0 && !this.flight) {
         const moved = Math.hypot(e.clientX - start.x, e.clientY - start.y);
-        if (moved < 10 && performance.now() - start.t < 500) { this.view.vx = this.view.vz = 0; const id = this.pickIsland(e.clientX, e.clientY); if (id) this.select(id); }
+        if (moved < 10 && performance.now() - start.t < 500) {
+          this.view.vx = this.view.vz = 0;
+          // נגיעה כפולה באי = נכנסים אליו ישר. לפי מקום הנגיעה הראשונה (המפה כבר זזה אל האי שנבחר)
+          const now = performance.now(), lt = this.lastTap;
+          if (lt && now - lt.t < 420 && Math.hypot(e.clientX - lt.x, e.clientY - lt.y) < 45) { this.lastTap = null; this.onEnter?.(lt.id); }
+          else {
+            const id = this.pickIsland(e.clientX, e.clientY);
+            if (id) { this.select(id); this.lastTap = { id, t: now, x: e.clientX, y: e.clientY }; } else this.lastTap = null;
+          }
+        }
       }
       if (pts.size === 0) { start = null; this.dragging = false; }
     };
