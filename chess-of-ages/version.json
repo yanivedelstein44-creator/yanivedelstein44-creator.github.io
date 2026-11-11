@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.3.8",
-  "build": "1.3.8-1794061925554",
-  "buildTime": 1794061925554,
-  "date": "2026-11-07T14:32:05.554Z",
+  "version": "1.3.9",
+  "build": "1.3.9-1794384331491",
+  "buildTime": 1794384331491,
+  "date": "2026-11-11T08:05:31.491Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.3.8-1794061925554.zip",
-  "checksum": "5fd8453a2126f3d6a0588231a527a5164b3aafd66f4d85b61564d97aaac37488",
+  "bundle": "update/bundle-1.3.9-1794384331491.zip",
+  "checksum": "f390497563aef7e5fc959797f24d086ec1e08d005a36d189e0c9bfe758b59dcb",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Fog of the unknown: every island after the next one is under fog, and after a win the fog over the new next island lifts with sparkles. World signs hide during flights"
+  "notes": "Four wardrobe shops now surround the board on the Central Island (crowns, robes, weapons, auras), each in its own building and opening its own shop. Islands you fly to lose their fog for good, and an island whose bot still rules glows on the map with a red aura and crown"
 }
