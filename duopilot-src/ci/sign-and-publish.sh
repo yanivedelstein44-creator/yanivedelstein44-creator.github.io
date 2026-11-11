@@ -19,7 +19,7 @@ NAME=$(grep -E '^versionName=' "$SRC/version.properties" | cut -d= -f2 | tr -d '
 grep -q "versionCode='$CODE'" "$BUILD/badging.txt" || { echo "the APK in $BUILD is not versionCode $CODE"; head -1 "$BUILD/badging.txt"; exit 1; }
 
 java -jar "$BUILD/apksigner.jar" sign --ks "$DUOPILOT_KS" --ks-type PKCS12 --ks-key-alias duopilot \
-  --ks-pass env:DUOPILOT_KS_PASS --key-pass env:DUOPILOT_KS_PASS \
+  --ks-pass env:DUOPILOT_KS_PASS --key-pass env:DUOPILOT_KS_PASS --v2-signing-enabled true --v3-signing-enabled true \
   --out "$SITE/DuoPilot.apk" "$BUILD/DuoPilot-unsigned.apk"
 java -jar "$BUILD/apksigner.jar" verify --print-certs "$SITE/DuoPilot.apk" | head -3
 rm -f "$SITE/DuoPilot.apk.idsig"
