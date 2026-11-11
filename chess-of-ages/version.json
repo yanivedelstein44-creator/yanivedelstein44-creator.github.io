@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.3.15",
-  "build": "1.3.15-1794393404642",
-  "buildTime": 1794393404642,
-  "date": "2026-11-11T10:36:44.642Z",
+  "version": "1.3.16",
+  "build": "1.3.16-1794430031651",
+  "buildTime": 1794430031651,
+  "date": "2026-11-11T20:47:11.651Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.3.15-1794393404642.zip",
-  "checksum": "d23d751cc561eef4c7a01c04c3c771dd115c99975b794cd9be13b8659d40021b",
+  "bundle": "update/bundle-1.3.16-1794430031651.zip",
+  "checksum": "c0da59af3019304739debd0c1b737622247b137ea84472f4215f9e0e0c8fb8fc",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Islands now sit on the sea (waves, beaches, ice, lava, night sea, seabed); 12 flying pets in the new Sky Nest (free every 10 islands, 3 premium) with a flyer circling the city; daily gift bubble above the Gift House (lucky wheel removed)"
+  "notes": "Growing pets (baby, grown, legendary) with XP from every battle and an evolution celebration; waving white flags on islands you won (on the island and on the map); an equipped flying pet circles the central island instead of sitting by the board"
 }
