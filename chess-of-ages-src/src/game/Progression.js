@@ -56,6 +56,14 @@ export class Progression {
 
   currentIsland() { const c = this.isl.current; return c >= 1 && c <= ISLAND_COUNT ? c : HUB_ID; }
   setCurrent(id) { this.save({ current: id }); }
+  /** איים שביקרת בהם (הערפל ירד מהם). אי כזה שעוד לא נכבש — הבוט שלו עדיין שולט בו (הילה במפה) */
+  isVisited(id) { return (this.isl.visited || []).includes(id); }
+  visit(id) {
+    if (id === HUB_ID || this.isVisited(id)) return;
+    this.save({ visited: [...(this.isl.visited || []), id] });
+  }
+  /** הבוט עדיין שולט: ביקרת באי (ניסית להילחם) ועוד לא כבשת אותו */
+  botRules(id) { return id !== HUB_ID && this.isVisited(id) && !this.isConquered(id) && !this.needsFullGame(id); }
 
   /** כיבוש אי. הפיראטים נוחתים מיד אחרי שהבוט עוזב */
   conquer(id) {

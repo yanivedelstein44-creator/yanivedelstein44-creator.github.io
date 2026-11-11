@@ -104,6 +104,7 @@ export function buildSeason(season, sm, fx) {
       p.add(mesh(G.sph(0.7, 20, 14), pm, { scale: [1.2, 0.95, 1.2], cast: true, rot: [0, Math.atan2(-x, -z) + Math.PI, 0] }));
       p.add(mesh(G.cyl(0.08, 0.12, 0.35, 6), stem, { pos: [0, 0.75, 0] }));
       p.position.set(x, 0.65, z);
+      p.userData.ground = true; // קישוט על הקרקע (באי המרכזי — מוזז מהמבנים)
       g.add(p);
     });
     const bats = [];
@@ -142,6 +143,7 @@ export function buildSeason(season, sm, fx) {
     for (let i = 0; i < 4; i++) tree.add(mesh(G.box(0.45, 0.4, 0.45), new THREE.MeshStandardMaterial({ color: cols[i], roughness: 0.4 }), { pos: [Math.cos(i * 1.6) * 1.4, 0.2, Math.sin(i * 1.6) * 1.4], rot: [0, i, 0] }));
     tree.position.set(-7.6, 0, -4.4);
     tree.scale.setScalar(1.1);
+    tree.userData.ground = true;
     g.add(tree);
     updaters.push((dt, t) => { lights.forEach((b, i) => { b.material.emissiveIntensity = 0.8 + Math.sin(t * 3 + i) * 0.8; }); star.rotation.y += dt; });
     let acc = 0;

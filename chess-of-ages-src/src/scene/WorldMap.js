@@ -484,6 +484,7 @@ export class WorldMap {
     this.fogPuffs = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 2), new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0xc8d4e2, emissiveIntensity: 0.6, transparent: true, opacity: 0.78, depthWrite: false }), ISLAND_COUNT * 3);
     this.fogPuffs.count = 0;
     this.scene.add(this.fogPuffs);
+    this.buildBotAura();
     this.nextRing = new THREE.Mesh(new THREE.TorusGeometry(1.75, 0.08, 8, 48), new THREE.MeshBasicMaterial({ color: 0x2ee59d, transparent: true, opacity: 0.85 }));
     this.nextRing.rotation.x = Math.PI / 2;
     this.scene.add(this.nextRing);
@@ -666,7 +667,7 @@ export class WorldMap {
         if (pr.hasPirates?.(id)) this.pirateFlags.setMatrixAt(pf++, m4); else this.flags.setMatrixAt(f++, m4);
       }
       const prem = isPremium(id);
-      const foggy = id !== HUB_ID && !pr.isConquered(id) && (prem ? locked : id > front || id === this.fogPending);
+      const foggy = id !== HUB_ID && !pr.isConquered(id) && !pr.isVisited?.(id) && (prem ? locked : id > front || id === this.fogPending);
       if (foggy) {
         // איי פרימיום שעוד לא נפתחו: ערפל זהוב קטן; איים רגילים אחרי האי הבא: ערפל לבן
         const k0 = prem ? 0.62 : 1;
@@ -693,6 +694,69 @@ export class WorldMap {
     const nx = pr.frontier();
     this.nextRing.visible = !!nx && nx !== cur;
     if (nx) this.nextRing.position.copy(this.positions[nx]).setY(0.12);
+    // הילת הבוט: איים שביקרת בהם ועוד לא כבשת (חוץ מהאי שאתה עליו, מהאי הבא ומיעד הטיסה)
+    this.auraIds = [];
+    for (let id = 1; id <= ISLAND_COUNT; id++) if (pr.botRules?.(id) && id !== cur && id !== nx && id !== this.auraSkip) this.auraIds.push(id);
+    this.auraIds.forEach((id, i) => {
+      const sc = islandScale(id), p = this.positions[id];
+      this.auraWall.setMatrixAt(i, m4.compose(v.set(p.x, -0.2, p.z), q.identity(), s.set(1.68 * sc, 1.25 * sc, 1.68 * sc)));
+    });
+    for (const a of [this.auraWall, this.auraRing, this.auraCrown]) a.count = this.auraIds.length;
+    this.auraWall.instanceMatrix.needsUpdate = true;
+    this.updateAuras(0, this.time || 0);
+    if (this.flight) { this.labels?.forEach((l) => { l.visible = false; }); this.nextRing.visible = false; }
+  }
+
+  /** הילת השליטה של הבוט: טבעת זוהרת על המים, קיר אור שקוף סביב האי וכתר אדום שמרחף מעליו */
+  buildBotAura() {
+    const N = ISLAND_COUNT;
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const x = c.getContext('2d');
+    const g = x.createRadialGradient(64, 64, 18, 64, 64, 64);
+    g.addColorStop(0, 'rgba(255,30,80,0)'); g.addColorStop(0.5, 'rgba(255,30,80,0.28)'); g.addColorStop(0.7, 'rgba(255,60,110,0.95)');
+    g.addColorStop(0.8, 'rgba(255,30,80,0.42)'); g.addColorStop(1, 'rgba(255,30,80,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+    const ringTex = new THREE.CanvasTexture(c); ringTex.colorSpace = THREE.SRGBColorSpace;
+    this.auraRing = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: ringTex, transparent: true, depthWrite: false, toneMapped: false }), N);
+    const w = document.createElement('canvas'); w.width = 256; w.height = 64;
+    const y = w.getContext('2d');
+    for (let i = 0; i < 256; i++) {
+      const a = 0.25 + 0.75 * Math.abs(Math.sin(i * 0.11) * Math.sin(i * 0.037 + 1));
+      const gr = y.createLinearGradient(0, 64, 0, 0); gr.addColorStop(0, `rgba(255,255,255,${a})`); gr.addColorStop(0.45, `rgba(255,255,255,${a * 0.35})`); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      y.fillStyle = gr; y.fillRect(i, 0, 1, 64);
+    }
+    const wallTex = new THREE.CanvasTexture(w); wallTex.wrapS = THREE.RepeatWrapping; wallTex.repeat.x = 2;
+    this.auraWall = new THREE.InstancedMesh(new THREE.CylinderGeometry(1, 1, 1, 40, 1, true).translate(0, 0.5, 0), new THREE.MeshBasicMaterial({ map: wallTex, color: 0xff2a5a, transparent: true, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }), N);
+    const parts = [new THREE.CylinderGeometry(0.3, 0.26, 0.2, 10, 1).translate(0, 0.1, 0)];
+    for (let i = 0; i < 5; i++) { const a = (i / 5) * TAU; parts.push(new THREE.ConeGeometry(0.075, 0.24, 4).translate(Math.sin(a) * 0.27, 0.32, Math.cos(a) * 0.27)); }
+    this.auraCrown = new THREE.InstancedMesh(mergeGeometries(parts, false), new THREE.MeshStandardMaterial({ color: 0xd8283a, emissive: 0x8a0a1c, emissiveIntensity: 0.9, metalness: 0.35, roughness: 0.35, flatShading: true }), N);
+    for (const m of [this.auraRing, this.auraWall, this.auraCrown]) { m.count = 0; m.frustumCulled = false; this.scene.add(m); }
+    this.auraIds = [];
+  }
+
+  /** פעימת ההילה, קיר האור מסתובב והכתר מרחף */
+  updateAuras(dt, tt) {
+    if (this.filmMode && this.auraCrown?.count) for (const a of [this.auraWall, this.auraRing, this.auraCrown]) a.count = 0; // הסרט: בלי הילות (כמו בלי ערפל)
+    if (!this.auraIds?.length || this.filmMode) return;
+    const pulse = 0.5 + 0.5 * Math.sin(tt * 2.4);
+    this.auraRing.material.opacity = 0.62 + 0.33 * pulse;
+    this.auraWall.material.opacity = 0.42 + 0.28 * pulse;
+    this.auraWall.material.map.offset.x = (tt * 0.05) % 1;
+    // גצים אדומים שעולים משפת האי
+    this.auraAcc = (this.auraAcc || 0) + dt;
+    while (this.auraAcc > 0.11) {
+      this.auraAcc -= 0.11;
+      const id = this.auraIds[(this.auraTurn = ((this.auraTurn || 0) + 1) % this.auraIds.length)], p = this.positions[id], sc = islandScale(id);
+      this.fx.add.emit({ count: 1, pos: [p.x, 0.05, p.z], ring: [1.45 * sc, 1.7 * sc], vel: [0, 1.1, 0], velSpread: [0.12, 0.35, 0.12], color: [0xff3a6a, 0xff8ab0, 0xffc8d6], size: [0.07, 0.15], life: [0.9, 1.5] });
+    }
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new V3(), v = new V3(), up = new V3(0, 1, 0);
+    this.auraIds.forEach((id, i) => {
+      const sc = islandScale(id), p = this.positions[id], k = 4.9 * sc * (1 + pulse * 0.07);
+      this.auraRing.setMatrixAt(i, m4.compose(v.set(p.x, -0.17, p.z), q.identity(), s.set(k, 1, k)));
+      this.auraCrown.setMatrixAt(i, m4.compose(v.set(p.x, 1.3 * sc + 0.42 + Math.sin(tt * 1.7 + id) * 0.09, p.z), q.setFromAxisAngle(up, tt * 0.9 + id), s.setScalar(1.35 * Math.max(0.8, sc))));
+    });
+    this.auraRing.instanceMatrix.needsUpdate = true;
+    this.auraCrown.instanceMatrix.needsUpdate = true;
   }
 
   // ================= פתיחה / סגירה =================
@@ -729,12 +793,16 @@ export class WorldMap {
     if (!travel) setTimeout(() => this.select(focus || this.app.progression.frontier() || cur, { fly: false }), 250);
   }
 
-  /** הערפל מעל האי הבא מתפזר: הענן עולה, מתנפח ונעלם בנצנוצים */
-  liftFog(id) {
-    if (!this.isOpen || this.fogPending !== id) return;
-    this.app.store.set({ mapFogLifted: id });
+  /**
+   * הערפל מעל אי מתפזר: הענן עולה, מתנפח ונעלם בנצנוצים. בלי reveal — האי הבא אחרי ניצחון;
+   * עם reveal — אי מכוסה שטסים אליו (הערפל נחשף בדרך, והאי נשמר כאי שביקרת בו)
+   */
+  liftFog(id, reveal = false) {
+    if (!this.isOpen || (!reveal && this.fogPending !== id)) return;
+    if (reveal) this.app.progression.visit(id);
+    else this.app.store.set({ mapFogLifted: id });
     const range = this.fogIdx?.[id];
-    if (!range) { this.fogPending = null; return; }
+    if (!range) { if (!reveal) this.fogPending = null; return; }
     const [i0, i1] = range;
     const base = [], m4 = new THREE.Matrix4();
     for (let i = i0; i < i1; i++) { this.fogPuffs.getMatrixAt(i, m4); base.push(m4.clone()); }
@@ -756,7 +824,7 @@ export class WorldMap {
       this.fogPuffs.instanceMatrix.needsUpdate = true;
       if (k >= 1) {
         this.updaters.delete(up);
-        this.fogPending = null;
+        if (!reveal) this.fogPending = null;
         this.fx.sparkle([p.x, 0.8, p.z], 24, [0xffe08a, 0xffffff]);
         this.app.sound.chime?.(2);
         this.refresh();
@@ -768,6 +836,7 @@ export class WorldMap {
   close() {
     if (!this.isOpen) return;
     this.fogPending = null;
+    this.auraSkip = null;
     this.isOpen = false;
     this.endFlightExtras();
     this.flight = null;
@@ -807,6 +876,7 @@ export class WorldMap {
     const pulse = 0.5 + 0.5 * Math.sin(tt * 4);
     this.nextRing.scale.setScalar(1 + pulse * 0.08);
     this.nextRing.material.opacity = 0.5 + pulse * 0.45;
+    this.updateAuras(dt, tt);
     if (this.selRing.visible) this.selRing.rotation.z += dt * 0.8;
     this.hubFlag.rotation.y = Math.sin(tt * 2.4) * 0.25;
     if (this.ribbonMats) this.ribbonMats.next.opacity = 0.55 + 0.45 * pulse;
@@ -991,6 +1061,9 @@ export class WorldMap {
     this.build();
     if (!this.isOpen) this.open({ focus: fromId, travel: true });
     const { pts, ap, B, land, dir } = this.routePoints(fromId, toId);
+    // טסים אל אי: ההילה שלו נעלמת (באים להילחם), ואם הוא מכוסה בערפל — הערפל נחשף בדרך
+    const reveal = !this.filmMode && !!this.fogIdx?.[toId];
+    if (!this.filmMode) { this.auraSkip = toId; this.refresh(); }
     const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
     const len = curve.getLength();
     this.selRing.visible = false;
@@ -1005,7 +1078,7 @@ export class WorldMap {
     this.app.sound.petVoice?.(this.rig?.voice || 'wolf');
     this.endFlightExtras();
     const premTrip = isPremium(toId) || isPremium(fromId);
-    const f = { curve, len, t: -0.75, dur: premTrip ? THREE.MathUtils.clamp(len / 12, 2.2, 3.6) : THREE.MathUtils.clamp(len / 6.2, 2.6, 6.4), speed: 1, phase: 'fly', ap, B, land, dir, toId,
+    const f = { reveal, curve, len, t: -0.75, dur: premTrip ? THREE.MathUtils.clamp(len / 12, 2.2, 3.6) : THREE.MathUtils.clamp(len / 6.2, 2.6, 6.4), speed: 1, phase: 'fly', ap, B, land, dir, toId,
       camPos: this.camera.position.clone(), camLook: this.lookAt.clone(), prevYaw: null, yawRate: 0, clouds: [], hoops: [], gate: null, whoosh: false };
     if (ap === 'bridge') this.buildBridge(B, dir, toId);
     if (ap === 'rings') f.hoops = this.hoopList.filter((hp) => hp.id === toId).map((hp) => ({ pos: hp.pos, passed: false }));
@@ -1113,6 +1186,7 @@ export class WorldMap {
         this.flightTrails(dt, f, wp);
       }
       this.animatePet(dt, tt, f.t > 0);
+      if (f.reveal && u > 0.4) { f.reveal = false; this.liftFog(f.toId, true); }
       if (u >= 1) {
         f.phase = 'land'; f.pt = 0;
         this.setRiding(false);

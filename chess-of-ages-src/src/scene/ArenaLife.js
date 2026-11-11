@@ -290,6 +290,7 @@ export class ArenaLife {
     rimHolder.geometry.dispose();
     this.disposables.push(this.mat);
     this.obstacles = this.collectObstacles(kingdom);
+    if (this.extraObstacles) this.obstacles.push(...this.extraObstacles()); // מבנים שמחוץ לערכת העידן (המבנים של האי המרכזי)
     this.lanes = this.resolveLanes();
     const low = this.low;
     // הולכי רגל

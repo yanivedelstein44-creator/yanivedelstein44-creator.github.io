@@ -1,6 +1,7 @@
 /**
  * מוזיאון הזמן — האי המרכזי.
- * - בית הקולנוע המרכזי (נוגעים בו → סרט הסיפור / סרט ההדרכה) והחנות (בוטים, חיות ובגדים).
+ * - בית הקולנוע המרכזי (נוגעים בו → סרט הסיפור / סרט ההדרכה) והחנות הכללית (חיות, בוטים, לוחות, פרימיום).
+ * - ארבע חנויות לבוש מקיפות את הלוח, כל אחת בעיצוב משלה: בית הכתרים, אוהל הגלימות, נפחיית הנשקים ומקדש ההילות.
  * - האי מתחיל קטן ומתרחב: כל אי שנכבש שולח אריח אדמה גדול ממנו — קרקע באקלים שלו, המונומנט שלו
  *   על כן אבן ומעט צמחייה — שעף מעבר לים ונצמד לחוף. האריחים מסודרים בטבעות (קודם בחזית האי),
  *   כך שהאי גדל טבעת אחרי טבעת: מ-17 יחידות רדיוס עד יותר מפי 3 (כל אריח מרחיב את החוף בכ-40%).
@@ -72,14 +73,14 @@ function dotTex() {
 }
 
 /** שלט מואר עם טקסט (קנבס) */
-function signTexture(text, { w = 512, h = 128, bg = '#5a0a14', fg = '#ffe9a8', border = '#f2c14e', bulbs = true } = {}) {
+function signTexture(text, { w = 512, h = 128, bg = '#5a0a14', fg = '#ffe9a8', border = '#f2c14e', bulbs = true, bulb = '#fff6c8', glow = 'rgba(255,200,80,0.9)' } = {}) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const x = c.getContext('2d');
   x.fillStyle = bg; x.fillRect(0, 0, w, h);
   x.lineWidth = 10; x.strokeStyle = border; x.strokeRect(8, 8, w - 16, h - 16);
-  if (bulbs) { x.fillStyle = '#fff6c8'; for (let i = 0; i < 18; i++) { const px = 24 + (i * (w - 48)) / 17; x.beginPath(); x.arc(px, 18, 5, 0, TAU); x.arc(px, h - 18, 5, 0, TAU); x.fill(); } }
+  if (bulbs) { x.fillStyle = bulb; for (let i = 0; i < 18; i++) { const px = 24 + (i * (w - 48)) / 17; x.beginPath(); x.arc(px, 18, 5, 0, TAU); x.arc(px, h - 18, 5, 0, TAU); x.fill(); } }
   x.fillStyle = fg; x.font = `900 ${Math.round(h * 0.46)}px Rubik, Arial, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
-  x.shadowColor = 'rgba(255,200,80,0.9)'; x.shadowBlur = 18;
+  x.shadowColor = glow; x.shadowBlur = 18;
   x.fillText(text, w / 2, h / 2 + 2);
   const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace;
   return tx;
@@ -152,6 +153,202 @@ function shopGeometry() {
   return b.build();
 }
 
+// ---------- ארבע חנויות הלבוש סביב הלוח — לכל אחת עיצוב משלה ----------
+// כל בונה מחזיר { solid, glow, parts }: parts הם חלקים נעים (כתר מסתובב, דגל, אש, עשן, גביש וטבעות אור)
+let _puff = null;
+const puffTex = () => (_puff ||= dotTex());
+const OCT_FLAT = [0, Math.PI / 8, 0]; // מתומן עם פאה שטוחה בחזית
+
+/** בית הכתרים: מגדל קטיפה סגול עם עמודי זהב וחלונות ראווה, ועל הגג כתר זהב ענק שמסתובב לאט */
+function crownHouseGeometry() {
+  const b = new Builder();
+  b.cyl(2.0, 2.12, 0.22, C.lstone, [0, 0.11, 0], 16).cyl(1.82, 1.86, 0.14, C.marble, [0, 0.29, 0], 16);
+  b.box(1.3, 0.14, 0.55, C.marble, [0, 0.07, 2.12]);
+  b.cyl(1.36, 1.46, 2.5, C.purple, [0, 1.61, 0], 8, OCT_FLAT);
+  b.cyl(1.5, 1.5, 0.16, C.gold, [0, 0.44, 0], 8, OCT_FLAT).cyl(1.41, 1.41, 0.14, C.gold, [0, 2.8, 0], 8, OCT_FLAT);
+  b.cyl(1.6, 1.44, 0.28, C.cream, [0, 3.0, 0], 8, OCT_FLAT);
+  for (let i = 0; i < 8; i++) { const a = Math.PI / 8 + (i / 8) * TAU; b.box(0.1, 2.3, 0.1, C.gold, [Math.sin(a) * 1.43, 1.62, Math.cos(a) * 1.43], [0, a, 0]); }
+  // דלת מקושתת
+  b.box(0.62, 1.05, 0.08, C.dark, [0, 0.89, 1.33]).cyl(0.31, 0.31, 0.08, C.dark, [0, 1.41, 1.32], 14, [Math.PI / 2, 0, 0]);
+  b.tor(0.33, 0.05, C.gold, [0, 1.41, 1.37], undefined, Math.PI).box(0.05, 1.0, 0.1, C.gold, [0, 0.89, 1.38]);
+  // חלונות ראווה זוהרים בפאות האלכסוניות, וכרזות אדומות בצדדים
+  for (const a of [-Math.PI / 4, Math.PI / 4, (3 * Math.PI) / 4, (-3 * Math.PI) / 4]) {
+    b.box(0.5, 0.8, 0.04, C.gold, [Math.sin(a) * 1.34, 1.85, Math.cos(a) * 1.34], [0, a, 0]);
+    b.box(0.4, 0.68, 0.05, 0xa8e4ff, [Math.sin(a) * 1.36, 1.85, Math.cos(a) * 1.36], [0, a, 0], true);
+  }
+  for (const s of [-1, 1]) b.box(0.44, 1.05, 0.04, C.red, [s * 1.34, 1.9, 0], [0, s * Math.PI / 2, 0]).box(0.5, 0.07, 0.07, C.gold, [s * 1.36, 2.44, 0], [0, s * Math.PI / 2, 0]);
+  // כן עם קסדת אביר (משמאל) וכן עם כתר על כרית (מימין)
+  for (const s of [-1, 1]) b.box(0.38, 0.7, 0.38, C.marble, [s * 1.1, 0.71, 1.38]).box(0.46, 0.08, 0.46, C.gold, [s * 1.1, 1.1, 1.38]);
+  b.sph(0.2, C.silver, [-1.1, 1.34, 1.38], [0.92, 1.1, 1]).box(0.24, 0.05, 0.06, C.dark, [-1.1, 1.32, 1.57]).box(0.05, 0.16, 0.4, C.red, [-1.1, 1.57, 1.35]);
+  b.box(0.36, 0.1, 0.36, C.red, [1.1, 1.19, 1.38]).cyl(0.13, 0.12, 0.13, C.gold, [1.1, 1.3, 1.38], 10);
+  for (let i = 0; i < 5; i++) { const a = (i / 5) * TAU; b.cone(0.035, 0.11, C.gold, [1.1 + Math.sin(a) * 0.12, 1.42, 1.38 + Math.cos(a) * 0.12], 4); }
+  // הכתר הענק על הגג
+  const cr = new Builder();
+  cr.cyl(1.24, 1.16, 0.5, C.gold, [0, 0.25, 0], 16).tor(1.2, 0.07, C.gold, [0, 0.04, 0], [Math.PI / 2, 0, 0], TAU, false, 32);
+  cr.hemi(1.06, C.purple, [0, 0.42, 0], [1, 0.72, 1]);
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * TAU, x = Math.sin(a) * 1.17, z = Math.cos(a) * 1.17, a2 = a + TAU / 16;
+    cr.cone(0.2, 0.72, C.gold, [x, 0.84, z], 4).sph(0.1, i % 2 ? 0xff4a6a : 0x6ad8ff, [x, 1.24, z], undefined, 8, true);
+    cr.oct(0.12, i % 2 ? C.red : C.lapis, [Math.sin(a2) * 1.24, 0.26, Math.cos(a2) * 1.24], [1, 1.25, 1]);
+  }
+  cr.sph(0.2, C.gold, [0, 1.3, 0]).box(0.08, 0.4, 0.08, C.gold, [0, 1.62, 0]).box(0.26, 0.08, 0.08, C.gold, [0, 1.66, 0]);
+  return { ...b.build(), parts: [{ ...cr.build(), pos: [0, 3.14, 0], tick: (o, tt) => { o.rotation.y = tt * 0.35; } }] };
+}
+
+/** אוהל הגלימות: ביתן טורנירים עגול בפסים אדום־שמנת, בובות תצוגה עם גלימות, מתלה בגדים ושריון על מעמד */
+function robeTentGeometry() {
+  const b = new Builder();
+  const SEG = TAU / 12, RW = 1.52, pw = 2 * RW * Math.sin(SEG / 2) + 0.03, pd = RW * Math.cos(SEG / 2);
+  b.cyl(2.1, 2.2, 0.2, C.wood, [0, 0.1, 0], 16).tor(2.12, 0.05, C.dwood, [0, 0.2, 0], [Math.PI / 2, 0, 0], TAU, false, 32);
+  // דפנות בפסים, עם פתח בחזית ועמודי זהב בצדי הפתח
+  for (let i = 1; i < 11; i++) { const a = (i + 0.5) * SEG; b.box(pw, 1.85, 0.05, i % 2 ? C.cream : C.red, [Math.sin(a) * pd, 1.12, Math.cos(a) * pd], [0, a, 0]); }
+  for (const s of [-1, 1]) b.cyl(0.045, 0.045, 1.95, C.gold, [s * RW * Math.sin(SEG), 1.15, RW * Math.cos(SEG)], 6);
+  // גג חרוטי בפסים, שפת זהב ושוליים משולשים
+  b.cyl(1.98, 1.98, 0.05, C.cream, [0, 2.06, 0], 24);
+  for (let i = 0; i < 12; i++) b.add(new THREE.ConeGeometry(2.05, 1.75, 2, 1, true, i * SEG, SEG), i % 2 ? C.cream : C.red, [0, 2.06 + 0.875, 0]);
+  b.tor(2.04, 0.05, C.gold, [0, 2.07, 0], [Math.PI / 2, 0, 0], TAU, false, 36);
+  for (let i = 0; i < 24; i++) { const a = (i + 0.5) * (TAU / 24); b.cone(0.14, 0.28, i % 2 ? C.gold : C.red, [Math.sin(a) * 2.0, 1.92, Math.cos(a) * 2.0], 3, [Math.PI, 0, 0]); }
+  b.sph(0.12, C.gold, [0, 3.84, 0]).cyl(0.035, 0.035, 0.85, C.gold, [0, 4.2, 0], 6);
+  // לוח השלט מעל הפתח
+  b.box(1.62, 0.52, 0.06, C.dwood, [0, 2.32, 1.95]).box(1.7, 0.06, 0.08, C.gold, [0, 2.6, 1.95]);
+  // בובות תצוגה עם גלימות
+  const mannequin = (x, z, robe, trim) => {
+    b.cyl(0.2, 0.22, 0.05, C.dwood, [x, 0.23, z], 10).cyl(0.025, 0.025, 0.4, C.iron, [x, 0.45, z], 5);
+    b.cone(0.36, 1.12, robe, [x, 0.96, z], 12).tor(0.11, 0.035, trim, [x, 1.45, z], [Math.PI / 2, 0, 0], TAU, false, 12).sph(0.1, C.bone, [x, 1.6, z]);
+  };
+  mannequin(-0.42, 0.72, C.purple, C.gold);
+  mannequin(0.42, 0.72, C.lapis, C.silver);
+  mannequin(0, -0.1, C.green, C.gold);
+  // מתלה גלימות (משמאל)
+  const rx = -1.5, rz = 1.3, ry = -0.856, tx = Math.cos(ry), tz = -Math.sin(ry);
+  for (const s of [-1, 1]) b.cyl(0.03, 0.03, 1.3, C.dwood, [rx + s * 0.45 * tx, 0.85, rz + s * 0.45 * tz], 5);
+  b.box(1.0, 0.05, 0.05, C.gold, [rx, 1.5, rz], [0, ry, 0]);
+  [C.red, C.navy, C.jade].forEach((c, k) => { const u = (k - 1) * 0.3; b.cone(0.16, 0.7, c, [rx + u * tx, 1.12, rz + u * tz], 8).sph(0.05, C.gold, [rx + u * tx, 1.48, rz + u * tz]); });
+  // שריון אבירים על מעמד (מימין)
+  const ax = 1.5, az = 1.3, ay = 0.6, ox = Math.cos(ay) * 0.27, oz = -Math.sin(ay) * 0.27;
+  b.cyl(0.2, 0.22, 0.05, C.dwood, [ax, 0.23, az], 10).cyl(0.03, 0.03, 0.55, C.iron, [ax, 0.5, az], 5);
+  b.box(0.44, 0.52, 0.28, C.silver, [ax, 1.02, az], [0, ay, 0]).box(0.46, 0.08, 0.3, C.gold, [ax, 0.8, az], [0, ay, 0]);
+  b.sph(0.13, C.silver, [ax + ox, 1.25, az + oz]).sph(0.13, C.silver, [ax - ox, 1.25, az - oz]);
+  b.sph(0.14, C.silver, [ax, 1.45, az]).box(0.05, 0.14, 0.3, C.red, [ax, 1.62, az], [0, ay, 0]);
+  // דגל מתנופף על הצריח
+  const fl = new Builder();
+  fl.box(0.64, 0.26, 0.02, C.red, [0.34, 0, 0]).box(0.08, 0.3, 0.03, C.gold, [0.03, 0, 0]);
+  return { ...b.build(), parts: [{ ...fl.build(), pos: [0, 4.45, 0], tick: (o, tt) => { o.rotation.y = 0.5 + Math.sin(tt * 1.7) * 0.55; } }] };
+}
+
+/** נפחיית הנשקים: בית אבן עם קורות עץ וגג צפחה, ארובה מעשנת, כבשן בוער, סדן ומתקן נשקים; על הרכס מגן עם שתי חרבות */
+function forgeGeometry() {
+  const b = new Builder();
+  const WALL = 0x5e5850, BASE = 0x45413b, BLOCK = 0x7a7368, SLATE = 0x3a404c;
+  b.box(4.1, 0.25, 3.5, BASE, [0, 0.125, 0.15]);
+  b.box(3.4, 2.4, 2.3, WALL, [0, 1.45, -0.4]).box(3.5, 0.4, 2.4, BASE, [0, 0.45, -0.4]);
+  // אבני בנייה בולטות בחזית ובצדדים
+  for (const [x, y] of [[-1.25, 1.0], [-1.0, 1.55], [-1.3, 2.05], [1.2, 0.95], [1.0, 1.6], [1.3, 2.1], [-0.55, 2.42], [0.6, 2.45]]) b.box(0.42, 0.2, 0.04, BLOCK, [x, y, 0.77]);
+  for (const sx of [-1, 1]) for (const [z, y] of [[-1.0, 0.95], [0.1, 1.45], [-0.5, 2.0], [-1.2, 2.3]]) b.box(0.04, 0.2, 0.42, BLOCK, [sx * 1.71, y, z]);
+  for (const x of [-1.66, 1.66]) b.box(0.2, 2.4, 0.2, C.dwood, [x, 1.45, 0.77]);
+  b.box(3.6, 0.2, 0.22, C.dwood, [0, 2.62, 0.78]);
+  b.prism(2.9, 1.15, 3.9, SLATE, [0, 2.65, -0.4], [0, Math.PI / 2, 0]).box(4.0, 0.12, 0.16, C.dwood, [0, 3.8, -0.4]);
+  // ארובה עם גחלים
+  b.box(0.7, 2.5, 0.7, BASE, [1.05, 3.0, -1.0]).box(0.86, 0.16, 0.86, BLOCK, [1.05, 4.3, -1.0]).box(0.5, 0.05, 0.5, C.lava, [1.05, 4.39, -1.0], undefined, true);
+  // הכבשן: פתח מקושת, אבני קשת וגחלים
+  b.box(1.24, 1.0, 0.06, C.black, [0, 0.75, 0.77]).cyl(0.62, 0.62, 0.06, C.black, [0, 1.25, 0.77], 14, [Math.PI / 2, 0, 0]);
+  b.tor(0.68, 0.1, C.lstone, [0, 1.25, 0.8], undefined, Math.PI, false, 12);
+  for (const x of [-0.68, 0.68]) b.box(0.18, 1.0, 0.16, C.lstone, [x, 0.75, 0.8]);
+  b.box(1.0, 0.3, 0.05, C.lava, [0, 0.42, 0.8], undefined, true);
+  // מגן וחרבות מוצלבות על רכס הגג
+  const cy = 4.42, cz = -0.4;
+  const sword = (phi) => {
+    const at = (d) => [-d * Math.sin(phi), cy + d * Math.cos(phi)];
+    let [x, y] = at(0.3); b.box(0.11, 1.35, 0.04, C.steel, [x, y, cz], [0, 0, phi]);
+    [x, y] = at(1.02); b.cone(0.055, 0.12, C.steel, [x, y, cz], 4, [0, 0, phi]);
+    [x, y] = at(-0.42); b.box(0.46, 0.08, 0.08, C.gold, [x, y, cz], [0, 0, phi]);
+    [x, y] = at(-0.6); b.box(0.07, 0.3, 0.07, C.dwood, [x, y, cz], [0, 0, phi]);
+    [x, y] = at(-0.78); b.sph(0.07, C.gold, [x, y, cz]);
+  };
+  sword(0.72); sword(-0.72);
+  b.box(0.12, 0.3, 0.12, C.iron, [0, 3.88, cz]);
+  b.cyl(0.5, 0.5, 0.12, C.red, [0, cy, cz + 0.08], 6, [Math.PI / 2, 0, 0]).tor(0.5, 0.05, C.gold, [0, cy, cz + 0.15], [0, 0, Math.PI / 6], TAU, false, 6);
+  b.oct(0.16, C.gold, [0, cy, cz + 0.17], [1, 1.3, 0.5]);
+  // סדן על גדם עץ ופטיש (משמאל)
+  b.cyl(0.22, 0.25, 0.42, C.dwood, [-1.3, 0.46, 1.45], 8);
+  b.box(0.24, 0.16, 0.2, C.iron, [-1.3, 0.75, 1.45]).box(0.6, 0.12, 0.26, C.iron, [-1.3, 0.88, 1.45]).cone(0.085, 0.3, C.iron, [-0.88, 0.88, 1.45], 6, [0, 0, -Math.PI / 2]);
+  b.cyl(0.025, 0.025, 0.55, C.wood, [-1.72, 0.55, 1.62], 5, [0, 0, 0.35]).box(0.2, 0.1, 0.1, C.steel, [-1.82, 0.8, 1.62], [0, 0, 0.35]);
+  // מתקן נשקים (מימין): חרבות, חנית וגרזן
+  const wx = 1.25, wz = 1.5;
+  for (const d of [-0.5, 0.5]) b.cyl(0.035, 0.035, 1.25, C.dwood, [wx + d, 0.87, wz], 5);
+  b.box(1.1, 0.07, 0.08, C.dwood, [wx, 1.42, wz]).box(1.1, 0.07, 0.08, C.dwood, [wx, 0.55, wz]);
+  for (const d of [-0.3, -0.1]) b.box(0.07, 0.8, 0.025, C.steel, [wx + d, 0.78, wz + 0.06]).box(0.22, 0.05, 0.06, C.gold, [wx + d, 1.2, wz + 0.06]).box(0.05, 0.2, 0.05, C.dwood, [wx + d, 1.33, wz + 0.06]).sph(0.04, C.gold, [wx + d, 1.45, wz + 0.06]);
+  b.cyl(0.022, 0.022, 1.5, C.wood, [wx + 0.12, 1.0, wz + 0.08], 5).cone(0.06, 0.22, C.steel, [wx + 0.12, 1.86, wz + 0.08], 4);
+  b.cyl(0.026, 0.026, 1.0, C.wood, [wx + 0.33, 0.78, wz + 0.08], 5).box(0.26, 0.22, 0.03, C.steel, [wx + 0.44, 1.18, wz + 0.08]);
+  // אש מהבהבת בכבשן ועשן מהארובה
+  const fire = new Builder();
+  fire.cone(0.26, 0.7, C.fire, [-0.25, 0.35, 0], 6, undefined, true).cone(0.3, 0.9, C.lava, [0.15, 0.45, 0], 6, undefined, true).cone(0.16, 0.55, C.flame, [0, 0.28, 0.05], 6, undefined, true);
+  const smoke = Array.from({ length: 4 }, () => new THREE.Sprite(new THREE.SpriteMaterial({ map: puffTex(), color: 0x8a847c, transparent: true, depthWrite: false, opacity: 0 })));
+  return {
+    ...b.build(),
+    parts: [
+      { ...fire.build(), pos: [0, 0.45, 0.8], tick: (o, tt) => { o.scale.set(1 + Math.sin(tt * 7.3) * 0.06, 0.85 + Math.sin(tt * 9) * 0.1 + Math.sin(tt * 13.7) * 0.08, 1); } },
+      { sprites: smoke, pos: [1.05, 4.45, -1.0], tick: (o, tt) => o.children.forEach((s, k) => { const u = (tt * 0.3 + k / 4) % 1; s.position.set(u * 0.5 + Math.sin(u * 5 + k) * 0.12, u * 2.3, 0); s.scale.setScalar(0.45 + u * 1.2); s.material.opacity = 0.6 * (1 - u) * Math.min(1, u * 6); }) },
+    ],
+  };
+}
+
+/** מקדש ההילות: מקדש עגול ופתוח — עמודי שיש עם פסי אור, טבעת וקשתות זהב; במרכז גביש מרחף עם טבעות אור ומעל הכיפה הילה */
+function auraSanctumGeometry() {
+  const b = new Builder();
+  const R = 1.38, top = 3.0;
+  b.cyl(2.0, 2.12, 0.22, C.marble, [0, 0.11, 0], 20).cyl(1.75, 1.8, 0.18, C.lstone, [0, 0.31, 0], 20);
+  b.box(1.2, 0.14, 0.55, C.marble, [0, 0.07, 2.12]);
+  b.tor(1.6, 0.035, C.turq, [0, 0.41, 0], [Math.PI / 2, 0, 0], TAU, true, 40);
+  for (let i = 0; i < 6; i++) {
+    const a = Math.PI / 6 + (i * TAU) / 6, x = Math.sin(a) * R, z = Math.cos(a) * R;
+    b.box(0.34, 0.12, 0.34, C.gold, [x, 0.46, z], [0, a, 0]).cyl(0.12, 0.14, 2.3, C.marble, [x, 1.67, z], 10).box(0.34, 0.14, 0.34, C.gold, [x, 2.86, z], [0, a, 0]);
+    b.box(0.05, 1.9, 0.03, C.cyan, [Math.sin(a) * (R + 0.13), 1.67, Math.cos(a) * (R + 0.13)], [0, a, 0], true);
+  }
+  b.tor(R, 0.14, C.gold, [0, top, 0], [Math.PI / 2, 0, 0], TAU, false, 36);
+  for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + (i * TAU) / 6; b.tor(R, 0.05, C.gold, [0, top, 0], [0, a - Math.PI / 2, 0], Math.PI / 2, false, 12); }
+  b.sph(0.13, C.gold, [0, top + R + 0.02, 0]).cone(0.06, 0.32, C.gold, [0, top + R + 0.24, 0], 6);
+  // כן לגביש ואשכולות קריסטל סביב המקדש
+  b.cyl(0.28, 0.4, 0.5, C.marble, [0, 0.65, 0], 8).tor(0.3, 0.035, C.turq, [0, 0.92, 0], [Math.PI / 2, 0, 0], TAU, true, 20);
+  for (const [a, s, c] of [[2.3, 1, C.violet], [2.6, 0.7, 0x7ae8ff], [3.5, 0.9, 0x7ae8ff], [3.8, 0.65, C.violet], [4.6, 1, C.crystal], [4.0, 0.6, C.crystal]]) {
+    b.oct(0.2 * s, c, [Math.sin(a) * 1.64, 0.4 + 0.3 * s, Math.cos(a) * 1.64], [1, 1.8, 1], true);
+  }
+  // החלקים הנעים
+  const core = new Builder();
+  core.oct(0.4, 0xb592ff, [0, 0, 0], [1, 1.7, 1], true).add(new THREE.OctahedronGeometry(0.33, 0), 0x8af2ff, [0, 0, 0], [0, Math.PI / 4, 0], [1, 1.95, 1], true);
+  const ringA = new Builder().tor(0.74, 0.03, 0x7af0ff, [0, 0, 0], [Math.PI / 2, 0, 0], TAU, true, 40);
+  const ringB = new Builder().tor(0.95, 0.025, 0xffd36a, [0, 0, 0], [Math.PI / 2, 0, 0], TAU, true, 44);
+  const halo = new Builder().tor(0.55, 0.06, 0xfff0a0, [0, 0, 0], [Math.PI / 2, 0, 0], TAU, true, 36);
+  const orbit = new Builder();
+  [[0, 1.3, 0x7af0ff], [TAU / 3, 2.3, 0xff9ae8], [(2 * TAU) / 3, 3.2, 0xfff0a0]].forEach(([a, y, c]) => orbit.oct(0.13, c, [Math.sin(a) * 2.1, y, Math.cos(a) * 2.1], [1, 1.6, 1], true));
+  return {
+    ...b.build(),
+    parts: [
+      { ...core.build(), pos: [0, 1.85, 0], tick: (o, tt, dt, y0) => { o.rotation.y = tt * 0.8; o.position.y = y0 + Math.sin(tt * 1.5) * 0.1; } },
+      { ...ringA.build(), pos: [0, 1.85, 0], tick: (o, tt) => { o.rotation.set(Math.sin(tt * 0.9) * 0.65, 0, Math.cos(tt * 0.9) * 0.65); } },
+      { ...ringB.build(), pos: [0, 1.85, 0], tick: (o, tt) => { o.rotation.set(Math.cos(tt * 0.7) * 0.5, 0, -Math.sin(tt * 0.7) * 0.5); } },
+      { ...halo.build(), pos: [0, top + R + 0.75, 0], tick: (o, tt, dt, y0) => { o.position.y = y0 + Math.sin(tt * 1.3) * 0.08; o.rotation.x = Math.sin(tt * 0.8) * 0.12; } },
+      { ...orbit.build(), pos: [0, 0, 0], tick: (o, tt) => { o.rotation.y = tt * 0.45; } },
+    ],
+  };
+}
+
+/**
+ * ארבע החנויות סביב הלוח (שתיים מכל צד, פונות אל הלוח ואל המצלמה): כל אחת פותחת את החנות של
+ * הקטגוריה שלה. r — רדיוס טביעת הרגל (לתושבים המטיילים).
+ */
+const SHOP_SCALE = 1.12;
+const SLOT_SHOPS = [
+  { slot: 'head', key: 'shopCrowns', icon: 'crown', sign: 'CROWNS', geo: crownHouseGeometry, pos: [-10.6, 0, -3.7], r: 2.3, labelY: 5.75,
+    signAt: [0, 2.3, 1.36], signSize: [1.5, 0.4], style: { bg: '#3a1458', fg: '#ffe9a8' } },
+  { slot: 'weapon', key: 'shopWeapons', icon: 'swords', sign: 'WEAPONS', geo: forgeGeometry, pos: [-10.6, 0, 5.3], r: 2.7, labelY: 5.9,
+    signAt: [0, 2.27, 0.82], signSize: [1.7, 0.42], style: { bg: '#23262e', fg: '#ffb35a', border: '#9aa2ac', bulbs: false, glow: 'rgba(255,130,40,0.95)' } },
+  { slot: 'aura', key: 'shopAuras', icon: 'sparkle', sign: 'AURAS', geo: auraSanctumGeometry, pos: [10.6, 0, -3.7], r: 2.3, labelY: 5.95,
+    signAt: [0, 3.0, 1.56], signSize: [1.5, 0.4], style: { bg: '#141a4a', fg: '#c8f6ff', border: '#7ae8ff', bulb: '#c8f6ff', glow: 'rgba(120,230,255,0.95)' } },
+  { slot: 'armor', key: 'shopRobes', icon: 'shirt', sign: 'ROBES', geo: robeTentGeometry, pos: [10.6, 0, 5.3], r: 2.4, labelY: 5.3,
+    signAt: [0, 2.32, 1.99], signSize: [1.5, 0.42], style: { bg: '#7a1020', fg: '#fff3d6', bulbs: false } },
+];
+
 /** אריח של אי: טבעת־מקטע בקרקע של האקלים שלו, לוח סלע וזיז מתחת, כן אבן עם המונומנט וצמחייה. קואורדינטות מקומיות (מרכז האריח) */
 function chunkGeometry(id, slot) {
   const d = islandDef(id);
@@ -216,42 +413,69 @@ export class HubMuseum {
   }
 
   buildBuildings() {
-    const mk = (geo, pos, label, ic, sign) => {
+    this.buildings = [];
+    this.anims = [];
+    const mk = (geo, pos, id, key, ic, sign, { labelY = 5.4, signAt = [0, 2.67, 2.02], signSize = [2.6, 0.62], style = {}, yaw = pos[0] < 0 ? 0.42 : -0.42, scale = 1 } = {}) => {
       const g = new THREE.Group();
       if (geo.solid) { const m = new THREE.Mesh(geo.solid, MONUMENT_SOLID); m.castShadow = true; m.receiveShadow = true; g.add(m); }
       if (geo.glow) g.add(new THREE.Mesh(geo.glow, MONUMENT_GLOW));
-      const sg = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.62), new THREE.MeshBasicMaterial({ map: signTexture(sign), toneMapped: false }));
-      sg.position.set(0, 2.67, 2.02);
+      for (const p of geo.parts || []) {
+        const o = new THREE.Group();
+        if (p.solid) { const m = new THREE.Mesh(p.solid, MONUMENT_SOLID); m.castShadow = true; o.add(m); }
+        if (p.glow) o.add(new THREE.Mesh(p.glow, MONUMENT_GLOW));
+        for (const s of p.sprites || []) o.add(s);
+        o.position.set(...p.pos);
+        g.add(o);
+        this.anims.push({ o, tick: p.tick, y0: p.pos[1] });
+      }
+      const sg = new THREE.Mesh(new THREE.PlaneGeometry(...signSize), new THREE.MeshBasicMaterial({ map: signTexture(sign, style), toneMapped: false }));
+      sg.position.set(...signAt);
       g.add(sg);
-      const lab = labelSprite(label, ic);
-      lab.position.set(0, label === 'cinema' ? 7.3 : label === 'museum' ? 8.6 : 5.4, 0.6);
+      const lab = labelSprite(t(key), ic);
+      lab.position.set(0, labelY, 0.6);
+      lab.scale.divideScalar(scale); // השלטים הצפים באותו גודל בכל המבנים
       g.add(lab);
       g.position.set(...pos);
-      g.rotation.y = pos[0] < 0 ? 0.42 : -0.42; // פונים אל המצלמה, מעט פנימה
-      g.userData.label = lab;
+      g.rotation.y = yaw; // פונים אל המצלמה, מעט פנימה
+      g.scale.setScalar(scale);
+      Object.assign(g.userData, { bid: id, key, icon: ic, label: lab, labelY });
       this.group.add(g);
+      this.buildings.push(g);
       return g;
     };
-    this.cinema = mk(cinemaGeometry(), [-6.6, 0, -11.6], 'cinema', 'play', 'CINEMA');
-    this.shop = mk(shopGeometry(), [6.6, 0, -11.6], 'shop', 'gem', 'SHOP');
-    this.museumHall = mk(museumGeometry(), [0, 0, -13.4], 'museum', 'temple', 'TIME MUSEUM');
-    this.museumHall.rotation.y = 0;
-    const ms = this.museumHall.children.find((c) => c.geometry?.type === 'PlaneGeometry');
-    if (ms) { ms.position.set(0, 3.71, 1.47); ms.scale.set(1.9, 0.62, 1); }
-    this.museumHall.userData.label.position.set(0, 8.6, 0);
-    this.relabel();
+    this.cinema = mk(cinemaGeometry(), [-6.6, 0, -11.6], 'cinema', 'cinema', 'play', 'CINEMA', { labelY: 7.3 });
+    this.shop = mk(shopGeometry(), [6.6, 0, -11.6], 'shop', 'shop', 'gem', 'SHOP');
+    this.museumHall = mk(museumGeometry(), [0, 0, -13.4], 'museum', 'museum', 'temple', 'TIME MUSEUM', { labelY: 8.6, yaw: 0, signAt: [0, 3.71, 1.47], signSize: [2.6 * 1.9, 0.62 * 0.62] });
+    this.museumHall.userData.label.position.z = 0;
+    // ארבע חנויות הלבוש מקיפות את הלוח
+    this.slotShops = SLOT_SHOPS.map((s) => mk(s.geo(), s.pos, `shop_${s.slot}`, s.key, s.icon, s.sign, {
+      labelY: s.labelY, signAt: s.signAt, signSize: s.signSize, style: s.style, yaw: Math.atan2(-s.pos[0], 9), scale: SHOP_SCALE,
+    }));
+    // מכשולים (מעגלים) לתושבים המטיילים: המבנים מאחור והחנויות מסביב
+    this.blockers = [
+      { x: -6.6, z: -11.6, r: 2.8 }, { x: 6.6, z: -11.6, r: 2.6 },
+      { x: -2.3, z: -13.4, r: 2.3 }, { x: 0, z: -13.6, r: 2.3 }, { x: 2.3, z: -13.4, r: 2.3 },
+      ...SLOT_SHOPS.map((s) => ({ x: s.pos[0], z: s.pos[2], r: s.r * SHOP_SCALE })),
+    ];
   }
 
   /** שלטים בשפה הנוכחית */
   relabel() {
-    for (const [g, key, ic] of [[this.cinema, 'cinema', 'play'], [this.shop, 'shop', 'gem'], [this.museumHall, 'museum', 'temple']]) {
+    for (const g of this.buildings) {
       const old = g.userData.label;
-      const lab = labelSprite(t(key), ic);
+      const lab = labelSprite(t(g.userData.key), g.userData.icon);
       lab.position.copy(old.position);
+      lab.scale.copy(old.scale);
       g.remove(old); old.material.map.dispose(); old.material.dispose();
       g.add(lab);
       g.userData.label = lab;
     }
+  }
+
+  /** קופסאות המבנים — כדי שדמויות הרקע של העידן יעקפו אותם */
+  obstacleBoxes() {
+    this.group.updateMatrixWorld(true);
+    return this.buildings.map((g) => new THREE.Box3().setFromObject(g.children[0], true));
   }
 
   setActive(on) {
@@ -259,6 +483,40 @@ export class HubMuseum {
     this.syncDragon();
     this.group.visible = on;
     if (on) { this.rebuild(); this.spawnResidents(); } else this.clearResidents();
+    this.placeSeason(on);
+  }
+
+  /**
+   * קישוטי העונה שעל הקרקע (עץ החג, הדלעות) עומדים באותו מקום בכל האיים. באי המרכזי — אם קישוט
+   * נופל בתוך אחד המבנים, מזיזים אותו למקום פנוי קרוב (ומחזירים כשיוצאים מהאי).
+   */
+  placeSeason(on = this.active) {
+    const items = (this.app.season?.group?.children || []).filter((c) => c.userData.ground);
+    const box = new THREE.Box3(), size = new V3();
+    for (const c of items) {
+      c.userData.home ||= c.position.clone();
+      c.position.copy(c.userData.home);
+      if (c.userData.rad == null) { box.setFromObject(c); box.getSize(size); c.userData.rad = Math.max(size.x, size.z) / 2; }
+    }
+    if (!on) return;
+    const placed = [];
+    const ok = (x, z, rad) => Math.hypot(x, z) < HUB_BASE_R - 1.5 && !(Math.abs(x) < 5.4 + rad * 0.7 && Math.abs(z) < 5.4 + rad * 0.7)
+      && !(z > 6.3 && Math.abs(x) < 7)
+      && ![[-3, 6.4], [3, 6.3], [3, -6.5], [-3, -6.4]].some(([sx, sz]) => Math.hypot(x - sx, z - sz) < 1.75 + rad)
+      && this.blockers.every((o) => Math.hypot(x - o.x, z - o.z) > o.r + rad + 0.2)
+      && placed.every((o) => Math.hypot(x - o.x, z - o.z) > o.rad + rad + 0.25);
+    // קודם מה שכבר במקום טוב, ואז מזיזים את השאר למקומות פנויים (גם זה מזה)
+    const move = [];
+    for (const c of items) { const { x, z } = c.userData.home; if (ok(x, z, c.userData.rad)) placed.push({ x, z, rad: c.userData.rad }); else move.push(c); }
+    for (const c of move) {
+      const { x, z } = c.userData.home, rad = c.userData.rad;
+      // המקום הפנוי הקרוב ביותר למקום המקורי (טבעות סביב הלוח)
+      const cand = [];
+      for (let r = 7; r <= HUB_BASE_R - 1.5; r += 0.5) for (let k = 0; k < 80; k++) { const a = (k / 80) * TAU; cand.push([Math.cos(a) * r, Math.sin(a) * r]); }
+      cand.sort((p, q) => Math.hypot(p[0] - x, p[1] - z) - Math.hypot(q[0] - x, q[1] - z));
+      const hit = cand.find(([px, pz]) => ok(px, pz, rad));
+      if (hit) { c.position.set(hit[0], c.position.y, hit[1]); placed.push({ x: hit[0], z: hit[1], rad }); }
+    }
   }
 
   // ---------- תושבים: בוטים שנקנו בחנות מסתובבים חופשי עם החיות שלהם ----------
@@ -267,16 +525,29 @@ export class HubMuseum {
     this.residentsGroup.clear();
     this.walkers = [];
   }
-  randomSpot() {
-    for (let i = 0; i < 30; i++) {
-      const a = Math.random() * TAU, r = 9 + Math.random() * (HUB_BASE_R - 10.5);
-      const x = Math.cos(a) * r, z = Math.sin(a) * r;
-      if (Math.abs(x) < 6.4 && Math.abs(z) < 8) continue;
-      if (Math.hypot(Math.abs(x) - 6.6, z + 11.6) < 3.6) continue;
-      if (Math.abs(x) < 4 && z < -10) continue;
-      return new V3(x, 0, z);
+  /** נקודה פנויה על האי הבסיסי: לא על הלוח ועמדות השחקנים ולא בתוך מבנה */
+  spotFree(x, z, m = 0.5) {
+    if (Math.hypot(x, z) > HUB_BASE_R - 1.5) return false;
+    if (Math.abs(x) < 6.4 + m && Math.abs(z) < 8 + m) return false;
+    for (const o of this.blockers) if (Math.hypot(x - o.x, z - o.z) < o.r + m) return false;
+    return true;
+  }
+  /** הקו הישר בין שתי נקודות לא עובר דרך מבנה או דרך הלוח */
+  pathFree(a, b) {
+    const n = Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 0.5);
+    for (let i = 1; i <= n; i++) { const k = i / n; if (!this.spotFree(a.x + (b.x - a.x) * k, a.z + (b.z - a.z) * k, 0.35)) return false; }
+    return true;
+  }
+  /** יעד אקראי; עם from — רק יעד שאפשר להגיע אליו בקו ישר (אחרת null: מחכים ומנסים שוב) */
+  randomSpot(from = null) {
+    for (let i = 0; i < 40; i++) {
+      const a = Math.random() * TAU, r = 7 + Math.random() * (HUB_BASE_R - 8.5);
+      const p = new V3(Math.cos(a) * r, 0, Math.sin(a) * r);
+      if (!this.spotFree(p.x, p.z)) continue;
+      if (from && !this.pathFree(from, p)) continue;
+      return p;
     }
-    return new V3(0, 0, 12);
+    return from ? null : new V3(0, 0, 12);
   }
   spawnResidents() {
     this.clearResidents();
@@ -299,7 +570,7 @@ export class HubMuseum {
       const pos = this.randomSpot();
       av.group.position.copy(pos);
       pet.root.position.copy(pos).add(new V3(1, 0, 0.4));
-      this.walkers.push({ id, av, ups, pet, target: this.randomSpot(), wait: Math.random() * 2, speed: 1.1 + Math.random() * 0.5, phase: Math.random() * 10 });
+      this.walkers.push({ id, av, ups, pet, target: this.randomSpot(pos) || pos.clone(), wait: Math.random() * 2, speed: 1.1 + Math.random() * 0.5, phase: Math.random() * 10 });
     }
   }
   updateWalkers(dt, tt) {
@@ -309,7 +580,7 @@ export class HubMuseum {
       const dist = d.length();
       let moving = false;
       if (w.wait > 0) w.wait -= dt;
-      else if (dist < 0.3) { w.wait = 1.5 + Math.random() * 3; w.target = this.randomSpot(); }
+      else if (dist < 0.3) { w.wait = 1.5 + Math.random() * 3; w.target = this.randomSpot(g.position) || g.position.clone(); }
       else {
         moving = true;
         d.divideScalar(dist);
@@ -442,19 +713,18 @@ export class HubMuseum {
       l.pts.geometry.attributes.position.needsUpdate = true;
     }
     const bob = Math.sin(tt * 2) * 0.12;
-    if (this.cinema) this.cinema.userData.label.position.y = 7.3 + bob;
-    if (this.shop) this.shop.userData.label.position.y = 5.4 + bob;
-    if (this.museumHall) this.museumHall.userData.label.position.y = 8.6 + bob;
+    for (const g of this.buildings) g.userData.label.position.y = g.userData.labelY + bob;
+    for (const a of this.anims) a.tick(a.o, tt, dt, a.y0);
   }
 
-  /** נגיעה בבניין: 'cinema' / 'shop' / null */
+  /** נגיעה בבניין: 'cinema' / 'shop' / 'museum' / 'shop_head' / 'shop_armor' / 'shop_weapon' / 'shop_aura' / null */
   pick(x, y) {
     if (!this.active) return null;
-    const hit = this.sm.pick(x, y, [this.cinema, this.shop, this.museumHall])[0];
+    const hit = this.sm.pick(x, y, this.buildings)[0];
     if (!hit) return null;
     let o = hit.object;
-    while (o && o !== this.cinema && o !== this.shop && o !== this.museumHall) o = o.parent;
-    return o === this.cinema ? 'cinema' : o === this.shop ? 'shop' : o === this.museumHall ? 'museum' : null;
+    while (o && !o.userData.bid) o = o.parent;
+    return o?.userData.bid ?? null;
   }
 
   /** חלק של אי עף מעבר לים ונצמד לחוף של האי המרכזי (אנימציה עם מצלמה) */

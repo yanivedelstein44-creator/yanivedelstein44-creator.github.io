@@ -87,6 +87,7 @@ export class GameApp {
     this.kingdom = new KingdomBuilder(this.sm, this.fx, this.board, this.shock);
     // חיים ברקע: דמויות, כלי טיס, אפקטים וצלילי אווירה לפי העידן המוצג
     this.life = new ArenaLife(this.sm, this.fx, this.sound);
+    this.life.extraObstacles = () => (this.atHub && this.museum ? this.museum.obstacleBoxes() : []);
     this.kingdom.onEraReady = (eraId, built) => this.life.setEra(eraId, built, this.kingdom);
     this.kingdom.onEraLeave = () => this.life.leave();
     this.kingdom.onEraHidden = () => this.life.clear();
@@ -183,6 +184,7 @@ export class GameApp {
     if (resumable && saved.island && this.progression.canPlay(saved.island)) this.progression.setCurrent(saved.island);
     else if (!resumable) this.progression.setCurrent(HUB_ID);
     this.showIsland(this.islandId);
+    this.progression.visit(this.islandId);
     this.ui.setDock(this.atHub);
 
     let resumed = false;
@@ -292,6 +294,7 @@ export class GameApp {
     if (this.season) {
       this.sm.world.add(this.season.group);
       this.sm.onUpdate((dt, tt) => this.season.update(dt, tt));
+      this.museum?.placeSeason();
       setTimeout(() => this.ui.toast(tn(season.he, season.en), { kind: 'gold', duration: 4200, icon: season.icon }), 2000);
     }
   }
@@ -574,10 +577,11 @@ export class GameApp {
 
   onTap(x, y) {
     if (this.introPlaying) return;
-    // באי המרכזי: נגיעה בבית הקולנוע או בחנות
+    // באי המרכזי: נגיעה בבית הקולנוע, בחנות הכללית או באחת מחנויות הלבוש שסביב הלוח
     const bld = this.atHub && !this.busy ? this.museum.pick(x, y) : null;
     if (bld === 'cinema') { this.sound.ui(); this.openCinema(); return; }
-    if (bld === 'shop') { this.sound.ui(); this.openShop(); return; }
+    if (bld === 'shop') { this.sound.ui(); this.openShop('pets'); return; }
+    if (bld?.startsWith('shop_')) { this.sound.ui(); this.openShop('wardrobe', bld.slice(5)); return; }
     if (bld === 'museum') { this.sound.ui(); M.openAlbum(this); return; }
     if (this.sm.overviewOn) { if (this.board.hitsBoard(x, y)) { this.sound.ui(); this.sm.toGameplay(1.1, this.viewSide()); } return; }
     const sq = this.board.pickSquare(x, y, this.preferredSquares());
@@ -1055,6 +1059,7 @@ export class GameApp {
         if (this.map.isOpen) this.map.close();
       }
       pr.setCurrent(id);
+      pr.visit(id); // הערפל ירד מהאי; אם לא תכבוש אותו — במפה תהיה סביבו הילה של הבוט ששולט בו
       this.ui.setDock(id === HUB_ID);
       this.showIsland(id);
       if (battle) await this.startIslandBattle({ quiet: true });
@@ -1338,9 +1343,9 @@ export class GameApp {
   }
 
   /** החנות נמצאת באי המרכזי */
-  openShop(tab = 'wardrobe') {
+  openShop(tab = 'wardrobe', slot = null) {
     if (!this.atHub) { this.ui.toast(t('shopAtHub'), { icon: 'home' }); return; }
-    openKingdomShop(this, { tab });
+    openKingdomShop(this, { tab, slot });
   }
   openDaily() { openDailyRewards(this); }
   /** בית הקולנוע באי המרכזי: הסיפור / איך משחקים */

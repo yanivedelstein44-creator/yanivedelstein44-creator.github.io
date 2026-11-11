@@ -55,6 +55,7 @@ export function buildMapUi(app, map) {
     else if (piratesNow) status = h('span', { class: 'tag pirate' }, ...withIcon('swords', t('timePirates'), 14));
     else if (conquered) status = h('span', { class: 'tag done' }, ...withIcon('check', t('conqueredMark'), 14));
     else if (paywall) status = h('span', { class: 'tag lock' }, ...withIcon('crown', t('locked5'), 14));
+    else if (pr.botRules?.(id)) status = h('span', { class: 'tag ruled' }, ...withIcon('crown', t('botRules'), 14));
     const reward = piratesNow ? pirateGems(id) : pirates ? 0 : conquered ? repeatGems(id) : conquestGems(id);
     const actions = h('div', { class: 'card-actions' });
     if (paywall) actions.append(h('button', { class: 'btn primary tap', onclick: () => app.travelTo(id) }, ...withIcon('crown', t('fullTitle'), 18)));
