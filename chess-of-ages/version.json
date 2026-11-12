@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.4.0",
-  "build": "1.4.0-1794510232116",
-  "buildTime": 1794510232116,
-  "date": "2026-11-12T19:03:52.116Z",
+  "version": "1.5.0",
+  "build": "1.5.0-1794525768429",
+  "buildTime": 1794525768429,
+  "date": "2026-11-12T23:22:48.429Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.4.0-1794510232116.zip",
-  "checksum": "8ef851fdaf6ed7f993f7aa07fe341b4fb3989c8f1786708703579e5083174d4a",
+  "bundle": "update/bundle-1.5.0-1794525768429.zip",
+  "checksum": "7ce7d889bd8195f1227bba5f68ad9bcfcce47f3fd82878c1b2b69e11012e6d98",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "English is now the default, with a language button at the top. New privacy policy, terms, open-source licenses and accessibility statement; Settings > Legal & privacy with Delete all my data. Keyboard play with screen-reader announcements, crash recovery and security hardening."
+  "notes": "Google Play purchases (premium islands, board styles, legendary flyers, gem booster) with Restore purchases; updated privacy and terms; join-the-test page; screen reader fixes"
 }

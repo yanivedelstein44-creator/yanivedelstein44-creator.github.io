@@ -44,3 +44,11 @@ pre.license { white-space: pre-wrap; overflow-wrap: anywhere; font: 12.5px/1.5 u
 html.one-lang hr.split { display: none; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+/* Join-the-test page (test.html): numbered steps with big buttons */
+ol.steps { list-style: none; counter-reset: step; padding: 0; margin: 16px 0; display: grid; gap: 12px; }
+ol.steps > li { counter-increment: step; position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; padding-inline-start: 62px; }
+ol.steps > li::before { content: counter(step); position: absolute; inset-inline-start: 16px; top: 16px; width: 32px; height: 32px; border-radius: 50%; background: var(--gold); color: #1a1208; font-weight: 800; display: grid; place-items: center; }
+ol.steps .step-title { font-size: 18px; margin: 2px 0 4px; padding: 0; border: 0; }
+ol.steps p { margin: 0 0 10px; }
+a.step-btn { display: inline-block; min-height: 44px; padding: 10px 20px; border-radius: 999px; background: var(--gold); color: #1a1208; font-weight: 800; text-decoration: none; }
+a.step-btn:hover { background: var(--gold-2); }
