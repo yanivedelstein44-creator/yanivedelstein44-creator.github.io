@@ -1,8 +1,13 @@
 /* Service Worker — שחמט העידנים (נוצר אוטומטית בכל build — אל תערוך את dist/sw.js) */
-const BUILD = '1.3.17-1794430691800';
-const PRECACHE = ["./","./assets/esm-MDY4JVf6.js","./assets/esm-RvPBI6gx.js","./assets/esm-anSRIhvc.js","./assets/fakeBackend-CSdxXlUv.js","./assets/firebaseBackend-Di-QUEuc.js","./assets/index-DmBkeukE.css","./assets/index-MuLcgR0L.js","./assets/rubik-hebrew-400-normal-BQDoxs6C.woff","./assets/rubik-hebrew-400-normal-Dp0lvSRB.woff2","./assets/rubik-hebrew-500-normal--anb7y8_.woff","./assets/rubik-hebrew-500-normal-B_5jqoVI.woff2","./assets/rubik-hebrew-700-normal-B2Hm7hpE.woff","./assets/rubik-hebrew-700-normal-Da14F88e.woff2","./assets/rubik-hebrew-800-normal-CEoY7Wj3.woff2","./assets/rubik-hebrew-800-normal-DgqUxLtA.woff","./assets/rubik-latin-400-normal-BV1Ho3GG.woff","./assets/rubik-latin-400-normal-j0pmKyiQ.woff2","./assets/rubik-latin-700-normal-D-tMm-eS.woff2","./assets/rubik-latin-700-normal-KHOtubUA.woff","./assets/rubik-latin-800-normal-BtaGuVpR.woff2","./assets/rubik-latin-800-normal-Dq1miTTj.woff","./assets/web-Bu6IL-zJ.js","./assets/web-ByzMQLgb.js","./assets/web-Ctsme16L.js","./icons/apple-touch-icon.png","./icons/icon-192.png","./icons/icon-512.png","./icons/icon-maskable-512.png","./index.html","./manifest.he.json","./manifest.json","./og-image.jpg","./privacy.html"];
-const CACHE = `chess-ages-${BUILD}`;
-const scoped = (u) => new URL(u, self.registration.scope).href;
+const BUILD = '1.4.0-1794510232116';
+const PRECACHE = ["./","./accessibility.html","./assets/esm-BT40wehM.js","./assets/esm-Cw2UhGSV.js","./assets/esm-DG3ahhU6.js","./assets/fakeBackend-CSdxXlUv.js","./assets/firebaseBackend-DFtsGUi-.js","./assets/index-DOsptXJH.css","./assets/index-DPnLKvuP.js","./assets/rubik-hebrew-400-normal-BQDoxs6C.woff","./assets/rubik-hebrew-400-normal-Dp0lvSRB.woff2","./assets/rubik-hebrew-500-normal--anb7y8_.woff","./assets/rubik-hebrew-500-normal-B_5jqoVI.woff2","./assets/rubik-hebrew-700-normal-B2Hm7hpE.woff","./assets/rubik-hebrew-700-normal-Da14F88e.woff2","./assets/rubik-hebrew-800-normal-CEoY7Wj3.woff2","./assets/rubik-hebrew-800-normal-DgqUxLtA.woff","./assets/rubik-latin-400-normal-BV1Ho3GG.woff","./assets/rubik-latin-400-normal-j0pmKyiQ.woff2","./assets/rubik-latin-700-normal-D-tMm-eS.woff2","./assets/rubik-latin-700-normal-KHOtubUA.woff","./assets/rubik-latin-800-normal-BtaGuVpR.woff2","./assets/rubik-latin-800-normal-Dq1miTTj.woff","./assets/web--LUPO03n.js","./assets/web-CW01Hvzi.js","./assets/web-DAbvfUPJ.js","./icons/apple-touch-icon.png","./icons/icon-192.png","./icons/icon-512.png","./icons/icon-maskable-512.png","./index.html","./legal-config.js","./legal-page.js","./legal.css","./licenses.html","./manifest.he.json","./manifest.json","./og-image.jpg","./privacy.html","./terms.html"];
+// מטמונים משותפים לכל ה-Service Workers באותו origin (באתר יש גם את תיקיית ערוץ Google Play ופרויקטים אחרים),
+// לכן השם כולל את ה-scope: SW אחד לעולם לא מוחק מטמון של אחר
+const SCOPE = self.registration.scope;
+const PREFIX = `chess-ages:${new URL(SCOPE).pathname}:`;
+const CACHE = `${PREFIX}${BUILD}`;
+const LEGACY = /^chess-ages-\d/; // שמות עד 1.3.17 (בלי scope) — תמיד בניות ישנות של המשחק הזה
+const scoped = (u) => new URL(u, SCOPE).href;
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
@@ -21,7 +26,7 @@ self.addEventListener('message', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter((k) => k.startsWith('chess-ages-') && k !== CACHE).map((k) => caches.delete(k)));
+    await Promise.all(keys.filter((k) => k !== CACHE && (k.startsWith(PREFIX) || LEGACY.test(k))).map((k) => caches.delete(k)));
     await self.clients.claim();
   })());
 });
@@ -31,9 +36,13 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  // רק קבצים מתוך התיקייה שלנו — תיקיות אחרות באתר (ערוץ Google Play, פרויקטים אחרים) לא שלנו
+  if (!req.url.startsWith(SCOPE)) return;
   // קבצי עדכון — תמיד מהרשת
   if (url.pathname.endsWith('/version.json') || url.pathname.includes('/update/')) return;
   if (req.mode === 'navigate') {
+    // ניווט לקובץ שאינו דף (APK, zip, תמונה, json) — ישר מהרשת, לא מעטפת המשחק
+    if (/\.[a-z0-9]+$/i.test(url.pathname) && !/\.html$/i.test(url.pathname)) return;
     event.respondWith((async () => {
       const cache = await caches.open(CACHE);
       // עמודים סטטיים נוספים (למשל privacy.html) — מהמטמון או מהרשת, לא מעטפת המשחק

@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.3.17",
-  "build": "1.3.17-1794430691800",
-  "buildTime": 1794430691800,
-  "date": "2026-11-11T20:58:11.800Z",
+  "version": "1.4.0",
+  "build": "1.4.0-1794510232116",
+  "buildTime": 1794510232116,
+  "date": "2026-11-12T19:03:52.116Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.3.17-1794430691800.zip",
-  "checksum": "af1354df219a4179987219feb6c96c9aa5edf11298e972db00ea6b7492eac9c2",
+  "bundle": "update/bundle-1.4.0-1794510232116.zip",
+  "checksum": "8ef851fdaf6ed7f993f7aa07fe341b4fb3989c8f1786708703579e5083174d4a",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Flying pets, yours and the bots', now circle above their side of the board on every island instead of sitting on a pedestal"
+  "notes": "English is now the default, with a language button at the top. New privacy policy, terms, open-source licenses and accessibility statement; Settings > Legal & privacy with Delete all my data. Keyboard play with screen-reader announcements, crash recovery and security hardening."
 }

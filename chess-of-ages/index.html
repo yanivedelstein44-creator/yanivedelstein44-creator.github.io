@@ -2,20 +2,22 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <script>/* CSP (web build only) - see scripts/vite-csp.mjs */(function(){try{var l=location,h=new RegExp("(^|\\.)(github\\.io|pages\\.dev)$");if(window.Capacitor||!(h.test(l.hostname)||/[?&]csp=1(&|$)/.test(l.search)))return;var m=document.createElement('meta');m.httpEquiv='Content-Security-Policy';m.content="default-src 'self'; script-src 'self' 'sha256-bGp4FoKWhU1nmalfJdJyBlct79lhQqkmMkLZ9OrxxW4=' 'sha256-J3oUsxP4dhWLDiHsBvlR+tuwkvq0KPd5h3qRj6r1oSU='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.firebaseio.com wss://*.firebaseio.com https://yanivedelstein44-creator.github.io; worker-src 'self' blob: data:; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests";document.head.appendChild(m);document.documentElement.setAttribute('data-csp','on');document.addEventListener('securitypolicyviolation',function(e){try{console.warn('[CSP] blocked',e.violatedDirective,e.blockedURI||'inline')}catch(_){}});}catch(e){}})();</script>
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Chess of Ages: Island Realms</title>
-    <meta name="description" content="Chess of Ages: Island Realms — 3D chess across 99 islands, each with its own era. Ride your pet between islands, beat their bots and the Time Pirates. | שחמט העידנים: ממלכות האיים" />
+    <meta name="description" content="Chess of Ages: Island Realms — 3D chess across 99 islands, each with its own era. Ride your pet between islands, beat their bots and the Time Pirates." />
     <meta name="theme-color" content="#0b0912" />
     <meta name="color-scheme" content="dark" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="שחמט העידנים" />
-    <meta name="application-name" content="שחמט העידנים" />
+    <meta name="apple-mobile-web-app-title" content="Chess of Ages" />
+    <meta name="application-name" content="Chess of Ages" />
     <!-- OpenGraph — תצוגת קישור בוואטסאפ -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="שחמט העידנים | Chess of Ages" />
-    <meta property="og:title" content="Chess of Ages: Island Realms | שחמט העידנים: ממלכות האיים" />
+    <meta property="og:site_name" content="Chess of Ages" />
+    <meta property="og:title" content="Chess of Ages: Island Realms" />
     <meta property="og:description" content="Come play against me in my kingdom! | בוא לשחק נגדי בממלכה שלי!" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:locale:alternate" content="he_IL" />
@@ -26,28 +28,28 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:url" content="https://yanivedelstein44-creator.github.io/chess-of-ages/" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Chess of Ages: Island Realms | שחמט העידנים" />
+    <meta name="twitter:title" content="Chess of Ages: Island Realms" />
     <meta name="twitter:description" content="Come play against me in my kingdom! | בוא לשחק נגדי בממלכה שלי!" />
     <meta name="twitter:image" content="https://yanivedelstein44-creator.github.io/chess-of-ages/og-image.jpg" />
     <link rel="manifest" href="./manifest.json" />
     <link rel="icon" type="image/png" href="./icons/icon-192.png" />
     <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
     <script>
-      // שפה לפני הציור הראשון: עברית רק אם נבחרה בהגדרות או שהמכשיר בעברית — אחרת אנגלית (קהל עולמי)
+      // שפה לפני הציור הראשון: אנגלית לכולם, עברית רק אם השחקן בחר בה (כפתור השפה או ההגדרות)
       (function () {
-        var dev = /^(he|iw)\b/i.test(navigator.language || '') ? 'he' : 'en', lang = dev;
+        var lang = 'en';
         try { var s = JSON.parse(localStorage.getItem('chess_ages_progress') || 'null'); if (s && s.settings && s.settings.lang) lang = s.settings.lang; } catch (e) { /* storage blocked */ }
         var d = document.documentElement; d.lang = lang; d.dir = lang === 'he' ? 'rtl' : 'ltr';
         if (lang === 'he') { var m = document.querySelector('link[rel="manifest"]'); if (m) m.href = './manifest.he.json'; }
       })();
     </script>
-    <script type="module" crossorigin src="./assets/index-MuLcgR0L.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-DmBkeukE.css">
+    <script type="module" crossorigin src="./assets/index-DPnLKvuP.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DOsptXJH.css">
   </head>
   <body>
     <div id="app">
       <canvas id="scene" tabindex="0" role="application" aria-label="3D chess board. Use the arrow keys and Enter to play."></canvas>
-      <div id="toasts" aria-live="polite"></div>
+      <div id="toasts"></div>
       <div id="sr-status" class="sr-only" aria-live="assertive"></div>
       <div id="modal-root"></div>
     </div>
@@ -102,7 +104,7 @@
 </svg>
       <div class="loader-bar" aria-hidden="true"><i></i></div>
       <div class="splash-msg">Sailing to the islands…</div>
-      <div class="version">v1.3.17</div>
+      <div class="version">v1.4.0</div>
     </div>
     <script>
       if (document.documentElement.lang === 'he') (function () {
