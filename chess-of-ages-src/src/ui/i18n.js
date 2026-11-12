@@ -9,7 +9,7 @@ const HE = {
   a11yMove: '{piece} מ-{from} ל-{to}', a11yTakesM: ' ואוכל את {piece}', a11yTakesF: ' ואוכלת את {piece}', a11yPromo: ', הכתרה ל{piece}', a11yCheck: ' — שח', a11yMate: ' — מט',
   a11yCastleK: '{side}: הצרחה קצרה', a11yCastleQ: '{side}: הצרחה ארוכה', a11ySelected: 'נבחר: {piece} ב-{sq} · מהלכים אפשריים: {n}', a11yTarget: 'אפשר לזוז לכאן',
   a11yIllegal: 'אי אפשר לזוז לשם', a11yNotYourTurn: 'עוד לא התור שלך', a11yCinema: 'בית הקולנוע', a11yReduceMotion: 'הפחתת תנועה', a11yMotionAuto: 'לפי המכשיר', a11yMotionOn: 'תמיד',
-  a11yGame: 'שחמט העידנים: ממלכות האיים', a11yPreview: 'תצוגה מקדימה',
+  a11yGame: 'שחמט העידנים: ממלכות האיים', a11yPreview: 'תצוגה מקדימה', a11yToasts: 'הודעות',
   // [a11y] end
   tabBots: 'בוטים', moreBotsHint: 'כל אי שתכבוש פותח את הבוט שלו ואת הצבע של החיה שלו', noBotsHint: 'כבוש איים כדי לפתוח את הבוטים שלהם', invitePlay: 'שחק', resident: 'גר אצלך', residentPractice: 'משחק אימון מול תושב — בלי יהלומים', cinema: 'קולנוע', cinemaTitle: 'בית הקולנוע המרכזי', storyFilm: 'הסיפור', storyDesc: 'מוזיאון הזמן, 99 האיים ופיראטי הזמן · 40 שניות', howToPlay: 'איך משחקים', howToDesc: 'משחק מודרך קצר ליד השולחן', skip: 'דלג', cinemaAtHub: 'בית הקולנוע נמצא באי המרכזי', cinemaHint: 'נגיעה בכלי מתחילה לשחק · בקולנוע שבאי המרכזי יש את הסיפור ואת ההדרכה', pieceArrives: 'חלק חדש מגיע למוזיאון', museumPieces: 'חלקים במוזיאון', piratesHere: 'פיראטי הזמן תפסו את האי — נצח אותם וקבל יהלומים', piratesReturn: 'הפיראטים מתארגנים · חוזרים בעוד {t}', practiceNoGems: 'משחק אימון — היהלומים חוזרים כשהפיראטים נוחתים שוב', piratesFled: 'הפיראטים ברחו! האי שקט לכמה שעות', pieceToMuseum: 'חלק מהאי מצטרף למוזיאון באי המרכזי', hShort: 'ש׳', mShort: 'ד׳', fightPirates: 'הילחם בפיראטים', practicePirates: 'אימון נגד הפיראטים', timePirates: 'פיראטי הזמן', visitIsland: 'בקר באי', anyOrder: 'אפשר לכבוש בכל סדר', world: 'עולם',
   tapToSpeed: 'נגיעה במסך מאיצה את המסע', map: 'מפה', friend: 'חבר', home: 'הביתה', battle: 'קרב', boss: 'בוס', hubName: 'האי המרכזי', conquered: 'איים שנכבשו', allConquered: 'כל האיים נכבשו!', unlockFullShort: 'פתח את איי הפרימיום כדי להמשיך לאי 100',
@@ -77,6 +77,11 @@ const HE = {
   // [i18n] end
   // [play] start
   playSoon: 'בקרוב', playSoonAria: 'בקרוב:', playSoonBody: 'רכישות יופעלו בקרוב דרך Google Play.',
+  restorePurchases: 'שחזור רכישות', restoredN: 'שוחזרו {n} רכישות מ-Google Play', restored1: 'שוחזרה רכישה אחת מ-Google Play', restoreNone: 'לא נמצאו רכישות לשחזור בחשבון Google הזה',
+  restoreFail: 'לא הצלחנו לבדוק את הרכישות. בדוק חיבור לאינטרנט ונסה שוב.', restoring: 'בודק רכישות…',
+  payPending: 'התשלום ממתין לאישור. הפריט יתווסף לבד ברגע שהתשלום יושלם.', payFailed: 'הרכישה לא הושלמה. אפשר לנסות שוב.',
+  payOffline: 'אין חיבור לאינטרנט. התחבר ונסה שוב.', payUnavailable: 'החנות של Google Play לא זמינה כרגע. נסה שוב מאוחר יותר.',
+  payBusy: 'רכישה אחרת כבר בתהליך…', alreadyOwnedRestored: 'כבר קנית את זה — הפריט הוחזר אליך בלי חיוב.', storeRevoked: 'רכישה שבוטלה ב-Google Play הוסרה מהמשחק.',
   playUpdateTitle: 'יש גרסה חדשה בגוגל פליי', playUpdateBody: 'כדי להמשיך לקבל תוכן חדש, עדכן את האפליקציה בגוגל פליי. ההתקדמות שלך נשמרת.', playOpenStore: 'עדכן בגוגל פליי',
   playRoomNeedUpdate: 'החדר נוצר בגרסה חדשה יותר של המשחק. עדכן את המשחק ונסה שוב.', playRoomFriendOld: 'החבר משתמש בגרסה ישנה של המשחק. בקש ממנו לעדכן ולשלוח הזמנה חדשה.',
   // [play] end
@@ -102,7 +107,7 @@ const EN = {
   a11yMove: '{piece} {from} to {to}', a11yTakesM: ', captures {piece}', a11yTakesF: ', captures {piece}', a11yPromo: ', promotes to {piece}', a11yCheck: ', check', a11yMate: ', checkmate',
   a11yCastleK: '{side} castles kingside', a11yCastleQ: '{side} castles queenside', a11ySelected: 'Selected {piece} on {sq}, {n} legal moves', a11yTarget: 'legal move',
   a11yIllegal: "Can't move there", a11yNotYourTurn: 'Not your turn yet', a11yCinema: 'Cinema', a11yReduceMotion: 'Reduce motion', a11yMotionAuto: 'Like the device', a11yMotionOn: 'Always',
-  a11yGame: 'Chess of Ages: Island Realms', a11yPreview: 'Preview',
+  a11yGame: 'Chess of Ages: Island Realms', a11yPreview: 'Preview', a11yToasts: 'Notifications',
   // [a11y] end
   tabBots: 'Bots', moreBotsHint: 'Every island you conquer unlocks its bot and its pet color', noBotsHint: 'Conquer islands to unlock their bots', invitePlay: 'Play', resident: 'Resident', residentPractice: 'Practice match with a resident — no gems', cinema: 'Cinema', cinemaTitle: 'Central Cinema', storyFilm: 'The Story', storyDesc: 'The Time Museum, 99 islands and the Time Pirates · 40 seconds', howToPlay: 'How to Play', howToDesc: 'A short guided match at the table', skip: 'Skip', cinemaAtHub: 'The cinema is on the Central Island', cinemaHint: 'Tap a piece to start playing · The cinema on the Central Island has the story and a how-to-play guide', pieceArrives: 'A new piece arrives at the museum', museumPieces: 'Museum pieces', piratesHere: 'Time Pirates hold this island — beat them for gems', piratesReturn: 'The pirates are regrouping · back in {t}', practiceNoGems: 'Practice match — gems return when the pirates land again', piratesFled: 'The pirates fled! The island is quiet for a few hours', pieceToMuseum: 'A piece of this island joins the Time Museum', hShort: 'h', mShort: 'm', fightPirates: 'Fight the pirates', practicePirates: 'Practice vs pirates', timePirates: 'Time Pirates', visitIsland: 'Visit island', anyOrder: 'Conquer in any order', world: 'World',
   tapToSpeed: 'Tap to speed up', map: 'Map', friend: 'Friend', home: 'Home', battle: 'Battle', boss: 'Boss', hubName: 'Central Island', conquered: 'Islands conquered', allConquered: 'All islands conquered!', unlockFullShort: 'Unlock the Premium Islands to continue to island 100',
@@ -170,6 +175,11 @@ const EN = {
   // [i18n] end
   // [play] start
   playSoon: 'Coming soon', playSoonAria: 'Coming soon:', playSoonBody: 'Purchases are coming soon through Google Play.',
+  restorePurchases: 'Restore purchases', restoredN: 'Restored {n} purchases from Google Play', restored1: 'Restored 1 purchase from Google Play', restoreNone: 'No purchases to restore on this Google account',
+  restoreFail: "Couldn't check your purchases. Check your internet connection and try again.", restoring: 'Checking purchases…',
+  payPending: 'Payment pending. The item will be added automatically once the payment completes.', payFailed: "The purchase wasn't completed. You can try again.",
+  payOffline: 'No internet connection. Connect and try again.', payUnavailable: 'Google Play billing is unavailable right now. Try again later.',
+  payBusy: 'Another purchase is already in progress…', alreadyOwnedRestored: 'You already own this — it was restored at no charge.', storeRevoked: 'A purchase that was cancelled in Google Play was removed from the game.',
   playUpdateTitle: 'A new version is on Google Play', playUpdateBody: 'Update the app on Google Play to keep getting new content. Your progress is kept.', playOpenStore: 'Update on Google Play',
   playRoomNeedUpdate: 'This room was created with a newer version of the game. Update the game and try again.', playRoomFriendOld: 'Your friend is on an older version of the game. Ask them to update and send a new invite.',
   // [play] end

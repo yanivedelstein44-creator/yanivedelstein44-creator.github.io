@@ -50,16 +50,18 @@ export function openFullGame(app, onUnlocked) {
     h('div', { class: 'price-tag' }, priceLabel),
     economy.sandbox ? h('p', { class: 'soon' }, ...withIcon('info', t('sandboxNote'), 14)) : null,
     // [legal] גילוי לפני רכישה בכסף אמיתי + קישור לתנאים ולהחזרים
-    (economy.sandbox || economy.canBuyReal()) ? h('p', { class: 'soon pay-note' }, ...(economy.sandbox ? [] : withIcon('info', t('lgBuyNote'), 14)),
+    (economy.sandbox || economy.canBuyReal(FULL_GAME)) ? h('p', { class: 'soon pay-note' }, ...(economy.sandbox ? [] : withIcon('info', t('lgBuyNote'), 14)),
       h('button', { class: 'link-btn tap', type: 'button', onclick: () => openLegalPage(app, 'terms', 'pay') }, t('lgTermsLink'))) : null);
   return ui.modal({
     title: t('fullTitle'), titleIcon: 'crown', center: true, body,
     actions: [
       { label: t('later'), onClick: (c) => c.close() },
-      { label: economy.sandbox ? t('unlockTest') : (economy.canBuyReal() ? t('unlock') : t('playSoon')), icon: 'lock', primary: true, onClick: async (c) => {
-        if (!economy.canBuyReal()) { ui.toast(t('playSoonBody'), { icon: 'info' }); return; } // גרסת Play לפני חיבור Billing
+      { label: economy.sandbox ? t('unlockTest') : (economy.canBuyReal(FULL_GAME) ? t('unlock') : t('playSoon')), icon: 'lock', primary: true, onClick: async (c) => {
+        if (!economy.canBuyReal(FULL_GAME)) { ui.toast(t('playSoonBody'), { icon: 'info' }); return; } // גרסת Play לפני חיבור Billing
         const res = await economy.purchaseFullGame(() => Promise.resolve(true));
-        if (res.ok) { c.close(); sound.jackpot(); ui.toast(`${t('fullOwned')}!`, { kind: 'gold', icon: 'crown' }); app.onPremiumUnlocked?.(); onUnlocked?.(); }
+        if (res.ok || (res.restored && economy.ownsFullGame())) { c.close(); sound.jackpot(); ui.toast(res.ok ? `${t('fullOwned')}!` : res.reason, { kind: 'gold', icon: 'crown' }); app.onPremiumUnlocked?.(); onUnlocked?.(); }
+        else if (res.pending) ui.toast(res.reason, { icon: 'hourglass', duration: 4200 });
+        else if (res.busy) ui.toast(res.reason, { icon: 'hourglass' });
         else if (!res.cancelled) ui.toast(res.reason, { kind: 'bad' });
       } },
     ],

@@ -1,6 +1,7 @@
 /**
  * כלכלת היהלומים: יתרה, בעלות על פריטים וחיות, ניסיון החיות (גור → בוגר → אגדי), ניסיונות זמניים, שברי פריטים ומתנה יומית.
- * יהלומים מרוויחים רק במשחק. הרכישה היחידה בכסף אמיתי: פתיחת המשחק המלא (hook מוכן ל-Google Play Billing).
+ * יהלומים מרוויחים רק במשחק (אין חבילות יהלומים בכסף). בכסף אמיתי — רק דרך Google Play Billing (core/PlayBilling.js):
+ * איי הפרימיום, בוסט יהלומים לשבוע (מתכלה), סקינים ללוח וחיות מעופפות אגדיות.
  */
 import {
   ECONOMY, FULL_GAME, EXPANSION, GEM_BOOST, BOARD_SKINS, findSkin, ALL_WEARABLES, findWearable, DEFAULT_LOADOUT,
@@ -29,8 +30,10 @@ function weightedPick(list) {
  * כל עוד אין ספק מחובר (ו-sandbox כבוי) — רכישה בכסף אמיתי לא תאושר.
  */
 export const PaymentProvider = {
-  nativePurchase: null, // async (product) => ({ ok, transactionId })
-  priceLabel: null, // (product) => מחיר מקומי מהחנות, למשל ProductDetails.formattedPrice ("$4.99")
+  nativePurchase: null, // async (product) => ({ ok, transactionId, finalize } | { ok:false, cancelled|pending|restored|busy, reason })
+  priceLabel: null, // (product) => מחיר מקומי מהחנות, למשל ProductDetails.formattedPrice ("‏14.90 ₪")
+  has: null, // (product) => האם החנות החזירה את המוצר (מוצר שלא הופעל בקונסול → "בקרוב")
+  restore: null, // async () => ({ ok, granted, reason }) — "שחזור רכישות"
 };
 
 export class Economy {
@@ -51,6 +54,7 @@ export class Economy {
       fragments: {},
       lastFreeSpin: 0,
       purchases: [],
+      storeGranted: {}, // מוצרים שהגיעו מ-Google Play ({ productId: orderId }) — מה מותר להסיר אם יוחזר כסף
       sandbox: ECONOMY.sandboxTestMode,
       welcomed: false,
       petXp: {}, // ניסיון לכל חיה (חיות שגדלות)
@@ -79,7 +83,12 @@ export class Economy {
   /** x2 יהלומים על ניצחונות נגד בוטים ופיראטים בזמן הבוסט */
   gemMultiplier() { return this.boostActive() ? GEM_BOOST.mult : 1; }
 
-  /** קופה: מצב בדיקה (בלי חיוב) או Google Play Billing כשמחובר */
+  /**
+   * קופה: מצב בדיקה (בלי חיוב) או Google Play Billing כשמחובר (core/PlayBilling.js).
+   * מחזיר { ok, tx, finalize } — את finalize (אישור/צריכה בחנות) מריצים רק אחרי שהפריט ניתן ונשמר.
+   * כשלא ok: cancelled (המשתמש ביטל — בלי הודעת שגיאה), pending (תשלום ממתין — יינתן כשיושלם),
+   * restored (החנות אומרת שכבר בבעלותך — הוחזר בלי חיוב), busy (רכישה אחרת בתהליך), reason (טקסט להודעה).
+   */
   async realPurchase(product, confirmSandbox) {
     if (this.sandbox) {
       const ok = await confirmSandbox(product);
@@ -88,22 +97,105 @@ export class Economy {
     }
     if (typeof PaymentProvider.nativePurchase === 'function') {
       const res = await PaymentProvider.nativePurchase(product);
-      if (!res || !res.ok) return { ok: false, reason: tn('הרכישה לא הושלמה', 'The purchase was not completed') };
-      return { ok: true, tx: res.transactionId };
+      if (!res || !res.ok) {
+        return {
+          ok: false, cancelled: !!res?.cancelled, pending: !!res?.pending, restored: !!res?.restored, busy: !!res?.busy,
+          reason: res?.reason || tn('הרכישה לא הושלמה', 'The purchase was not completed'),
+        };
+      }
+      return { ok: true, tx: res.transactionId, finalize: res.finalize };
     }
     return { ok: false, reason: tn('הרכישה תהיה זמינה בקרוב', 'Purchasing will be available soon') };
   }
   logPurchase(product, tx) {
     this.s.purchases.push({ id: product.id, price: product.price, tx, at: Date.now(), sandbox: this.sandbox });
   }
+  /** אחרי שהפריט ניתן ונשמר: אישור (acknowledge) או צריכה (consume) בחנות. כשל כאן לא מבטל את הקנייה — השחזור בפתיחה הבאה ישלים */
+  storeFinish(r) {
+    if (typeof r?.finalize !== 'function') return;
+    try { Promise.resolve(r.finalize()).catch(() => {}); } catch { /* ישלים בפתיחה הבאה */ }
+  }
+  /** האם ההזמנה הזו מהחנות כבר נרשמה (מונע הענקה כפולה של מוצר מתכלה שלא נצרך בגלל קריסה) */
+  hasStoreOrder(tx) { return !!tx && this.s.purchases.some((p) => p.tx === tx); }
+  /** מוצר בכסף אמיתי שבבעלותך (לא מתכלה) */
+  ownsStoreProduct(productId) {
+    if (productId === FULL_GAME.id) return !!this.s.fullGame;
+    const sk = BOARD_SKINS.find((x) => x.product === productId);
+    if (sk) return this.ownsSkin(sk.id);
+    const sky = SKY_PET_IDS.find((id) => PETS[id].product === productId);
+    if (sky) return this.s.pets.includes(sky);
+    return false;
+  }
+  /**
+   * הענקה אחרי שהחנות אישרה (שחזור, רכישה ממתינה שהושלמה, "כבר בבעלותך") — בלי חיוב נוסף.
+   * מחזיר true אם משהו נוסף עכשיו. מתכלה (בוסט): מוסיף שבוע — רק כשההזמנה עוד לא נרשמה.
+   */
+  grantStoreProduct(productId, tx = null) {
+    if (productId === GEM_BOOST.id) {
+      if (this.hasStoreOrder(tx)) return false;
+      this.s.boostUntil = Math.max(Date.now(), this.s.boostUntil || 0) + GEM_BOOST.days * 86400000;
+    } else if (productId === FULL_GAME.id) {
+      if (this.s.fullGame) return false;
+      this.s.fullGame = true;
+      this.grantExpansionPerks();
+    } else {
+      const sk = BOARD_SKINS.find((x) => x.product === productId);
+      const sky = SKY_PET_IDS.find((id) => PETS[id].product === productId);
+      if (sk) { if (this.ownsSkin(sk.id)) return false; this.s.skins = [...(this.s.skins || []), sk.id]; }
+      else if (sky) { if (this.s.pets.includes(sky)) return false; this.s.pets = [...this.s.pets, sky]; this.startPet(sky, true); }
+      else return false;
+    }
+    this.s.storeGranted = { ...(this.s.storeGranted || {}), [productId]: tx || true };
+    this.logPurchase({ id: productId, price: null }, tx);
+    this.save();
+    this.emit({ type: 'buy', id: productId, restored: true });
+    return true;
+  }
+  /** רישום שהפריט הגיע מהחנות (כדי שאם יבוטל/יוחזר כסף — נדע שמותר להסיר אותו) */
+  markStoreGranted(productId, tx) { this.s.storeGranted = { ...(this.s.storeGranted || {}), [productId]: tx || true }; }
+  /**
+   * ביטול זכאות למוצר לא מתכלה שהוחזר עליו כסף/בוטל בחנות. רק לפריטים שהגיעו מהחנות (לא לסקינים שהורווחו במשחק).
+   * מחזיר true אם הוסר משהו.
+   */
+  revokeStoreProduct(productId) {
+    if (!(this.s.storeGranted || {})[productId]) return false;
+    let changed = false;
+    if (productId === FULL_GAME.id && this.s.fullGame) {
+      this.s.fullGame = false;
+      this.s.expansionGranted = false;
+      this.s.pets = this.s.pets.filter((x) => x !== EXPANSION.pet);
+      if (this.s.equipped.pet === EXPANSION.pet) { this.s.equipped.pet = 'wolf_cub'; this.s.equipped.petHue = 0; }
+      changed = true;
+    }
+    const sk = BOARD_SKINS.find((x) => x.product === productId);
+    if (sk && (this.s.skins || []).includes(sk.id)) {
+      this.s.skins = this.s.skins.filter((x) => x !== sk.id);
+      if (this.s.equipped.boardSkin === sk.id) this.s.equipped.boardSkin = '';
+      changed = true;
+    }
+    const sky = SKY_PET_IDS.find((id) => PETS[id].product === productId);
+    if (sky && this.s.pets.includes(sky)) {
+      this.s.pets = this.s.pets.filter((x) => x !== sky);
+      if (this.s.equipped.pet === sky) { this.s.equipped.pet = 'wolf_cub'; this.s.equipped.petHue = 0; }
+      changed = true;
+    }
+    const { [productId]: _gone, ...rest } = this.s.storeGranted || {};
+    this.s.storeGranted = rest;
+    this.save();
+    if (changed) this.emit({ type: 'revoked', id: productId });
+    return changed;
+  }
 
   /** בוסט x2 לשבוע — כל קנייה מוסיפה 7 ימים */
   async purchaseBoost(confirmSandbox) {
     const r = await this.realPurchase(GEM_BOOST, confirmSandbox);
     if (!r.ok) return r;
+    // ההזמנה כבר נרשמה (שחזור רץ בזמן התשלום) — לא מעניקים פעמיים, רק משלימים את הצריכה
+    if (r.finalize && this.hasStoreOrder(r.tx)) { this.storeFinish(r); return { ok: true, already: true }; }
     this.s.boostUntil = Math.max(Date.now(), this.s.boostUntil || 0) + GEM_BOOST.days * 86400000;
     this.logPurchase(GEM_BOOST, r.tx);
     this.save();
+    this.storeFinish(r);
     this.emit({ type: 'buy', id: GEM_BOOST.id });
     return { ok: true };
   }
@@ -115,9 +207,11 @@ export class Economy {
     const product = { id: sk.product, price: sk.price };
     const r = await this.realPurchase(product, confirmSandbox);
     if (!r.ok) return r;
-    this.s.skins = [...(this.s.skins || []), id];
+    if (!this.ownsSkin(id)) this.s.skins = [...(this.s.skins || []), id];
+    if (r.finalize) this.markStoreGranted(sk.product, r.tx);
     this.logPurchase(product, r.tx);
     this.save();
+    this.storeFinish(r);
     this.emit({ type: 'buy', id: sk.product });
     return { ok: true };
   }
@@ -150,10 +244,11 @@ export class Economy {
     const product = { id: p.product, price: p.price };
     const r = await this.realPurchase(product, confirmSandbox);
     if (!r.ok) return r;
-    this.s.pets = [...this.s.pets, id];
-    this.startPet(id, true);
+    if (!this.s.pets.includes(id)) { this.s.pets = [...this.s.pets, id]; this.startPet(id, true); }
+    if (r.finalize) this.markStoreGranted(p.product, r.tx);
     this.logPurchase(product, r.tx);
     this.save();
+    this.storeFinish(r);
     this.emit({ type: 'buy', id: p.product });
     return { ok: true };
   }
@@ -177,8 +272,15 @@ export class Economy {
   /** קופה מדומה (בלי חיוב). בגרסת Google Play אין קופה מדומה — רק Google Play Billing */
   get sandbox() { return !!this.s.sandbox && !isPlayBuild(); }
   setSandbox(v) { this.s.sandbox = !!v; this.save(); this.emit({ type: 'sandbox' }); }
-  /** אפשר לקנות בכסף אמיתי עכשיו: קופה מדומה, או ספק תשלום מחובר (Google Play Billing) */
-  canBuyReal() { return this.sandbox || typeof PaymentProvider.nativePurchase === 'function'; }
+  /**
+   * אפשר לקנות בכסף אמיתי עכשיו: קופה מדומה, או ספק תשלום מחובר (Google Play Billing).
+   * עם מוצר: רק אם החנות החזירה אותו (מוצר שלא הופעל בקונסול נשאר "בקרוב").
+   */
+  canBuyReal(product = null) {
+    if (this.sandbox) return true;
+    if (typeof PaymentProvider.nativePurchase !== 'function') return false;
+    return !product || typeof PaymentProvider.has !== 'function' || !!PaymentProvider.has(product);
+  }
 
   addGems(n, reason = '') {
     this.s.gems = Math.max(0, Math.round(this.s.gems + n));
@@ -344,10 +446,11 @@ export class Economy {
     if (this.s.fullGame) return { ok: true, already: true };
     const r = await this.realPurchase(FULL_GAME, confirmSandbox);
     if (!r.ok) return r;
-    this.s.fullGame = true;
-    this.grantExpansionPerks();
+    if (!this.s.fullGame) { this.s.fullGame = true; this.grantExpansionPerks(); }
+    if (r.finalize) this.markStoreGranted(FULL_GAME.id, r.tx);
     this.logPurchase(FULL_GAME, r.tx);
     this.save();
+    this.storeFinish(r);
     this.emit({ type: 'buy', id: FULL_GAME.id });
     return { ok: true };
   }

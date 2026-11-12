@@ -8,6 +8,7 @@ import { Chess } from 'chess.js';
 import { ProgressStore } from '../core/Storage.js';
 import { wipeEverything } from '../core/DataWipe.js';
 import { Economy } from '../core/Economy.js';
+import { initPlayBilling, ensurePlayBilling } from '../core/PlayBilling.js';
 import { Achievements } from '../core/Achievements.js';
 import { Progression } from '../game/Progression.js';
 import { GameController, PIECE_VALUE, GLYPH } from '../game/GameController.js';
@@ -186,8 +187,20 @@ export class GameApp {
       if ((evt.type === 'equip' && evt.slot === 'pet') || evt.type === 'skyPets' || evt.type === 'buy' || evt.type === 'petXp') this.museum?.syncSkyPet?.();
       if (evt.type === 'equip' && evt.slot === 'board') this.board.setSkin(this.economy.boardSkin, { flash: true });
       if (evt.type === 'boost' || evt.type === 'buy') this.ui.setBoost?.(this.economy.boostLeftMs());
+      // רכישה שבוטלה/הוחזר עליה כסף ב-Google Play — הפריט הוסר (core/PlayBilling.js)
+      if (evt.type === 'revoked') {
+        this.afterIntro(() => this.ui.toast(t('storeRevoked'), { icon: 'info', duration: 4200 }), 300);
+        this.board.setSkin(this.economy.boardSkin);
+        this.applyLoadout();
+        this.museum?.syncSkyPet?.();
+      }
+      if (evt.type === 'buy' && evt.restored) { this.board.setSkin(this.economy.boardSkin); this.applyLoadout(); }
       this.refreshBadges();
     });
+    // Google Play Billing: רק בגרסת Play עם עטיפה 1002 ומעלה (בעטיפה 1001 אין תוסף — נשאר "בקרוב")
+    // ההודעה "שוחזרו N רכישות" מוצגת אחרי הפתיחה הקולנועית (בזמן הפתיחה הממשק מוסתר)
+    initPlayBilling(this.economy, { notify: (msg) => this.afterIntro(() => this.ui.toast(msg, { kind: 'good', icon: 'check', duration: 4200 }), 300) })
+      .catch(() => false);
     this.board.setSkin(this.economy.boardSkin);
     this.grantEarnedSkins(false);
     this.grantEarnedSkyPets(false);
@@ -1475,6 +1488,7 @@ export class GameApp {
   /** single — חנות של קטגוריה אחת (מהמבנים שבאי המרכזי): קטגוריית לבוש (slot) או הלוחות */
   openShop(tab = 'wardrobe', slot = null, single = false) {
     if (!this.atHub) { this.ui.toast(t('shopAtHub'), { icon: 'home' }); return; }
+    ensurePlayBilling(); // גרסת Play: אם בפתיחה לא היה אינטרנט — מנסים שוב להביא מחירים (החנות מתעדכנת כשמגיעים)
     openKingdomShop(this, { tab, slot, single });
   }
   openDaily() { openDailyRewards(this); }

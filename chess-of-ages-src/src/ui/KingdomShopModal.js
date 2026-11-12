@@ -210,21 +210,42 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
   /** [legal] גילוי לפני קנייה בכסף אמיתי (מה מקבלים, איפה רואים מחיר) + קישור לתנאים ולהחזרים. מערך — ריק כשאין מכירה */
   function payNote() {
     if (!economy.sandbox && !economy.canBuyReal()) return []; // Play לפני חיבור Billing: הכפתורים מציגים "בקרוב"
+    const restoreBtn = typeof PaymentProvider.restore === 'function' && !economy.sandbox
+      ? [' · ', h('button', { class: 'link-btn tap', type: 'button', onclick: (e) => { e.stopPropagation(); restoreNow(); } }, t('restorePurchases'))] : [];
     return [h('p', { class: 'shop-note pay-note' }, ...withIcon('info', t(economy.sandbox ? 'lgBuyNoteTest' : 'lgBuyNote'), 14), ' ',
-      h('button', { class: 'link-btn tap', type: 'button', onclick: (e) => { e.stopPropagation(); openLegalPage(app, 'terms', 'pay'); } }, t('lgTermsLink')))];
+      h('button', { class: 'link-btn tap', type: 'button', onclick: (e) => { e.stopPropagation(); openLegalPage(app, 'terms', 'pay'); } }, t('lgTermsLink')), ...restoreBtn)];
+  }
+
+  /** "שחזור רכישות": בודק מול Google Play ומחזיר את מה שנקנה בחשבון הזה */
+  let restoring = false;
+  async function restoreNow() {
+    if (restoring) return;
+    restoring = true;
+    ui.toast(t('restoring'), { icon: 'info' });
+    try {
+      const r = await PaymentProvider.restore();
+      ui.toast(r?.reason || t('restoreFail'), { kind: r?.ok ? (r.granted ? 'good' : '') : 'bad', icon: r?.ok ? 'check' : 'info', duration: 3600 });
+      if (r?.granted) { app.applyLoadout?.(); render(); }
+    } finally { restoring = false; }
   }
 
   /** קנייה בכסף אמיתי: מצב בדיקה = מיידי וללא חיוב; בגוגל פליי — חלון התשלום של החנות */
   const realBuy = async (fn, onDone) => {
     const res = await fn(() => Promise.resolve(true));
     if (res.ok) { sound.jackpot?.(); ui.toast(t('purchased'), { kind: 'gold', icon: 'check' }); onDone?.(); render(); }
+    else if (res.restored) { ui.toast(res.reason, { kind: 'good', icon: 'check' }); app.applyLoadout?.(); render(); }
+    else if (res.pending) ui.toast(res.reason, { icon: 'hourglass', duration: 4200 });
+    else if (res.busy) ui.toast(res.reason, { icon: 'hourglass' });
     else if (!res.cancelled) ui.toast(res.reason, { kind: 'bad' });
   };
   const realBtn = (product, onClick, label) => {
     const price = realPrice(product);
-    // גרסת Google Play לפני חיבור Play Billing: "בקרוב" במקום קנייה (בלי קופה מדומה)
-    if (!economy.canBuyReal()) return h('button', { class: 'buy real soon tap', 'aria-disabled': 'true', 'aria-label': `${t('playSoonAria')} ${label}`, onclick: (e) => { e.stopPropagation(); ui.toast(t('playSoonBody'), { icon: 'info' }); } }, h('b', {}, t('playSoon')));
-    return h('button', { class: 'buy real tap', 'aria-label': `${t('buyReal')} ${label}`, onclick: (e) => { e.stopPropagation(); onClick(); } }, h('b', {}, economy.sandbox ? `${t('buyReal')} (${tn('בדיקה', 'test')})` : (price || t('buyReal'))));
+    // גרסת Google Play לפני חיבור Play Billing (או מוצר שלא הופעל בחנות): "בקרוב" במקום קנייה (בלי קופה מדומה)
+    if (!economy.canBuyReal(product)) return h('button', { class: 'buy real soon tap', 'aria-disabled': 'true', 'aria-label': `${t('playSoonAria')} ${label}`, onclick: (e) => { e.stopPropagation(); ui.toast(t('playSoonBody'), { icon: 'info' }); } }, h('b', {}, t('playSoon')));
+    const vis = economy.sandbox ? `${t('buyReal')} (${tn('בדיקה', 'test')})` : (price || t('buyReal'));
+    // [a11y] WCAG 2.5.3: השם הנגיש מתחיל בטקסט הנראה (המחיר), ואחריו מה קונים
+    const aria = vis === t('buyReal') ? `${t('buyReal')} ${label}` : `${vis} · ${t('buyReal')} ${label}`;
+    return h('button', { class: 'buy real tap', 'aria-label': aria, onclick: (e) => { e.stopPropagation(); onClick(); } }, h('b', {}, vis));
   };
 
   /** סקין ללוח: לוח האי / חינמי (כל 20 איים) / בכסף אמיתי */

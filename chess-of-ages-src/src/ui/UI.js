@@ -126,6 +126,9 @@ export class UI {
     this.boostPill = h('div', { class: 'boost-pill', role: 'status', hidden: true }, icon('gem', { size: 16 }), h('b', {}, 'x2'), this.boostLeftEl = h('span', {}));
     this.root.append(this.hud, this.actions, this.dock, this.boostPill);
     this.toasts = this.root.querySelector('#toasts');
+    // [a11y] the visual toasts sit in a labelled region (axe "region"); their text is announced through #sr-status
+    this.toasts.setAttribute('role', 'region');
+    this.toasts.setAttribute('aria-label', t('a11yToasts'));
     this.sr = this.root.querySelector('#sr-status');
     // [a11y] polite live region for moves and selections (the assertive #sr-status stays for cursor feedback and toasts)
     this.srPolite = this.root.querySelector('#sr-polite') || this.root.appendChild(h('div', { id: 'sr-polite', class: 'sr-only', 'aria-live': 'polite', 'aria-atomic': 'true' }));
@@ -289,12 +292,19 @@ export class UI {
     this.toasts.appendChild(el);
     while (this.toasts.children.length > 3) this.toasts.firstChild.remove();
     setTimeout(() => gsap.to(el, { opacity: 0, y: -8, duration: 0.35, onComplete: () => el.remove() }), duration);
-    this.announce(stripEmoji(text));
+    this.announce(stripEmoji(text), { queue: true });
   }
 
-  announce(text) {
+  announce(text, { queue = false } = {}) {
+    // [a11y] הודעות קופצות שמגיעות ברצף (למשל "נרכש!" ומיד "הדרקון הצטרף") מוקראות יחד, כדי שקורא מסך לא יפספס את הראשונה.
+    // משוב סמן ומהלכים (queue=false) מחליף תמיד את ההודעה הקודמת.
+    const now = Date.now();
+    this.srQueue = queue && this.srQueued && now - this.srAt < 1200 ? `${this.srQueue} ${text}` : text;
+    this.srQueued = queue;
+    this.srAt = now;
     this.sr.textContent = '';
-    setTimeout(() => { this.sr.textContent = text; }, 30);
+    clearTimeout(this.srTimer);
+    this.srTimer = setTimeout(() => { this.sr.textContent = this.srQueue; }, 30);
   }
 
   floatLabel(text, pos, kind = '', duration = 1.6, ic = null) {
