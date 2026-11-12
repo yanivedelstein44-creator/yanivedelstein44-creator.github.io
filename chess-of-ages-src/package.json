@@ -1,7 +1,7 @@
 {
   "name": "chess-of-ages",
   "private": true,
-  "version": "1.3.17",
+  "version": "1.4.0",
   "type": "module",
   "description": "שחמט העידנים: ממלכות האיים — Chess of Ages: Island Realms (PWA + Capacitor)",
   "scripts": {

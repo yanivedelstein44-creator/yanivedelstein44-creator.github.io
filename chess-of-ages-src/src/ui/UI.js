@@ -7,6 +7,7 @@ import { t } from './i18n.js';
 import { formatGems } from '../config/EconomyConfig.js';
 import { compactLogoSVG } from './logo.js';
 import { icon, emblemIcon, decorate, stripEmoji } from './icons.js';
+import { langButton } from './LangButton.js';
 
 export function h(tag, attrs = {}, ...children) {
   const el = document.createElement(tag);
@@ -66,6 +67,7 @@ export class UI {
     this.menu = h('div', { class: 'hud-menu glass', id: 'hud-menu', role: 'menu', 'aria-label': t('settings'), hidden: true },
       this.sfxBtn, this.ambBtn, this.panoBtn,
       menuItem('trophy', t('achievements'), () => H.onAchievements?.()),
+      menuItem('play', t('a11yCinema'), () => H.onCinema?.()),
       menuItem('cap', t('tutorial'), () => H.onTutorial?.()),
       menuItem('gear', t('settings'), () => H.onSettings()));
     this.muteIc = h('span', { class: 'ic', 'aria-hidden': 'true' }, icon('sound', { size: 22 }));
@@ -92,10 +94,12 @@ export class UI {
     this.statusEl = h('div', { class: 'status-line sr-only', role: 'status' });
 
     this.hud = h('header', { id: 'hud', class: 'glass' },
+      h('h1', { class: 'sr-only' }, t('a11yGame')),
       h('div', { class: 'hud-row top' },
         (() => { const el = h('div', { class: 'logo-wrap' }); el.innerHTML = compactLogoSVG({ height: 34, title: t('appSubtitle') }); return el; })(),
         h('div', { class: 'hud-icons' },
           h('div', { class: 'gems-pill', role: 'group', 'aria-label': t('gems') }, icon('gem', { size: 20 }), this.gemsVal),
+          this.langBtn = langButton((where) => H.onLanguage?.(where), 'hud'),
           this.muteBtn, this.menuBtn)),
       this.menu,
       h('div', { class: 'era-row' }, this.eraBadge, h('div', { class: 'era-info' }, this.eraTitleEl, this.progressEl, this.nextLabel)),
@@ -123,10 +127,19 @@ export class UI {
     this.root.append(this.hud, this.actions, this.dock, this.boostPill);
     this.toasts = this.root.querySelector('#toasts');
     this.sr = this.root.querySelector('#sr-status');
+    // [a11y] polite live region for moves and selections (the assertive #sr-status stays for cursor feedback and toasts)
+    this.srPolite = this.root.querySelector('#sr-polite') || this.root.appendChild(h('div', { id: 'sr-polite', class: 'sr-only', 'aria-live': 'polite', 'aria-atomic': 'true' }));
+  }
+
+  /** [a11y] Polite screen-reader announcement (moves, selections): waits for the reader to finish what it is saying */
+  say(text) {
+    if (!this.srPolite || !text) return;
+    this.srPolite.textContent = '';
+    setTimeout(() => { this.srPolite.textContent = text; }, 40);
   }
 
   card() {
-    const el = h('div', { class: 'pcard' });
+    const el = h('div', { class: 'pcard', role: 'group' });
     const av = h('div', { class: 'av', 'aria-hidden': 'true' });
     const em = h('span', { class: 'em' });
     const pet = h('span', { class: 'pet' });
@@ -322,12 +335,16 @@ export class UI {
   modal({ title, titleIcon, label, body, actions = [], center = false, full = false, dismissable = true, onClose, className = '', closeButton = true } = {}) {
     const prevFocus = document.activeElement;
     const titleId = `m${Math.random().toString(36).slice(2, 8)}`;
-    const dlg = h('div', { class: `modal glass ${full ? 'full' : ''} ${className}`, role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': title ? titleId : null, 'aria-label': !title && label ? label : null });
+    // [a11y] a dialog without a title (confirm boxes) is named by its text; a titled one is described by it
+    // a custom title element (the shop header with gems and buttons) plus a label → the short label names the dialog
+    const bodyId = typeof body === 'string' ? `${titleId}b` : null;
+    const elTitle = !!title && typeof title !== 'string';
+    const dlg = h('div', { class: `modal glass ${full ? 'full' : ''} ${className}`, role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': title && !(elTitle && label) ? titleId : (!title && !label && bodyId ? bodyId : null), 'aria-label': label && (!title || elTitle) ? label : null, 'aria-describedby': title && bodyId ? bodyId : null });
     const head = h('div', { class: `modal-head ${title ? 'has-title' : ''}` });
     if (title) head.appendChild(typeof title === 'string' ? h('h2', { id: titleId }, titleIcon ? icon(titleIcon, { size: 24 }) : null, h('span', {}, title)) : (title.id = titleId, title));
     if (dismissable && closeButton) head.appendChild(h('button', { class: 'modal-close tap', 'aria-label': t('close'), onclick: () => ctl.close() }, icon('close', { size: 16 })));
     dlg.appendChild(head);
-    if (body) dlg.appendChild(typeof body === 'string' ? h('p', {}, body) : body);
+    if (body) dlg.appendChild(typeof body === 'string' ? h('p', { id: bodyId }, body) : body);
     if (actions.length) {
       const row = h('div', { class: 'btn-row' });
       actions.forEach((a) => row.appendChild(h('button', { class: `btn tap ${a.primary ? 'primary' : ''} ${a.danger ? 'danger' : ''} ${a.cls || ''}`, onclick: () => a.onClick?.(ctl), disabled: a.disabled }, a.icon ? icon(a.icon, { size: 20 }) : null, h('span', {}, a.label))));

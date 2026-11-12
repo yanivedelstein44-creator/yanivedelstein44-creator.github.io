@@ -5,7 +5,8 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { Chess } from 'chess.js';
-import { ProgressStore, wipeAllLocalData } from '../core/Storage.js';
+import { ProgressStore } from '../core/Storage.js';
+import { wipeEverything } from '../core/DataWipe.js';
 import { Economy } from '../core/Economy.js';
 import { Achievements } from '../core/Achievements.js';
 import { Progression } from '../game/Progression.js';
@@ -116,10 +117,13 @@ export class GameApp {
       onAvailable: (info, act) => this.showUpdateAvailable(info, act),
       onUpdating: (v) => this.ui.toast(`${t('update')} ${v ? `(v${v})` : ''}`, { kind: 'gold', duration: 3000, icon: 'refresh' }),
       onDownloading: (info) => this.ui.toast(`${t('downloadingUpdate')}${info?.version ? ` (v${info.version})` : ''}`, { kind: 'gold', duration: 4000, icon: 'download' }),
+      // גרסת Google Play (info.store === 'play'): עדכון דרך החנות במקום הורדת APK
       onNativeRequired: (info) => this.ui.modal({
-        title: t('updateNative'), titleIcon: 'device', center: true,
-        body: `${t('updateNativeBody')}${info.version ? ` (v${info.version})` : ''}`,
-        actions: [{ label: t('later'), onClick: (c) => c.close() }, { label: t('download'), icon: 'download', primary: true, onClick: () => { if (info.apk) location.href = info.apk; } }],
+        title: info.store === 'play' ? t('playUpdateTitle') : t('updateNative'), titleIcon: 'device', center: true,
+        body: `${info.store === 'play' ? t('playUpdateBody') : t('updateNativeBody')}${info.version ? ` (v${info.version})` : ''}`,
+        actions: [{ label: t('later'), onClick: (c) => c.close() }, info.store === 'play'
+          ? { label: t('playOpenStore'), icon: 'download', primary: true, onClick: (c) => { c?.close?.(); this.updater.openStore(info.storeUrl); } }
+          : { label: t('download'), icon: 'download', primary: true, onClick: () => { if (info.apk) location.href = info.apk; } }],
       }),
     });
     this.mode = 'ai';
@@ -155,8 +159,10 @@ export class GameApp {
       onResign: () => this.resign(),
       onShare: () => this.shareKingdom(),
       onSettings: () => { this.sound.ui(); M.openSettings(this); },
+      onLanguage: (where) => { this.sound.ui(); this.toggleLanguage(where); },
       onTutorial: () => { this.sound.ui(); this.startTutorial(); },
       onAlbum: () => { this.sound.ui(); M.openAlbum(this); },
+      onCinema: () => { this.sound.ui(); this.openCinema(); },
       onMuteAll: () => {
         const st = this.store.get('settings'); const on = !(st.sfx || st.ambience);
         this.store.setSetting('sfx', on); this.store.setSetting('ambience', on);
@@ -170,6 +176,7 @@ export class GameApp {
   // ======================= אתחול =======================
   async start() {
     this.applyQuality();
+    this.applyMotion();
     const s = this.store.get('settings');
     this.ui.setAudio(s.sfx, s.ambience);
     this.ui.setGems(this.economy.gems, false);
@@ -276,6 +283,13 @@ export class GameApp {
     setTimeout(() => sp.remove(), 700);
   }
 
+  /** [a11y] Reduce motion: the device setting (prefers-reduced-motion) or the in-game switch in Settings */
+  applyMotion() {
+    const on = !!this.store.get('settings').reducedMotion || (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    this.sm.reducedMotion = on;
+    document.documentElement.classList.toggle('reduce-motion', on);
+  }
+
   applyQuality() {
     const q = this.store.get('settings').quality || 'auto';
     this.sm.quality.mode = q;
@@ -295,6 +309,20 @@ export class GameApp {
     this.ui.setActions(this.mode);
     this.setupOpponentForMode();
     this.refreshHud();
+    // שלטים תלת-ממדיים עם טקסט (האי המרכזי, שלטי העולמות במפה) והחלונית של המפה מתחלפים גם הם
+    this.museum?.relabel?.();
+    this.map?.relabel?.();
+    this.ui.announce?.(t('lngSwitched'));
+  }
+
+  /** כפתור השפה בסרגל העליון: אנגלית ↔ עברית, נשמר כבחירה מפורשת של השחקן */
+  toggleLanguage(where = 'hud') {
+    const next = (this.store.get('settings').lang || 'en') === 'he' ? 'en' : 'he';
+    this.store.setSetting('lang', next);
+    if (where === 'map' && this.map) this.map.focusLang = true;
+    this.setLanguage(next);
+    // הסרגל נבנה מחדש בשפה החדשה: המיקוד חוזר לכפתור השפה (חשוב למקלדת ולקוראי מסך)
+    if (where !== 'map') requestAnimationFrame(() => this.ui.langBtn?.focus({ preventScroll: true }));
   }
 
   setupSeason() {
@@ -565,7 +593,7 @@ export class GameApp {
       case 'ArrowDown': r -= flip; break;
       case 'ArrowLeft': f -= flip; break;
       case 'ArrowRight': f += flip; break;
-      case 'Enter': case ' ': this.onSquare(this.cursor); break;
+      case 'Enter': case ' ': this.kbInput = true; this.onSquare(this.cursor); this.kbInput = false; break;
       case 'Escape': this.deselect(); break;
       default: handled = false;
     }
@@ -575,8 +603,9 @@ export class GameApp {
     this.cursor = files[f] + (r + 1);
     this.board.setCursor(this.cursor);
     const p = this.game.pieceAt(this.cursor);
-    const names = { p: tn('רגלי', 'pawn'), n: t('knight'), b: t('bishop'), r: t('rook'), q: t('queen'), k: tn('מלך', 'king') };
-    this.ui.announce(`${this.cursor}${p ? ` — ${p.color === 'w' ? t('white') : t('black')} ${names[p.type]}` : ''}`);
+    // [a11y] square + piece ("e2 — white pawn"), plus "legal move" when a selected piece can go there
+    const canGo = this.selected && this.game.legalFrom(this.selected).some((m) => m.to === this.cursor);
+    this.ui.announce(`${this.cursor}${p ? ` — ${this.a11yPiece(p.color, p.type)}` : ''}${canGo ? ` · ${t('a11yTarget')}` : ''}`);
   }
 
   /** משבצות "מועדפות" לבחירה במגע (עוזר כשהאצבע נוחתת בין משבצות) */
@@ -615,7 +644,7 @@ export class GameApp {
   }
 
   onSquare(sq) {
-    if (!this.canAct()) { if (!this.busy && !this.ui.modalOpen && !this.game.result) this.sound.illegal(); return; }
+    if (!this.canAct()) { if (!this.busy && !this.ui.modalOpen && !this.game.result) this.sound.illegal(); if (this.kbInput && !this.ui.modalOpen && !this.game.result) this.ui.announce(t('a11yNotYourTurn')); return; }
     const piece = this.game.pieceAt(sq);
     const turn = this.game.turn;
     if (this.selected) {
@@ -625,11 +654,12 @@ export class GameApp {
       if (piece && piece.color === turn) { this.select(sq); return; }
       this.sound.illegal();
       this.board.shakeSelected();
+      if (this.kbInput) this.ui.announce(t('a11yIllegal'));
       this.deselect();
       return;
     }
     if (piece && piece.color === turn) this.select(sq);
-    else this.sound.illegal();
+    else { this.sound.illegal(); if (this.kbInput) this.ui.announce(t('a11yIllegal')); }
   }
 
   select(sq) {
@@ -639,6 +669,8 @@ export class GameApp {
     if (this.sm.freeLook && !this.sm.panoramaOn && !this.sm.animatingCamera) this.sm.toGameplay(0.8, this.viewSide());
     this.selected = sq;
     this.board.select(sq, moves);
+    const sp = this.game.pieceAt(sq);
+    if (sp) this.ui.say?.(t('a11ySelected').replace('{piece}', this.a11yPiece(sp.color, sp.type)).replace('{sq}', sq).replace('{n}', String(moves.length)));
     this.sound.pickup(this.panOf(sq));
     const w = this.board.squareWorld(sq);
     Object.values(this.pets).forEach((p) => p.lookAt(w));
@@ -647,6 +679,24 @@ export class GameApp {
   }
 
   deselect() { this.selected = null; this.board.clearSelection(); }
+
+  // [a11y] screen-reader wording for pieces and moves (in the current language, with Hebrew gender agreement)
+  a11yPiece(color, type) { return t('a11yPcs').split('|')[(color === 'b' ? 6 : 0) + 'pnbrqk'.indexOf(type)] || type; }
+
+  a11yMoveText(mv) {
+    const side = mv.color === 'w' ? t('white') : t('black');
+    let s;
+    if (mv.flags?.includes('k') || mv.flags?.includes('q')) s = t(mv.flags.includes('k') ? 'a11yCastleK' : 'a11yCastleQ').replace('{side}', side);
+    else {
+      s = t('a11yMove').replace('{piece}', this.a11yPiece(mv.color, mv.piece)).replace('{from}', mv.from).replace('{to}', mv.to);
+      if (mv.captured) s += t(mv.piece === 'q' ? 'a11yTakesF' : 'a11yTakesM').replace('{piece}', this.a11yPiece(mv.color === 'w' ? 'b' : 'w', mv.captured));
+      if (mv.promotion) s += t('a11yPromo').replace('{piece}', t('a11yPromoNames').split('|')['pnbrqk'.indexOf(mv.promotion)] || mv.promotion);
+    }
+    const c = this.game.chess;
+    if (c?.isCheckmate?.()) s += t('a11yMate');
+    else if (this.game.inCheck()) s += t('a11yCheck');
+    return s;
+  }
 
   panOf(sq) {
     const [x] = squareToXZ(sq);
@@ -714,9 +764,9 @@ export class GameApp {
       this.pets[mover].react('checkAttack');
       this.pets[victim].react('checkDefend');
       this.avatars[mover].check();
-      this.ui.announce(t('check'));
       if (this.mode === 'ai' && mover !== this.myColor && !this.game.result) setTimeout(() => this.botSay('check'), 400);
     } else this.board.setCheck(null);
+    this.ui.say?.(this.a11yMoveText(mv)); // [a11y] every move (yours, the bot's, your friend's), incl. check / mate
     this.queueReview(before, histBefore, mv);
     await this.afterMove();
     return mv;
@@ -1437,9 +1487,9 @@ export class GameApp {
     this.tutorial.start();
   }
 
-  wipeData() {
-    wipeAllLocalData();
-    location.reload();
+  /** [legal] Settings → "Delete all my data": online rooms + anonymous account + local data (language stays) */
+  async wipeData() {
+    if (await wipeEverything(this)) location.reload();
   }
 }
 

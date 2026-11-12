@@ -23,7 +23,7 @@ export class Tutorial {
     const waits = this.step === 1 || this.step === 2;
     const last = this.step === steps.length - 1;
     const pos = this.step >= 1 && this.step <= 3 ? { top: 'calc(var(--safe-top) + 175px)' } : { top: '38%' };
-    this.el = h('div', { class: 'tut glass', role: 'dialog', 'aria-live': 'polite', style: pos },
+    this.el = h('div', { class: 'tut glass', role: 'dialog', 'aria-label': t('tutorial'), 'aria-live': 'polite', style: pos },
       h('p', {}, t(steps[this.step])),
       h('div', { class: 'btn-row' },
         h('button', { class: 'btn small ghost', onclick: () => this.finish() }, t('skip')),

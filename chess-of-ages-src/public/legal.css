@@ -1,0 +1,46 @@
+/* Shared style of the public legal pages (privacy, terms, licenses, accessibility). No inline styles needed. */
+:root { --bg: #0b0912; --card: #171126; --line: #3a2d55; --text: #f3eee4; --muted: #c9c0b0; --gold: #f2c94c; --gold-2: #ffe08a; --link: #ffd36b; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body { margin: 0; background: radial-gradient(circle at 50% 0%, #241640 0%, var(--bg) 60%) fixed; color: var(--text);
+  font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Hebrew", Arial, sans-serif; }
+.wrap { max-width: 860px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 18px 48px; }
+.skip { position: absolute; inset-inline-start: 12px; top: -60px; z-index: 5; background: var(--gold-2); color: #1a1208; padding: 8px 14px; border-radius: 8px; font-weight: 700; text-decoration: none; }
+.skip:focus { top: 12px; }
+header.top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.brand { font-weight: 800; letter-spacing: .02em; color: var(--gold-2); }
+.brand small { display: block; font-size: 11px; letter-spacing: .3em; color: var(--gold); font-weight: 600; }
+nav.lang a { display: inline-block; margin-inline-start: 6px; padding: 8px 14px; min-height: 40px; border: 1px solid var(--line); border-radius: 999px; color: var(--text); text-decoration: none; background: #1d1530; }
+nav.lang a:hover { border-color: var(--gold); }
+nav.lang a[aria-current="true"] { border-color: var(--gold); background: #2a1f44; color: var(--gold-2); font-weight: 700; }
+nav.pages { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 4px 0 6px; font-size: 14px; }
+nav.pages a[aria-current="page"] { color: var(--text); font-weight: 700; text-decoration: none; }
+h1 { font-size: clamp(24px, 5vw, 32px); line-height: 1.25; margin: 18px 0 4px; color: var(--gold-2); }
+h2 { font-size: 21px; margin: 34px 0 8px; color: var(--gold-2); border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+h3 { font-size: 17px; margin: 22px 0 6px; color: var(--text); }
+p, li { color: var(--text); }
+.meta { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+.summary { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 6px 18px; }
+.summary li { margin: 6px 0; }
+a { color: var(--link); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--gold-2); outline-offset: 3px; border-radius: 6px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; margin: 10px 0 4px; font-size: 14.5px; background: var(--card); border-radius: 12px; overflow: hidden; }
+caption { text-align: start; color: var(--muted); font-size: 13px; padding: 0 0 6px; }
+th, td { text-align: start; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+th { color: var(--gold-2); font-weight: 700; background: #1f1733; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .92em; background: #241a39; padding: 1px 5px; border-radius: 5px; color: #ffe9b0; overflow-wrap: anywhere; }
+mark.ph, .ph { background: #5a4510; color: #fff2c4; padding: 0 4px; border-radius: 4px; }
+.ph a { color: #fff2c4; }
+.back { display: inline-block; margin-top: 26px; }
+hr.split { border: 0; border-top: 2px solid var(--line); margin: 48px 0 8px; }
+.note { background: var(--card); border: 1px solid var(--line); border-inline-start: 4px solid var(--gold); border-radius: 10px; padding: 10px 14px; }
+details.lic { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin: 10px 0; }
+details.lic > summary { cursor: pointer; padding: 10px 14px; font-weight: 700; color: var(--gold-2); list-style-position: inside; }
+details.lic > summary small { color: var(--muted); font-weight: 400; }
+details.lic .body { padding: 0 14px 12px; }
+pre.license { white-space: pre-wrap; overflow-wrap: anywhere; font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #e9e2d2; background: #120d1e; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 8px 0 0; max-height: 360px; overflow: auto; direction: ltr; text-align: left; }
+.embedded .back, .embedded header.top .brand, .embedded nav.pages { display: none; }
+html.one-lang hr.split { display: none; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

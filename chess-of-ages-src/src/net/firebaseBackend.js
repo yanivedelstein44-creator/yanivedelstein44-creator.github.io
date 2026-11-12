@@ -33,6 +33,10 @@ export async function createFirebaseBackend({ tabSession = false } = {}) {
     get: async (code) => (await get(roomRef(code))).val(),
     update: (code, patch) => update(roomRef(code), patch),
     remove: (code) => remove(roomRef(code)),
+    /** [legal] "Delete all my data": deletes the anonymous account, or at least signs it out on this device */
+    async forget() {
+      try { await auth.currentUser?.delete(); } catch { try { await auth.signOut(); } catch { /* offline: the local token is wiped anyway */ } }
+    },
     watch(code, cb, onError) {
       return onValue(roomRef(code), (snap) => cb(snap.val()), (err) => onError?.(err));
     },

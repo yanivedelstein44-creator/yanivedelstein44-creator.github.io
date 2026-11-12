@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { zipSync } from 'fflate';
 import crypto from 'node:crypto';
+import { cspPlugin } from './scripts/vite-csp.mjs';
 
 const pkg = JSON.parse(fs.readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 const BUILD_TIME = Date.now();
@@ -83,6 +84,8 @@ export default defineConfig(({ mode }) => {
     },
     worker: { format: 'es' },
     server: { host: true },
-    plugins: [chessOfAgesBuild(env)],
+    // cspPlugin: Content-Security-Policy for the web build (see scripts/vite-csp.mjs); its writeBundle runs
+    // before chessOfAgesBuild's closeBundle, so the OTA zip and the SW precache get the final pages
+    plugins: [chessOfAgesBuild(env), cspPlugin()],
   };
 });

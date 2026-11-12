@@ -8,8 +8,9 @@ import {
 } from '../config/EconomyConfig.js';
 import { PETS, PREMIUM_PET_IDS, SKY_PET_IDS } from '../config/Pets.js';
 import { ERAS } from '../config/Eras.js';
-import { readJSON, writeJSON } from './Storage.js';
+import { readJSON, writeJSON, readObject, repairShape, backupIfRepaired } from './Storage.js';
 import { tn, ITEM_EN } from '../ui/i18n.js';
+import { isPlayBuild } from '../config/Store.js';
 
 const DAY = 24 * 3600 * 1000;
 const todayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -55,7 +56,8 @@ export class Economy {
       petXp: {}, // ניסיון לכל חיה (חיות שגדלות)
       petXpBase: 0, // ניסיון של חיה בלי רישום: שחקן חדש — גור
     };
-    const saved = readJSON(ECONOMY.storageKey, null);
+    const saved = readObject(ECONOMY.storageKey); // [qa] corrupt / wrong-typed state → backed up, defaults used
+    if (saved) backupIfRepaired(ECONOMY.storageKey, repairShape(saved, fresh));
     this.s = saved ? { ...fresh, ...saved, equipped: { ...fresh.equipped, ...(saved.equipped || {}) } } : fresh;
     // שחקן מלפני "חיות שגדלות": כל החיות שכבר יש לו נשארות בוגרות (לא מתכווצות פתאום)
     if (saved && saved.petXp == null) { this.s.petXp = {}; this.s.petXpBase = PET_GROWTH.adult; }
@@ -172,8 +174,11 @@ export class Economy {
   emit(evt) { this.listeners.forEach((fn) => fn(evt, this)); }
   onChange(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
   get gems() { return this.s.gems; }
-  get sandbox() { return !!this.s.sandbox; }
+  /** קופה מדומה (בלי חיוב). בגרסת Google Play אין קופה מדומה — רק Google Play Billing */
+  get sandbox() { return !!this.s.sandbox && !isPlayBuild(); }
   setSandbox(v) { this.s.sandbox = !!v; this.save(); this.emit({ type: 'sandbox' }); }
+  /** אפשר לקנות בכסף אמיתי עכשיו: קופה מדומה, או ספק תשלום מחובר (Google Play Billing) */
+  canBuyReal() { return this.sandbox || typeof PaymentProvider.nativePurchase === 'function'; }
 
   addGems(n, reason = '') {
     this.s.gems = Math.max(0, Math.round(this.s.gems + n));

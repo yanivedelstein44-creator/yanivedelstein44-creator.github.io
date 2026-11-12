@@ -13,6 +13,7 @@ import { ACHIEVEMENTS } from '../core/Achievements.js';
 import { GLYPH } from '../game/GameController.js';
 import { ISLAND_COUNT, HUB_ID, REGION_COUNT, PREMIUM_WORLDS, islandDef, regionIslands, regionOf, tierOf } from '../config/Islands.js';
 import { getEra } from '../config/Eras.js';
+import { LEGAL_PAGES, openLegalPage } from './LegalPages.js';
 
 const TXT = '︎';
 
@@ -47,12 +48,16 @@ export function openFullGame(app, onUnlocked) {
     h('ul', {}, h('li', {}, t('premiumPoint1')), h('li', {}, t('premiumPoint2')), h('li', {}, t('premiumPoint3'))),
     h('p', { class: 'bonus' }, ...withIcon('dragon', t('dragonBonus'), 16)),
     h('div', { class: 'price-tag' }, priceLabel),
-    economy.sandbox ? h('p', { class: 'soon' }, ...withIcon('info', t('sandboxNote'), 14)) : null);
+    economy.sandbox ? h('p', { class: 'soon' }, ...withIcon('info', t('sandboxNote'), 14)) : null,
+    // [legal] גילוי לפני רכישה בכסף אמיתי + קישור לתנאים ולהחזרים
+    (economy.sandbox || economy.canBuyReal()) ? h('p', { class: 'soon pay-note' }, ...(economy.sandbox ? [] : withIcon('info', t('lgBuyNote'), 14)),
+      h('button', { class: 'link-btn tap', type: 'button', onclick: () => openLegalPage(app, 'terms', 'pay') }, t('lgTermsLink'))) : null);
   return ui.modal({
     title: t('fullTitle'), titleIcon: 'crown', center: true, body,
     actions: [
       { label: t('later'), onClick: (c) => c.close() },
-      { label: economy.sandbox ? t('unlockTest') : t('unlock'), icon: 'lock', primary: true, onClick: async (c) => {
+      { label: economy.sandbox ? t('unlockTest') : (economy.canBuyReal() ? t('unlock') : t('playSoon')), icon: 'lock', primary: true, onClick: async (c) => {
+        if (!economy.canBuyReal()) { ui.toast(t('playSoonBody'), { icon: 'info' }); return; } // גרסת Play לפני חיבור Billing
         const res = await economy.purchaseFullGame(() => Promise.resolve(true));
         if (res.ok) { c.close(); sound.jackpot(); ui.toast(`${t('fullOwned')}!`, { kind: 'gold', icon: 'crown' }); app.onPremiumUnlocked?.(); onUnlocked?.(); }
         else if (!res.cancelled) ui.toast(res.reason, { kind: 'bad' });
@@ -168,10 +173,13 @@ export function openSettings(app) {
   const prof = store.get('profile');
   const nameIn = h('input', { id: 'pname', value: prof.name, maxlength: 18, autocomplete: 'nickname', onchange: (e) => { store.set({ profile: { ...store.get('profile'), name: e.target.value.trim().slice(0, 18) || prof.name } }); app.refreshHud(); } });
   const cur = emblemIcon(prof.avatar);
-  const emRow = h('div', { class: 'emblems', role: 'radiogroup', 'aria-label': t('avatar') }, ...EMBLEMS.map((e) => h('button', { class: 'tap', role: 'radio', 'aria-checked': String(cur === e), 'aria-label': e, onclick: (ev) => { store.set({ profile: { ...store.get('profile'), avatar: e } }); emRow.querySelectorAll('button').forEach((b) => b.setAttribute('aria-checked', 'false')); ev.currentTarget.setAttribute('aria-checked', 'true'); app.refreshHud(); } }, icon(e, { size: 26 }))));
+  const emRow = h('div', { class: 'emblems', role: 'radiogroup', 'aria-label': t('avatar') }, ...EMBLEMS.map((e) => h('button', { class: 'tap', role: 'radio', 'aria-checked': String(cur === e), 'aria-label': t(`lngEm_${e}`), onclick: (ev) => { store.set({ profile: { ...store.get('profile'), avatar: e } }); emRow.querySelectorAll('button').forEach((b) => b.setAttribute('aria-checked', 'false')); ev.currentTarget.setAttribute('aria-checked', 'true'); app.refreshHud(); } }, icon(e, { size: 26 }))));
   const langSeg = segment([['he', 'עברית'], ['en', 'English']], s.lang || getLang(), (v) => { store.setSetting('lang', v); m.close(); app.setLanguage(v); });
   langSeg.querySelectorAll('button').forEach((b, i) => b.setAttribute('lang', i ? 'en' : 'he'));
   const qSeg = segment([['auto', t('auto')], ['high', t('high')], ['low', t('low')]], s.quality || 'auto', (v) => { store.setSetting('quality', v); app.applyQuality(); });
+  // [a11y] Reduce motion (shorter camera moves, no shake, no decorative CSS animation); each choice group is named for screen readers
+  const mSeg = segment([['auto', t('a11yMotionAuto')], ['on', t('a11yMotionOn')]], s.reducedMotion ? 'on' : 'auto', (v) => { store.setSetting('reducedMotion', v === 'on'); app.applyMotion?.(); });
+  [[langSeg, t('language')], [qSeg, t('quality')], [mSeg, t('a11yReduceMotion')]].forEach(([el, l]) => { el.setAttribute('role', 'group'); el.setAttribute('aria-label', l); });
   const fullRow = economy.ownsFullGame()
     ? h('p', { class: 'ok-line' }, ...withIcon('check', t('fullOwned'), 16))
     : h('div', { class: 'btn-row' }, h('button', { class: 'btn small tap', onclick: () => { m.close(); openFullGame(app); } }, ...withIcon('crown', tn('לפרטים ולפתיחה', 'Details & unlock'), 16)));
@@ -182,8 +190,10 @@ export function openSettings(app) {
     h('h3', {}, ...withIcon('castle', t('fullGame'), 16)), fullRow,
     h('h3', {}, ...withIcon('globe', t('language'), 16)), langSeg,
     h('h3', {}, ...withIcon('palette', t('quality'), 16)), qSeg,
-    h('h3', {}, ...withIcon('lock', t('privacy'), 16)), h('p', { style: { textAlign: 'start' } }, t('privacyText')),
-    h('div', { class: 'btn-row' }, h('button', { class: 'btn small tap', onclick: () => openPrivacyPolicy(app) }, ...withIcon('doc', t('privacyPolicy'), 16))),
+    h('h3', {}, ...withIcon('eye', t('a11yReduceMotion'), 16)), mSeg,
+    h('h3', {}, ...withIcon('lock', t('lgSection'), 16)), h('p', { style: { textAlign: 'start' } }, t('privacyText')),
+    // [legal] מדיניות פרטיות, תנאי שימוש, הצהרת נגישות ורישיונות — הדפים הציבוריים בתוך המשחק
+    h('div', { class: 'btn-row legal-links' }, ...LEGAL_PAGES.map(([page, ic, key]) => h('button', { class: 'btn small tap', onclick: () => openLegalPage(app, page) }, ...withIcon(ic, t(key), 16)))),
     h('p', { style: { textAlign: 'start', fontSize: '12px' } }, t('keyboardHelp')),
     h('div', { class: 'btn-row' }, h('button', { class: 'btn small tap', onclick: async (e) => {
       const btn = e.currentTarget; btn.disabled = true; ui.toast(t('checkingUpdates'), { icon: 'refresh' });
@@ -199,10 +209,9 @@ export function openSettings(app) {
   return m;
 }
 
-/** מדיניות הפרטיות והנגישות — אותו עמוד ציבורי (privacy.html) בתוך מודל, בלי לעזוב את המשחק */
+/** מדיניות הפרטיות — אותו עמוד ציבורי (privacy.html) בתוך מודל, בלי לעזוב את המשחק */
 export function openPrivacyPolicy(app) {
-  const frame = h('iframe', { src: `./privacy.html#${getLang()}`, title: t('privacyPolicy'), class: 'policy-frame', loading: 'lazy' });
-  return app.ui.modal({ title: t('privacyPolicy'), titleIcon: 'doc', body: frame });
+  return openLegalPage(app, 'privacy');
 }
 
 export { getLang, HUB_ID };

@@ -738,6 +738,28 @@ export class SceneManager {
 
   onUpdate(fn) { this.updaters.add(fn); return () => this.updaters.delete(fn); }
 
+  /** [qa] Reports a failing per-frame updater once, and drops it after repeated failures so the rest of the scene keeps running. */
+  updaterFailed(fn, err) {
+    const fails = (this._updFails ??= new Map());
+    const n = (fails.get(fn) || 0) + 1;
+    fails.set(fn, n);
+    if (n === 1) {
+      // eslint-disable-next-line no-console
+      console.error('[scene] a per-frame updater failed:', err);
+      window.dispatchEvent(new CustomEvent('coa:soft-error', { detail: { kind: 'updater', message: String(err?.message || err), stack: err?.stack } }));
+    }
+    if (n >= 30) { this.updaters.delete(fn); fails.delete(fn); }
+  }
+
+  /** [qa] After the GPU context comes back, the environment map (a render target) is empty — build it again. */
+  restoreAfterContextLoss() {
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    const old = this.scene.environment;
+    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    pmrem.dispose();
+    old?.dispose?.();
+  }
+
   resize() {
     const w = window.innerWidth, h = window.innerHeight;
     this.width = w; this.height = h;
@@ -810,7 +832,10 @@ export class SceneManager {
       const r = Math.hypot(c.position.x, c.position.z);
       c.position.x = Math.cos(a) * r; c.position.z = Math.sin(a) * r;
     });
-    this.updaters.forEach((fn) => fn(dt, this.time));
+    // [qa] each per-frame updater is isolated: one that throws no longer stops the frame from rendering (frozen screen)
+    for (const fn of this.updaters) {
+      try { fn(dt, this.time); } catch (err) { this.updaterFailed(fn, err); }
+    }
     if (this.controls.enabled) this.controls.update();
     // רעידת מצלמה
     const sh = this.shake;

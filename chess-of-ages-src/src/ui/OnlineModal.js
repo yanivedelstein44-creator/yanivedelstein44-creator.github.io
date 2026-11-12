@@ -10,12 +10,15 @@ import { icon } from './icons.js';
 import { segment } from './Modals.js';
 import { TIME_CONTROLS, ONLINE } from '../config/AppConfig.js';
 import { normCode, validCode, prettyCode, inviteUrl } from '../net/OnlineRoom.js';
+import { openLegalPage } from './LegalPages.js';
 
 const native = () => Capacitor?.isNativePlatform?.() || false;
 
 function errText(e) {
   if (e?.code === 'notFound') return t('roomGone');
   if (e?.code === 'full') return t('roomFullWatch');
+  if (e?.code === 'needUpdate') return t('playRoomNeedUpdate'); // החדר נוצר בגרסה חדשה יותר
+  if (e?.code === 'friendOld') return t('playRoomFriendOld'); // החדר נוצר בגרסה ישנה מדי
   return t('onlineError');
 }
 
@@ -52,7 +55,10 @@ function ensureNotice(app) {
   return new Promise((resolve) => {
     let answered = false;
     app.ui.modal({
-      title: t('onlineFriend'), titleIcon: 'globe', center: true, body: t('onlineNotice2'),
+      title: t('onlineFriend'), titleIcon: 'globe', center: true,
+      // [legal] חובת היידוע (סעיף 11): הפרטים המלאים — מי אחראי, למי מגיע המידע, מחיקה — בסעיף האונליין של מדיניות הפרטיות
+      body: h('div', {}, h('p', {}, t('onlineNotice2')),
+        h('p', {}, h('button', { class: 'link-btn tap', type: 'button', onclick: () => openLegalPage(app, 'privacy', 'online') }, t('lgPrivacy')))),
       actions: [
         { label: t('cancelRoom'), onClick: (c) => { answered = true; c.close(); resolve(false); } },
         { label: t('understood'), icon: 'check', primary: true, onClick: (c) => { answered = true; app.store.set({ seenOnlineNotice2: true }); c.close(); resolve(true); } },

@@ -19,8 +19,8 @@ const withSlash = (u) => (!u ? '' : u.endsWith('/') ? u : `${u}/`);
 
 /** כתובת האתר הציבורי (קישור בכרטיס השיתוף + עדכונים ל-APK). מוגדר ב-.env או ב-GitHub Actions */
 export const PUBLIC_URL = withSlash(env.VITE_PUBLIC_URL || '');
-/** מאיפה אפליקציית ה-APK בודקת עדכונים (version.json + bundle zip) */
-export const UPDATE_URL = withSlash(env.VITE_UPDATE_URL || env.VITE_PUBLIC_URL || '');
+/** מאיפה אפליקציית ה-APK בודקת עדכונים (version.json + bundle zip). גרסת Play: UPDATE_BASE ב-config/Store.js */
+export const UPDATE_URL = withSlash(env.VITE_UPDATE_BASE || env.VITE_UPDATE_URL || env.VITE_PUBLIC_URL || '');
 /** קישור להורדת APK חדש (רק כשנדרש עדכון "מקומי" מלא) */
 export const APK_URL = env.VITE_APK_URL || '';
 

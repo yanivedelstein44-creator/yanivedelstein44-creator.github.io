@@ -4,6 +4,7 @@
  * אין סדר חובה — כל אי פתוח (איים 6–99 עם המשחק המלא).
  */
 import { h, withIcon } from './UI.js';
+import { langButton } from './LangButton.js';
 import { t, tn, islandLabel, shortName } from './i18n.js';
 import { icon } from './icons.js';
 import { formatGems } from '../config/EconomyConfig.js';
@@ -17,12 +18,14 @@ const starRow = (n, size = 18) => h('span', { class: 'stars', 'aria-label': `${n
 export function buildMapUi(app, map) {
   const pr = app.progression;
   const closeBtn = h('button', { class: 'modal-close tap', 'aria-label': t('close'), onclick: () => map.close() }, icon('close', { size: 16 }));
+  const langBtn = langButton((where) => app.handlers().onLanguage(where), 'map');
   const head = h('header', { class: 'map-head glass' },
     h('h2', {}, icon('compass', { size: 24 }), h('span', {}, t('worldMap'))),
     h('div', { class: 'map-stats' },
       h('span', { class: 'chip', title: t('stars') }, icon('star', { size: 16 }), String(pr.totalStars())),
       h('span', { class: 'chip', title: t('conquered') }, icon('flag', { size: 16 }), `${pr.conqueredCount()}/${ISLAND_COUNT}`),
       h('span', { class: 'chip gem', title: t('gems') }, icon('gem', { size: 16 }), formatGems(app.economy.gems))),
+    langBtn,
     closeBtn);
   const quick = h('div', { class: 'map-quick' },
     h('button', { class: 'btn small tap', onclick: () => map.select(pr.currentIsland()) }, ...withIcon('pin', t('myIsland'), 16)),
@@ -31,7 +34,10 @@ export function buildMapUi(app, map) {
   const card = h('section', { class: 'island-card glass', hidden: true, 'aria-live': 'polite' });
   const root = h('div', { id: 'map-ui', role: 'dialog', 'aria-label': t('worldMap') }, head, quick, card);
   document.getElementById('app').appendChild(root);
-  setTimeout(() => closeBtn.focus(), 80);
+  // אחרי החלפת שפה מתוך המפה המיקוד חוזר לכפתור השפה; אחרת לכפתור הסגירה
+  const focusTo = map.focusLang ? langBtn : closeBtn;
+  map.focusLang = false;
+  setTimeout(() => focusTo.focus(), 80);
 
   // נגיעה כפולה באי במפה: נכנסים אליו ישר (כמו הכפתור הראשי בכרטיס). האי שאתה עליו — חוזרים אליו
   map.onEnter = (id) => {

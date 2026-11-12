@@ -70,10 +70,13 @@ ${laurel(p, -1)}${laurel(p, 1)}
 </g>`;
 }
 
+/** The logo markup goes through innerHTML: escape the only text that comes from outside (the translated title) */
+const escAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
 /** לוגו מלא: סמל + כיתוב + סרט (viewBox 0 0 640 400) */
 export function fullLogoSVG({ width = 320, title = 'Chess of Ages: Island Realms' } = {}) {
   const p = `lg${++seq}_`;
-  return `<svg class="game-logo" direction="ltr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="${width}" role="img" aria-label="${title}">${defs(p)}
+  return `<svg class="game-logo" direction="ltr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="${Number(width) || 320}" role="img" aria-label="${escAttr(title)}">${defs(p)}
 <g transform="translate(220 0) scale(1)">${emblemSVG(p)}</g>
 <g font-family="Cinzel, 'Trajan Pro', Georgia, 'Times New Roman', serif" font-weight="700" text-anchor="middle">
   <text x="320" y="282" font-size="70" letter-spacing="5" fill="url(#${p}g)" stroke="#2a1704" stroke-width="5" paint-order="stroke fill" filter="url(#${p}sh)">CHESS OF AGES</text>
@@ -90,7 +93,7 @@ export function fullLogoSVG({ width = 320, title = 'Chess of Ages: Island Realms
 /** לוגו מצומצם לראש המסך (viewBox 0 0 252 52) */
 export function compactLogoSVG({ height = 34, title = 'Chess of Ages: Island Realms' } = {}) {
   const p = `lc${++seq}_`;
-  return `<svg class="game-logo compact" direction="ltr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 252 52" height="${height}" role="img" aria-label="${title}">${defs(p)}
+  return `<svg class="game-logo compact" direction="ltr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 252 52" height="${Number(height) || 34}" role="img" aria-label="${escAttr(title)}">${defs(p)}
 <g transform="translate(1 1) scale(0.25)">${emblemSVG(p)}</g>
 <g font-family="Cinzel, 'Trajan Pro', Georgia, 'Times New Roman', serif" font-weight="700">
   <text x="58" y="30" font-size="19.5" letter-spacing="1" fill="url(#${p}g)" stroke="#2a1704" stroke-width="2.4" paint-order="stroke fill">CHESS OF AGES</text>

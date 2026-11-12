@@ -8,9 +8,25 @@
  * ההודעה מוצגת רק ברגע בטוח (לא באמצע אנימציה או חשיבת מחשב). המשחק הנוכחי נשמר ונטען מחדש אחרי העדכון.
  */
 import { Capacitor } from '@capacitor/core';
-import { APP_VERSION, BUILD_TIME, UPDATE_URL, APK_URL } from '../config/AppConfig.js';
+import { APP_VERSION, BUILD_TIME, APK_URL } from '../config/AppConfig.js';
+// UPDATE_BASE: ערוץ העדכונים לפי הגרסה — Play קוראת מ-chess-of-ages-play/, ה-APK מהאתר מ-chess-of-ages/
+import { STORE, PLAY_URL, UPDATE_BASE as UPDATE_URL } from '../config/Store.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * כתובת מתוך version.json רק אם היא https באותו שרת של UPDATE_URL (http רק כשגם הבסיס http — בדיקות מקומיות).
+ * כך version.json שזויף או השתבש לא יכול לשלוח את האפליקציה להוריד חבילה מאתר זר או לפתוח javascript: / קישור זר.
+ */
+export function safeUrl(u, base) {
+  if (!u || typeof u !== 'string') return '';
+  try {
+    const b = new URL(base);
+    const x = new URL(u, b);
+    const proto = x.protocol === 'https:' || (b.protocol === 'http:' && x.protocol === 'http:');
+    return proto && x.host === b.host ? x.href : '';
+  } catch { return ''; }
+}
 export function cmpVer(a = '0', b = '0') {
   const pa = String(a).split(/[.-]/).map((x) => parseInt(x, 10) || 0), pb = String(b).split(/[.-]/).map((x) => parseInt(x, 10) || 0);
   for (let i = 0; i < 3; i++) { if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0); }
@@ -41,6 +57,25 @@ export class Updater {
   async init() {
     if (this.native) return this.initNative();
     return this.initWeb();
+  }
+
+  /**
+   * גרסת Google Play: עדכון נייטיב דרך החנות בלבד. קודם עדכון מתוך האפליקציה של Play (In-App Updates,
+   * דרך ‎@capgo/capacitor-updater‎ ≥ 8), אחר כך דף האפליקציה בחנות, ובסוף הקישור עצמו.
+   */
+  async openStore(url = '') {
+    try {
+      const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
+      if (typeof CapacitorUpdater.getAppUpdateInfo === 'function') {
+        const u = await CapacitorUpdater.getAppUpdateInfo().catch(() => null);
+        if (u?.immediateUpdateAllowed && typeof CapacitorUpdater.performImmediateUpdate === 'function') {
+          await CapacitorUpdater.performImmediateUpdate();
+          return;
+        }
+      }
+      if (typeof CapacitorUpdater.openAppStore === 'function') { await CapacitorUpdater.openAppStore(); return; }
+    } catch { /* אין תוסף או אין חנות — גיבוי למטה */ }
+    if (url) location.href = url;
   }
 
   async waitSafe() {
@@ -163,7 +198,8 @@ export class Updater {
           if (!this.offered.has(`apk-${info.minNative}`)) {
             this.offered.add(`apk-${info.minNative}`);
             await this.waitSafe();
-            this.onNativeRequired({ ...info, apk: info.apk || APK_URL });
+            // גרסת Google Play: אסור להציע הורדת APK — שולחים לדף האפליקציה ב-Play (store: 'play', apk: '')
+            this.onNativeRequired(STORE === 'play' ? { ...info, store: STORE, apk: '', storeUrl: PLAY_URL } : { ...info, store: STORE, apk: safeUrl(info.apk, UPDATE_URL) || APK_URL });
           }
           return 'found';
         }
@@ -171,7 +207,8 @@ export class Updater {
         if (!info.checksum) { this.lastError = 'version.json: missing checksum'; return 'error'; }
         if (manual) this.onDownloading(info);
         // מורידים ברקע — כשהמשתמש לוחץ "עדכן עכשיו" ההתקנה מיידית
-        const url = new URL(info.bundle, UPDATE_URL).href;
+        const url = safeUrl(info.bundle, UPDATE_URL);
+        if (!url) { this.lastError = 'version.json: bundle URL rejected'; return 'error'; }
         const bundle = await CapacitorUpdater.download({ url, version: info.build, checksum: info.checksum });
         this.offer(`ota-${info.build}`, info,
           () => CapacitorUpdater.set({ id: bundle.id }), // טוען מחדש עם הגרסה החדשה

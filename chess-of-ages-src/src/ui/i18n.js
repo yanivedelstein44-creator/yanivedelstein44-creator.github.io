@@ -1,9 +1,16 @@
 import { islandDef } from '../config/Islands.js';
 
 /**
- * תרגומים: עברית (ברירת מחדל, RTL) ואנגלית (לחנות הבינלאומית, LTR).
+ * תרגומים: אנגלית (ברירת המחדל לכולם, LTR) ועברית (RTL) — עברית רק כשהשחקן בוחר בה בכפתור השפה או בהגדרות.
  */
 const HE = {
+  // [a11y] start
+  a11yPcs: 'רגלי לבן|פרש לבן|רץ לבן|צריח לבן|מלכה לבנה|מלך לבן|רגלי שחור|פרש שחור|רץ שחור|צריח שחור|מלכה שחורה|מלך שחור', a11yPromoNames: 'רגלי|פרש|רץ|צריח|מלכה|מלך',
+  a11yMove: '{piece} מ-{from} ל-{to}', a11yTakesM: ' ואוכל את {piece}', a11yTakesF: ' ואוכלת את {piece}', a11yPromo: ', הכתרה ל{piece}', a11yCheck: ' — שח', a11yMate: ' — מט',
+  a11yCastleK: '{side}: הצרחה קצרה', a11yCastleQ: '{side}: הצרחה ארוכה', a11ySelected: 'נבחר: {piece} ב-{sq} · מהלכים אפשריים: {n}', a11yTarget: 'אפשר לזוז לכאן',
+  a11yIllegal: 'אי אפשר לזוז לשם', a11yNotYourTurn: 'עוד לא התור שלך', a11yCinema: 'בית הקולנוע', a11yReduceMotion: 'הפחתת תנועה', a11yMotionAuto: 'לפי המכשיר', a11yMotionOn: 'תמיד',
+  a11yGame: 'שחמט העידנים: ממלכות האיים', a11yPreview: 'תצוגה מקדימה',
+  // [a11y] end
   tabBots: 'בוטים', moreBotsHint: 'כל אי שתכבוש פותח את הבוט שלו ואת הצבע של החיה שלו', noBotsHint: 'כבוש איים כדי לפתוח את הבוטים שלהם', invitePlay: 'שחק', resident: 'גר אצלך', residentPractice: 'משחק אימון מול תושב — בלי יהלומים', cinema: 'קולנוע', cinemaTitle: 'בית הקולנוע המרכזי', storyFilm: 'הסיפור', storyDesc: 'מוזיאון הזמן, 99 האיים ופיראטי הזמן · 40 שניות', howToPlay: 'איך משחקים', howToDesc: 'משחק מודרך קצר ליד השולחן', skip: 'דלג', cinemaAtHub: 'בית הקולנוע נמצא באי המרכזי', cinemaHint: 'נגיעה בכלי מתחילה לשחק · בקולנוע שבאי המרכזי יש את הסיפור ואת ההדרכה', pieceArrives: 'חלק חדש מגיע למוזיאון', museumPieces: 'חלקים במוזיאון', piratesHere: 'פיראטי הזמן תפסו את האי — נצח אותם וקבל יהלומים', piratesReturn: 'הפיראטים מתארגנים · חוזרים בעוד {t}', practiceNoGems: 'משחק אימון — היהלומים חוזרים כשהפיראטים נוחתים שוב', piratesFled: 'הפיראטים ברחו! האי שקט לכמה שעות', pieceToMuseum: 'חלק מהאי מצטרף למוזיאון באי המרכזי', hShort: 'ש׳', mShort: 'ד׳', fightPirates: 'הילחם בפיראטים', practicePirates: 'אימון נגד הפיראטים', timePirates: 'פיראטי הזמן', visitIsland: 'בקר באי', anyOrder: 'אפשר לכבוש בכל סדר', world: 'עולם',
   tapToSpeed: 'נגיעה במסך מאיצה את המסע', map: 'מפה', friend: 'חבר', home: 'הביתה', battle: 'קרב', boss: 'בוס', hubName: 'האי המרכזי', conquered: 'איים שנכבשו', allConquered: 'כל האיים נכבשו!', unlockFullShort: 'פתח את איי הפרימיום כדי להמשיך לאי 100',
   nextBuilding: 'מבנה הבא', moreIslands: 'איים לכיבוש', beatToConquer: 'נצח את הבוט כדי לכבוש את האי', waitMove: 'רגע, המהלך עוד רץ…', lockedBeatPrev: 'נעול — נצח קודם את הבוט באי {n}',
@@ -44,8 +51,8 @@ const HE = {
   summary: 'סיכום משחק', accuracy: 'דיוק', keyMoments: 'רגעי מפתח', replay: 'הילוך חוזר', yourAccuracy: 'הדיוק שלך', oppAccuracy: 'דיוק היריב',
   gemsEarned: 'יהלומים שהרווחת', achievements: 'הישגים', achievementUnlocked: 'הישג נפתח!', profile: 'פרופיל', name: 'שם', avatar: 'סמל',
   settings: 'הגדרות', language: 'שפה', quality: 'איכות גרפיקה', auto: 'אוטומטי', high: 'גבוהה', low: 'נמוכה', privacy: 'פרטיות ונתונים',
-  deleteData: 'מחק את כל הנתונים שלי', confirmDelete: 'למחוק את כל ההתקדמות, היהלומים והפריטים במכשיר הזה? הפעולה לא הפיכה.',
-  privacyText: 'האפליקציה לא משתמשת בעוגיות, פיקסלים, אנליטיקה או מעקב פרסומי, ואין בה משחק ברשת. ההתקדמות, היהלומים וההגדרות נשמרים רק במכשיר שלך (localStorage). רכישות במצב בדיקה אינן גובות כסף.',
+  deleteData: 'מחק את כל הנתונים שלי', confirmDelete: 'למחוק את כל ההתקדמות, היהלומים, הפריטים והחיות במכשיר הזה, ואת חדרי האונליין שפתחת? בחירת השפה נשמרת. הפעולה לא הפיכה.',
+  privacyText: 'בלי עוגיות, פרסומות, כלי ניתוח או מעקב. ההתקדמות, היהלומים וההגדרות נשמרים רק במכשיר הזה. משחק אונליין עם חבר הוא אופציונלי: הוא שולח דרך Google Firebase רק את שם התצוגה, מראה האווטאר והמהלכים, ורק מי שיש לו את קוד החדר רואה אותם.',
   share: 'שתף', shareText: 'תראו את מוזיאון הזמן שלי ב-Chess of Ages: Island Realms!', saveImage: 'שמור תמונה',
   tutorial: 'מדריך', skip: 'דלג', nextStep: 'הבא', finish: 'סיום',
   tut1: 'ברוך הבא לשחמט העידנים! 99 איים מחכים לך — נצח את הבוט בכל אי כדי לכבוש אותו. הראשון יושב מולך.', tut2: 'הקש על רגלי לבן כדי לבחור אותו. המשבצות הירוקות הן מהלכים חוקיים.', tut3: 'עכשיו הקש על משבצת ירוקה כדי להזיז את הכלי.', tut4: 'מעולה! גרור אצבע מחוץ ללוח כדי לסובב את המצלמה, וצבוט כדי להתקרב.', tut5: 'בחנות תמצא בגדים לאווטאר, חיות מחמד, איים חדשים ומתנה יומית.', tut6: 'בהצלחה, מלך! נצח כדי לכבוש את האי הראשון — ואז פתח את המפה.',
@@ -59,13 +66,44 @@ const HE = {
   gameStarted: 'המשחק התחיל — בהצלחה!', opponentLeft: 'היריב עזב את המשחק', youPlayWhite: 'אתה משחק בלבן', youPlayBlack: 'אתה משחק בשחור',
   visitEra: 'מעבר לעידן', currentEra: 'העידן הנוכחי', stagesBuilt: 'שלבים שנבנו', buyEraFirst: 'רכוש את העידן בחנות',
   gems: 'יהלומים', actions: 'פעולות', bot: 'בוט', canvasLabel: 'לוח משחק תלת-ממדי. השתמש בחצים ובמקש Enter כדי לשחק.', previewLabel: 'תצוגה תלת-ממדית של האווטאר וחיית המחמד', dragRotate: 'גרור כדי לסובב',
-  privacyPolicy: 'מדיניות פרטיות ונגישות', loadError: 'אירעה שגיאה בטעינה. נסה לרענן את הדף.', defaultName: 'מלך', bestValue: 'הכי משתלם', bonus: 'בונוס', pricesNote: 'המחירים במצב בדיקה להמחשה בלבד. בגרסה בחנות יוצג המחיר הרשמי של Google Play במטבע המקומי.',
+  privacyPolicy: 'מדיניות פרטיות', loadError: 'אירעה שגיאה בטעינה. נסה לרענן את הדף.', defaultName: 'מלך', bestValue: 'הכי משתלם', bonus: 'בונוס', pricesNote: 'המחירים במצב בדיקה להמחשה בלבד. בגרסה בחנות יוצג המחיר הרשמי של Google Play במטבע המקומי.',
   premiumTag: 'פרימיום', dragonBonus: 'בונוס: דרקון השעונים הזהוב — מרחף מעל האי המרכזי ומצטרף אליך כחיית מחמד', premiumPoint1: '30 איים חדשים צמודים לאי המרכזי', premiumPoint2: 'לכל אי אקלים, לוח ותפאורה חיה משלו', premiumPoint3: 'בוטים חזקים, 3 עולמות ו-3 בוסים חדשים',
   tabBoards: 'לוחות', tabPremium: 'פרימיום', boardsNote: 'סקין חינם על כל 20 איים שנכבשים. הסקין חל על הלוח ועל הכלים.', islandBoard: 'לוח האי', earnSkinAt: 'כבוש {n} איים', skinUnlocked: 'סקין לוח חדש נפתח!',
   boostTitle: 'יהלומים כפולים לשבוע', boostBody: 'x2 יהלומים על כל ניצחון נגד בוטים ופיראטי הזמן, למשך 7 ימים. כל קנייה מוסיפה עוד 7 ימים.', boostActive: 'יהלומים כפולים פעילים', boostLeft: 'נשארו {t}', daysShort: 'י׳', boostAdd: 'הוסף שבוע', buyReal: 'קנה', owned: 'בבעלותך', noAdsNote: 'בלי פרסומות בכלל. יהלומים מרוויחים בניצחונות.', gemsX2: 'x2 יהלומים', premiumWorld: 'עולם פרימיום',
+  // [i18n] start
+  lngButtonLabel: 'שפה / Language: עברית — מעבר לאנגלית (English)', lngSwitched: 'השפה: עברית',
+  lngWorldSign: 'עולם {n} · {name}', lngGoldSign: 'איי הזהב · פרימיום',
+  lngEm_crown: 'כתר', lngEm_shield: 'מגן', lngEm_swords: 'חרבות', lngEm_star: 'כוכב', lngEm_castle: 'טירה', lngEm_fire: 'אש', lngEm_gem: 'יהלום', lngEm_rook: 'צריח', lngEm_knight: 'פרש',
+  // [i18n] end
+  // [play] start
+  playSoon: 'בקרוב', playSoonAria: 'בקרוב:', playSoonBody: 'רכישות יופעלו בקרוב דרך Google Play.',
+  playUpdateTitle: 'יש גרסה חדשה בגוגל פליי', playUpdateBody: 'כדי להמשיך לקבל תוכן חדש, עדכן את האפליקציה בגוגל פליי. ההתקדמות שלך נשמרת.', playOpenStore: 'עדכן בגוגל פליי',
+  playRoomNeedUpdate: 'החדר נוצר בגרסה חדשה יותר של המשחק. עדכן את המשחק ונסה שוב.', playRoomFriendOld: 'החבר משתמש בגרסה ישנה של המשחק. בקש ממנו לעדכן ולשלוח הזמנה חדשה.',
+  // [play] end
+  // [legal] start
+  lgSection: 'משפטי ופרטיות', lgPrivacy: 'מדיניות פרטיות', lgTerms: 'תנאי שימוש', lgAccessibility: 'הצהרת נגישות', lgLicenses: 'רישיונות קוד פתוח',
+  lgPayTest: 'קניות בחנות הבדיקה לא גובות כסף.', lgPayPlay: 'רכישות מטופלות ב-Google Play, ואנחנו לא רואים את פרטי התשלום.',
+  lgBuyNote: 'רכישות אופציונליות: רואים את המחיר ב-Google Play ומאשרים לפני התשלום. כל פריט נקנה פעם אחת, והבוסט השבועי מוסיף 7 ימים בכל קנייה.',
+  lgBuyNoteTest: 'חנות בדיקה: קנייה כאן לא גובה כסף.', lgTermsLink: 'תנאים והחזרים', lgDeleting: 'מוחק את הנתונים…',
+  lgRoomsFail: 'אי אפשר להתחבר כרגע לשרת האונליין, ולכן חדרי האונליין שפתחת לא נמחקו. אפשר להתחבר לאינטרנט ולנסות שוב, או למחוק רק את הנתונים במכשיר הזה.',
+  lgDeviceOnly: 'מחק רק במכשיר הזה',
+  // [legal] end
+  // [qa] start
+  qaRecTitle: 'משהו השתבש', qaRecErrors: 'המשחק נתקל בבעיה ולא הצליח להתאושש. ההתקדמות שלך שמורה במכשיר.',
+  qaRecStall: 'המשחק הפסיק להגיב. ההתקדמות שלך שמורה במכשיר.', qaRecBoot: 'המשחק לא הצליח לעלות. טעינה מחדש בדרך כלל פותרת את זה.',
+  qaRecGfxTitle: 'הגרפיקה נקטעה', qaRecGfx: 'המכשיר עצר את הגרפיקה התלת־ממדית (זה קורה כשהזיכרון מתמלא). טעינה מחדש תחזיר אותה, וההתקדמות שלך שמורה.',
+  qaRecReload: 'טען מחדש', qaRecClose: 'המשך לשחק',
+  // [qa] end
 };
 
 const EN = {
+  // [a11y] start
+  a11yPcs: 'white pawn|white knight|white bishop|white rook|white queen|white king|black pawn|black knight|black bishop|black rook|black queen|black king', a11yPromoNames: 'pawn|knight|bishop|rook|queen|king',
+  a11yMove: '{piece} {from} to {to}', a11yTakesM: ', captures {piece}', a11yTakesF: ', captures {piece}', a11yPromo: ', promotes to {piece}', a11yCheck: ', check', a11yMate: ', checkmate',
+  a11yCastleK: '{side} castles kingside', a11yCastleQ: '{side} castles queenside', a11ySelected: 'Selected {piece} on {sq}, {n} legal moves', a11yTarget: 'legal move',
+  a11yIllegal: "Can't move there", a11yNotYourTurn: 'Not your turn yet', a11yCinema: 'Cinema', a11yReduceMotion: 'Reduce motion', a11yMotionAuto: 'Like the device', a11yMotionOn: 'Always',
+  a11yGame: 'Chess of Ages: Island Realms', a11yPreview: 'Preview',
+  // [a11y] end
   tabBots: 'Bots', moreBotsHint: 'Every island you conquer unlocks its bot and its pet color', noBotsHint: 'Conquer islands to unlock their bots', invitePlay: 'Play', resident: 'Resident', residentPractice: 'Practice match with a resident — no gems', cinema: 'Cinema', cinemaTitle: 'Central Cinema', storyFilm: 'The Story', storyDesc: 'The Time Museum, 99 islands and the Time Pirates · 40 seconds', howToPlay: 'How to Play', howToDesc: 'A short guided match at the table', skip: 'Skip', cinemaAtHub: 'The cinema is on the Central Island', cinemaHint: 'Tap a piece to start playing · The cinema on the Central Island has the story and a how-to-play guide', pieceArrives: 'A new piece arrives at the museum', museumPieces: 'Museum pieces', piratesHere: 'Time Pirates hold this island — beat them for gems', piratesReturn: 'The pirates are regrouping · back in {t}', practiceNoGems: 'Practice match — gems return when the pirates land again', piratesFled: 'The pirates fled! The island is quiet for a few hours', pieceToMuseum: 'A piece of this island joins the Time Museum', hShort: 'h', mShort: 'm', fightPirates: 'Fight the pirates', practicePirates: 'Practice vs pirates', timePirates: 'Time Pirates', visitIsland: 'Visit island', anyOrder: 'Conquer in any order', world: 'World',
   tapToSpeed: 'Tap to speed up', map: 'Map', friend: 'Friend', home: 'Home', battle: 'Battle', boss: 'Boss', hubName: 'Central Island', conquered: 'Islands conquered', allConquered: 'All islands conquered!', unlockFullShort: 'Unlock the Premium Islands to continue to island 100',
   nextBuilding: 'Next building', moreIslands: 'islands to go', beatToConquer: 'Beat the bot to conquer this island', waitMove: 'One moment — a move is still playing…', lockedBeatPrev: 'Locked — beat the bot on island {n} first',
@@ -106,8 +144,8 @@ const EN = {
   summary: 'Game summary', accuracy: 'Accuracy', keyMoments: 'Key moments', replay: 'Replay', yourAccuracy: 'Your accuracy', oppAccuracy: 'Opponent accuracy',
   gemsEarned: 'Gems earned', achievements: 'Achievements', achievementUnlocked: 'Achievement unlocked!', profile: 'Profile', name: 'Name', avatar: 'Emblem',
   settings: 'Settings', language: 'Language', quality: 'Graphics', auto: 'Auto', high: 'High', low: 'Low', privacy: 'Privacy & data',
-  deleteData: 'Delete all my data', confirmDelete: 'Delete all progress, gems and items on this device? This cannot be undone.',
-  privacyText: 'This app uses no cookies, pixels, analytics or ad tracking, and has no online play. Progress, gems and settings are stored only on your device (localStorage). Sandbox purchases never charge money.',
+  deleteData: 'Delete all my data', confirmDelete: 'Delete all progress, gems, items and pets on this device, and the online rooms you created? Your language choice stays. This cannot be undone.',
+  privacyText: 'No cookies, ads, analytics or tracking. Your progress, gems and settings are stored only on this device. Online play with a friend is optional: it sends only your display name, avatar look and moves through Google Firebase, and only people with your room code can see them.',
   share: 'Share', shareText: 'Check out my Time Museum in Chess of Ages: Island Realms!', saveImage: 'Save image',
   tutorial: 'Tutorial', skip: 'Skip', nextStep: 'Next', finish: 'Finish',
   tut1: 'Welcome to Chess of Ages! 99 islands await — beat the bot on each island to conquer it. The first one is sitting across from you.', tut2: 'Tap a white pawn to select it. Green squares are legal moves.', tut3: 'Now tap a green square to move the piece.', tut4: 'Great! Drag outside the board to rotate the camera, pinch to zoom.', tut5: 'The Shop has avatar outfits, pets, new islands and a daily gift.', tut6: 'Good luck, Your Majesty! Win to conquer your first island — then open the map.',
@@ -121,10 +159,34 @@ const EN = {
   gameStarted: 'Game on — good luck!', opponentLeft: 'Your opponent left', youPlayWhite: 'You play White', youPlayBlack: 'You play Black',
   visitEra: 'Go to era', currentEra: 'Current era', stagesBuilt: 'Stages built', buyEraFirst: 'Unlock this era in the shop',
   gems: 'Gems', actions: 'Actions', bot: 'Bot', canvasLabel: '3D game board. Use the arrow keys and Enter to play.', previewLabel: '3D preview of your avatar and pet', dragRotate: 'Drag to rotate',
-  privacyPolicy: 'Privacy & accessibility', loadError: 'Something went wrong while loading. Please refresh the page.', defaultName: 'King', bestValue: 'Best value', bonus: 'bonus', pricesNote: 'Sandbox prices are for illustration only. The store version shows the official Google Play price in your local currency.',
+  privacyPolicy: 'Privacy policy', loadError: 'Something went wrong while loading. Please refresh the page.', defaultName: 'King', bestValue: 'Best value', bonus: 'bonus', pricesNote: 'Sandbox prices are for illustration only. The store version shows the official Google Play price in your local currency.',
   premiumTag: 'Premium', dragonBonus: 'Bonus: the Golden Clockwork Dragon — hovers over the Central Island and joins you as a pet', premiumPoint1: '30 new islands next to the Central Island', premiumPoint2: 'Each with its own climate, board and living scenery', premiumPoint3: 'Strong bots, 3 new worlds and 3 new bosses',
   tabBoards: 'Boards', tabPremium: 'Premium', boardsNote: 'A free skin for every 20 islands you conquer. Skins change the board and the pieces.', islandBoard: 'Island board', earnSkinAt: 'Conquer {n} islands', skinUnlocked: 'New board skin unlocked!',
   boostTitle: 'Double gems for a week', boostBody: 'x2 gems for every win against bots and the Time Pirates, for 7 days. Each purchase adds another 7 days.', boostActive: 'Double gems active', boostLeft: '{t} left', daysShort: 'd', boostAdd: 'Add a week', buyReal: 'Buy', owned: 'Owned', noAdsNote: 'No ads at all. Gems are earned by winning.', gemsX2: 'x2 gems', premiumWorld: 'Premium world',
+  // [i18n] start
+  lngButtonLabel: 'Language / שפה: English — switch to Hebrew (עברית)', lngSwitched: 'Language: English',
+  lngWorldSign: 'World {n} · {name}', lngGoldSign: 'Golden Isles · Premium',
+  lngEm_crown: 'Crown', lngEm_shield: 'Shield', lngEm_swords: 'Swords', lngEm_star: 'Star', lngEm_castle: 'Castle', lngEm_fire: 'Fire', lngEm_gem: 'Gem', lngEm_rook: 'Rook', lngEm_knight: 'Knight',
+  // [i18n] end
+  // [play] start
+  playSoon: 'Coming soon', playSoonAria: 'Coming soon:', playSoonBody: 'Purchases are coming soon through Google Play.',
+  playUpdateTitle: 'A new version is on Google Play', playUpdateBody: 'Update the app on Google Play to keep getting new content. Your progress is kept.', playOpenStore: 'Update on Google Play',
+  playRoomNeedUpdate: 'This room was created with a newer version of the game. Update the game and try again.', playRoomFriendOld: 'Your friend is on an older version of the game. Ask them to update and send a new invite.',
+  // [play] end
+  // [legal] start
+  lgSection: 'Legal & privacy', lgPrivacy: 'Privacy policy', lgTerms: 'Terms of use', lgAccessibility: 'Accessibility statement', lgLicenses: 'Open-source licenses',
+  lgPayTest: 'Test-shop purchases never charge money.', lgPayPlay: 'Purchases are handled by Google Play, and we never see your payment details.',
+  lgBuyNote: 'Optional purchases: you see the Google Play price and confirm before paying. Each item is bought once, and the weekly boost adds 7 days per purchase.',
+  lgBuyNoteTest: 'Test shop: buying here never charges money.', lgTermsLink: 'Terms & refunds', lgDeleting: 'Deleting your data…',
+  lgRoomsFail: "The online server can't be reached right now, so the online rooms you created weren't deleted. Connect to the internet and try again, or delete only the data on this device.",
+  lgDeviceOnly: 'Delete on this device only',
+  // [legal] end
+  // [qa] start
+  qaRecTitle: 'Something went wrong', qaRecErrors: 'The game ran into a problem it could not recover from. Your progress is saved on this device.',
+  qaRecStall: 'The game stopped responding. Your progress is saved on this device.', qaRecBoot: 'The game could not start. Reloading usually fixes this.',
+  qaRecGfxTitle: 'Graphics were interrupted', qaRecGfx: 'Your device paused the 3D graphics (this can happen when memory runs low). Reloading brings them back, and your progress is saved.',
+  qaRecReload: 'Reload', qaRecClose: 'Keep playing',
+  // [qa] end
 };
 
 export const PET_EN = { wolf_cub: 'Primal Wolf Cub', royal_owl: 'Imperial Owl', armor_steed: 'Knight Pony', fire_dragon: 'Royal Fire Dragon', golden_phoenix: 'Golden Phoenix', cyber_fox: 'Holo Cyber Fox', mythic_griffin: 'Mythic Griffin', crystal_unicorn: 'Crystal Unicorn', clockwork_dragon: 'Golden Clockwork Dragon',

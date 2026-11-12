@@ -1,299 +1,291 @@
 <!doctype html>
 <!--
-  Privacy Policy & Accessibility — Chess of Ages: Island Realms
-  לפני פרסום: להחליף את כל הסימונים [OPERATOR NAME] / [CONTACT EMAIL] / [HOSTING PROVIDER],
-  משחק אונליין עם חבר (Firebase) מתואר בסעיף 3. כללי האבטחה של מסד הנתונים: firebase/database.rules.json בקוד המקור.
-  מומלץ שעורך/ת דין יעבור/תעבור על הנוסח — זה לא ייעוץ משפטי.
+  Privacy Policy — Chess of Ages: Island Realms
+  Developer name and contact email come from legal-config.js (the only place to set them).
+  Online play with a friend (Firebase) is described in section 3. Database security rules: firebase/database.rules.json in the source.
+  Have a lawyer review the wording before release. This is not legal advice.
 -->
 <html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Privacy &amp; Accessibility | Chess of Ages · פרטיות ונגישות | שחמט העידנים</title>
-  <meta name="description" content="Privacy policy and accessibility statement for Chess of Ages: Island Realms." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>Privacy Policy | Chess of Ages</title>
+  <meta name="description" content="Privacy policy of Chess of Ages: Island Realms: what the game stores on your device, what online play sends, and your rights." />
   <meta name="theme-color" content="#0b0912" />
   <meta name="color-scheme" content="dark" />
   <meta name="robots" content="index,follow" />
   <link rel="icon" type="image/png" href="./icons/icon-192.png" />
-  <style>
-    :root { --bg: #0b0912; --card: #171126; --line: #3a2d55; --text: #f3eee4; --muted: #c9c0b0; --gold: #f2c94c; --gold-2: #ffe08a; --link: #ffd36b; }
-    * { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; }
-    body { margin: 0; background: radial-gradient(circle at 50% 0%, #241640 0%, var(--bg) 60%) fixed; color: var(--text);
-      font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Hebrew", Arial, sans-serif; }
-    .wrap { max-width: 860px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 18px 48px; }
-    header.top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .brand { font-weight: 800; letter-spacing: .02em; color: var(--gold-2); }
-    .brand small { display: block; font-size: 11px; letter-spacing: .3em; color: var(--gold); font-weight: 600; }
-    nav.lang a { display: inline-block; margin-inline-start: 6px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--text); text-decoration: none; background: #1d1530; }
-    nav.lang a:hover { border-color: var(--gold); }
-    h1 { font-size: clamp(24px, 5vw, 32px); line-height: 1.25; margin: 18px 0 4px; color: var(--gold-2); }
-    h2 { font-size: 21px; margin: 34px 0 8px; color: var(--gold-2); border-bottom: 1px solid var(--line); padding-bottom: 6px; }
-    h3 { font-size: 17px; margin: 22px 0 6px; color: var(--text); }
-    p, li { color: var(--text); }
-    .meta { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
-    .summary { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 6px 18px; }
-    .summary li { margin: 6px 0; }
-    a { color: var(--link); text-underline-offset: 3px; }
-    a:focus-visible, button:focus-visible { outline: 3px solid var(--gold-2); outline-offset: 3px; border-radius: 6px; }
-    table { width: 100%; border-collapse: collapse; margin: 10px 0 4px; font-size: 14.5px; background: var(--card); border-radius: 12px; overflow: hidden; }
-    caption { text-align: start; color: var(--muted); font-size: 13px; padding: 0 0 6px; }
-    th, td { text-align: start; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
-    th { color: var(--gold-2); font-weight: 700; background: #1f1733; }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .92em; background: #241a39; padding: 1px 5px; border-radius: 5px; color: #ffe9b0; }
-    mark.ph { background: #5a4510; color: #fff2c4; padding: 0 4px; border-radius: 4px; }
-    .back { display: inline-block; margin-top: 26px; }
-    hr { border: 0; border-top: 2px solid var(--line); margin: 48px 0 8px; }
-    .embedded .back, .embedded header.top .brand { display: none; }
-    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-    html { scroll-behavior: smooth; }
-  </style>
-  <script>
-    if (window.top !== window.self) document.documentElement.classList.add('embedded');
-  </script>
+  <link rel="stylesheet" href="./legal.css" />
+  <script src="./legal-page.js" defer></script>
+  <script src="./legal-config.js" defer></script>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content · דלג לתוכן</a>
 <div class="wrap">
   <header class="top">
     <div class="brand" aria-hidden="true">Chess of Ages<small>ISLAND REALMS</small></div>
     <nav class="lang" aria-label="Language / שפה">
-      <a href="#en" lang="en">English</a>
-      <a href="#he" lang="he">עברית</a>
+      <a href="#en" data-set-lang="en" lang="en">English</a>
+      <a href="#he" data-set-lang="he" lang="he">עברית</a>
     </nav>
   </header>
 
-  <main>
+  <main id="main">
     <!-- ======================= ENGLISH ======================= -->
-    <article id="en" lang="en" dir="ltr">
-      <h1>Privacy Policy &amp; Accessibility</h1>
-      <p class="meta">Chess of Ages: Island Realms · Last updated: November 6, 2026</p>
+    <article id="en" data-lang="en" lang="en" dir="ltr" data-title="Privacy Policy | Chess of Ages">
+      <nav class="pages" aria-label="Legal pages">
+        <a href="./privacy.html" aria-current="page" data-keep-lang>Privacy</a>
+        <a href="./terms.html" data-keep-lang>Terms of use</a>
+        <a href="./accessibility.html" data-keep-lang>Accessibility</a>
+        <a href="./licenses.html" data-keep-lang>Open-source licenses</a>
+      </nav>
+      <h1>Privacy Policy</h1>
+      <p class="meta">Chess of Ages: Island Realms · Last updated: <time data-legal="updated">2026-11-12</time></p>
 
       <section aria-labelledby="en-summary">
         <h2 id="en-summary">The short version</h2>
         <ul class="summary">
           <li>No account, no cookies, no ads, no analytics and no tracking pixels.</li>
-          <li>Islands 1–99 are free. Optional real-money purchases (Premium Islands, a weekly double-gems boost and board skins) are explained in section 6.</li>
-          <li>Your islands, museum, gems, outfits, pets and settings are stored only on your device. We can't see them.</li>
+          <li>Your islands, museum, gems, outfits, pets, board skins and settings are stored only on your device. We can't see them.</li>
           <li>Games against the bots, the Time Pirates or a friend on the same device are played entirely on your device. Nothing about them is sent anywhere.</li>
-          <li>Online with a friend is optional: only the data needed for that game (your display name, avatar look and moves) goes through Google Firebase, and only people who have your private room code can see it. No strangers, no free-text chat.</li>
+          <li>Online play with a friend is optional. Only what that game needs (a random anonymous ID, the display name you chose, your avatar's look and your moves) goes through Google Firebase. Only people who have your private room code can see it. No strangers, no free-text chat.</li>
+          <li>Purchases are optional. In the Google Play version, Google Play handles payment and we never see your payment details. The website and test versions use a test shop that never charges money.</li>
           <li>You can erase everything at any time: <b>Settings → Delete all my data</b>.</li>
         </ul>
       </section>
 
       <section aria-labelledby="en-who">
         <h2 id="en-who">1. Who we are</h2>
-        <p>Chess of Ages is developed and operated by <mark class="ph">[OPERATOR NAME]</mark> ("we", "us"). Questions or requests about privacy or accessibility: <mark class="ph">[CONTACT EMAIL]</mark>.</p>
+        <p>Chess of Ages is developed and operated by <span data-legal="developer">[DEVELOPER NAME]</span> ("we", "us"). We decide how the personal data described here is used, which makes us its controller (in Israeli law, the person in control of the database).</p>
+        <p>Questions, requests and complaints about privacy: <span data-legal="email">[CONTACT EMAIL]</span>.</p>
       </section>
 
       <section aria-labelledby="en-device">
         <h2 id="en-device">2. Data stored on your device</h2>
-        <p>The game saves the following in your browser's or app's local storage. It never leaves your device.</p>
-        <table>
-          <caption>Local storage used by the game</caption>
-          <thead><tr><th scope="col">Name</th><th scope="col">What it contains</th><th scope="col">Why</th><th scope="col">How long</th></tr></thead>
-          <tbody>
-            <tr><td><code>chess_ages_progress</code></td><td>Conquered islands, stars, Time Pirate timers, museum pieces, the island you're on, wins/losses/draws, rating, display name and symbol, settings (sound, language, graphics), a saved unfinished game, achievements, and the code of an online room you're in or created (to return to it, and to close your old rooms)</td><td>To keep your progress between visits</td><td>Until you delete it</td></tr>
-            <tr><td><code>chess_ages_economy</code></td><td>Gem balance, owned outfits, pets, pet colors and resident bots, what you have equipped, 24-hour trials, item shards, whether the full game is unlocked, a log of test purchases, daily-reward and spin-wheel timers</td><td>To run the in-game shop and rewards</td><td>Until you delete it</td></tr>
-            <tr><td><code>chess_ages_last_login</code></td><td>The date you last claimed the daily reward</td><td>To count your 7-day login streak</td><td>Until you delete it</td></tr>
-            <tr><td>App cache (<code>chess-ages-…</code>)</td><td>Copies of the game's own files. No personal data.</td><td>So the game opens offline and updates itself automatically</td><td>Replaced by every update</td></tr>
-            <tr><td><code>firebaseLocalStorageDb</code> (only if you play online)</td><td>An anonymous sign-in token from Firebase Authentication — a random ID, no email, name or password</td><td>So you keep your seat in an online room</td><td>Until you delete the app's data</td></tr>
-          </tbody>
-        </table>
+        <p>The game saves the following in your browser's or app's local storage. It doesn't leave your device.</p>
+        <div class="table-wrap">
+          <table>
+            <caption>Local storage used by the game</caption>
+            <thead><tr><th scope="col">Name</th><th scope="col">What it contains</th><th scope="col">Why</th><th scope="col">How long</th></tr></thead>
+            <tbody>
+              <tr><td><code>chess_ages_progress</code></td><td>Conquered islands, stars, Time Pirate timers, museum pieces, the island you're on, wins, losses and draws, rating, display name and symbol, settings (sound, language, graphics, motion), a saved unfinished game, achievements, and the codes of online rooms you're in or created (so you can return to a room and so your old rooms can be closed)</td><td>To keep your progress between visits</td><td>Until you delete it</td></tr>
+              <tr><td><code>chess_ages_economy</code></td><td>Gem balance, owned outfits, pets (including Sky Nest pets) and their growth, pet colors, resident bots, board skins, what you have equipped, 24-hour trials, item shards, Premium and double-gems status, a record of purchases (test purchases, or Google Play purchase confirmations with no payment details), daily-gift timers</td><td>To run the in-game shop and rewards</td><td>Until you delete it</td></tr>
+              <tr><td><code>chess_ages_last_login</code></td><td>The date you last claimed the daily reward</td><td>To count your login streak</td><td>Until you delete it</td></tr>
+              <tr><td>App cache (<code>chess-ages-…</code>)</td><td>Copies of the game's own files. No personal data.</td><td>So the game opens offline and updates itself</td><td>Replaced by every update</td></tr>
+              <tr><td><code>firebaseLocalStorageDb</code> (only if you play online)</td><td>An anonymous sign-in token from Firebase Authentication: a random ID, with no email, name or password</td><td>So you keep your seat in an online room</td><td>Until you delete the game's data</td></tr>
+              <tr><td><code>firebase-heartbeat-database</code> (only if you play online)</td><td>Technical data that Google's Firebase software keeps about itself: its version and the days it was used. It's sent to Google with online-play sign-in requests. No name or game data.</td><td>Part of how the Firebase software works</td><td>Until you delete the game's data</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>If the game hits a technical error, it may keep a short error note on your device to recover. It contains no personal data and is never sent anywhere.</p>
         <p>We don't use cookies, advertising IDs, fingerprinting, analytics tools or tracking pixels.</p>
       </section>
 
-      <section aria-labelledby="en-play">
-        <h2 id="en-play">3. How games are played</h2>
-        <p>The bots on the 99 islands, the Time Pirates and the residents of the Central Island are computer opponents that run on your device, and so does a game against a friend on the same device.</p>
-        <p><b>Online with a friend (optional).</b> When you create or join a private room, the game uses Google Firebase (Realtime Database and Anonymous Authentication, data stored in Belgium, EU), provided by Google as our service provider. What is sent: a random anonymous user ID, the display name you chose, your avatar's outfit, pet and symbol, the room code, your color, the moves, draw and rematch requests, the fixed reactions you send (there is no free-text chat) and whether you're connected. Like any internet service, Google also processes technical data such as your IP address to deliver it.</p>
-        <p>Who can see it: only people who have the room code — the friend you invited and spectators you share the code with. There is no matchmaking with strangers, and rooms can't be listed or searched. How long: a room is deleted when its creator leaves it, or the next time the creator opens online play after an old room was left open. We don't use room data for anything else.</p>
+      <section aria-labelledby="en-online">
+        <h2 id="en-online">3. Online play with a friend (optional)</h2>
+        <p><b>What is sent.</b> When you create or join a private room, the game sends: a random anonymous user ID, the display name you chose, your avatar's outfit, pet and symbol, the room code, your color, the moves, draw and rematch requests, the fixed reactions you send (there is no free-text chat) and whether you're connected.</p>
+        <p><b>Why.</b> Only to run the online game you asked for. For users in the EU and UK, the legal basis is providing the service you requested (GDPR article 6(1)(b)).</p>
+        <p><b>Who processes it.</b> Google Firebase (Realtime Database, with the data stored in Belgium in the EU, and Anonymous Authentication) runs online play for us as our service provider. Like any internet service, Google also processes technical data such as your IP address to deliver it. Google may process technical and sign-in data in other countries under its data processing terms.</p>
+        <p><b>Who can see it.</b> Only people who have the room code: the friend you invited and spectators you share the code with. There is no matchmaking with strangers, and rooms can't be listed or searched.</p>
+        <p><b>How long.</b> A room is deleted when the player who created it leaves it, or the next time that player opens online play if an old room was left open. <b>Settings → Delete all my data</b> also deletes the rooms you created from the server.</p>
+        <p><b>Is it required?</b> No law requires you to give this data, and online play is optional. If you don't want to send it, don't use online play. Everything else in the game works without it.</p>
       </section>
 
       <section aria-labelledby="en-share">
-        <h2 id="en-share">4. Sharing</h2>
-        <p>Share images are created on your device and sent by you through your device's share menu. We don't receive the recipients' details.</p>
+        <h2 id="en-share">4. Sharing and who receives data</h2>
+        <p>We don't sell or rent personal data, and we don't use it for advertising. Data reaches others only in these cases:</p>
+        <ul>
+          <li><b>When you share.</b> Invite links, room codes and share images are created on your device and sent by you, through WhatsApp or your device's share menu. We don't receive the recipients' details.</li>
+          <li><b>Service providers.</b> Google Firebase for online play (section 3), GitHub, which hosts the website and the updates (section 5), and Google Play for installing the app and for payments (section 6). Each processes data under its own terms.</li>
+          <li><b>When the law requires it.</b> For example, a valid order from a competent authority.</li>
+        </ul>
       </section>
 
       <section aria-labelledby="en-host">
         <h2 id="en-host">5. Website, hosting and automatic updates</h2>
-        <p>The game and its updates are delivered from our website, hosted by <mark class="ph">[HOSTING PROVIDER]</mark>. Like any website, the host processes technical data such as IP address, device and browser type, and request time to deliver files and keep the service secure.</p>
-        <p>While the game is open it checks a small <code>version.json</code> file on our website about every 20–30 minutes and installs updates at a safe moment. No usage statistics are sent with these checks.</p>
+        <p>The same game is released through two channels:</p>
+        <ul>
+          <li><b>Our website and the Android app downloaded from it:</b> the website, the game's files and its updates are hosted on GitHub Pages (GitHub, Inc.).</li>
+          <li><b>The Google Play version:</b> Google Play installs and updates the app under Google's privacy policy. The game's content updates inside the app are also downloaded from GitHub Pages, from a separate folder for that version.</li>
+        </ul>
+        <p>As a hosting provider, GitHub may log technical data when files are fetched, such as IP address, device and browser type, and request time. It uses that data to deliver the files and keep the service secure.</p>
+        <p>When the game opens, and then about every 20–30 minutes while it's open, it checks a small <code>version.json</code> file for its channel and installs updates at a safe moment. No usage statistics are sent with these checks.</p>
       </section>
 
       <section aria-labelledby="en-pay">
-        <h2 id="en-pay">6. Purchases and odds</h2>
-        <p>Islands 1–99 are completely free, and the game has no ads at all. Three kinds of optional purchases with real money exist:</p>
+        <h2 id="en-pay">6. Purchases</h2>
+        <p>Islands 1–99 are free, and the game has no ads at all. These optional items cost real money:</p>
         <ul>
           <li><b>Premium Islands</b>: a one-time purchase that unlocks islands 100–129 and the Golden Clockwork Dragon.</li>
-          <li><b>Double gems for a week</b>: for 7 days, every win against a bot or the Time Pirates gives twice the gems. You can buy it again; each purchase adds another 7 days. The remaining time is shown in the game.</li>
-          <li><b>Board skins</b>: cosmetic looks for the board and pieces. Six more skins are free: you earn one for every 20 islands you conquer.</li>
+          <li><b>Double gems for a week</b>: for 7 days, every win against a bot or the Time Pirates gives twice the gems. Each purchase adds another 7 days.</li>
+          <li><b>Board skins</b>: cosmetic looks for the board and pieces, each a one-time purchase. Other skins are free and earned by conquering islands.</li>
+          <li><b>Legendary Sky Nest pets</b> (Thunder Dragon, Crystal Griffin, Sky Whale): cosmetic flying pets, each a one-time purchase. The other Sky Nest pets are earned by playing.</li>
         </ul>
-        <p>Gems themselves are never sold directly. They are earned by playing (beating bots and the Time Pirates, daily rewards and the spin wheel), and the weekly boost only multiplies gems you win. Nothing sold changes how strong the bots are or helps you win a game.</p>
-        <p>The shop currently runs in <b>test (sandbox) mode</b>: no real money is charged and no payment details are collected. When purchases are enabled in the Google Play version, payment is processed by Google Play under Google's privacy policy. We receive only a confirmation that the purchase was made, and the purchase record (product, time and a transaction reference, no payment details) is stored on your device together with the rest of your progress.</p>
-        <p>The chances of every Royal Spin Wheel and Royal Chest prize are shown in the game (the "Odds" button) before you spin or claim.</p>
+        <p>Gems are never sold. You earn them by playing. Nothing that is sold makes the bots weaker or helps you win a game. Free rewards such as daily gifts and the Royal Treasure Chest are never sold for money.</p>
+        <p><b>Payment.</b> In the Google Play version, Google Play processes payments under Google's terms and privacy policy. We receive only a confirmation of the purchase (product, time and an order reference, with no payment details). That confirmation is stored on your device together with the rest of your progress. On the website and in test versions the shop runs in test mode: no money is charged and no payment details are collected. Refunds are explained in the <a href="./terms.html#en-pay">Terms of use</a>.</p>
       </section>
 
       <section aria-labelledby="en-kids">
         <h2 id="en-kids">7. Children</h2>
-        <p>The game doesn't ask for an email, phone number or real name. Online play only connects you with a friend you invite using a private code — there's no matchmaking with strangers and no free-text chat, only fixed reactions. If you have a question about a child's use of the game, contact us.</p>
+        <p>The game doesn't ask for an email, phone number or real name. Please choose a display name that isn't your full real name. Online play only connects you with a friend you invite using a private code: there's no matchmaking with strangers and no free-text chat, only fixed reactions. A parent or guardian who has a question about a child's use of the game, or wants a child's data deleted, can contact us at the address in section 1.</p>
       </section>
 
       <section aria-labelledby="en-rights">
         <h2 id="en-rights">8. Your choices and rights</h2>
         <ul>
-          <li>Delete everything on this device: <b>Settings → Delete all my data</b>, or clear the site's data / uninstall the app.</li>
-          <li>Depending on where you live (for example the EU/UK GDPR, Israel's Privacy Protection Law or California law) you may have rights to access, correct or delete personal data and to object to its use. Write to <mark class="ph">[CONTACT EMAIL]</mark>. You may also complain to your data protection authority.</li>
+          <li><b>Delete everything:</b> <b>Settings → Delete all my data</b> erases your progress and items on this device, deletes the online rooms you created and removes the anonymous sign-in. You can also clear the site's data or uninstall the app.</li>
+          <li><b>Your rights under the law:</b> depending on where you live, you may have the right to see the personal data we hold about you, correct it, delete it, or object to its use. This includes Israel's Privacy Protection Law and the EU/UK GDPR, which also give the rights to restrict processing and to data portability. Write to <span data-legal="email">[CONTACT EMAIL]</span>. Because almost everything is stored only on your device, we usually hold no data about you outside an active online room.</li>
+          <li><b>Complaints:</b> you may complain to the Israeli Privacy Protection Authority, or to the data protection authority where you live.</li>
         </ul>
       </section>
 
       <section aria-labelledby="en-sec">
         <h2 id="en-sec">9. Security</h2>
-        <p>The website, updates and online play use HTTPS. Online rooms are protected by server-side security rules: rooms can't be listed, only people with the code can open a room, only the two players can change the game, and only the player whose turn it is can make a move.</p>
+        <p>The website, updates and online play use HTTPS. Online rooms are protected by server-side security rules: rooms can't be listed, only people with the code can open a room, only the two players can change the game, and only the player whose turn it is can make a move. We collect as little as the game needs.</p>
       </section>
 
       <section aria-labelledby="en-change">
         <h2 id="en-change">10. Changes</h2>
-        <p>If we change how the game handles data (for example new online features), we'll update this page and the date at the top before the change takes effect.</p>
+        <p>If we change how the game handles data, we'll update this page and the date at the top before the change takes effect. A significant change will also be shown in the game.</p>
       </section>
 
       <section aria-labelledby="en-a11y">
-        <h2 id="en-a11y">Accessibility statement</h2>
-        <p>We want everyone to be able to play. The game currently supports:</p>
-        <ul>
-          <li>Full keyboard play: arrow keys move a cursor on the board, Enter selects and moves, Esc cancels. Menus and dialogs work with Tab, Enter and Esc, and focus stays inside open dialogs. On the world map, the arrow keys move between islands.</li>
-          <li>Screen-reader announcements of moves, check, captures and game status, and named buttons and controls.</li>
-          <li>Visible focus indicators and high-contrast light text on a dark background.</li>
-          <li>Separate switches for sound effects and ambient music; sounds and vibration are only extra cues, never the only one.</li>
-          <li>The interface follows your device's "reduce motion" setting, graphics quality can be lowered in Settings, and journeys between islands can be sped up by tapping.</li>
-          <li>English and Hebrew interfaces, with right-to-left layout in Hebrew.</li>
-        </ul>
-        <h3>Known limitations</h3>
-        <ul>
-          <li>The 3D board, islands and museum are drawn on a canvas. Their visual details (monuments, pets, weather) aren't described in full to screen readers; the game state is announced instead.</li>
-          <li>Rotating and zooming the camera needs touch gestures or a mouse; the "Center" button restores the default view.</li>
-          <li>The story film in the cinema has on-screen captions but no audio narration.</li>
-        </ul>
-        <p>If something blocks you from playing, please tell us at <mark class="ph">[CONTACT EMAIL]</mark>.</p>
+        <h2 id="en-a11y">Accessibility</h2>
+        <p>The accessibility statement has its own page: <a href="./accessibility.html" data-keep-lang>Accessibility statement</a>.</p>
       </section>
+
+      <a class="back" href="./">← Back to the game</a>
     </article>
 
-    <hr />
+    <hr class="split" />
 
     <!-- ======================= עברית ======================= -->
-    <article id="he" lang="he" dir="rtl">
-      <h1>מדיניות פרטיות ונגישות</h1>
-      <p class="meta">שחמט העידנים: ממלכות האיים (Chess of Ages: Island Realms) · עודכן לאחרונה: 6 בנובמבר 2026</p>
+    <article id="he" data-lang="he" lang="he" dir="rtl" data-title="מדיניות פרטיות | שחמט העידנים">
+      <nav class="pages" aria-label="דפים משפטיים">
+        <a href="./privacy.html" aria-current="page" data-keep-lang>פרטיות</a>
+        <a href="./terms.html" data-keep-lang>תנאי שימוש</a>
+        <a href="./accessibility.html" data-keep-lang>נגישות</a>
+        <a href="./licenses.html" data-keep-lang>רישיונות קוד פתוח</a>
+      </nav>
+      <h1>מדיניות פרטיות</h1>
+      <p class="meta">שחמט העידנים: ממלכות האיים (Chess of Ages: Island Realms) · עודכן לאחרונה: <time data-legal="updated">2026-11-12</time></p>
 
       <section aria-labelledby="he-summary">
         <h2 id="he-summary">בקצרה</h2>
         <ul class="summary">
           <li>בלי חשבון, בלי עוגיות, בלי פרסומות, בלי כלי ניתוח ובלי פיקסלי מעקב.</li>
-          <li>איים 1–99 חינמיים. רכישות אופציונליות בכסף אמיתי (איי הפרימיום, בוסט שבועי של יהלומים כפולים וסקינים ללוח) מוסברות בסעיף 6.</li>
-          <li>האיים, המוזיאון, היהלומים, הבגדים, החיות וההגדרות נשמרים רק במכשיר שלך. אנחנו לא רואים אותם.</li>
-          <li>משחקים נגד הבוטים, נגד פיראטי הזמן או נגד חבר על אותו מכשיר מתנהלים כולם במכשיר שלך. שום דבר מהם לא נשלח לשום מקום.</li>
-          <li>משחק אונליין עם חבר הוא אופציונלי: רק המידע שדרוש למשחק הזה (שם התצוגה, מראה האווטאר והמהלכים) עובר דרך Firebase של Google, ורואים אותו רק מי שקיבל ממך את קוד החדר הפרטי. בלי זרים ובלי צ׳אט חופשי.</li>
+          <li>האיים, המוזיאון, היהלומים, הבגדים, החיות, סקיני הלוח וההגדרות נשמרים רק במכשיר שלך. אנחנו לא רואים אותם.</li>
+          <li>משחקים נגד הבוטים, נגד פיראטי הזמן או נגד חבר על אותו מכשיר מתנהלים כולם במכשיר. שום דבר מהם לא נשלח.</li>
+          <li>משחק אונליין עם חבר הוא אופציונלי. רק מה שהמשחק צריך (מזהה אנונימי אקראי, שם התצוגה שבחרת, המראה של האווטאר והמהלכים) עובר דרך Google Firebase, ורק מי שיש לו את קוד החדר הפרטי יכול לראות אותו. אין זרים ואין צ׳אט חופשי.</li>
+          <li>רכישות הן אופציונליות. בגרסת Google Play התשלום מתבצע דרך Google Play ואנחנו לא רואים את פרטי התשלום. באתר ובגרסאות בדיקה יש חנות בדיקה שלא גובה כסף.</li>
           <li>אפשר למחוק הכול בכל רגע: <b>הגדרות ← מחק את כל הנתונים שלי</b>.</li>
         </ul>
       </section>
 
       <section aria-labelledby="he-who">
         <h2 id="he-who">1. מי אנחנו</h2>
-        <p>שחמט העידנים מפותח ומופעל על ידי <mark class="ph">[OPERATOR NAME]</mark> ("אנחנו"). שאלות ובקשות בנושא פרטיות או נגישות: <mark class="ph">[CONTACT EMAIL]</mark>.</p>
+        <p>שחמט העידנים מפותח ומופעל בידי <span data-legal="developer">[DEVELOPER NAME]</span> ("אנחנו"). אנחנו מחליטים איך משתמשים במידע האישי שמתואר כאן, ולכן אנחנו בעלי השליטה במאגר המידע (ב-GDPR: ה-controller).</p>
+        <p>שאלות, בקשות ותלונות בנושא פרטיות: <span data-legal="email">[CONTACT EMAIL]</span>.</p>
       </section>
 
       <section aria-labelledby="he-device">
         <h2 id="he-device">2. מידע שנשמר במכשיר שלך</h2>
-        <p>המשחק שומר את הפרטים הבאים באחסון המקומי של הדפדפן או האפליקציה. הם לא יוצאים מהמכשיר.</p>
-        <table>
-          <caption>האחסון המקומי של המשחק</caption>
-          <thead><tr><th scope="col">שם</th><th scope="col">מה יש בו</th><th scope="col">למה</th><th scope="col">לכמה זמן</th></tr></thead>
-          <tbody>
-            <tr><td><code>chess_ages_progress</code></td><td>איים שנכבשו, כוכבים, שעוני פיראטי הזמן, חלקי המוזיאון, האי שבו אתה נמצא, ניצחונות/הפסדים/תיקו, דירוג, שם תצוגה וסמל, הגדרות (צליל, שפה, גרפיקה), משחק שלא הסתיים, הישגים, וקוד של חדר אונליין שאתה נמצא בו או פתחת (כדי לחזור אליו ולסגור חדרים ישנים שלך)</td><td>כדי לשמור את ההתקדמות בין ביקורים</td><td>עד שתמחק</td></tr>
-            <tr><td><code>chess_ages_economy</code></td><td>מאזן יהלומים, בגדים, חיות, צבעי חיות ובוטים תושבים שבבעלותך, מה שלבוש עליך, ניסיונות של 24 שעות, שברי פריטים, האם המשחק המלא פתוח, יומן רכישות ניסיון, שעוני הפרס היומי והגלגל</td><td>כדי להפעיל את החנות והפרסים במשחק</td><td>עד שתמחק</td></tr>
-            <tr><td><code>chess_ages_last_login</code></td><td>התאריך שבו קיבלת לאחרונה את הפרס היומי</td><td>כדי לספור רצף כניסות של 7 ימים</td><td>עד שתמחק</td></tr>
-            <tr><td>מטמון האפליקציה (<code>chess-ages-…</code>)</td><td>עותקים של קובצי המשחק עצמו. בלי מידע אישי.</td><td>כדי שהמשחק ייפתח גם בלי רשת ויתעדכן לבד</td><td>מוחלף בכל עדכון</td></tr>
-            <tr><td><code>firebaseLocalStorageDb</code> (רק אם שיחקת אונליין)</td><td>אסימון התחברות אנונימי של Firebase Authentication — מזהה אקראי, בלי אימייל, שם או סיסמה</td><td>כדי לשמור לך את המקום בחדר אונליין</td><td>עד שתמחק את נתוני האפליקציה</td></tr>
-          </tbody>
-        </table>
-        <p>אנחנו לא משתמשים בעוגיות, במזהי פרסום, בטביעות אצבע של מכשירים, בכלי ניתוח או בפיקסלי מעקב.</p>
+        <p>המשחק שומר את המידע הבא באחסון המקומי של הדפדפן או של האפליקציה. המידע לא יוצא מהמכשיר.</p>
+        <div class="table-wrap">
+          <table>
+            <caption>האחסון המקומי שהמשחק משתמש בו</caption>
+            <thead><tr><th scope="col">שם</th><th scope="col">מה יש בו</th><th scope="col">למה</th><th scope="col">לכמה זמן</th></tr></thead>
+            <tbody>
+              <tr><td><code>chess_ages_progress</code></td><td>איים שנכבשו, כוכבים, טיימרים של פיראטי הזמן, חלקי המוזיאון, האי שאתה נמצא בו, ניצחונות, הפסדים ותיקו, דירוג, שם תצוגה וסמל, הגדרות (צליל, שפה, גרפיקה, תנועה), משחק שמור שלא הסתיים, הישגים, וקודי חדרי אונליין שאתה נמצא בהם או פתחת (כדי לחזור לחדר וכדי לסגור חדרים ישנים)</td><td>כדי לשמור את ההתקדמות בין ביקורים</td><td>עד שתמחק</td></tr>
+              <tr><td><code>chess_ages_economy</code></td><td>יתרת יהלומים, בגדים, חיות (כולל חיות קן השמיים) וההתפתחות שלהן, צבעי חיות, בוטים תושבים, סקינים ללוח, מה שאתה לובש, ניסיונות של 24 שעות, שברי פריטים, מצב פרימיום ויהלומים כפולים, רישום רכישות (רכישות בדיקה, או אישורי רכישה של Google Play בלי פרטי תשלום), טיימרים של המתנה היומית</td><td>כדי להפעיל את החנות ואת הפרסים במשחק</td><td>עד שתמחק</td></tr>
+              <tr><td><code>chess_ages_last_login</code></td><td>התאריך האחרון שבו קיבלת את המתנה היומית</td><td>כדי לספור רצף כניסות</td><td>עד שתמחק</td></tr>
+              <tr><td>מטמון האפליקציה (<code>chess-ages-…</code>)</td><td>עותקים של קבצי המשחק עצמו. אין בו מידע אישי.</td><td>כדי שהמשחק ייפתח גם בלי אינטרנט ויתעדכן לבד</td><td>מתחלף בכל עדכון</td></tr>
+              <tr><td><code>firebaseLocalStorageDb</code> (רק אם שיחקת אונליין)</td><td>אסימון התחברות אנונימי של Firebase Authentication: מזהה אקראי, בלי מייל, שם או סיסמה</td><td>כדי לשמור לך את המקום בחדר אונליין</td><td>עד שתמחק את נתוני המשחק</td></tr>
+              <tr><td><code>firebase-heartbeat-database</code> (רק אם שיחקת אונליין)</td><td>מידע טכני שהתוכנה של Google Firebase שומרת על עצמה: הגרסה שלה והימים שבהם השתמשו בה. הוא נשלח ל-Google עם בקשות ההתחברות למשחק האונליין. בלי שם ובלי נתוני משחק.</td><td>חלק מהאופן שבו התוכנה של Firebase עובדת</td><td>עד שתמחק את נתוני המשחק</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>אם קורית במשחק תקלה טכנית, הוא עשוי לשמור במכשיר הערת שגיאה קצרה כדי להתאושש. אין בה מידע אישי והיא לא נשלחת לשום מקום.</p>
+        <p>אנחנו לא משתמשים בעוגיות, במזהי פרסום, בטביעת אצבע דיגיטלית, בכלי ניתוח או בפיקסלי מעקב.</p>
       </section>
 
-      <section aria-labelledby="he-play">
-        <h2 id="he-play">3. איך מתנהלים המשחקים</h2>
-        <p>הבוטים ב-99 האיים, פיראטי הזמן והתושבים של האי המרכזי הם יריבים ממוחשבים שרצים במכשיר שלך, וגם משחק נגד חבר על אותו מכשיר מתנהל כולו במכשיר.</p>
-        <p><b>אונליין עם חבר (אופציונלי).</b> כשאתה פותח חדר פרטי או מצטרף אליו, המשחק משתמש ב-Google Firebase (Realtime Database והתחברות אנונימית, המידע נשמר בבלגיה, האיחוד האירופי), ש-Google מספקת לנו כספק שירות. מה נשלח: מזהה משתמש אנונימי אקראי, שם התצוגה שבחרת, הבגדים, החיה והסמל של האווטאר שלך, קוד החדר, הצבע שלך, המהלכים, בקשות לתיקו ולמשחק חוזר, התגובות הקבועות שאתה שולח (אין צ׳אט חופשי) והאם אתה מחובר. כמו בכל שירות אינטרנט, Google מעבדת גם מידע טכני כמו כתובת IP כדי לספק את השירות.</p>
-        <p>מי רואה: רק מי שיש לו את קוד החדר — החבר שהזמנת וצופים שקיבלו ממך את הקוד. אין שידוך עם זרים, ואי אפשר לרשום או לחפש חדרים. לכמה זמן: החדר נמחק כשמי שפתח אותו יוצא ממנו, או בפעם הבאה שהוא נכנס למשחק אונליין אם חדר ישן נשאר פתוח. אנחנו לא משתמשים במידע של החדרים לשום דבר אחר.</p>
+      <section aria-labelledby="he-online">
+        <h2 id="he-online">3. משחק אונליין עם חבר (אופציונלי)</h2>
+        <p><b>מה נשלח.</b> כשאתה פותח חדר פרטי או מצטרף אליו, המשחק שולח: מזהה משתמש אנונימי אקראי, את שם התצוגה שבחרת, את הבגדים, החיה והסמל של האווטאר, את קוד החדר, את הצבע שלך, את המהלכים, בקשות תיקו ומשחק חוזר, את התגובות הקבועות שאתה שולח (אין צ׳אט חופשי) והאם אתה מחובר.</p>
+        <p><b>למה.</b> רק כדי להפעיל את משחק האונליין שביקשת. למשתמשים באיחוד האירופי ובבריטניה, הבסיס החוקי הוא מתן השירות שביקשת (סעיף 6(1)(b) ל-GDPR).</p>
+        <p><b>מי מעבד את המידע.</b> Google Firebase (מסד נתונים בזמן אמת שהמידע בו נשמר בבלגיה שבאיחוד האירופי, והתחברות אנונימית) מפעיל עבורנו את משחק האונליין כספק שירות. כמו כל שירות אינטרנט, Google מעבדת גם מידע טכני כמו כתובת IP כדי לספק אותו. Google עשויה לעבד מידע טכני ומידע התחברות במדינות אחרות, לפי תנאי עיבוד הנתונים שלה.</p>
+        <p><b>מי רואה את המידע.</b> רק מי שיש לו את קוד החדר: החבר שהזמנת וצופים שקיבלו ממך את הקוד. אין שידוך עם זרים, ואי אפשר לראות רשימה של חדרים או לחפש חדרים.</p>
+        <p><b>לכמה זמן.</b> חדר נמחק כשמי שפתח אותו יוצא ממנו, או בפעם הבאה שהוא נכנס לאונליין אם חדר ישן נשאר פתוח. <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק גם מהשרת את החדרים שפתחת.</p>
+        <p><b>האם חובה למסור את המידע?</b> אין חובה חוקית למסור אותו, והמשחק אונליין הוא אופציונלי. אם אינך רוצה לשלוח את המידע, פשוט אל תשחק אונליין. כל שאר המשחק עובד בלעדיו.</p>
       </section>
 
       <section aria-labelledby="he-share">
-        <h2 id="he-share">4. שיתוף</h2>
-        <p>תמונות השיתוף נוצרות במכשיר שלך ונשלחות על ידך דרך תפריט השיתוף של המכשיר. אנחנו לא מקבלים את פרטי הנמענים.</p>
+        <h2 id="he-share">4. שיתוף ומי מקבל מידע</h2>
+        <p>אנחנו לא מוכרים ולא משכירים מידע אישי, ולא משתמשים בו לפרסום. מידע מגיע לאחרים רק במקרים האלה:</p>
+        <ul>
+          <li><b>כשאתה משתף.</b> קישורי הזמנה, קודי חדרים ותמונות שיתוף נוצרים במכשיר שלך ואתה שולח אותם בוואטסאפ או בתפריט השיתוף של המכשיר. אנחנו לא מקבלים את פרטי הנמענים.</li>
+          <li><b>ספקי שירות.</b> Google Firebase למשחק האונליין (סעיף 3), GitHub שמארח את האתר ואת העדכונים (סעיף 5), ו-Google Play להתקנת האפליקציה ולתשלומים (סעיף 6). כל אחד מהם מעבד מידע לפי התנאים שלו.</li>
+          <li><b>כשהחוק מחייב.</b> למשל צו תקף של רשות מוסמכת.</li>
+        </ul>
       </section>
 
       <section aria-labelledby="he-host">
         <h2 id="he-host">5. האתר, האחסון והעדכונים האוטומטיים</h2>
-        <p>המשחק והעדכונים שלו נשלחים מהאתר שלנו, שמאוחסן אצל <mark class="ph">[HOSTING PROVIDER]</mark>. כמו בכל אתר, ספק האחסון מעבד מידע טכני כמו כתובת IP, סוג המכשיר והדפדפן ושעת הבקשה, כדי לשלוח את הקבצים ולשמור על אבטחת השירות.</p>
-        <p>כשהמשחק פתוח, הוא בודק קובץ <code>version.json</code> קטן באתר בערך כל 20–30 דקות ומתקין עדכונים ברגע מתאים. עם הבדיקות האלה לא נשלחים נתוני שימוש.</p>
+        <p>אותו משחק מופץ בשני ערוצים:</p>
+        <ul>
+          <li><b>האתר שלנו ואפליקציית האנדרואיד שמורידים ממנו:</b> האתר, קבצי המשחק והעדכונים שלו מאוחסנים ב-GitHub Pages (GitHub, Inc.).</li>
+          <li><b>גרסת Google Play:</b> ההתקנה והעדכונים של האפליקציה נעשים דרך Google Play לפי מדיניות הפרטיות של Google. גם עדכוני התוכן של המשחק בתוך האפליקציה יורדים מ-GitHub Pages, מתיקייה נפרדת לגרסה הזו.</li>
+        </ul>
+        <p>כספק אחסון, GitHub עשוי לרשום מידע טכני כשמורידים ממנו קבצים, כמו כתובת IP, סוג מכשיר ודפדפן ושעת הבקשה. הוא משתמש במידע הזה כדי למסור את הקבצים ולשמור על אבטחת השירות.</p>
+        <p>כשהמשחק נפתח, ואחר כך בערך כל 20–30 דקות כל עוד הוא פתוח, הוא בודק קובץ קטן בשם <code>version.json</code> של הערוץ שלו ומתקין עדכונים ברגע מתאים. עם הבדיקות האלה לא נשלחת שום סטטיסטיקת שימוש.</p>
       </section>
 
       <section aria-labelledby="he-pay">
-        <h2 id="he-pay">6. רכישות וסיכויים</h2>
-        <p>איים 1–99 חינמיים לגמרי, ואין במשחק פרסומות בכלל. יש שלושה סוגי רכישות אופציונליות בכסף אמיתי:</p>
+        <h2 id="he-pay">6. רכישות</h2>
+        <p>איים 1–99 חינמיים, ואין במשחק פרסומות בכלל. הפריטים האלה הם אופציונליים ועולים כסף אמיתי:</p>
         <ul>
           <li><b>איי הפרימיום</b>: רכישה חד-פעמית שפותחת את איים 100–129 ואת דרקון השעונים הזהוב.</li>
-          <li><b>יהלומים כפולים לשבוע</b>: במשך 7 ימים כל ניצחון על בוט או על פיראטי הזמן נותן פי 2 יהלומים. אפשר לקנות שוב, וכל קנייה מוסיפה עוד 7 ימים. הזמן שנשאר מוצג במשחק.</li>
-          <li><b>סקינים ללוח</b>: מראה קוסמטי ללוח ולכלים. עוד שישה סקינים חינמיים: מקבלים אחד על כל 20 איים שנכבשים.</li>
+          <li><b>יהלומים כפולים לשבוע</b>: במשך 7 ימים כל ניצחון על בוט או על פיראטי הזמן נותן פי 2 יהלומים. כל רכישה מוסיפה עוד 7 ימים.</li>
+          <li><b>סקינים ללוח</b>: מראה קוסמטי ללוח ולכלים, כל אחד ברכישה חד-פעמית. סקינים אחרים חינמיים ומרוויחים אותם בכיבוש איים.</li>
+          <li><b>חיות קן השמיים האגדיות</b> (דרקון הברקים, גריפון הקריסטל, לווייתן השמיים): חיות מעופפות קוסמטיות, כל אחת ברכישה חד-פעמית. שאר חיות קן השמיים מרוויחים במשחק.</li>
         </ul>
-        <p>היהלומים עצמם אף פעם לא נמכרים ישירות. מרוויחים אותם במשחק (ניצחונות על בוטים ועל פיראטי הזמן, פרס יומי וגלגל המזל), והבוסט השבועי רק מכפיל יהלומים שזכית בהם. שום דבר שנמכר לא משנה את חוזק הבוטים ולא עוזר לנצח במשחק.</p>
-        <p>החנות פועלת כרגע ב<b>מצב ניסיון (sandbox)</b>: לא נגבה כסף אמיתי ולא נאספים פרטי תשלום. כשהרכישות יופעלו בגרסת Google Play, התשלום יעובד על ידי Google Play לפי מדיניות הפרטיות של Google. אנחנו נקבל רק אישור שהרכישה בוצעה, ורישום הרכישה (המוצר, הזמן ומספר עסקה, בלי פרטי תשלום) נשמר במכשיר שלך יחד עם שאר ההתקדמות.</p>
-        <p>הסיכויים של כל פרס בגלגל המלכותי ובתיבה המלכותית מוצגים במשחק (כפתור "סיכויים") לפני הסיבוב או הפתיחה.</p>
+        <p>יהלומים לא נמכרים. מרוויחים אותם במשחק. שום דבר שנמכר לא מחליש את הבוטים ולא עוזר לנצח במשחק. פרסים חינמיים כמו המתנה היומית ותיבת האוצר המלכותית אף פעם לא נמכרים בכסף.</p>
+        <p><b>תשלום.</b> בגרסת Google Play התשלומים מעובדים בידי Google Play לפי התנאים ומדיניות הפרטיות של Google. אנחנו מקבלים רק אישור על הרכישה (המוצר, השעה ומספר הזמנה, בלי פרטי תשלום), והאישור נשמר במכשיר שלך יחד עם שאר ההתקדמות. באתר ובגרסאות בדיקה החנות פועלת במצב בדיקה: לא נגבה כסף ולא נאספים פרטי תשלום. החזרים מוסברים ב<a href="./terms.html#he-pay">תנאי השימוש</a>.</p>
       </section>
 
       <section aria-labelledby="he-kids">
         <h2 id="he-kids">7. ילדים</h2>
-        <p>המשחק לא מבקש אימייל, מספר טלפון או שם אמיתי. משחק אונליין מחבר אותך רק עם חבר שהזמנת עם קוד פרטי — אין שידוך עם זרים ואין צ׳אט חופשי, רק תגובות קבועות. לשאלות על שימוש של ילד במשחק, אפשר לפנות אלינו.</p>
+        <p>המשחק לא מבקש מייל, מספר טלפון או שם אמיתי. כדאי לבחור שם תצוגה שאינו השם המלא האמיתי. משחק אונליין מחבר רק עם חבר שהזמנת בקוד פרטי: אין שידוך עם זרים ואין צ׳אט חופשי, רק תגובות קבועות. הורה או אפוטרופוס שיש לו שאלה על השימוש של ילד במשחק, או שרוצה למחוק מידע של ילד, יכול לפנות אלינו בכתובת שבסעיף 1.</p>
       </section>
 
       <section aria-labelledby="he-rights">
         <h2 id="he-rights">8. הבחירות והזכויות שלך</h2>
         <ul>
-          <li>מחיקת הכול במכשיר הזה: <b>הגדרות ← מחק את כל הנתונים שלי</b>, או ניקוי נתוני האתר / הסרת האפליקציה.</li>
-          <li>בהתאם למקום מגוריך (למשל GDPR באיחוד האירופי ובבריטניה, חוק הגנת הפרטיות בישראל או החוק בקליפורניה) ייתכן שיש לך זכות לעיין במידע אישי, לתקן או למחוק אותו ולהתנגד לשימוש בו. כתבו ל-<mark class="ph">[CONTACT EMAIL]</mark>. אפשר גם להתלונן לרשות להגנת הפרטיות.</li>
+          <li><b>למחוק הכול:</b> <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק את ההתקדמות והפריטים במכשיר, מוחק את חדרי האונליין שפתחת ומסיר את ההתחברות האנונימית. אפשר גם לנקות את נתוני האתר או להסיר את האפליקציה.</li>
+          <li><b>הזכויות שלך לפי החוק:</b> לפי חוק הגנת הפרטיות בישראל, ולפי ה-GDPR באיחוד האירופי ובבריטניה, ייתכן שיש לך זכות לעיין במידע עליך, לתקן אותו, למחוק אותו או להתנגד לשימוש בו. ה-GDPR נותן גם זכות להגביל עיבוד ולקבל את המידע בפורמט נייד. כתוב אל <span data-legal="email">[CONTACT EMAIL]</span>. כמעט הכול נשמר רק במכשיר שלך, ולכן בדרך כלל אין אצלנו מידע עליך מחוץ לחדר אונליין פעיל.</li>
+          <li><b>תלונות:</b> אפשר להגיש תלונה לרשות להגנת הפרטיות, או לרשות להגנת המידע במדינה שבה אתה גר.</li>
         </ul>
       </section>
 
       <section aria-labelledby="he-sec">
         <h2 id="he-sec">9. אבטחה</h2>
-        <p>האתר, העדכונים והמשחק האונליין משתמשים ב-HTTPS. חדרי האונליין מוגנים בכללי אבטחה בצד השרת: אי אפשר לרשום את החדרים, רק מי שיש לו את הקוד יכול לפתוח חדר, רק שני השחקנים יכולים לשנות את המשחק, ורק השחקן שתורו יכול להזיז כלי.</p>
+        <p>האתר, העדכונים והמשחק אונליין פועלים ב-HTTPS. חדרי האונליין מוגנים בכללי אבטחה בצד השרת: אי אפשר לראות רשימת חדרים, רק מי שיש לו את הקוד יכול לפתוח חדר, רק שני השחקנים יכולים לשנות את המשחק, ורק השחקן שתורו יכול לבצע מהלך. אנחנו אוספים רק את המינימום שהמשחק צריך.</p>
       </section>
 
       <section aria-labelledby="he-change">
         <h2 id="he-change">10. שינויים</h2>
-        <p>אם נשנה את האופן שבו המשחק מטפל במידע (למשל יכולות אונליין חדשות), נעדכן את הדף הזה ואת התאריך שבראשו לפני שהשינוי ייכנס לתוקף.</p>
+        <p>אם נשנה את הדרך שבה המשחק מטפל במידע, נעדכן את הדף הזה ואת התאריך שבראשו לפני שהשינוי ייכנס לתוקף. על שינוי משמעותי נודיע גם בתוך המשחק.</p>
       </section>
 
       <section aria-labelledby="he-a11y">
-        <h2 id="he-a11y">הצהרת נגישות</h2>
-        <p>אנחנו רוצים שכולם יוכלו לשחק. המשחק תומך כרגע ב:</p>
-        <ul>
-          <li>משחק מלא במקלדת: החצים מזיזים סמן על הלוח, Enter בוחר ומזיז, Esc מבטל. התפריטים והחלונות עובדים עם Tab, Enter ו-Esc, והמיקוד נשאר בתוך חלון פתוח. במפת העולם החצים עוברים בין איים.</li>
-          <li>הקראה לקורא מסך של מהלכים, שח, אכילות ומצב המשחק, וכפתורים ופקדים עם שמות.</li>
-          <li>סימון מיקוד בולט וטקסט בהיר בניגודיות גבוהה על רקע כהה.</li>
-          <li>מתגים נפרדים לאפקטים קוליים ולמוזיקת רקע; צלילים ורטט הם רק רמז נוסף, אף פעם לא היחיד.</li>
-          <li>הממשק מכבד את הגדרת "הפחתת תנועה" של המכשיר, אפשר להוריד את איכות הגרפיקה בהגדרות, ואפשר להאיץ מסע בין איים בנגיעה.</li>
-          <li>ממשק באנגלית ובעברית, עם פריסה מימין לשמאל בעברית.</li>
-        </ul>
-        <h3>מגבלות ידועות</h3>
-        <ul>
-          <li>הלוח, האיים והמוזיאון מצוירים על קנבס תלת-ממדי. הפרטים החזותיים (מונומנטים, חיות, מזג אוויר) לא מתוארים במלואם לקורא מסך; במקום זה מוקרא מצב המשחק.</li>
-          <li>סיבוב וזום של המצלמה דורשים מחוות מגע או עכבר; כפתור "מרכז" מחזיר את התצוגה הרגילה.</li>
-          <li>לסרט הסיפור בקולנוע יש כתוביות על המסך, אבל אין קריינות.</li>
-        </ul>
-        <p>אם משהו מונע ממך לשחק, נשמח לשמוע: <mark class="ph">[CONTACT EMAIL]</mark>.</p>
+        <h2 id="he-a11y">נגישות</h2>
+        <p>להצהרת הנגישות יש דף משלה: <a href="./accessibility.html" data-keep-lang>הצהרת נגישות</a>.</p>
       </section>
-    </article>
 
-    <p><a class="back" href="./" target="_top">← Back to the game · חזרה למשחק</a></p>
+      <a class="back" href="./">→ חזרה למשחק</a>
+    </article>
   </main>
 </div>
 </body>

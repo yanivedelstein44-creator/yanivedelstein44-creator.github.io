@@ -11,7 +11,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { ISLAND_COUNT, HUB_ID, PREMIUM_FIRST, isPremium, regionOf, isBoss, islandDef, tierOf } from '../config/Islands.js';
 import { getEra } from '../config/Eras.js';
 import { drawIcon } from '../ui/icons.js';
-import { t, islandLabel } from '../ui/i18n.js';
+import { t, tn, islandLabel } from '../ui/i18n.js';
 import { PlayerAvatar3D } from './PlayerAvatar3D.js';
 import { buildPetRig } from './PetCompanion3D.js';
 import { isFlyer } from '../config/Pets.js';
@@ -141,11 +141,21 @@ function labelTexture(text, { bg = 'rgba(12,8,24,0.78)', fg = '#fff3c8', w = 96,
   x.fillStyle = fg; x.font = `${font} ${Math.round(h * 0.52)}px Rubik, Arial, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
   if (ic && text) { const tw = x.measureText(text).width; const isz = h * 0.62; const sx = w / 2 - (tw + isz + 4) / 2; drawIcon(x, ic, sx + isz / 2, h / 2, isz); x.textAlign = 'left'; x.fillText(text, sx + isz + 4, h / 2 + 1); }
   else if (ic) drawIcon(x, ic, w / 2, h / 2, h * 0.7);
-  else x.fillText(text, w / 2, h / 2 + 1);
+  else {
+    // טקסט ארוך (שמות עולמות באנגלית ובעברית) מוקטן עד שהוא נכנס בשלט
+    for (let fs = Math.round(h * 0.52); fs > 10 && x.measureText(text).width > w - 2 * r; fs--) x.font = `${font} ${fs}px Rubik, Arial, sans-serif`;
+    x.fillText(text, w / 2, h / 2 + 1);
+  }
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }
+
+// שלטי העולמות במפה ("World IV · Industrial Age" / "עולם IV · עידן התעשייה") ושלט איי הזהב
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+const WORLD_SIGN_STYLE = { w: 300, h: 56, bg: 'rgba(40,26,80,0.9)', fg: '#ffe9a8' };
+const GOLD_SIGN_STYLE = { w: 260, h: 56, bg: 'rgba(80,52,6,0.92)', fg: '#ffe08a' };
+const worldSignText = (w) => { const era = getEra(w); return t('lngWorldSign').replace('{n}', ROMAN[w - 1]).replace('{name}', tn(era.name, era.en)); };
 
 // ---------- שערים בסגנון כל עולם (גאומטריה אחת עם צבעי קודקודים) ----------
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new V3(), _s = new V3();
@@ -529,16 +539,28 @@ export class WorldMap {
     }
   }
 
+  /** אחרי החלפת שפה: שלטי העולמות והחלונית (אם המפה פתוחה) בשפה החדשה */
+  relabel() {
+    const swap = (sp, tex) => { const old = sp.material.map; sp.material.map = tex; sp.material.needsUpdate = true; old?.dispose(); };
+    this.worldSigns?.forEach((sp) => swap(sp, labelTexture(worldSignText(sp.userData.world), WORLD_SIGN_STYLE)));
+    if (this.goldSign) swap(this.goldSign, labelTexture(t('lngGoldSign'), GOLD_SIGN_STYLE));
+    if (this.isOpen && this.ui && !this.ui.classList.contains('flying')) {
+      const sel = this.selected;
+      this.ui.remove();
+      this.ui = this.buildUi();
+      if (sel) this.onSelect?.(sel);
+    }
+  }
+
   /** שלט לכל עולם, בתחילת הקטע שלו בספירלה */
   buildWorldSigns() {
-    const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
     this.worldSigns = [];
     for (let w = 1; w <= 10; w++) {
       const first = Math.max(2, (w - 1) * 10 + 1);
       const p = this.positions[first];
       const out = p.clone().setY(0).normalize();
       const era = getEra(w);
-      const tex = labelTexture(`עולם ${ROMAN[w - 1]} · ${era.name}`, { w: 300, h: 56, bg: 'rgba(40,26,80,0.9)', fg: '#ffe9a8' });
+      const tex = labelTexture(worldSignText(w), WORLD_SIGN_STYLE);
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthWrite: false, transparent: true }));
       sp.position.set(p.x + out.x * 3.2, 2.6, p.z + out.z * 3.2);
       sp.scale.set(5.4, 1.0, 1);
@@ -546,7 +568,7 @@ export class WorldMap {
       this.scene.add(sp);
       this.worldSigns.push(sp);
     }
-    const gold = labelTexture('איי הזהב · פרימיום', { w: 260, h: 56, bg: 'rgba(80,52,6,0.92)', fg: '#ffe08a' });
+    const gold = labelTexture(t('lngGoldSign'), GOLD_SIGN_STYLE);
     const gs = new THREE.Sprite(new THREE.SpriteMaterial({ map: gold, depthWrite: false, transparent: true }));
     gs.position.set(0, 3, -44 - 3.6); gs.scale.set(5, 1.05, 1);
     this.scene.add(gs);

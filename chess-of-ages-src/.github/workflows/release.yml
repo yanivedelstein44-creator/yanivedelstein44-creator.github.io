@@ -135,12 +135,12 @@ jobs:
         shell: bash
         run: |
           npx cap add android
-          # שם האפליקציה: אנגלית כברירת מחדל (קהל עולמי), עברית במכשירים בעברית (iw = הקוד הישן של אנדרואיד)
+          # שם האפליקציה באנגלית בכל המכשירים, גם בעברית (iw = הקוד הישן של אנדרואיד)
           for d in values-iw values-he; do
             mkdir -p "android/app/src/main/res/$d"
             printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<resources>' \
-              '    <string name="app_name">שחמט העידנים</string>' \
-              '    <string name="title_activity_main">שחמט העידנים</string>' \
+              '    <string name="app_name">Chess of Ages</string>' \
+              '    <string name="title_activity_main">Chess of Ages</string>' \
               '</resources>' > "android/app/src/main/res/$d/strings.xml"
           done
           # גרסה: versionName מ-package.json, versionCode עולה בכל ריצה

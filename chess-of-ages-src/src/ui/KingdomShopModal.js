@@ -18,6 +18,8 @@ import { PlayerAvatar3D } from '../scene/PlayerAvatar3D.js';
 import { PetCompanion3D } from '../scene/PetCompanion3D.js';
 import { FX } from '../scene/Particles.js';
 import { HUB_ID, islandDef, residentPrice, petColorPrice } from '../config/Islands.js';
+import { openLegalPage } from './LegalPages.js';
+import { watchShopCards } from './A11yCards.js';
 
 const AURA_ICON = { aura_none: 'noAura', aura_golden_sparks: 'sparkle', aura_fire_ring: 'fireRing', aura_cosmic_lightning: 'boltPurple' };
 const SLOT_ICON = { head: 'crown', armor: 'shirt', weapon: 'swords', aura: 'sparkle' };
@@ -146,6 +148,7 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
   const tabs = h('div', { class: 'tabs', role: 'tablist' });
   const sub = h('div', { class: 'subtabs' });
   const grid = h('div', { class: 'shop-grid', role: 'tabpanel' });
+  watchShopCards(grid, () => t('a11yPreview')); // [a11y] no nested buttons; Enter on Buy/Equip buys/equips
   const body = h('div', { class: 'shop' }, stageBox, tabs, sub, grid, h('p', { class: 'earn-note' }, ...withIcon('swords', tn('יהלומים מרוויחים בניצחונות על בוטים ועל פיראטי הזמן.', 'Gems are earned by beating bots and the Time Pirates.'), 14)));
   // הסצנה הראשית מוסתרת מאחורי החנות — משהים אותה כדי שהבמה תרוץ חלק
   const wasPaused = app.sm.paused;
@@ -198,10 +201,17 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
     const won = app.progression.conqueredList().filter((id) => id !== HUB_ID || app.progression.isConquered(HUB_ID)).sort((a, b) => a - b);
     if (curTab === 'wardrobe') grid.replaceChildren(...WEARABLES[slot].map(itemCard));
     else if (curTab === 'pets') grid.replaceChildren(h('p', { class: 'shop-note' }, ...withIcon('paw', t('petGrowNote'), 14)), ...PET_IDS.map((id) => petCard(id)), ...won.filter((id) => islandDef(id).bot.petHue).map(petColorCard));
-    else if (curTab === 'sky') grid.replaceChildren(h('p', { class: 'shop-note' }, ...withIcon('gift', t('skyNote'), 14)), ...SKY_PET_IDS.map(skyCard), ...CLASSIC_FLYER_IDS.map((id) => petCard(id, 'sky')));
-    else if (curTab === 'boards') grid.replaceChildren(h('p', { class: 'shop-note' }, ...withIcon('gift', t('boardsNote'), 14)), ...BOARD_SKINS.map(skinCard));
-    else if (curTab === 'premium') grid.replaceChildren(...premiumCards());
+    else if (curTab === 'sky') grid.replaceChildren(h('p', { class: 'shop-note' }, ...withIcon('gift', t('skyNote'), 14)), ...SKY_PET_IDS.map(skyCard), ...CLASSIC_FLYER_IDS.map((id) => petCard(id, 'sky')), ...payNote());
+    else if (curTab === 'boards') grid.replaceChildren(h('p', { class: 'shop-note' }, ...withIcon('gift', t('boardsNote'), 14)), ...BOARD_SKINS.map(skinCard), ...payNote());
+    else if (curTab === 'premium') grid.replaceChildren(...premiumCards(), ...payNote());
     else grid.replaceChildren(...won.map(botCard), h('div', { class: 'card hint-card' }, icon('flag', { size: 34 }), h('small', {}, won.length ? t('moreBotsHint') : t('noBotsHint'))));
+  }
+
+  /** [legal] גילוי לפני קנייה בכסף אמיתי (מה מקבלים, איפה רואים מחיר) + קישור לתנאים ולהחזרים. מערך — ריק כשאין מכירה */
+  function payNote() {
+    if (!economy.sandbox && !economy.canBuyReal()) return []; // Play לפני חיבור Billing: הכפתורים מציגים "בקרוב"
+    return [h('p', { class: 'shop-note pay-note' }, ...withIcon('info', t(economy.sandbox ? 'lgBuyNoteTest' : 'lgBuyNote'), 14), ' ',
+      h('button', { class: 'link-btn tap', type: 'button', onclick: (e) => { e.stopPropagation(); openLegalPage(app, 'terms', 'pay'); } }, t('lgTermsLink')))];
   }
 
   /** קנייה בכסף אמיתי: מצב בדיקה = מיידי וללא חיוב; בגוגל פליי — חלון התשלום של החנות */
@@ -212,6 +222,8 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
   };
   const realBtn = (product, onClick, label) => {
     const price = realPrice(product);
+    // גרסת Google Play לפני חיבור Play Billing: "בקרוב" במקום קנייה (בלי קופה מדומה)
+    if (!economy.canBuyReal()) return h('button', { class: 'buy real soon tap', 'aria-disabled': 'true', 'aria-label': `${t('playSoonAria')} ${label}`, onclick: (e) => { e.stopPropagation(); ui.toast(t('playSoonBody'), { icon: 'info' }); } }, h('b', {}, t('playSoon')));
     return h('button', { class: 'buy real tap', 'aria-label': `${t('buyReal')} ${label}`, onclick: (e) => { e.stopPropagation(); onClick(); } }, h('b', {}, economy.sandbox ? `${t('buyReal')} (${tn('בדיקה', 'test')})` : (price || t('buyReal'))));
   };
 

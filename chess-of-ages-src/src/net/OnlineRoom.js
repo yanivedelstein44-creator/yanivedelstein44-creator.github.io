@@ -15,6 +15,14 @@ export class RoomError extends Error {
   constructor(code) { super(code); this.code = code; }
 }
 
+/**
+ * גרסת הפרוטוקול של החדר (השדה v). דפדפן, APK מהאתר וגוגל פליי משתמשים באותו שרת, אז גרסאות שונות של
+ * המשחק נפגשות. מעלים את ROOM_PROTO רק כשמבנה החדר משתנה כך שגרסה ישנה לא תבין אותו,
+ * ואת ROOM_PROTO_MIN — כשמפסיקים לתמוך בחדרים של גרסאות ישנות.
+ */
+export const ROOM_PROTO = 1;
+export const ROOM_PROTO_MIN = 1;
+
 const clip = (s, n) => String(s || '').slice(0, n);
 const isDenied = (e) => /permission/i.test(String(e?.code || '') + String(e?.message || ''));
 const SAFE_ID = /^[a-z0-9_:-]{1,40}$/i;
@@ -77,7 +85,7 @@ export class OnlineRoom {
     for (let i = 0; i < 6; i++) {
       const code = makeCode();
       try {
-        await be.create(code, { v: 1, t: be.ts(), host: be.uid, hc, hn: clip(me.name, 24), hl: me.look, ply: 0, mv: '', g: 1, at: be.ts() });
+        await be.create(code, { v: ROOM_PROTO, t: be.ts(), host: be.uid, hc, hn: clip(me.name, 24), hl: me.look, ply: 0, mv: '', g: 1, at: be.ts() });
         const room = new OnlineRoom(be, code, 'host', me);
         await room.start();
         return room;
@@ -93,6 +101,10 @@ export class OnlineRoom {
     const be = await getBackend();
     const data = await be.get(code);
     if (!data) throw new RoomError('notFound');
+    // חדר של גרסה אחרת: הודעה ברורה מי צריך לעדכן (במקום משחק שבור)
+    const v = Number(data.v) || 1;
+    if (v > ROOM_PROTO) throw new RoomError('needUpdate');
+    if (v < ROOM_PROTO_MIN) throw new RoomError('friendOld');
     let role = 'spectator';
     if (data.host === be.uid) role = 'host';
     else if (data.guest === be.uid) role = 'guest';

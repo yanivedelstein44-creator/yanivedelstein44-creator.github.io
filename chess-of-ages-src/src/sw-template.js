@@ -1,8 +1,13 @@
 /* Service Worker — שחמט העידנים (נוצר אוטומטית בכל build — אל תערוך את dist/sw.js) */
 const BUILD = '__BUILD_ID__';
 const PRECACHE = __PRECACHE__;
-const CACHE = `chess-ages-${BUILD}`;
-const scoped = (u) => new URL(u, self.registration.scope).href;
+// מטמונים משותפים לכל ה-Service Workers באותו origin (באתר יש גם את תיקיית ערוץ Google Play ופרויקטים אחרים),
+// לכן השם כולל את ה-scope: SW אחד לעולם לא מוחק מטמון של אחר
+const SCOPE = self.registration.scope;
+const PREFIX = `chess-ages:${new URL(SCOPE).pathname}:`;
+const CACHE = `${PREFIX}${BUILD}`;
+const LEGACY = /^chess-ages-\d/; // שמות עד 1.3.17 (בלי scope) — תמיד בניות ישנות של המשחק הזה
+const scoped = (u) => new URL(u, SCOPE).href;
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
@@ -21,7 +26,7 @@ self.addEventListener('message', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter((k) => k.startsWith('chess-ages-') && k !== CACHE).map((k) => caches.delete(k)));
+    await Promise.all(keys.filter((k) => k !== CACHE && (k.startsWith(PREFIX) || LEGACY.test(k))).map((k) => caches.delete(k)));
     await self.clients.claim();
   })());
 });
@@ -31,9 +36,13 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  // רק קבצים מתוך התיקייה שלנו — תיקיות אחרות באתר (ערוץ Google Play, פרויקטים אחרים) לא שלנו
+  if (!req.url.startsWith(SCOPE)) return;
   // קבצי עדכון — תמיד מהרשת
   if (url.pathname.endsWith('/version.json') || url.pathname.includes('/update/')) return;
   if (req.mode === 'navigate') {
+    // ניווט לקובץ שאינו דף (APK, zip, תמונה, json) — ישר מהרשת, לא מעטפת המשחק
+    if (/\.[a-z0-9]+$/i.test(url.pathname) && !/\.html$/i.test(url.pathname)) return;
     event.respondWith((async () => {
       const cache = await caches.open(CACHE);
       // עמודים סטטיים נוספים (למשל privacy.html) — מהמטמון או מהרשת, לא מעטפת המשחק

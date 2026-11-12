@@ -32,7 +32,11 @@ export class Progression {
     this.store.set({ islands: { conquered, current: HUB_ID } });
   }
 
-  get isl() { return this.store.get('islands') || { conquered: [], current: HUB_ID }; }
+  get isl() {
+    const v = this.store.get('islands');
+    // [qa] a damaged record (no conquered list) counts as missing instead of crashing every screen that reads it
+    return v && typeof v === 'object' && Array.isArray(v.conquered) ? v : { conquered: [], current: HUB_ID };
+  }
   save(patch) { this.store.set({ islands: { ...this.isl, ...patch } }); }
   get conqueredSet() { return new Set(this.isl.conquered); }
   isConquered(id) { return this.isl.conquered.includes(id); }

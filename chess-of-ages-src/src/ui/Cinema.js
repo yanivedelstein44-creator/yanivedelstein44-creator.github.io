@@ -90,6 +90,12 @@ export async function playStory(app) {
     map.fogPuffs.visible = false;
     const ov = overlay();
     ov.skip.onclick = () => { state.skipped = true; state.tween?.kill(); state.done?.(); if (map.flight) { map.flight.speed = 6; } };
+    // [a11y] keyboard: focus starts on Skip and Esc skips too; the focus goes back when the film ends
+    const prevFocus = document.activeElement;
+    ov.root.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !state.skipped) { e.preventDefault(); e.stopPropagation(); ov.skip.click(); } });
+    setTimeout(() => ov.skip.focus(), 60);
+    const removeOv = ov.remove;
+    ov.remove = () => { removeOv(); if (prevFocus?.isConnected && prevFocus.focus) prevFocus.focus(); };
     app.sound.fanfare?.();
     await CloudWipe.reveal(0.6);
     for (const s of shots()) {
