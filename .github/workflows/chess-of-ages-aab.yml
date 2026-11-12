@@ -1,0 +1,59 @@
+# שחמט העידנים — בניית AAB לגוגל פליי (Capacitor) מתוך ערוץ Play באתר (chess-of-ages-play/).
+# רץ ידנית בלבד (Actions → Chess of Ages AAB → Run workflow): AAB חדש נדרש רק להעלאה הראשונה ולשינויים נייטיב
+# (הרשאה, תוסף כמו Billing, אייקון, targetSdk). עדכוני משחק רגילים מגיעים לשחקני Play כעדכון OTA מערוץ Play.
+# התוצר (לא חתום) נדחף לענף chess-of-ages-aab; החתימה במפתח ההעלאה נעשית מחוץ לריפו (chess-of-ages-app/sign-aab.sh).
+# מקומו בריפו האתר: .github/workflows/chess-of-ages-aab.yml (כמו chess-of-ages-apk.yml).
+name: Chess of Ages AAB (Google Play)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: 'versionCode (ריק = 1000 + מספר הריצה). חייב להיות גבוה מההעלאה הקודמת ל-Play'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: chess-of-ages-aab
+  cancel-in-progress: true
+
+jobs:
+  aab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build AAB
+        id: build
+        shell: bash
+        env:
+          PLAY_VERSION_CODE: ${{ github.event.inputs.version_code }}
+        run: |
+          set -o pipefail
+          [ -n "$PLAY_VERSION_CODE" ] || unset PLAY_VERSION_CODE
+          bash chess-of-ages-app/build-aab.sh 2>&1 | tee "$RUNNER_TEMP/build.log"
+      - name: Publish result to branch chess-of-ages-aab
+        if: always()
+        shell: bash
+        run: |
+          OUT="$RUNNER_TEMP/out"; mkdir -p "$OUT"
+          cp chess-of-ages-app/out/* "$OUT/" 2>/dev/null || true
+          tail -c 200000 "$RUNNER_TEMP/build.log" > "$OUT/build.log" 2>/dev/null || true
+          echo "outcome=${{ steps.build.outcome }} run=${{ github.run_number }} sha=${{ github.sha }}" > "$OUT/STATUS.txt"
+          cd "$OUT"
+          git init -q -b chess-of-ages-aab
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "AAB build ${{ github.run_number }}: ${{ steps.build.outcome }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:chess-of-ages-aab

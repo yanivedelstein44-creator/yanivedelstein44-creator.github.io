@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Overrides the Capacitor template's FileProvider paths (build-apk.sh / build-aab.sh copy android-res/res over the
+  generated project). The template shares the whole external-storage root ("external-path ."); the game shares no
+  files at all, so only the app's own cache folder stays shareable.
+-->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <cache-path name="my_cache_images" path="." />
+</paths>
