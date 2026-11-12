@@ -7,6 +7,8 @@
 #  • סימון "CoAStore/play" ב-User-Agent — לפיו src/config/Store.js יודע שזו גרסת Play (בלי הורדת APK,
 #    עדכוני OTA מערוץ Play, קניות רק דרך Google Play Billing).
 #  • בלי REQUEST_INSTALL_PACKAGES גם אם ספרייה כלשהי תוסיף אותה (מדיניות Device and Network Abuse).
+#  • Google Play Billing: התוסף @capgo/native-purchases (Play Billing Library 9) נוסף רק כאן — ה-APK מהאתר נשאר בלי חיובים.
+#    ההרשאה com.android.vending.BILLING מגיעה במיזוג מהספרייה, והבנייה נכשלת אם היא חסרה.
 #  • התוצר: bundleRelease (‏.aab). Google Play דורשת היום targetSdk 36 — זה מה שתבנית Capacitor 8 מגדירה.
 #
 # חתימה: ה-AAB נחתם אחר כך במפתח ההעלאה (upload key) בעזרת sign-aab.sh, מחוץ לריפו.
@@ -17,6 +19,7 @@ APP="$(pwd)"
 PLAY_DIR="$(cd "${PLAY_DIR:-../chess-of-ages-play}" && pwd)"
 PLAY_ID="com.chessofages.islandrealms"
 UA_MARK="CoAStore/play"
+PURCHASES_VERSION="8.9.11"   # @capgo/native-purchases — Play Billing Library 9.x (חובה לאפליקציות חדשות ב-Play)
 
 [ -f "$PLAY_DIR/version.json" ] || { echo "לא נמצא $PLAY_DIR/version.json — קודם מקדמים גרסה ל-Play (scripts/publish-play.sh)"; exit 1; }
 rm -rf www out android && mkdir -p www out
@@ -31,7 +34,12 @@ rm -f www/sw.js   # ה-Service Worker לא רץ בתוך האפליקציה (כ�
 
 # 2) תצורת Capacitor של Play (מזהה + סימון User-Agent); המקור משוחזר בסוף
 cp capacitor.config.json "$APP/out/.capacitor.config.site.json"
-restore() { cp "$APP/out/.capacitor.config.site.json" "$APP/capacitor.config.json" 2>/dev/null || true; rm -f "$APP/out/.capacitor.config.site.json"; }
+cp package.json "$APP/out/.package.site.json"
+restore() {
+  cp "$APP/out/.capacitor.config.site.json" "$APP/capacitor.config.json" 2>/dev/null || true
+  cp "$APP/out/.package.site.json" "$APP/package.json" 2>/dev/null || true
+  rm -f "$APP/out/.capacitor.config.site.json" "$APP/out/.package.site.json"
+}
 trap restore EXIT
 node -e "
 const fs = require('fs');
@@ -39,6 +47,14 @@ const c = JSON.parse(fs.readFileSync('capacitor.config.json', 'utf8'));
 c.appId = '$PLAY_ID';
 c.android = Object.assign({}, c.android, { appendUserAgent: '$UA_MARK' });
 fs.writeFileSync('capacitor.config.json', JSON.stringify(c, null, 2));
+"
+
+# Google Play Billing — רק בגרסת Play (Capacitor מוצא תוספים לפי dependencies ב-package.json; המקור משוחזר בסוף)
+node -e "
+const fs = require('fs');
+const p = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+p.dependencies = Object.assign({}, p.dependencies, { '@capgo/native-purchases': '$PURCHASES_VERSION' });
+fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\\n');
 "
 
 npm install --no-audit --no-fund
@@ -52,6 +68,8 @@ sed -i 's#android:name=".MainActivity"#android:name=".MainActivity"\n           
 # בלי התקנת APK-ים: מסירים את ההרשאה גם אם היא מגיעה במיזוג מספרייה
 grep -q 'xmlns:tools=' "$MANIFEST" || sed -i 's#<manifest xmlns:android="http://schemas.android.com/apk/res/android"#<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"#' "$MANIFEST"
 sed -i 's#</manifest>#    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />\n</manifest>#' "$MANIFEST"
+# Google Play Billing: ההרשאה נכתבת גם במפורש (ליתר ביטחון; הספרייה מוסיפה אותה גם במיזוג)
+sed -i 's#</manifest>#    <uses-permission android:name="com.android.vending.BILLING" />\n</manifest>#' "$MANIFEST"
 
 # 3) גרסה: versionName כמו העטיפה; versionCode חייב רק לעלות בכל העלאה ל-Play
 VER="$(node -p "require('./package.json').version")"
@@ -66,8 +84,13 @@ cp app/build/outputs/bundle/release/app-release.aab "$APP/out/chess-of-ages-play
 
 # 4) בדיקות אחרונות: מזהה, targetSdk, ושאין הרשאת התקנת חבילות בתוצר
 MERGED="$(find app/build/intermediates -path '*release*' -name AndroidManifest.xml 2>/dev/null | grep -i merged | head -1 || true)"
-if [ -n "$MERGED" ] && grep -q 'REQUEST_INSTALL_PACKAGES' "$MERGED"; then echo "שגיאה: REQUEST_INSTALL_PACKAGES במניפסט הממוזג"; exit 1; fi
+[ -n "$MERGED" ] || { echo "שגיאה: לא נמצא המניפסט הממוזג"; exit 1; }
+if grep -q 'REQUEST_INSTALL_PACKAGES' "$MERGED"; then echo "שגיאה: REQUEST_INSTALL_PACKAGES במניפסט הממוזג"; exit 1; fi
+grep -q 'com.android.vending.BILLING' "$MERGED" || { echo "שגיאה: חסרה הרשאת com.android.vending.BILLING (תוסף Play Billing לא נכלל)"; exit 1; }
+PERMS="$(grep -oE 'uses-permission[^>]*android:name="[^"]+"' "$MERGED" | grep -oE 'name="[^"]+"' | cut -d'"' -f2 | sort -u | tr '\n' ' ')"
+grep -q 'NativePurchases' "$APP/android/app/src/main/assets/capacitor.plugins.json" || { echo "שגיאה: NativePurchases לא רשום ב-capacitor.plugins.json"; exit 1; }
 TARGET="$(grep -oE 'targetSdkVersion = [0-9]+' variables.gradle | grep -oE '[0-9]+' || true)"
 [ "${TARGET:-0}" -ge 36 ] || { echo "שגיאה: targetSdk ${TARGET} — Google Play דורשת 36 ומעלה"; exit 1; }
-echo "applicationId=${PLAY_ID} versionName=${VER} versionCode=${VCODE} targetSdk=${TARGET} web=$(node -e "process.stdout.write(require(process.argv[1]).build)" "$PLAY_DIR/version.json")" > "$APP/out/INFO.txt"
+echo "applicationId=${PLAY_ID} versionName=${VER} versionCode=${VCODE} targetSdk=${TARGET} web=$(node -e "process.stdout.write(require(process.argv[1]).build)" "$PLAY_DIR/version.json") billing=@capgo/native-purchases@${PURCHASES_VERSION}" > "$APP/out/INFO.txt"
+echo "permissions=${PERMS}" >> "$APP/out/INFO.txt"
 ls -la "$APP/out"
