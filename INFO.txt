@@ -1,0 +1,2 @@
+applicationId=com.chessofages.islandrealms versionName=1.1.1 versionCode=1002 targetSdk=36 web=1.5.0-1794525794174 billing=@capgo/native-purchases@8.9.11
+permissions=android.permission.ACCESS_NETWORK_STATE android.permission.FOREGROUND_SERVICE android.permission.INTERNET android.permission.RECEIVE_BOOT_COMPLETED android.permission.VIBRATE android.permission.WAKE_LOCK com.android.vending.BILLING com.chessofages.islandrealms.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION 
