@@ -1,0 +1,82 @@
+/* StocksCenter design tokens — "כחול × עיתון" (blue rounded app × financial newspaper).
+   Chosen by the user on 2026-11-12. Shared by the phone PWA and the desktop window.
+   Light theme only. Contrast: every text token below passes 4.5:1 on --sc-surface and --sc-bg
+   (header tokens pass on --sc-primary). Decorative-only tokens are marked. */
+:root {
+  color-scheme: light;
+
+  /* Ground and surfaces */
+  --sc-bg: #EEF2F8;            /* page, soft blue paper */
+  --sc-surface: #FFFFFF;       /* cards */
+  --sc-surface-2: #F6F9FE;     /* highlighted row, table head */
+  --sc-surface-3: #EEF3FB;     /* chips, info panels */
+  --sc-line: #DDE4EF;          /* card border, hairlines (decorative) */
+  --sc-line-soft: #EEF2F8;     /* row dividers inside cards (decorative) */
+  --sc-rule: #0F1E36;          /* editorial rule under a masthead (decorative) */
+  --sc-scrim: rgba(15, 30, 54, 0.55);
+
+  /* Ink */
+  --sc-ink: #0F1E36;           /* primary text, big numbers */
+  --sc-ink-2: #33435F;         /* body copy, deck text */
+  --sc-ink-3: #4A5B78;         /* secondary text, labels */
+  --sc-ink-4: #5E6E8A;         /* tertiary text, rank numerals */
+
+  /* Brand blue */
+  --sc-primary: #1E4E9C;       /* header panels, primary buttons, strong badges */
+  --sc-primary-strong: #173E80;/* nav pill, round action buttons */
+  --sc-primary-bright: #3B7BE0;/* the floating "סרוק הכל" button */
+  --sc-on-primary: #FFFFFF;
+  --sc-on-primary-2: #EAF1FC;  /* secondary text on blue */
+  --sc-on-primary-3: #C9D8F2;  /* meta text on blue (dateline, kicker) */
+  --sc-primary-tint: #DCE8FF;  /* mid badges, insider chip, icon tiles */
+  --sc-primary-tint-2: #DDE8F8;/* icon tiles */
+  --sc-bar-weak: #8FB0E0;      /* sub-score bars below 60 (decorative) */
+  --sc-nav-icon: #B8CBEA;      /* inactive nav icons on the nav pill */
+  --sc-online: #6EE7B7;        /* status dot on blue */
+
+  /* Score tiers (total badge) */
+  --sc-tier-good-bg: #1E4E9C;  --sc-tier-good-fg: #FFFFFF;   /* total ≥ 70 */
+  --sc-tier-mid-bg: #DCE8FF;   --sc-tier-mid-fg: #173E80;    /* 50–69 */
+  --sc-tier-low-bg: #FDE7DB;   --sc-tier-low-fg: #9A3412;    /* < 50 */
+
+  /* States */
+  --sc-warn-bg: #FDF1E2;       --sc-warn-fg: #8A4B06;        /* earnings soon, R:R low */
+  --sc-danger-bg: #FDE7DB;     --sc-danger-fg: #9A3412;      /* weak component (gate), errors */
+  --sc-up: #1F7A55;            /* positive change */
+  --sc-down: #B42318;          /* negative change */
+  --sc-weak-dot: #C2410C;      /* a sub-score below 40 (decorative bar) */
+
+  /* Shape */
+  --sc-radius-panel: 32px;     /* bottom corners of the blue header panel */
+  --sc-radius-sheet: 28px;     /* bottom sheet top corners */
+  --sc-radius-card: 22px;
+  --sc-radius-tile: 16px;      /* icon tiles, total badge */
+  --sc-radius-control: 15px;   /* square icon buttons */
+  --sc-radius-pill: 999px;
+
+  /* Spacing (8-pt grid) */
+  --sc-s1: 4px;
+  --sc-s2: 8px;
+  --sc-s3: 12px;
+  --sc-s4: 16px;
+  --sc-s5: 24px;
+  --sc-s6: 32px;
+
+  /* Type: newspaper serif for headlines and big numbers, rounded sans for the UI */
+  --sc-font-display: "Frank Ruhl Libre", "David", "Times New Roman", serif;
+  --sc-font-ui: "Rubik", "Heebo", "Segoe UI", system-ui, sans-serif;
+  --sc-fs-caption: 11px;
+  --sc-fs-small: 12px;
+  --sc-fs-meta: 13px;
+  --sc-fs-body: 15px;
+  --sc-fs-lead: 16px;
+  --sc-fs-title: 21px;
+  --sc-fs-headline: 25px;
+  --sc-fs-masthead: 40px;
+  --sc-kicker-tracking: 0.16em;
+
+  /* Motion and focus */
+  --sc-dur: 180ms;
+  --sc-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --sc-focus: 0 0 0 2px var(--sc-surface), 0 0 0 4px var(--sc-primary-bright);
+}
