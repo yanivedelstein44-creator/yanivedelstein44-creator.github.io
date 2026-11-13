@@ -1,7 +1,8 @@
 /**
  * Shared behavior of the public legal pages (privacy, terms, licenses, accessibility):
  *  - "embedded" mode when the page is shown inside the game (iframe): hides the back link and page nav.
- *  - One language at a time: English by default, Hebrew with #he (or ?lang=he). Anchors such as #he-rights
+ *  - One language at a time: English by default (a page can set <html data-default-lang="he">),
+ *    the other language with #he / #en (or ?lang=he). Anchors such as #he-rights
  *    open the Hebrew version at that section. Without JavaScript both languages stay visible.
  * Each language lives in <article data-lang="en|he" data-title="…">. Language links: <a data-set-lang="en|he">.
  * External file on purpose — no inline script, so it works with a strict Content-Security-Policy.
@@ -24,7 +25,7 @@
   function apply(lang) {
     var arts = document.querySelectorAll('article[data-lang]');
     if (!arts.length) return;
-    lang = lang || current || 'en';
+    lang = lang || current || root.getAttribute('data-default-lang') || 'en';
     current = lang;
     root.classList.add('one-lang');
     for (var i = 0; i < arts.length; i++) arts[i].hidden = arts[i].getAttribute('data-lang') !== lang;
