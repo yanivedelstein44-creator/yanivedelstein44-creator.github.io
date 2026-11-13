@@ -147,6 +147,8 @@ export class GameApp {
       onCenter: () => { this.sound.ui(); if (this.sm.panoramaOn) { this.sm.panoramaOn = false; this.ui.setPanorama(false); } this.sm.toGameplay(1.0, this.viewSide()); },
       onMap: () => this.openMap(),
       onShop: () => { this.sound.ui(); this.openShop(); },
+      // כפתור הפרימיום בסרגל התחתון: מסך הפרימיום לבד (איים, מאיץ יהלומים), כמו הטבעת המרחפת
+      onPremium: () => { this.sound.ui(); this.openShop('premium', null, true); },
       onFriend: () => { this.sound.ui(); openFriendHub(this); },
       onEmote: () => { this.sound.ui(); openEmotePicker(this); },
       onLeave: () => { this.sound.ui(); this.online.leave(); },

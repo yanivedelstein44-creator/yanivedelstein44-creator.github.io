@@ -185,6 +185,9 @@ button:focus-visible, [role='button']:focus-visible, input:focus-visible, select
 @keyframes tabGlow { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.15); } }
 .dock-btn.build { background: linear-gradient(180deg, #4cf2b0, #12b37b 60%, #0b8a5e); border-color: #9affd8; color: #032417; font-weight: 800;
   box-shadow: 0 4px 0 var(--green-dark), 0 0 16px rgba(46, 229, 157, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.45); text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4); }
+/* פרימיום בסרגל התחתון: אותו גודל כמו השאר, רק כתר ומסגרת בזהב */
+.dock-btn.prem:not(.active) { border-color: rgba(242, 201, 76, 0.85); color: var(--gold-2); box-shadow: 0 4px 0 #0c0818, 0 0 12px rgba(242, 201, 76, 0.3), inset 0 1.5px 0 rgba(255, 255, 255, 0.14); }
+.dock-btn.prem:not(.active):active { box-shadow: 0 1px 0 #0c0818, inset 0 1.5px 0 rgba(255, 255, 255, 0.14); }
 .dock-btn.build:active { box-shadow: 0 1px 0 var(--green-dark), 0 0 10px rgba(46, 229, 157, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.45); }
 .badge-dot {
   position: absolute; top: 4px; inset-inline-end: 12%; min-width: 18px; height: 18px; border-radius: 9px; background: var(--red); color: #fff;
@@ -582,18 +585,6 @@ button:focus-visible, [role='button']:focus-visible, input:focus-visible, select
 .tabs.six { gap: 4px; }
 .tabs.six button { flex-direction: column; gap: 1px; min-height: 48px; padding: 3px 1px; font-size: 11px; line-height: 1.05; }
 .tabs.six button svg { width: 19px; height: 19px; }
-.tabs.six { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: 1.4fr 1.4fr 84px 1fr 1fr 1fr; margin-top: 10px; }
-.tabs.six button.prem-tab { position: relative; align-self: end; margin-top: -12px; height: 66px; min-height: 66px; padding: 0; border-radius: 16px; border: 2px solid #fff3c8; color: #3a2204; font-size: 12px; font-weight: 800; letter-spacing: 0.3px; background: linear-gradient(155deg, #fff6cf 0%, #f8d96c 28%, #d9a21f 62%, #f4d066 100%); box-shadow: 0 0 0 2px var(--gold-dark), 0 4px 0 var(--gold-dark), 0 0 22px rgba(242, 201, 76, 0.7), inset 0 2px 0 rgba(255, 255, 255, 0.8), inset 0 -6px 10px rgba(138, 90, 16, 0.35); overflow: visible; }
-.tabs.six button.prem-tab svg { width: 30px; height: 30px; }
-.tabs.six button.prem-tab::before { content: ''; position: absolute; inset: 0; z-index: 0; border-radius: 14px; background: linear-gradient(115deg, transparent 34%, rgba(255, 255, 255, 0.5) 48%, transparent 62%); pointer-events: none; }
-/* הברק מתחת לכתר ולכיתוב, כדי שהטקסט יישאר חד וקריא */
-.tabs.six button.prem-tab > svg, .tabs.six button.prem-tab > span:not(.xb) { position: relative; z-index: 1; }
-.tabs.six button.prem-tab > span:not(.xb) { color: #2a1806; text-shadow: 0 1px 0 rgba(255, 246, 207, 0.7); }
-.tabs.six button.prem-tab[aria-selected='true'] { filter: brightness(1.08) saturate(1.1); box-shadow: 0 0 0 2px var(--gold-dark), 0 4px 0 var(--gold-dark), 0 0 30px rgba(255, 224, 120, 0.95), inset 0 2px 0 rgba(255, 255, 255, 0.8); }
-.prem-tab .xb { position: absolute; z-index: 2; top: -11px; inset-inline-end: -7px; padding: 1px 6px; border-radius: 8px; background: #2a1806; color: var(--gold-2); font-size: 10.5px; font-weight: 800; line-height: 1.3; border: 1.5px solid var(--gold); }
-.prem-tab .sp { position: absolute; width: 11px; height: 11px; pointer-events: none; background: #fff3c8; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
-.prem-tab .sp.s1 { top: -6px; inset-inline-start: -6px; }
-.prem-tab .sp.s2 { bottom: -5px; inset-inline-end: -5px; width: 9px; height: 9px; }
 .card.skin .thumb img { object-fit: cover; border-radius: 10px; }
 .card.skin .earn { font-size: 11.5px; font-weight: 800; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; min-height: 38px; }
 .card .buy.real { background: linear-gradient(180deg, #ffe7a3, #f2c94c 55%, #c8962a); color: #2a1806; border-color: #fff3c8; box-shadow: 0 3px 0 var(--gold-dark), inset 0 1.5px 0 rgba(255, 255, 255, 0.6); text-shadow: none; }
@@ -615,11 +606,12 @@ button:focus-visible, [role='button']:focus-visible, input:focus-visible, select
 .hud-row.top .logo-wrap { flex: 0 1 auto; min-width: 0; }
 .hud-row.top .logo-wrap .game-logo.compact { width: 165px; max-width: 100%; height: auto; }
 .hud-row.top .hud-icons { flex: 0 0 auto; }
-.lang-btn { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+/* שם השפה המלא: הכפתור מתרחב לפי המילה (עברית / English) */
+.lang-btn { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; width: auto; min-width: 40px; padding: 0 6px; }
 .lang-btn .lang-ic { display: grid; place-items: center; line-height: 0; }
-.lang-btn .lang-code { font-size: 10.5px; font-weight: 900; line-height: 1; letter-spacing: 0.05em; color: #fff3c8; font-family: Rubik, Arial, sans-serif; }
+.lang-btn .lang-code { font-size: 10.5px; font-weight: 900; line-height: 1; letter-spacing: 0; white-space: nowrap; color: #fff3c8; font-family: Rubik, Arial, sans-serif; }
 .lang-btn .lang-code:lang(he) { letter-spacing: 0; font-size: 11px; }
-.map-head .lang-btn { flex: 0 0 auto; width: 38px; height: 38px; }
+.map-head .lang-btn { flex: 0 0 auto; width: auto; min-width: 38px; height: 38px; }
 @media (max-width: 374px) { .hud-row.top .hud-icons { gap: 5px; } .hud-row.top .gems-pill { padding: 0 9px 0 6px; } }
 
 /* [play] */

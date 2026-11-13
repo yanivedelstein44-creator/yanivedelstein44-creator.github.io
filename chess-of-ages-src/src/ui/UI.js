@@ -156,7 +156,7 @@ export class UI {
   }
 
   /**
-   * הסרגל התחתון לפי המקום: באי המרכזי (הבית) — מפה · חנות · חבר · קרב; בשאר האיים — מפה · הביתה · קרב
+   * הסרגל התחתון לפי המקום: באי המרכזי (הבית) — מפה · חנות · פרימיום · חבר · קרב; בשאר האיים — מפה · הביתה · קרב
    */
   setDock(hub) {
     const H = this.hd;
@@ -166,7 +166,8 @@ export class UI {
     if (hub) {
       const shop = dockBtn('shop', 'chest', t('shop'), () => { this.setActiveTab('shop'); H.onShop(); });
       shop.appendChild(this.shopBadge);
-      btns.push(shop, dockBtn('friend', 'users', t('friend'), () => { this.setActiveTab('friend'); H.onFriend(); }));
+      const prem = dockBtn('premium', 'crown', t('tabPremium'), () => { this.setActiveTab('premium'); H.onPremium(); }, 'prem');
+      btns.push(shop, prem, dockBtn('friend', 'users', t('friend'), () => { this.setActiveTab('friend'); H.onFriend(); }));
     } else btns.push(dockBtn('home', 'home', t('home'), () => H.onHome()));
     btns.push(dockBtn('battle', 'swords', t('battle'), () => H.onBattle(), 'build'));
     this.dock.replaceChildren(...btns);

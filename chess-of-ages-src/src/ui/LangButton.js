@@ -1,5 +1,5 @@
 /**
- * Language button for the top bar (HUD and the map header): globe + the current language code.
+ * Language button for the top bar (HUD and the map header): globe + the current language name (עברית / English).
  * One tap switches English ↔ Hebrew; the choice is saved by GameApp.toggleLanguage.
  */
 import { h } from './UI.js';
@@ -8,9 +8,9 @@ import { icon } from './icons.js';
 
 export function langButton(onToggle, where = 'hud') {
   const he = getLang() === 'he';
-  const code = he ? 'עב' : 'EN';
+  const code = he ? 'עברית' : 'English';
   // The label names "Language" in both languages, so it is understood whichever language is on screen.
-  // It starts with the visible code (EN / עב) so the accessible name contains the visible text (WCAG 2.5.3).
+  // It starts with the visible name (English / עברית) so the accessible name contains the visible text (WCAG 2.5.3).
   const label = `${code} · ${t('lngButtonLabel')}`;
   return h('button', {
     class: 'menu-btn lang-btn tap', type: 'button', 'data-where': where,

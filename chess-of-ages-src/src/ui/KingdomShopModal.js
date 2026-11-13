@@ -195,9 +195,7 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
   function render() {
     tabs.classList.add('six');
     tabs.hidden = !!single;
-    tabs.replaceChildren(...[['wardrobe', 'shirt', t('tabWardrobe')], ['pets', 'paw', t('tabPets')], ['premium', 'crown', t('tabPremium')], ['sky', 'wing', t('tabSky')], ['bots', 'users', t('tabBots')], ['boards', 'checker', t('tabBoards')]].map(([id, ic, label]) => id === 'premium'
-      ? h('button', { class: 'tap prem-tab', role: 'tab', 'aria-selected': String(curTab === id), onclick: () => setTab(id) }, h('span', { class: 'xb' }, 'x2'), h('i', { class: 'sp s1', 'aria-hidden': 'true' }), h('i', { class: 'sp s2', 'aria-hidden': 'true' }), icon(ic, { size: 30 }), h('span', {}, label))
-      : h('button', { class: 'tap', role: 'tab', 'aria-selected': String(curTab === id), onclick: () => setTab(id) }, icon(ic, { size: 20 }), h('span', {}, label))));
+    tabs.replaceChildren(...[['wardrobe', 'shirt', t('tabWardrobe')], ['pets', 'paw', t('tabPets')], ['sky', 'wing', t('tabSky')], ['bots', 'users', t('tabBots')], ['boards', 'checker', t('tabBoards')], ['premium', 'crown', t('tabPremium')]].map(([id, ic, label]) => h('button', { class: 'tap', role: 'tab', 'aria-selected': String(curTab === id), onclick: () => setTab(id) }, icon(ic, { size: 20 }), h('span', {}, label))));
     sub.hidden = !!single || curTab !== 'wardrobe';
     if (curTab === 'wardrobe') sub.replaceChildren(...Object.keys(WEARABLES).map((s) => h('button', { class: 'tap', 'aria-pressed': String(slot === s), onclick: () => { slot = s; focus(s); render(); } }, icon(SLOT_ICON[s], { size: 18 }), h('span', {}, tn(...SLOT_SHORT[s])))));
     const won = app.progression.conqueredList().filter((id) => id !== HUB_ID || app.progression.isConquered(HUB_ID)).sort((a, b) => a - b);
