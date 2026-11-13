@@ -236,9 +236,18 @@ export function installDesktopMock(adapter) {
       const url = state.settings.pwa_url + "#pair=" + code;
       return wait(120, { ok: true, url, qr_svg: fakeQr(), code });
     },
+    getInstallInfo: () =>
+      wait(150, {
+        ok: true,
+        page_url: "https://demo.example.github.io/stockscenter-app/",
+        pwa_url: state.settings.pwa_url,
+        qr_svg: fakeQr(),
+        // test hook: window.__mockApk replaces the published-app info ({status: "missing" | "offline" | "bad" | "ok", ...})
+        apk: window.__mockApk || { status: "missing" }, // like the real site today: no APK published
+      }),
     openUrl: async (u) => ((window.__openedUrls = window.__openedUrls || []).push(u), { ok: true }), // test hook
     openLogs: async () => ({ ok: true }),
-    getVersion: async () => ({ ok: true, version: "1.0.2" }),
+    getVersion: async () => ({ ok: true, version: "1.0.4" }),
     checkForUpdates: () => wait(700, { ok: true, available: false, version: "1.0.1", message_he: "אתה משתמש בגרסה העדכנית" }),
   };
   // test hook: methods listed in window.__mockFail answer like a failing bridge call

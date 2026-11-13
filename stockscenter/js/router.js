@@ -1,4 +1,4 @@
-// Hash router: #/home #/cat/<id> #/combined #/history #/history/<date> #/history/<date>/combined #/history/<date>/<id> #/settings #/setup
+// Hash router: #/home #/cat/<id> #/combined #/history #/history/<date> #/history/<date>/combined #/history/<date>/<id> #/settings #/setup #/phone #/install
 /** The 10 category ids of SPEC §2; anything else in a route goes home. */
 export const CATEGORY_IDS = ["momentum", "fundamental", "pullback", "volume_breakout", "oversold", "analyst", "low_vol", "rel_strength", "earnings_next", "earnings_recent"];
 const isDate = (x) => /^\d{4}-\d{2}-\d{2}$/.test(x || "");
@@ -24,6 +24,8 @@ export function parseHash(hash) {
   else if (a === "combined" && parts.length === 1) r = { name: "combined" };
   else if (a === "settings" && parts.length === 1) r = { name: "settings" };
   else if (a === "setup" && parts.length === 1) r = { name: "setup" };
+  else if (a === "phone" && parts.length === 1) r = { name: "phone" };
+  else if (a === "install" && parts.length === 1) r = { name: "install" };
   else if (a === "history" && parts.length === 1) r = { name: "history" };
   else if (a === "history" && isDate(b) && parts.length === 2) r = { name: "historyDay", date: b };
   else if (a === "history" && isDate(b) && c === "combined" && parts.length === 3) r = { name: "historyCombined", date: b };
@@ -32,9 +34,11 @@ export function parseHash(hash) {
   return { ...r, hash: "#/" + parts.join("/") };
 }
 
-/** Mode-dependent guards (QA R2-n7): the setup wizard exists only inside the desktop program. */
+/** Mode-dependent guards (QA R2-n7): the setup wizard and the phone tab exist only inside the desktop program, and the
+ *  phone install page only outside it. */
 export function guardRoute(route, { desktop = false } = {}) {
-  if (route.name === "setup" && !desktop) return HOME;
+  if ((route.name === "setup" || route.name === "phone") && !desktop) return HOME;
+  if (route.name === "install" && desktop) return HOME;
   return route;
 }
 

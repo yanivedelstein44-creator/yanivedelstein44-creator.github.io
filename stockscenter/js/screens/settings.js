@@ -10,6 +10,8 @@ import { decodePairing } from "../data/github.js";
 import { topBar, masthead, metaLine } from "../components/chrome.js";
 import { toast } from "../components/toast.js";
 import { checkForUpdatesNow, swSupported } from "../pwa.js";
+import { canOfferInstall } from "../data/install.js";
+import { installState } from "../installPrompt.js";
 
 export const field = ({ label, help, control, id }) =>
   h("div", { class: "field" }, h("label", { class: "field__label", for: id }, label), control, help && h("p", { class: "field__help" }, help));
@@ -137,10 +139,22 @@ function connectionBlock(rerender) {
       id: "pair-code",
       label: paired ? "קוד חיבור חדש" : "קוד חיבור",
       control: code,
-      help: "בתוכנה במחשב: הגדרות › חיבור הטלפון. אפשר לסרוק את ה-QR או להדביק את הקוד. המפתח נשמר רק בטלפון הזה ואינו נשלח לשום מקום מלבד GitHub.",
+      help: "בתוכנה במחשב: ״התקן בטלפון״. אפשר לסרוק את ה-QR, או להדביק כאן את הקישור או את הקוד. המפתח נשמר רק בטלפון הזה ואינו נשלח לשום מקום מלבד GitHub.",
     }),
     msg,
     h("div", { class: "block__actions" }, connect, paired && disconnect)
+  );
+}
+
+/* ---------- install the app (phone browser only) ---------- */
+
+function installBlock() {
+  const kind = installState().kind;
+  if (!canOfferInstall(kind)) return null;
+  return card(
+    "התקנת האפליקציה",
+    h("p", { class: "field__help" }, "האפליקציה מקבלת סמל משלה במסך הבית ומתעדכנת לבד."),
+    h("div", { class: "block__actions" }, h("a", { class: "btn btn--primary btn--pill", href: "#/install", "data-testid": "settings-install" }, icon("download", 18, 2.2), "התקן את האפליקציה"))
   );
 }
 
@@ -331,14 +345,15 @@ async function desktopBlocks(rerender) {
   out.push(
     card(
       "התנהגות",
-      h("div", { class: "switchrow" }, h("label", { for: "autostart" }, "הפעלה עם Windows"), toggle({ id: "autostart", checked: !!cfg.autostart, label: "הפעלה עם Windows", onChange: (v) => callBridge("saveSettings", { autostart: v }) })),
+      h("div", { class: "switchrow" }, h("label", { for: "autostart" }, "הפעלה עם הדלקת המחשב"), toggle({ id: "autostart", checked: !!cfg.autostart, label: "הפעלה עם הדלקת המחשב", onChange: (v) => callBridge("saveSettings", { autostart: v }) })),
+      h("p", { class: "field__help", "data-testid": "tray-note" }, "התוכנה עולה ישר לסמל ליד השעון, בלי חלון. גם X רק מסתיר את החלון: הסריקות ממשיכות. יציאה מלאה: קליק ימני על הסמל ואז ״יציאה״. לא רואה את הסמל? לחץ על החץ ^ ליד השעון."),
       h("div", { class: "switchrow" }, h("label", { for: "auto-update" }, "עדכון אוטומטי של התוכנה"), toggle({ id: "auto-update", checked: cfg.auto_update !== false, label: "עדכון אוטומטי של התוכנה", onChange: (v) => callBridge("saveSettings", { auto_update: v }) })),
       field({ id: "atr", label: "מכפיל ATR לסטופ", control: atr, help: "סטופ = מחיר פחות מכפיל × ATR. ברירת מחדל 1.5. ישפיע מהסריקה הבאה." })
     )
   );
 
   // Phone: token + QR
-  out.push(card("חיבור הטלפון", phoneBlock(cfg, { onUpdate: () => refreshDesktopInfo() })));
+  out.push(card("התקנה וחיבור בטלפון", phoneBlock(cfg, { onUpdate: () => refreshDesktopInfo() })));
 
   out.push(
     card(
@@ -410,7 +425,11 @@ export async function mount(root) {
     if (app.bannerBox) root.append(app.bannerBox);
     const grid = h("div", { class: "settings" });
     root.append(grid);
-    if (!app.mode.desktop) grid.append(connectionBlock(render));
+    if (!app.mode.desktop) {
+      grid.append(connectionBlock(render));
+      const inst = installBlock();
+      if (inst) grid.append(inst);
+    }
     grid.append(accountBlock());
     if (app.mode.desktop) {
       const blocks = await desktopBlocks(render);

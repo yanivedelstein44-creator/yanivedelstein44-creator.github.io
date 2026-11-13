@@ -11,6 +11,7 @@ const NAV = [
   ["home", "#/home", "בית", "home"],
   ["combined", "#/combined", "דירוג משולב", "layers"],
   ["history", "#/history", "היסטוריה", "history"],
+  ["phone", "#/phone", "התקן בטלפון", "phone", "desktop"], // desktop window only: one QR installs and pairs the phone app
   ["settings", "#/settings", "הגדרות", "settings"],
 ];
 
@@ -35,7 +36,7 @@ export function sidebar() {
   const nav = h(
     "nav",
     { class: "sidenav", "aria-label": "מסכים" },
-    NAV.map(([key, href, label, ic]) => h("a", { class: "sidenav__a", href, "data-nav": key }, icon(ic, 19, 2), h("span", {}, label)))
+    NAV.filter(([, , , , only]) => only !== "desktop" || app.mode.desktop).map(([key, href, label, ic]) => h("a", { class: "sidenav__a", href, "data-nav": key }, icon(ic, 19, 2), h("span", {}, label)))
   );
   const search = h("button", { class: "iconbtn iconbtn--onblue sidebar__search", type: "button", "aria-label": "חיפוש מניה", title: "חיפוש מניה (/)", "data-testid": "side-search", onClick: () => openSearch() }, icon("search", 19, 2.2));
   const cats = h("div", { class: "sidecats", "data-testid": "category-list" });

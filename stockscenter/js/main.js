@@ -13,8 +13,16 @@ import { sidebar } from "./components/sidebar.js";
 import { loadErrorState } from "./components/states.js";
 import { closeAllOverlays } from "./components/overlay.js";
 import { registerServiceWorker, announceUpdateIfAny } from "./pwa.js";
+import { initInstallPrompt, installState } from "./installPrompt.js";
+import { canOfferInstall } from "./data/install.js";
+
+// Chrome may fire beforeinstallprompt right after load: stash it before anything awaits (the phone's "הורד" button).
+initInstallPrompt();
 
 const q = new URLSearchParams(location.search);
+
+/** After a pairing link on a phone browser the next stop is the install page (SPEC §9), not the home. */
+const installNext = () => !app.mode.desktop && !isWide() && canOfferInstall(installState().kind);
 const DESKTOP_WAIT_MS = 15000;
 
 class DesktopConnectError extends Error {
@@ -62,7 +70,7 @@ async function pickAdapter() {
     app.mode.desktop = true;
     return new LocalAdapter();
   }
-  consumePairingFromHash(location, history, localStorage);
+  app.justPaired = !!consumePairingFromHash(location, history, localStorage);
   return new GitHubAdapter({ storage: localStorage });
 }
 
@@ -76,6 +84,8 @@ const SCREENS = {
   historyDay: () => import("./screens/history.js").then((m) => m.mountDay),
   settings: () => import("./screens/settings.js").then((m) => m.mount),
   setup: () => import("./screens/setup.js").then((m) => m.mount),
+  phone: () => import("./screens/phoneTab.js").then((m) => m.mount),
+  install: () => import("./screens/install.js").then((m) => m.mount),
 };
 
 /** The status bar matches the top of the screen: blue on the phone's home (header panel), paper elsewhere. */
@@ -88,7 +98,7 @@ function setThemeColor(route) {
 }
 
 /** Child screens restore their parent's scroll position when the user comes back. */
-const PARENT = (r) => (r.name === "cat" || r.name === "settings" || r.name === "combined" || r.name === "history" ? "#/home" : r.name === "historyDay" ? "#/history" : r.name === "historyCat" || r.name === "historyCombined" ? `#/history/${r.date}` : null);
+const PARENT = (r) => (r.name === "cat" || r.name === "settings" || r.name === "phone" || r.name === "install" || r.name === "combined" || r.name === "history" ? "#/home" : r.name === "historyDay" ? "#/history" : r.name === "historyCat" || r.name === "historyCombined" ? `#/history/${r.date}` : null);
 
 async function main() {
   app.adapter = await pickAdapter();
@@ -111,6 +121,7 @@ async function main() {
     firstRunSetup = !!s && s.has_github_token === false && !location.hash;
   }
   if (firstRunSetup) location.hash = "#/setup";
+  else if (app.justPaired && installNext()) history.replaceState(null, "", location.pathname + location.search + "#/install");
 
   let side = null;
   let nav = null;
@@ -152,7 +163,7 @@ async function main() {
     app.error = null;
     await Promise.allSettled([refreshStatus(), refreshIndex()]);
     toast("הטלפון מחובר");
-    location.hash = "#/home";
+    location.hash = installNext() ? "#/install" : "#/home";
   });
 
   // data first (index feeds the sidebar), polling afterwards

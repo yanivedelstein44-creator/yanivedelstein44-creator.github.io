@@ -36,5 +36,12 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://yanivedelstein44-creator.github.io/stockscenter/manifest.webmanifest"
+    }
+  ],
+  "prefer_related_applications": false
 }

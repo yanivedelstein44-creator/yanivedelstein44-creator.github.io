@@ -2,7 +2,7 @@
 import { h, clear, brandMark } from "../dom.js";
 import { app, refreshIndex, refreshStatus, refreshDesktopInfo } from "../state.js";
 import { callBridge, runTvLogin } from "../data/local.js";
-import { field, input, desktopTokenGuide, showGitHubResult, codeRepoWarning } from "./settings.js";
+import { field, input, toggle, desktopTokenGuide, showGitHubResult, codeRepoWarning } from "./settings.js";
 import { phoneBlock } from "./phone.js";
 import { DEFAULT_OWNER, DEFAULT_CODE_REPO, DEFAULT_DATA_REPO } from "../data/links.js";
 import { toast } from "../components/toast.js";
@@ -12,7 +12,7 @@ const STEPS = [
   { key: "github", label: "GitHub" },
   { key: "claude", label: "Claude" },
   { key: "tv", label: "TradingView" },
-  { key: "phone", label: "חיבור הטלפון" },
+  { key: "phone", label: "התקנה בטלפון" },
   { key: "done", label: "סיום" },
 ];
 
@@ -152,8 +152,8 @@ export async function mount(root) {
       return h(
         "div",
         { class: "wizard__body" },
-        h("h2", { class: "wizard__title" }, "חיבור הטלפון"),
-        h("p", { class: "wizard__lead" }, "לטלפון יש מפתח נפרד משלו, שרואה רק את מאגר הנתונים. הדבק אותו כאן, ואז סרוק את הקוד במצלמת הטלפון. את הקוד תמצא גם בהגדרות, בכל זמן."),
+        h("h2", { class: "wizard__title" }, "התקנה בטלפון"),
+        h("p", { class: "wizard__lead" }, "לטלפון יש מפתח נפרד משלו, שרואה רק את מאגר הנתונים. הדבק אותו כאן, סרוק את הקוד במצלמת הטלפון, ובדף שנפתח לחץ ״הורד״. את הקוד תמצא תמיד גם בכפתור ״התקן בטלפון״."),
         phoneBlock(cfg, {
           onUpdate: (c) => {
             Object.assign(cfg, c);
@@ -170,6 +170,17 @@ export async function mount(root) {
       h("div", { class: "wizard__done-mark" }, brandMark(64)),
       h("h2", { class: "wizard__title" }, "הכול מוכן"),
       h("p", { class: "wizard__lead" }, "אפשר להתחיל בסריקה הראשונה. היא לוקחת כמה דקות, ובסיומה הנתונים יופיעו כאן ובטלפון."),
+      h(
+        "div",
+        { class: "wizard__switch" },
+        h(
+          "div",
+          { class: "switchrow" },
+          h("label", { for: "wiz-autostart" }, "הפעלה עם הדלקת המחשב"),
+          toggle({ id: "wiz-autostart", checked: !!cfg.autostart, label: "הפעלה עם הדלקת המחשב", onChange: async (v) => { await callBridge("saveSettings", { autostart: v }); cfg.autostart = v; } })
+        ),
+        h("p", { class: "field__help", "data-testid": "wizard-tray-note" }, "התוכנה עולה ישר לסמל ליד השעון. גם X רק מסתיר את החלון, והסריקות ממשיכות ברקע.")
+      ),
       h(
         "div",
         { class: "wizard__nav" },

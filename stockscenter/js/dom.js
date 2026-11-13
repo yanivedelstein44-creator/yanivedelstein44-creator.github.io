@@ -58,12 +58,15 @@ export const PATHS = {
   history: "M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16 M12 8v4l3 2",
   search: "M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-5-5",
   settings: "M4 7h10 M18 7h2 M4 17h4 M12 17h8 M16 5v4 M10 15v4",
+  phone: "M8.5 3h7A1.5 1.5 0 0 1 17 4.5v15a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 19.5v-15A1.5 1.5 0 0 1 8.5 3z M10.5 18h3",
   bell: "M6 16V11a6 6 0 0 1 12 0v5l2 2H4z M10 20a2 2 0 0 0 4 0",
   back: "M9 6l6 6-6 6", // points right: "back" in RTL
   chevron: "M15 6l-6 6 6 6", // points left: "forward" in RTL
   plus: "M12 5v14 M5 12h14",
   close: "M6 6l12 12 M18 6L6 18",
   check: "M5 12.5l4.5 4.5L19 7.5",
+  download: "M12 4v11 M7.5 10.5L12 15l4.5-4.5 M5 19.5h14",
+  copy: "M9 9h10v11H9z M5 15V4h10",
   external: "M14 4h6v6 M20 4l-9 9 M18 14v6H4V6h6",
   expand: "M4 9V4h5 M20 9V4h-5 M4 15v5h5 M20 15v5h-5",
   eye: "M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z M12 9.2a2.8 2.8 0 1 0 0 5.6a2.8 2.8 0 1 0 0-5.6",
@@ -88,6 +91,31 @@ export function icon(name, size = 22, stroke = 2) {
   return svg(
     `<svg xmlns="${SVG_NS}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${PATHS[name] || PATHS.layers}"/></svg>`
   );
+}
+
+/** Copy text to the clipboard: the async API first, then the old execCommand path (older web views). Resolves true/false. */
+export async function copyText(text) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    /* blocked: try the old way */
+  }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;opacity:0;inset-inline-start:-9999px;top:0";
+    document.body.append(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return !!ok;
+  } catch {
+    return false;
+  }
 }
 
 /** The brand mark (design/icon.svg), inline. */

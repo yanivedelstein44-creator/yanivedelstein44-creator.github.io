@@ -2,7 +2,7 @@
    Never touches api.github.com (data + token) or ../fixtures (demo data); those go straight to the network.
    Bump VERSION on every publish (tests/shell.test.mjs checks it equals APP_VERSION in version.js, and that SHELL lists
    every module, stylesheet and font the app loads: QA R2-m3). */
-const VERSION = "1.1.2";
+const VERSION = "1.3.0";
 const CACHE = `stockscenter-shell-${VERSION}`;
 
 const SHELL = [
@@ -10,6 +10,7 @@ const SHELL = [
   "./css/tokens.css", "./css/fonts.css", "./css/base.css", "./css/components.css", "./css/screens.css",
   "./js/components/alertsSheet.js", "./js/components/banner.js", "./js/components/chrome.js",
   "./js/components/extLink.js", "./js/components/flags.js", "./js/components/imageViewer.js",
+  "./js/components/installCard.js", "./js/components/installFlow.js",
   "./js/components/miniBars.js", "./js/components/navPill.js", "./js/components/overlay.js",
   "./js/components/rankList.js", "./js/components/rankTable.js", "./js/components/ranking.js",
   "./js/components/report.js", "./js/components/scanButton.js", "./js/components/scoreRing.js",
@@ -17,11 +18,11 @@ const SHELL = [
   "./js/components/sidebar.js", "./js/components/slider.js", "./js/components/sortChips.js",
   "./js/components/states.js", "./js/components/statusPill.js", "./js/components/stockSheet.js",
   "./js/components/toast.js", "./js/data/github.js", "./js/data/links.js",
-  "./js/data/local.js", "./js/dom.js", "./js/format.js",
-  "./js/main.js", "./js/pwa.js", "./js/risk.js",
+  "./js/data/install.js", "./js/data/local.js", "./js/dom.js", "./js/format.js",
+  "./js/installPrompt.js", "./js/main.js", "./js/pwa.js", "./js/risk.js",
   "./js/router.js", "./js/scoring/total.js", "./js/screens/category.js",
-  "./js/screens/combined.js", "./js/screens/history.js", "./js/screens/home.js",
-  "./js/screens/phone.js", "./js/screens/settings.js", "./js/screens/setup.js",
+  "./js/screens/combined.js", "./js/screens/history.js", "./js/screens/home.js", "./js/screens/install.js",
+  "./js/screens/phone.js", "./js/screens/phoneTab.js", "./js/screens/settings.js", "./js/screens/setup.js",
   "./js/state.js", "./js/universe.js", "./js/watchlist.js",
   "./fonts/frank-ruhl-libre-hebrew-500-normal.woff2", "./fonts/frank-ruhl-libre-hebrew-700-normal.woff2", "./fonts/frank-ruhl-libre-hebrew-900-normal.woff2",
   "./fonts/frank-ruhl-libre-latin-500-normal.woff2", "./fonts/frank-ruhl-libre-latin-700-normal.woff2", "./fonts/frank-ruhl-libre-latin-900-normal.woff2",

@@ -311,3 +311,42 @@ body.is-scrolled .topbar { box-shadow: 0 1px 0 var(--sc-line); }
   .sh-ticker { font-size: 34px; }
   .hero .wordmark { font-size: 27px; }
 }
+
+/* ---------- install + pair the phone (desktop window: phone tab, wizard, settings; SPEC §9) ---------- */
+.settings.phonetab { columns: 1; }
+.pair-install { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sc-s4) var(--sc-s5); margin: var(--sc-s2) 0 var(--sc-s4); }
+.pair-install__qr { display: grid; justify-items: center; gap: var(--sc-s2); flex: none; }
+.pair-install__main { display: grid; gap: var(--sc-s3); flex: 1 1 240px; min-width: 0; }
+.pair-install .qr__img { width: 216px; height: 216px; }
+.pair-token { display: grid; gap: var(--sc-s3); border-top: 1px solid var(--sc-line-soft); padding-top: var(--sc-s4); }
+.pair-token__head { font-size: 15px; font-weight: 700; color: var(--sc-ink); }
+.pair-token__more > summary { cursor: pointer; min-height: 40px; display: flex; align-items: center; color: var(--sc-primary); font-weight: 600; font-size: 14px; }
+.pair-token__more[open] > summary { margin-bottom: var(--sc-s2); }
+.wizard__switch { width: 100%; max-width: 420px; display: grid; gap: 4px; text-align: start; border-top: 1px solid var(--sc-line-soft); border-bottom: 1px solid var(--sc-line-soft); padding: 4px 0 12px; }
+
+/* ---------- install the app on the phone (phone browser: #/install, the home card, the steps sheet) ---------- */
+.install-hero { display: grid; justify-items: center; text-align: center; gap: 12px; padding: 28px 20px 22px; margin-top: 14px; }
+.install-hero__mark svg { border-radius: 18px; box-shadow: 0 10px 28px rgba(15, 30, 54, 0.18); }
+.install-hero__title { font-family: var(--sc-font-display); font-weight: 900; font-size: 30px; line-height: 1.15; color: var(--sc-ink); }
+.install-hero__lead { color: var(--sc-ink-2); font-size: var(--sc-fs-body); line-height: 1.65; max-width: 34ch; }
+.install-hero__conn { justify-content: center; }
+.install-hero__btn { width: 100%; max-width: 320px; min-height: 58px; font-size: 19px; font-weight: 700; gap: 10px; margin-top: 4px; }
+.install-hero__status { min-height: 1.4em; color: var(--sc-ink-2); font-size: 14px; }
+.install-hero__steps { text-align: start; max-width: 36ch; }
+.install-hero__points { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; text-align: start; }
+.install-hero__points li { display: flex; align-items: center; gap: 8px; color: var(--sc-ink-2); font-size: 14px; }
+.install-hero__points svg { color: var(--sc-up); flex: none; }
+.install-hero__hint { max-width: 34ch; }
+.install-hero .more-link { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin-top: 2px; font-size: 14px; font-weight: 700; color: var(--sc-primary); }
+.install-slot { margin-top: 12px; }
+.installcard { display: flex; align-items: center; gap: 10px; padding: 10px 16px 10px 8px; }
+.installcard__txt { display: grid; gap: 2px; flex: 1 1 auto; min-width: 0; }
+.installcard__txt strong { font-size: 15px; color: var(--sc-ink); }
+.installcard__txt span { font-size: 13px; color: var(--sc-ink-3); }
+.installcard .btn { flex: none; gap: 6px; }
+.installcard__close { flex: none; width: 44px; height: 44px; color: var(--sc-ink-3); }
+.install-steps { display: grid; gap: 14px; }
+.install-steps__title { font-family: var(--sc-font-display); font-weight: 700; font-size: 22px; color: var(--sc-ink); }
+.install-steps__ready { display: flex; align-items: center; gap: 8px; color: var(--sc-up); font-weight: 600; font-size: 14px; }
+.install-steps__bar { display: flex; gap: 10px; }
+.install-steps__bar .btn { flex: 1 1 0; gap: 8px; }

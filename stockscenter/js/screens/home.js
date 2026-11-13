@@ -6,6 +6,7 @@ import { app, refreshIndex, catName, onLive } from "../state.js";
 import { clock, fmtInt, datelineHe, editionHe, firstSentences, stocksHe, nyToday, timeAgo } from "../format.js";
 import { rankStocks, computeTotal } from "../scoring/total.js";
 import { skeleton, emptyState, errorState } from "../components/states.js";
+import { installCard } from "../components/installCard.js";
 import { statusPill } from "../components/statusPill.js";
 import { scanProgress, roundScan, scanState } from "../components/scanButton.js";
 import { masthead, sectionHead, metaLine, kicker } from "../components/chrome.js";
@@ -287,6 +288,10 @@ export async function mount(root) {
       : hero();
     root.append(top);
     placeBanners(top);
+    if (!wide) {
+      const ic = installCard(); // phone browser only: "התקן את האפליקציה"
+      if (ic) root.append(h("div", { class: "pad-x install-slot" }, ic));
+    }
     if (!app.index) {
       root.append(skeleton(4, "cards"));
       await refreshIndex();
@@ -306,7 +311,7 @@ export async function mount(root) {
               { class: "card state state--left onboard", "data-testid": "error-state", "data-kind": "unpaired" },
               kicker("חיבור ראשון"),
               h("p", { class: "state__title" }, "בוא נחבר את הטלפון למחשב"),
-              h("p", { class: "state__text" }, "בתוכנה במחשב פתח הגדרות › חיבור הטלפון. סרוק את הקוד במצלמה, או העתק את קוד החיבור והדבק אותו כאן בהגדרות. המפתח נשמר רק בטלפון הזה."),
+              h("p", { class: "state__text" }, "בתוכנה במחשב לחץ ״התקן בטלפון״ וסרוק את הקוד במצלמה. אפשר גם להעתיק משם את הקישור ולהדביק אותו כאן בהגדרות. המפתח נשמר רק בטלפון הזה."),
               h("div", { class: "state__actions" }, h("a", { class: "btn btn--primary btn--pill", href: "#/settings" }, "להגדרות"), h("button", { class: "btn btn--ghost btn--pill", type: "button", onClick: load }, "נסה שוב"))
             )
           )
