@@ -52,3 +52,8 @@ ol.steps .step-title { font-size: 18px; margin: 2px 0 4px; padding: 0; border: 0
 ol.steps p { margin: 0 0 10px; }
 a.step-btn { display: inline-block; min-height: 44px; padding: 10px 20px; border-radius: 999px; background: var(--gold); color: #1a1208; font-weight: 800; text-decoration: none; }
 a.step-btn:hover { background: var(--gold-2); }
+
+/* Trailer on the join page */
+figure.trailer { margin: 18px 0 22px; }
+figure.trailer video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 14px; background: #0b0a18; box-shadow: 0 6px 22px rgba(0,0,0,0.25); }
+figure.trailer figcaption { margin-top: 8px; font-size: 0.92em; opacity: 0.85; text-align: center; }
