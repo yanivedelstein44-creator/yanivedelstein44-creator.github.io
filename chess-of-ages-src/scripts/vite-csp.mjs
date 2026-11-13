@@ -52,7 +52,8 @@ export function gamePolicy(hashes = [], extraConnect = []) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
-    "media-src 'self' data: blob:",
+    // the cinema trailer streams from the site (chess-of-ages-media/), only when the player taps it
+    "media-src 'self' data: blob: https://yanivedelstein44-creator.github.io",
     `connect-src 'self' ${[...FIREBASE, ...extraConnect].join(' ')}`,
     // the chess AI runs in an inlined worker (Vite ?worker&inline: blob: URL, data: URL as fallback)
     "worker-src 'self' blob: data:",

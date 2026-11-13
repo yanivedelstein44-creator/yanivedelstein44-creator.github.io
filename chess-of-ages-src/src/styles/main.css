@@ -553,6 +553,17 @@ button:focus-visible, [role='button']:focus-visible, input:focus-visible, select
 .cinema-pick { display: grid; gap: 10px; }
 .cinema-screen { border-radius: 14px; padding: 14px 10px 8px; background: radial-gradient(circle at 50% 30%, #3a2a7a, #0b0720 75%); border: 2px solid rgba(242, 201, 76, 0.6); box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6); display: flex; justify-content: center; }
 .cinema-screen svg { width: min(220px, 60vw); height: auto; }
+/* הטריילר על המסך הגדול של הקולנוע */
+.cinema-screen.trailer { position: relative; display: block; width: 100%; padding: 0; aspect-ratio: 16 / 9; overflow: hidden; cursor: pointer; }
+.cinema-screen.trailer img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cinema-screen.trailer::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.7)); pointer-events: none; }
+.cinema-screen .cs-play { position: absolute; left: 50%; top: 44%; z-index: 1; transform: translate(-50%, -50%); width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; background: rgba(229, 56, 59, 0.92); border: 3px solid #fff3c8; box-shadow: 0 0 24px rgba(0, 0, 0, 0.6); }
+.cinema-screen .cs-play i { width: 0; height: 0; margin-left: 6px; border-left: 22px solid #fff; border-top: 14px solid transparent; border-bottom: 14px solid transparent; }
+.cinema-screen .cs-label { position: absolute; bottom: 8px; inset-inline-start: 12px; z-index: 1; color: #fff7dc; font: 800 15px Rubik, system-ui, sans-serif; text-shadow: 0 1px 4px #000; }
+.trailer-player { position: absolute; inset: 0; z-index: 80; background: #000; display: flex; align-items: center; justify-content: center; }
+.trailer-player video { width: 100%; max-height: 100%; background: #000; }
+.trailer-close { position: absolute; top: calc(var(--safe-top) + 14px); inset-inline-end: 14px; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; padding: 0; color: #fff; background: rgba(255, 255, 255, 0.15); border: 1.5px solid rgba(255, 255, 255, 0.4); cursor: pointer; }
+.trailer-msg { margin: 0; padding: 0 28px; text-align: center; color: #fff7dc; font: 600 16px/1.5 Rubik, system-ui, sans-serif; }
 .cinema-card { display: flex; align-items: center; gap: 12px; text-align: start; padding: 12px 14px; border-radius: 14px; color: var(--text, #fff); background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)); border: 1px solid rgba(242, 201, 76, 0.45); box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15); font: inherit; cursor: pointer; }
 .cinema-card .cc-ic { width: 52px; height: 52px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(180deg, #5a1a3e, #2a0a1e); border: 1px solid rgba(242, 201, 76, 0.6); flex: none; }
 .cinema-card .cc-t { display: flex; flex-direction: column; gap: 3px; }
@@ -565,6 +576,14 @@ button:focus-visible, [role='button']:focus-visible, input:focus-visible, select
 .film-cap.in { opacity: 1; transform: none; }
 .film-title { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 45%, rgba(40, 26, 90, 0.85), rgba(6, 4, 16, 0.96) 70%); animation: travelIn 0.8s ease-out both; }
 .film-title svg { width: min(84vw, 380px); height: auto; filter: drop-shadow(0 0 24px rgba(242, 201, 76, 0.35)); }
+.film-x2 { position: absolute; top: calc(10vh + 60px); left: 50%; display: flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 999px; background: linear-gradient(180deg, #3d2c7a, #271c52); border: 2px solid var(--gold); color: var(--gold-2); font: 900 36px/1 Rubik, system-ui, sans-serif; direction: ltr; box-shadow: 0 0 30px rgba(242, 201, 76, 0.55); opacity: 0; transform: translateX(-50%) scale(0.4); transition: transform 0.55s cubic-bezier(0.2, 1.6, 0.4, 1), opacity 0.4s; }
+.film-x2.in { opacity: 1; transform: translateX(-50%) scale(1); }
+.film-end { pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0 22px; text-align: center; }
+.film-end .fe-logo svg { width: min(72vw, 300px); }
+.film-end .fe-t { font: 800 24px Rubik, system-ui, sans-serif; color: var(--gold-2); }
+.film-end .fe-s { margin: 0; font: 600 15px/1.4 Rubik, system-ui, sans-serif; color: #fff7dc; }
+.film-end .fe-btns { display: flex; gap: 10px; margin-top: 8px; }
+.film-end .fe-btns svg { width: 18px; height: 18px; filter: none; }
 .film-skip { pointer-events: auto; position: absolute; top: calc(10vh + 10px); inset-inline-end: 12px; display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: rgba(10, 8, 20, 0.6); color: #fff; border: 1px solid rgba(255, 255, 255, 0.25); font: 700 13px Rubik, system-ui, sans-serif; }
 
 /* ---------- פיראטים, בוטים בחנות ---------- */

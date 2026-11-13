@@ -747,7 +747,8 @@ export class WorldMap {
     for (const a of [this.auraWall, this.auraRing, this.auraCrown]) a.count = this.auraIds.length;
     this.auraWall.instanceMatrix.needsUpdate = true;
     this.updateAuras(0, this.time || 0);
-    if (this.flight) { this.labels?.forEach((l) => { l.visible = false; }); this.nextRing.visible = false; }
+    // בטיסה ובסרטי הקולנוע: בלי מספרי איים ובלי טבעת "האי הבא"
+    if (this.flight || this.filmMode) { this.labels?.forEach((l) => { l.visible = false; }); this.nextRing.visible = false; }
   }
 
   /** הילת השליטה של הבוט: טבעת זוהרת על המים, קיר אור שקוף סביב האי וכתר אדום שמרחף מעליו */

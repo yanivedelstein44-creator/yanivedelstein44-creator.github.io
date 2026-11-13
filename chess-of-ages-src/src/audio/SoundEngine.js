@@ -649,7 +649,7 @@ export class SoundEngine {
     let step = 0;
     let nextAt = 0;
     this.musicTimer = setInterval(() => {
-      if (!this.ok || !this.ambOn) return;
+      if (!this.ok || !this.ambOn || this.filmOn) return; // בזמן סרט בקולנוע — רק המוזיקה של הסרט
       const t = this.now;
       if (t < nextAt) return;
       const P = this.P, ten = this.tension;
@@ -668,6 +668,53 @@ export class SoundEngine {
       if (ten > 0.45 && step % 2 === 0) { this.tone(70, t, 0.18, { freqEnd: 40, gain: 0.12 * ten, dest: this.musicBus }); }
       if (ten > 0.7 && step % 2 === 1) this.noise(t, 0.03, { type: 'highpass', freq: 6000, gain: 0.05, dest: this.musicBus });
     }, 50);
+  }
+
+  // ---------- סרטי הקולנוע ----------
+  /**
+   * מוזיקת סרט (דו מז'ור, 96 BPM, תיבה = 2.5 שניות): פד, בס, ארפג'ו ותופים שנבנים לאט, ואקורד גדול בסוף.
+   * עוברת בערוץ המוזיקה (שקטה אם המוזיקה כבויה), והמוזיקה הרגילה שותקת בינתיים. מחזירה { stop(fade) }.
+   */
+  filmScore(bars = 14) {
+    if (!this.ok) return { stop() {} };
+    const c = this.ctx, t0 = this.now + 0.05;
+    const out = c.createGain(); out.gain.value = 2.6; out.connect(this.ambBus); // ערוץ המוזיקה שקט — הסרט צריך מוזיקה נוכחת
+    this.filmOn = true;
+    const beat = 60 / 96, bar = beat * 4;
+    const prog = [[48, 60, 64, 67], [43, 59, 62, 67], [45, 60, 64, 69], [41, 60, 65, 69]]; // C · G · Am · F (בס + אקורד)
+    const arp = [0, 1, 2, 1, 0, 2, 1, 2];
+    for (let b = 0; b < bars; b++) {
+      const [bass, ...ch] = prog[b % 4];
+      const t = t0 + b * bar, lift = Math.min(1, b / 8);
+      this.chord(ch.map(mtof), t, bar + 0.15, { type: 'sawtooth', gain: 0.035 + 0.02 * lift, cutoff: [400, 1400 + 1400 * lift, 700], dest: out, attack: 0.25 });
+      this.pluck(mtof(bass), t, { gain: 0.1, decay: bar * 0.9, dest: out, bright: 900 });
+      if (b >= 2) for (let i = 0; i < 8; i++) this.pluck(mtof(ch[arp[i]] + 12), t + (i * beat) / 2, { gain: 0.035 + 0.03 * lift, decay: 0.5, dest: out, bright: 3200 });
+      if (b >= 4) for (let k = 0; k < 4; k++) if (k % 2 === 0 || b >= 8) this.drum(t + k * beat, k === 0 ? 0.22 : 0.14, out);
+      if (b >= 8) for (let k = 0; k < 8; k++) this.noise(t + (k * beat) / 2, 0.04, { type: 'highpass', freq: 7000, gain: 0.02, dest: out });
+    }
+    // הסיום: אקורד דו גדול, בס עמוק ומצלתיים רכות
+    const te = t0 + bars * bar;
+    this.chord([60, 64, 67, 72, 76].map(mtof), te, 3.2, { type: 'sawtooth', gain: 0.05, cutoff: [600, 3200, 800], dest: out, attack: 0.04 });
+    this.pluck(mtof(36), te, { gain: 0.14, decay: 2.8, dest: out, bright: 700 });
+    this.noise(te, 2.4, { type: 'highpass', freq: 5000, gain: 0.04, dest: out, attack: 0.01 });
+    this.drum(te, 0.3, out);
+    const timer = setTimeout(() => { this.filmOn = false; }, (te - this.now + 3.4) * 1000);
+    return {
+      stop: (fade = 0.6) => {
+        clearTimeout(timer);
+        this.filmOn = false;
+        const n = this.now;
+        out.gain.cancelScheduledValues(n); out.gain.setValueAtTime(out.gain.value, n); out.gain.linearRampToValueAtTime(0, n + fade);
+      },
+    };
+  }
+
+  /** מכה של "בוס" בסרט: תוף נמוך ואקורד כבד קצר */
+  filmHit() {
+    if (!this.ok) return;
+    const t = this.now;
+    this.drum(t, 0.5);
+    this.chord([mtof(36), mtof(43), mtof(48)], t, 1.3, { type: 'sawtooth', gain: 0.08, cutoff: [180, 900, 220] });
   }
 
   instrument(kind, f, t, gain, bass = false) {

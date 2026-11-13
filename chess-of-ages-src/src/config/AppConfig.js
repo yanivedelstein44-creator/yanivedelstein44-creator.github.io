@@ -23,6 +23,8 @@ export const PUBLIC_URL = withSlash(env.VITE_PUBLIC_URL || '');
 export const UPDATE_URL = withSlash(env.VITE_UPDATE_BASE || env.VITE_UPDATE_URL || env.VITE_PUBLIC_URL || '');
 /** קישור להורדת APK חדש (רק כשנדרש עדכון "מקומי" מלא) */
 export const APK_URL = env.VITE_APK_URL || '';
+/** סרטונים גדולים (הטריילר בקולנוע) נטענים מהאתר רק כשצופים בהם — לא בתוך חבילת העדכון */
+export const MEDIA_URL = withSlash(env.VITE_MEDIA_URL || 'https://yanivedelstein44-creator.github.io/chess-of-ages-media/');
 
 /**
  * Firebase — משחק אונליין עם חבר שמזמינים (חדרים פרטיים בלבד, בלי שידוך עם זרים).
