@@ -10,6 +10,8 @@
  */
 import { ONLINE, PUBLIC_URL } from '../config/AppConfig.js';
 import { getBackend } from './backend.js';
+import { localizeIncomingName } from '../core/PlayerName.js';
+import { getLang } from '../ui/i18n.js';
 
 export class RoomError extends Error {
   constructor(code) { super(code); this.code = code; }
@@ -169,7 +171,7 @@ export class OnlineRoom {
     const d = this.data || {};
     const isHost = this.hostColor === color;
     const uid = isHost ? d.host : d.guest;
-    return { uid, name: clip(isHost ? d.hn : d.gn, 24), look: unpackLook(isHost ? d.hl : d.gl), online: !!(uid && d.on && d.on[uid]), joined: !!uid };
+    return { uid, name: localizeIncomingName(isHost ? d.hn : d.gn, getLang()) || '', look: unpackLook(isHost ? d.hl : d.gl), online: !!(uid && d.on && d.on[uid]), joined: !!uid };
   }
   opponent() { return this.myColor ? this.player(this.myColor === 'w' ? 'b' : 'w') : null; }
   rematchWanted(uid) { return !!this.data?.rm?.[uid]; }

@@ -9,7 +9,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { h, withIcon } from './UI.js';
 import { t, tn, shortName, islandName } from './i18n.js';
 import { icon } from './icons.js';
-import { WEARABLES, RARITY, formatGems, BOARD_SKINS, FULL_GAME, GEM_BOOST, formatPrice } from '../config/EconomyConfig.js';
+import { WEARABLES, RARITY, formatGems, BOARD_SKINS, FULL_GAME, GEM_BOOST } from '../config/EconomyConfig.js';
 import { PaymentProvider } from '../core/Economy.js';
 import { eraMaterials } from '../scene/Materials.js';
 import { skinPreview } from '../scene/PieceSprites.js';
@@ -19,6 +19,7 @@ import { PetCompanion3D } from '../scene/PetCompanion3D.js';
 import { FX } from '../scene/Particles.js';
 import { HUB_ID, islandDef, residentPrice, petColorPrice } from '../config/Islands.js';
 import { openLegalPage } from './LegalPages.js';
+import { realPrice, realPurchase, productInfo } from './PurchaseUI.js';
 import { watchShopCards } from './A11yCards.js';
 
 const AURA_ICON = { aura_none: 'noAura', aura_golden_sparks: 'sparkle', aura_fire_ring: 'fireRing', aura_cosmic_lightning: 'boltPurple' };
@@ -39,8 +40,6 @@ function skinThumb(key, done) {
     res();
   }, 16)));
 }
-/** תווית מחיר לכסף אמיתי (מחנות האפליקציות כשמחוברת) */
-export const realPrice = (product) => (typeof PaymentProvider.priceLabel === 'function' && PaymentProvider.priceLabel(product)) || (product.price ? formatPrice(product.price) : null);
 
 /** במת התצוגה: מצלמה חזיתית, נדנוד עדין, גרירה מסובבת וחוזרת לחזית, מיקוד לפי הקטגוריה */
 class MiniStage {
@@ -229,15 +228,14 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
     } finally { restoring = false; }
   }
 
-  /** קנייה בכסף אמיתי: מצב בדיקה = מיידי וללא חיוב; בגוגל פליי — חלון התשלום של החנות */
-  const realBuy = async (fn, onDone) => {
-    const res = await fn(() => Promise.resolve(true));
-    if (res.ok) { sound.jackpot?.(); ui.toast(t('purchased'), { kind: 'gold', icon: 'check' }); onDone?.(); render(); }
-    else if (res.restored) { ui.toast(res.reason, { kind: 'good', icon: 'check' }); app.applyLoadout?.(); render(); }
-    else if (res.pending) ui.toast(res.reason, { icon: 'hourglass', duration: 4200 });
-    else if (res.busy) ui.toast(res.reason, { icon: 'hourglass' });
-    else if (!res.cancelled) ui.toast(res.reason, { kind: 'bad' });
-  };
+  /**
+   * קנייה בכסף אמיתי (ui/PurchaseUI.js): הודעת "רכישה בכסף אמיתי" → חלון התשלום של Google (או מצב בדיקה, מיידי וללא חיוב)
+   * → רישום ב"הרכישות שלי" וכרטיס "הרכישה הושלמה". item = productInfo(מזהה המוצר) — מה נקנה, לכרטיס ולרשימה.
+   */
+  const realBuy = (fn, onDone, item = null) => realPurchase(app, item, fn, {
+    onDone: () => { onDone?.(); render(); },
+    onRestored: () => { app.applyLoadout?.(); render(); },
+  });
   const realBtn = (product, onClick, label) => {
     const price = realPrice(product);
     // גרסת Google Play לפני חיבור Play Billing (או מוצר שלא הופעל בחנות): "בקרוב" במקום קנייה (בלי קופה מדומה)
@@ -262,7 +260,7 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
     if (equipped) foot = h('span', { class: 'state on' }, icon('check', { size: 16 }), t('equipped'));
     else if (owned) foot = h('button', { class: 'equip tap', onclick: (e) => { e.stopPropagation(); economy.equipSkin(sk.id); sound.pop?.(); } }, t('equip'));
     else if (sk.earn) foot = h('span', { class: 'earn' }, icon('lock', { size: 14 }), `${t('earnSkinAt').replace('{n}', sk.earn)} (${Math.min(sk.earn, app.progression.conqueredCount())}/${sk.earn})`);
-    else foot = realBtn({ id: sk.product, price: sk.price }, () => realBuy((c) => economy.purchaseSkin(sk.id, c), () => economy.equipSkin(sk.id)), name);
+    else foot = realBtn({ id: sk.product, price: sk.price }, () => realBuy((c) => economy.purchaseSkin(sk.id, c), () => economy.equipSkin(sk.id), productInfo(sk.product)), name);
     return h('div', { class: `card skin rar-${sk.product ? 'legendary' : sk.earn ? 'epic' : 'common'} ${equipped ? 'sel' : ''}`, role: 'group', 'aria-label': name },
       box, sk.product ? h('span', { class: 'region-tag' }, t('premiumTag')) : sk.earn ? h('span', { class: 'region-tag' }, `${sk.earn}`) : null,
       h('b', { class: 'nm' }, name), h('div', { class: 'card-foot' }, foot));
@@ -276,14 +274,14 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
       h('ul', {}, h('li', {}, t('premiumPoint1')), h('li', {}, t('premiumPoint2')), h('li', {}, t('premiumPoint3')), h('li', { class: 'bonus' }, t('dragonBonus'))),
       h('div', { class: 'p-foot' }, h('span', { class: 'p-note' }, t('noAdsNote')),
         ownsIslands ? h('span', { class: 'state on' }, icon('check', { size: 16 }), t('owned'))
-          : realBtn(FULL_GAME, () => realBuy((c) => economy.purchaseFullGame(c), () => app.onPremiumUnlocked?.()), t('fullTitle'))));
+          : realBtn(FULL_GAME, () => realBuy((c) => economy.purchaseFullGame(c), () => app.onPremiumUnlocked?.(), productInfo(FULL_GAME.id)), t('fullTitle'))));
     const left = economy.boostLeftMs();
     const days = Math.floor(left / 86400000), hrs = Math.floor((left % 86400000) / 3600000);
     const boost = h('div', { class: 'card premium', role: 'group', 'aria-label': t('boostTitle') },
       h('div', { class: 'p-head' }, icon('gem', { size: 40 }), h('h3', {}, t('boostTitle'))),
       h('p', { style: { margin: 0, fontSize: '13px' } }, t('boostBody')),
       left > 0 ? h('div', { class: 'state on' }, icon('hourglass', { size: 15 }), `${t('boostActive')} · ${t('boostLeft').replace('{t}', `${days}${t('daysShort')} ${hrs}${t('hShort')}`)}`) : null,
-      h('div', { class: 'p-foot' }, h('span', { class: 'p-note' }, t('gemsX2')), realBtn(GEM_BOOST, () => realBuy((c) => economy.purchaseBoost(c), () => app.ui.setBoost?.(economy.boostLeftMs())), t('boostTitle'))));
+      h('div', { class: 'p-foot' }, h('span', { class: 'p-note' }, t('gemsX2')), realBtn(GEM_BOOST, () => realBuy((c) => economy.purchaseBoost(c), () => app.ui.setBoost?.(economy.boostLeftMs()), productInfo(GEM_BOOST.id)), t('boostTitle'))));
     return [islands, boost];
   }
 
@@ -308,7 +306,6 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
     const equipped = economy.loadout[slot] === it.id;
     const r = RARITY[it.rarity];
     const trial = economy.trialLeft(it.id);
-    const frag = economy.s.fragments[it.id];
     const name = shortName(it.id);
     let foot;
     if (equipped) foot = h('span', { class: 'state on' }, icon('check', { size: 16 }), t('equipped'));
@@ -321,7 +318,6 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
       h('span', { class: 'rar-dot', style: { background: r.color }, title: tn(r.label, r.labelEn) }),
       regionTag(it.island),
       trial ? h('span', { class: 'trial' }, icon('hourglass', { size: 12 }), `${Math.ceil(trial / 3600000)}${t('hours')}`) : null,
-      frag ? h('span', { class: 'trial' }, icon('puzzle', { size: 12 }), `${frag}/3`) : null,
       h('b', { class: 'nm' }, name),
       h('div', { class: 'card-foot' }, foot));
   }
@@ -364,7 +360,7 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
     if (equipped) foot = h('span', { class: 'state on' }, icon('check', { size: 16 }), t('equipped'));
     else if (owned) foot = h('button', { class: 'equip tap', onclick: (e) => { e.stopPropagation(); wear(); sound.pop?.(); } }, t('equip'));
     else if (p.earn) foot = h('span', { class: 'earn' }, icon('lock', { size: 14 }), `${t('earnSkinAt').replace('{n}', p.earn)} (${Math.min(p.earn, app.progression.conqueredCount())}/${p.earn})`);
-    else foot = realBtn({ id: p.product, price: p.price }, () => realBuy((c) => economy.purchaseSkyPet(id, c), wear), name);
+    else foot = realBtn({ id: p.product, price: p.price }, () => realBuy((c) => economy.purchaseSkyPet(id, c), wear, productInfo(p.product)), name);
     return h('div', { class: `card rar-${p.product ? 'legendary' : 'epic'} ${previewPet === id ? 'sel' : ''}`, role: 'button', tabindex: '0', 'aria-label': name,
       onclick: () => { previewBot = null; previewPet = id; previewHue = 0; refreshPreview(); focus('sky'); sound.petVoice(p.voice); render(); },
       onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } } },

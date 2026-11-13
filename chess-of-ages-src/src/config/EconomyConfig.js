@@ -1,8 +1,8 @@
 /**
- * כלכלת היהלומים — מקור האמת היחיד למחירים, חבילות, פריטים, פרסים יומיים וגלגל המזל.
+ * כלכלת היהלומים — מקור האמת היחיד למחירים, חבילות, פריטים ופרסים יומיים.
  * שינוי מחיר כאן משתקף מיד בכל החנות.
  *
- * יהלומים לא נקנים בכסף — מרוויחים אותם רק מניצחונות (בוטים / חברים), פרס יומי וגלגל המזל.
+ * יהלומים לא נקנים בכסף — מרוויחים אותם רק מניצחונות (בוטים / חברים) ומהפרס היומי.
  * בלי פרסומות בכלל. איים 1–99 חינמיים לגמרי.
  * רכישות בכסף אמיתי (hook אסינכרוני שמוכן לחיבור Google Play Billing — ראה README):
  *   1) 30 איי הפרימיום (100–129) + דרקון השעונים הזהוב — Economy.purchaseFullGame()
@@ -21,11 +21,9 @@ export const ECONOMY = {
   fastMateGems: 40,
   fastMateMaxMoves: 25, // מט בפחות מ-25 מהלכים של השחקן
   stageGems: 50,
-  extraSpinCost: 50,
   devFreeGems: 500,
   friendWinGems: 15, // ניצחון במשחק נגד חבר (מינימום 15 מהלכים)
   trialHours: 24,
-  fragmentsToUnlock: 3,
 };
 
 /**
@@ -139,23 +137,7 @@ export const ROYAL_CHEST = [
   { type: 'petTrial', weight: 25, label: 'חיית מחמד בלעדית ל-24 שעות', labelEn: 'Exclusive pet for 24 hours' },
 ];
 
-/**
- * גלגל המזל המלכותי — weight = סיכוי באחוזים (מוצג לשחקן לפני כל סיבוב).
- * תוחלת היהלומים לסיבוב קטנה ממחיר סיבוב נוסף, כך שאי אפשר "לחרוש" יהלומים בסיבובים.
- */
-export const WHEEL_SEGMENTS = [
-  { id: 'g25', type: 'gems', amount: 25, label: '25', icon: 'gem', weight: 41.7, color: '#3a2a6b' },
-  { id: 'frag', type: 'fragment', label: 'שבר פריט', labelEn: 'Item shard', icon: 'puzzle', weight: 26, color: '#1f4d5c' },
-  { id: 'g50', type: 'gems', amount: 50, label: '50', icon: 'gem', weight: 18, color: '#5a2448' },
-  { id: 'g100', type: 'gems', amount: 100, label: '100', icon: 'gem', weight: 7, color: '#2a4a2a' },
-  { id: 'crown', type: 'item', item: 'crown_gold', label: 'כתר זהב', labelEn: 'Gold crown', icon: 'crown', weight: 3, color: '#6b4a12' },
-  { id: 'g250', type: 'gems', amount: 250, label: '250', icon: 'gem', weight: 2, color: '#24345a' },
-  { id: 'aura', type: 'item', item: 'aura_golden_sparks', label: 'הילת זהב', labelEn: 'Gold aura', icon: 'sparkle', weight: 1.8, color: '#5a3a12' },
-  { id: 'g1000', type: 'gems', amount: 1000, label: '1,000', icon: 'coin', weight: 0.3, color: '#7a5a10', jackpot: true },
-  { id: 'g500', type: 'gems', amount: 500, label: '500', icon: 'gems', weight: 0.2, color: '#5a1020', jackpot: true },
-];
 export const DUPLICATE_ITEM_GEMS = 60;
-export const DUPLICATE_FRAGMENT_GEMS = 10;
 
 export function formatPrice(amount) {
   const n = Number(amount).toFixed(2);

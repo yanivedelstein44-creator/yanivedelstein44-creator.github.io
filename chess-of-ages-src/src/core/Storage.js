@@ -1,6 +1,8 @@
 /**
  * שמירה מקומית בטוחה (localStorage עטוף ב-try/catch — עובד גם כשהאחסון חסום).
  */
+import { withPresetName } from './PlayerName.js';
+
 export function readJSON(key, fallback) {
   let raw = null;
   try {
@@ -104,10 +106,9 @@ export class ProgressStore {
     if (saved) backupIfRepaired(PROGRESS_KEY, repairShape(saved, def, PROGRESS_HINTS));
     this.data = saved ? { ...def, ...saved, settings: { ...def.settings, ...(saved.settings || {}) }, profile: { ...def.profile, ...(saved.profile || {}) } } : def;
     if (!Array.isArray(this.data.eraProgress) || this.data.eraProgress.length !== 10) this.data.eraProgress = def.eraProgress;
-    if (!this.data.profile.name) {
-      const he = this.data.settings.lang === 'he';
-      this.data.profile.name = `${he ? 'מלך' : 'King'} ${Math.floor(100 + Math.random() * 900)}`;
-    }
+    // שם התצוגה — רק מהרשימה הקבועה (core/PlayerName.js): שחקן חדש מקבל "מלך NNN" / "King NNN",
+    // ושם חופשי מגרסה קודמת הופך לשם ברירת המחדל. השם מוצג בשפה השמורה.
+    this.data.profile = withPresetName(this.data.profile, this.data.settings.lang === 'he' ? 'he' : 'en');
     this.listeners = new Set();
     this.save();
   }

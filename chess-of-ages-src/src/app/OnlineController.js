@@ -4,7 +4,8 @@
  * החדר עצמו (שרת, הרשאות) — net/OnlineRoom.js.
  */
 import * as THREE from 'three';
-import { t, tn } from '../ui/i18n.js';
+import { t, tn, getLang } from '../ui/i18n.js';
+import { presetName, localizeIncomingName } from '../core/PlayerName.js';
 import { OnlineRoom, packLook } from '../net/OnlineRoom.js';
 import { getBackend } from '../net/backend.js';
 import { ONLINE } from '../config/AppConfig.js';
@@ -22,10 +23,11 @@ export class OnlineController {
   get active() { return !!this.room; }
   get isPlayer() { return !!this.room?.isPlayer; }
 
+  /** מה שנשלח לחדר: שם מהרשימה הקבועה בלבד (לא טקסט חופשי) ומראה האווטאר (מזהי פריטים) */
   me() {
     const a = this.app;
     const prof = a.store.get('profile');
-    return { name: prof.name, look: packLook({ loadout: a.economy.loadout, pet: a.economy.pet, petHue: a.economy.petHue, avatar: prof.avatar }) };
+    return { name: presetName(prof, getLang()), look: packLook({ loadout: a.economy.loadout, pet: a.economy.pet, petHue: a.economy.petHue, avatar: prof.avatar }) };
   }
 
   async host(color) {
@@ -247,7 +249,7 @@ export class OnlineController {
     else if (uid === room.data?.guest) color = room.hostColor === 'w' ? 'b' : 'w';
     const pos = color ? app.avatars[color].group.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 3.4, 0)) : null;
     const scr = pos ? app.sm.projectToScreen(pos) : { x: window.innerWidth / 2, y: window.innerHeight * 0.38 };
-    const who = color ? '' : (room.data?.sp?.[uid]?.n || tn('צופה', 'Spectator'));
+    const who = color ? '' : (localizeIncomingName(room.data?.sp?.[uid]?.n, getLang()) || tn('צופה', 'Spectator'));
     app.ui.floatLabel(who, scr, 'emote', 1.8, ic);
     app.sound.notify?.();
   }

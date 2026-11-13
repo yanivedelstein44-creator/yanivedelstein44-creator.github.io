@@ -3,7 +3,7 @@
  * "הסיפור": סרט קצר שנבנה מהמשחק עצמו (המצלמה טסה מעל מפת העולם, האווטאר שלך רוכב על החיה,
  * פיראטי הזמן והמוזיאון) עם כתוביות — כמעט בלי משקל להורדה.
  * "הפרימיום": סרט קצר על טבעת איי הפרימיום, 3 העולמות, הבוסים, דרקון השעונים והיהלומים הכפולים,
- *   ובסופו כפתור שפותח את מסך הפרימיום (רק אם בוחרים בו — שום דבר לא נקנה מהסרט עצמו).
+ *   ובסופו כרטיס סיום עם כפתור סגירה בלבד (שום דבר לא נקנה ולא נפתח מהסרט עצמו).
  * "איך משחקים": משחק מודרך קצר ליד השולחן.
  */
 import * as THREE from 'three';
@@ -54,8 +54,8 @@ function premiumShots() {
     { he: 'בוטים חזקים במיוחד ושלושה בוסים חדשים.', en: 'Extra-strong bots and three new bosses.', orbit: [109, 119, 129], dur: 2.3, sfx: 'hit' },
     { he: 'בונוס: דרקון השעונים הזהוב מצטרף אליך כחיית מחמד.', en: 'Bonus: the Golden Clockwork Dragon joins you as a pet.',
       from: P(HUB_ID, 5.5, 3.4, 7), to: P(HUB_ID, -5, 3.0, 6.5), lookFrom: P(HUB_ID, 0, 2.2, 0), lookTo: P(HUB_ID, 0, 2.3, 0), dur: 5.5, dragon: true, sfx: 'dragon' },
-    { he: 'יהלומים כפולים לשבוע: x2 על כל ניצחון.', en: 'Double gems for a week: x2 on every win.',
-      from: P(HUB_ID, 0, 7, 11), to: P(HUB_ID, 0, 13, 17), lookFrom: P(HUB_ID, 0, 0.6, 0), lookTo: P(HUB_ID, 0, 0.4, 0), dur: 4.5, x2: true, sfx: 'jackpot' },
+    { he: 'יהלומים כפולים לשבוע: x2 על כל ניצחון נגד בוטים ופיראטי הזמן.', en: 'Double gems for a week: x2 on every win against bots and the Time Pirates.',
+      from: P(HUB_ID, 0, 7, 11), to: P(HUB_ID, 0, 13, 17), lookFrom: P(HUB_ID, 0, 0.6, 0), lookTo: P(HUB_ID, 0, 0.4, 0), dur: 4.5, x2: true, sfx: 'gems' },
   ];
 }
 
@@ -147,17 +147,17 @@ function overlay(label = t('storyFilm')) {
     title() { titleBox.innerHTML = fullLogoSVG({ width: 340 }); titleBox.hidden = false; cap.textContent = ''; },
     /** תג "x2" עם יהלום שקופץ למסך (סרט הפרימיום) */
     x2(on) { x2.classList.toggle('in', on); },
-    /** כרטיס הסיום של סרט הפרימיום: 'cta' (לפרימיום) או 'close' */
-    end({ title, sub, cta, close }) {
+    /** כרטיס הסיום של סרט הפרימיום: מה זה, שזה בכסף אמיתי, שהמאיץ נפרד — וכפתור סגירה בלבד */
+    end({ title, sub, paid, note, close }) {
       return new Promise((resolve) => {
         const logo = h('div', { class: 'fe-logo', 'aria-hidden': 'true' });
         logo.innerHTML = fullLogoSVG({ width: 300 });
-        const go = h('button', { class: 'btn primary tap', onclick: () => resolve('cta') }, icon('crown', { size: 18 }), h('span', {}, cta));
-        const no = h('button', { class: 'btn tap', onclick: () => resolve('close') }, close);
-        titleBox.replaceChildren(h('div', { class: 'film-end' }, logo, h('b', { class: 'fe-t' }, title), h('p', { class: 'fe-s' }, sub), h('div', { class: 'fe-btns' }, go, no)));
+        const no = h('button', { class: 'btn primary tap', onclick: () => resolve() }, close);
+        titleBox.replaceChildren(h('div', { class: 'film-end' }, logo, h('b', { class: 'fe-t' }, title), h('p', { class: 'fe-s' }, sub),
+          paid ? h('p', { class: 'fe-paid' }, paid) : null, note ? h('p', { class: 'fe-s fe-note' }, note) : null, h('div', { class: 'fe-btns' }, no)));
         titleBox.hidden = false; cap.textContent = ''; skip.hidden = true; x2.classList.remove('in');
-        root.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); resolve('close'); } }, true);
-        setTimeout(() => go.focus(), 60);
+        root.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); resolve(); } }, true);
+        setTimeout(() => no.focus(), 60);
       });
     },
     remove() { root.remove(); },
@@ -252,16 +252,16 @@ export async function playPremium(app) {
   app.busy = true;
   const map = app.map;
   const state = { skipped: false };
-  let dragon = null, score = null, choice = 'close';
+  let dragon = null, score = null;
   const snd = app.sound;
   let chimeN = 0;
-  // צליל לכל שוט: וּוּש במעבר, פעמון לכל אי, מכה לבוס, שאגת הדרקון, ג'ינגל יהלומים
+  // צליל לכל שוט: וּוּש במעבר, פעמון לכל אי, מכה לבוס, שאגת הדרקון, צלצול קצר ליהלומים הכפולים
   const sfx = (kind) => {
     if (kind === 'whoosh') snd.whoosh?.(2.6);
     else if (kind === 'chime') { snd.whoosh?.(0.8); snd.chime?.(chimeN++); }
     else if (kind === 'hit') snd.filmHit?.();
     else if (kind === 'dragon') { snd.whoosh?.(1.4); snd.petVoice?.('dragon'); }
-    else if (kind === 'jackpot') snd.jackpot?.();
+    else if (kind === 'gems') { snd.chime?.(2); setTimeout(() => { if (!state.skipped) snd.chime?.(3); }, 170); }
   };
   try {
     await CloudWipe.cover(0.5);
@@ -301,8 +301,8 @@ export async function playPremium(app) {
       await camShot(map, s.from, s.to, s.lookFrom, s.lookTo, s.dur, state);
     }
     app.sound.victory?.();
-    // דילוג מגיע ישר לכרטיס הסיום — שם בוחרים אם לפתוח את מסך הפרימיום
-    choice = await ov.end({ title: t('fullTitle'), sub: t('premiumOneTime'), cta: t('seePremium'), close: t('close') });
+    // דילוג מגיע ישר לכרטיס הסיום (סגירה בלבד — הסרט לא פותח חנות ולא מוכר)
+    await ov.end({ title: t('fullTitle'), sub: t('premiumOneTime'), paid: t('premiumPaid'), note: t('premiumBoosterSep'), close: t('close') });
     score?.stop(0.6);
     await CloudWipe.cover(0.5);
     ov.remove();
@@ -315,5 +315,4 @@ export async function playPremium(app) {
     map.refresh?.();
     CloudWipe.reveal(0.6);
   }
-  if (choice === 'cta') app.openShop('premium', null, true);
 }

@@ -1,19 +1,19 @@
 /**
- * כלכלת היהלומים: יתרה, בעלות על פריטים וחיות, ניסיון החיות (גור → בוגר → אגדי), ניסיונות זמניים, שברי פריטים ומתנה יומית.
+ * כלכלת היהלומים: יתרה, בעלות על פריטים וחיות, ניסיון החיות (גור → בוגר → אגדי), ניסיונות זמניים ומתנה יומית.
  * יהלומים מרוויחים רק במשחק (אין חבילות יהלומים בכסף). בכסף אמיתי — רק דרך Google Play Billing (core/PlayBilling.js):
  * איי הפרימיום, בוסט יהלומים לשבוע (מתכלה), סקינים ללוח וחיות מעופפות אגדיות.
  */
 import {
   ECONOMY, FULL_GAME, EXPANSION, GEM_BOOST, BOARD_SKINS, findSkin, ALL_WEARABLES, findWearable, DEFAULT_LOADOUT,
-  DAILY_STREAK, ROYAL_CHEST, WHEEL_SEGMENTS, DUPLICATE_ITEM_GEMS, DUPLICATE_FRAGMENT_GEMS, PET_GROWTH,
+  DAILY_STREAK, ROYAL_CHEST, DUPLICATE_ITEM_GEMS, PET_GROWTH,
 } from '../config/EconomyConfig.js';
 import { PETS, PREMIUM_PET_IDS, SKY_PET_IDS } from '../config/Pets.js';
-import { ERAS } from '../config/Eras.js';
 import { readJSON, writeJSON, readObject, repairShape, backupIfRepaired } from './Storage.js';
-import { tn, ITEM_EN } from '../ui/i18n.js';
+import { tn } from '../ui/i18n.js';
 import { isPlayBuild } from '../config/Store.js';
 
 const DAY = 24 * 3600 * 1000;
+const RECEIPTS_MAX = 50; // "הרכישות שלי": עד 50 רכישות אחרונות
 const todayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const dayDiff = (a, b) => Math.round((new Date(`${b}T12:00:00`) - new Date(`${a}T12:00:00`)) / DAY);
 
@@ -51,9 +51,8 @@ export class Economy {
       expansionGranted: false,
       equipped: { ...DEFAULT_LOADOUT, pet: 'wolf_cub', boardSkin: '' },
       trials: {},
-      fragments: {},
-      lastFreeSpin: 0,
       purchases: [],
+      receipts: [], // "הרכישות שלי": רכישות חדשות בכסף אמיתי מהמכשיר הזה (החדשה ראשונה) — לא שחזורים
       storeGranted: {}, // מוצרים שהגיעו מ-Google Play ({ productId: orderId }) — מה מותר להסיר אם יוחזר כסף
       sandbox: ECONOMY.sandboxTestMode,
       welcomed: false,
@@ -63,6 +62,9 @@ export class Economy {
     const saved = readObject(ECONOMY.storageKey); // [qa] corrupt / wrong-typed state → backed up, defaults used
     if (saved) backupIfRepaired(ECONOMY.storageKey, repairShape(saved, fresh));
     this.s = saved ? { ...fresh, ...saved, equipped: { ...fresh.equipped, ...(saved.equipped || {}) } } : fresh;
+    // גלגל המזל ושברי הפריטים הוסרו — לא שומרים את השדות הישנים שלהם
+    delete this.s.lastFreeSpin;
+    delete this.s.fragments;
     // שחקן מלפני "חיות שגדלות": כל החיות שכבר יש לו נשארות בוגרות (לא מתכווצות פתאום)
     if (saved && saved.petXp == null) { this.s.petXp = {}; this.s.petXpBase = PET_GROWTH.adult; }
     this.login = readJSON(ECONOMY.lastLoginKey, { lastClaimDay: null, streak: 0 });
@@ -110,6 +112,21 @@ export class Economy {
   logPurchase(product, tx) {
     this.s.purchases.push({ id: product.id, price: product.price, tx, at: Date.now(), sandbox: this.sandbox });
   }
+  /**
+   * "הרכישות שלי": רשומה אחרי רכישה חדשה שהצליחה במכשיר הזה (נקרא מהממשק — ui/PurchaseUI.js).
+   * rec = { id, title, includes, price, order, at, test }. החדשה ראשונה, עד 50; אותו מספר הזמנה לא נרשם פעמיים.
+   * שחזור רכישות / "כבר בבעלותך" (grantStoreProduct) לא יוצר רשומה.
+   */
+  addReceipt(rec) {
+    if (!rec || !rec.order) return false;
+    const list = this.receipts();
+    if (list.some((r) => r.order === rec.order)) return false;
+    this.s.receipts = [rec, ...list].slice(0, RECEIPTS_MAX);
+    this.save();
+    this.emit({ type: 'receipt', order: rec.order });
+    return true;
+  }
+  receipts() { return (Array.isArray(this.s.receipts) ? this.s.receipts : []).filter((r) => r && typeof r === 'object'); }
   /** אחרי שהפריט ניתן ונשמר: אישור (acknowledge) או צריכה (consume) בחנות. כשל כאן לא מבטל את הקנייה — השחזור בפתיחה הבאה ישלים */
   storeFinish(r) {
     if (typeof r?.finalize !== 'function') return;
@@ -191,13 +208,13 @@ export class Economy {
     const r = await this.realPurchase(GEM_BOOST, confirmSandbox);
     if (!r.ok) return r;
     // ההזמנה כבר נרשמה (שחזור רץ בזמן התשלום) — לא מעניקים פעמיים, רק משלימים את הצריכה
-    if (r.finalize && this.hasStoreOrder(r.tx)) { this.storeFinish(r); return { ok: true, already: true }; }
+    if (r.finalize && this.hasStoreOrder(r.tx)) { this.storeFinish(r); return { ok: true, already: true, tx: r.tx }; }
     this.s.boostUntil = Math.max(Date.now(), this.s.boostUntil || 0) + GEM_BOOST.days * 86400000;
     this.logPurchase(GEM_BOOST, r.tx);
     this.save();
     this.storeFinish(r);
     this.emit({ type: 'buy', id: GEM_BOOST.id });
-    return { ok: true };
+    return { ok: true, tx: r.tx };
   }
 
   async purchaseSkin(id, confirmSandbox) {
@@ -213,7 +230,7 @@ export class Economy {
     this.save();
     this.storeFinish(r);
     this.emit({ type: 'buy', id: sk.product });
-    return { ok: true };
+    return { ok: true, tx: r.tx };
   }
   ownsSkin(id) { return !id || (this.s.skins || []).includes(id); }
   /** סקינים חינמיים: אחד על כל 20 איים שנכבשים. מחזיר את מה שנפתח עכשיו (להודעה) */
@@ -250,7 +267,7 @@ export class Economy {
     this.save();
     this.storeFinish(r);
     this.emit({ type: 'buy', id: p.product });
-    return { ok: true };
+    return { ok: true, tx: r.tx };
   }
   get boardSkin() { const id = this.s.equipped.boardSkin || ''; return this.ownsSkin(id) ? id : ''; }
   equipSkin(id) {
@@ -452,7 +469,7 @@ export class Economy {
     this.save();
     this.storeFinish(r);
     this.emit({ type: 'buy', id: FULL_GAME.id });
-    return { ok: true };
+    return { ok: true, tx: r.tx };
   }
 
   /** hook כללי: רכישה לפי מזהה (משחק מלא / בוסט / סקין / חיה מעופפת / פריט / חיה) */
@@ -467,7 +484,7 @@ export class Economy {
     return this.buyItem(itemId);
   }
 
-  // ---------- ניסיונות ושברים ----------
+  // ---------- ניסיונות ----------
   grantTrial(id, hours = ECONOMY.trialHours) {
     this.s.trials[id] = Date.now() + hours * 3600 * 1000;
     this.save();
@@ -481,20 +498,6 @@ export class Economy {
     this.save();
     this.emit({ type: 'grant', id });
     return { duplicate: false };
-  }
-
-  addFragment(id) {
-    if (this.ownsItemPermanently(id)) { this.addGems(DUPLICATE_FRAGMENT_GEMS, 'fragment-dup'); return { duplicate: true, gems: DUPLICATE_FRAGMENT_GEMS, id }; }
-    const n = (this.s.fragments[id] || 0) + 1;
-    if (n >= ECONOMY.fragmentsToUnlock) {
-      delete this.s.fragments[id];
-      this.grantItem(id);
-      return { unlocked: true, id, count: ECONOMY.fragmentsToUnlock };
-    }
-    this.s.fragments[id] = n;
-    this.save();
-    this.emit({ type: 'fragment', id });
-    return { unlocked: false, id, count: n };
   }
 
   // ---------- פרס יומי ----------
@@ -539,58 +542,6 @@ export class Economy {
     }
     this.addGems(600, 'chest');
     return { type: 'gems', amount: 600 };
-  }
-
-  // ---------- גלגל המזל ----------
-  freeSpinReadyIn() { return Math.max(0, this.s.lastFreeSpin + DAY - Date.now()); }
-  canFreeSpin() { return this.freeSpinReadyIn() === 0; }
-
-  /** בוחר תוצאה (לפני האנימציה) ומחייב/מסמן סיבוב. מחזיר {index, segment} או null */
-  spinWheel() {
-    if (this.canFreeSpin()) {
-      this.s.lastFreeSpin = Date.now();
-    } else if (!this.spend(ECONOMY.extraSpinCost)) {
-      return null;
-    }
-    const seg = weightedPick(WHEEL_SEGMENTS);
-    this.save();
-    return { index: WHEEL_SEGMENTS.indexOf(seg), segment: seg };
-  }
-
-  /** מעניק את הפרס אחרי שהגלגל נעצר */
-  applyWheelPrize(seg) {
-    switch (seg.type) {
-      case 'gems':
-        this.addGems(seg.amount, 'wheel');
-        return { text: `‎+${seg.amount}`, icon: 'gem', jackpot: !!seg.jackpot };
-      case 'item': {
-        const r = this.grantItem(seg.item);
-        const w = findWearable(seg.item);
-        const nm = tn(w.name, ITEM_EN[w.id]);
-        return r.duplicate ? { text: tn(`כבר יש לך ${nm} — קיבלת ${r.gems}`, `You already own ${nm} — got ${r.gems}`), icon: 'gem' } : { text: tn(`נפתח: ${nm}!`, `Unlocked: ${nm}!`), icon: 'gift', jackpot: true, itemId: seg.item };
-      }
-      case 'fragment': {
-        const pool = ALL_WEARABLES.filter((w) => w.price > 0 && !this.ownsItemPermanently(w.id));
-        if (!pool.length) { this.addGems(DUPLICATE_FRAGMENT_GEMS * 3, 'wheel'); return { text: `‎+${DUPLICATE_FRAGMENT_GEMS * 3}`, icon: 'gem' }; }
-        const w = pool[Math.floor(Math.random() * pool.length)];
-        const r = this.addFragment(w.id);
-        const nm = tn(w.name, ITEM_EN[w.id]);
-        return r.unlocked ? { text: tn(`השלמת ${ECONOMY.fragmentsToUnlock} שברים — ${nm} נפתח!`, `${ECONOMY.fragmentsToUnlock} shards collected — ${nm} unlocked!`), icon: 'puzzle', jackpot: true, itemId: w.id }
-          : { icon: 'puzzle', text: tn(`שבר של ${nm} (${r.count}/${ECONOMY.fragmentsToUnlock})`, `${nm} shard (${r.count}/${ECONOMY.fragmentsToUnlock})`) };
-      }
-      case 'era': {
-        const missing = ERAS.filter((e) => e.premium && !this.s.eras.includes(e.id));
-        if (!missing.length) { this.addGems(1000, 'wheel'); return { text: '‎+1,000', icon: 'gem', jackpot: true }; }
-        const e = missing[0];
-        this.s.eras.push(e.id);
-        this.s.eras.sort((a, b) => a - b);
-        this.save();
-        this.emit({ type: 'buy', id: `era_${e.id}` });
-        return { text: tn(`ג׳קפוט! נפתח האי "${e.name}"`, `Jackpot! Island unlocked: "${e.en}"`), icon: 'temple', jackpot: true, eraId: e.id };
-      }
-      default:
-        return { text: '' };
-    }
   }
 
   hasDailyBadge() { return this.dailyStatus().ready; }

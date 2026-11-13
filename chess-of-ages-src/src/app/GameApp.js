@@ -7,6 +7,7 @@ import gsap from 'gsap';
 import { Chess } from 'chess.js';
 import { ProgressStore } from '../core/Storage.js';
 import { wipeEverything } from '../core/DataWipe.js';
+import { withPresetName } from '../core/PlayerName.js';
 import { Economy } from '../core/Economy.js';
 import { initPlayBilling, ensurePlayBilling } from '../core/PlayBilling.js';
 import { Achievements } from '../core/Achievements.js';
@@ -313,10 +314,10 @@ export class GameApp {
 
   setLanguage(l) {
     setLang(l);
-    // שם ברירת המחדל ("מלך 123" / "King 123") מתחלף יחד עם השפה
+    // שם התצוגה (מהרשימה הקבועה — "מלך 123" / "אביר הזהב") מתחלף יחד עם השפה
     const prof = this.store.get('profile');
-    const mm = /^(מלך|King) (\d{3})$/.exec(prof.name || '');
-    if (mm) this.store.set({ profile: { ...prof, name: `${t('defaultName')} ${mm[2]}` } });
+    const named = withPresetName(prof, l === 'he' ? 'he' : 'en');
+    if (named.name !== prof.name || named.nameKey !== prof.nameKey) this.store.set({ profile: named });
     this.ui.render();
     this.ui.setDock(this.atHub);
     this.ui.setAudio(this.store.get('settings').sfx, this.store.get('settings').ambience);

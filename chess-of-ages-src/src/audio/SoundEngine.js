@@ -428,7 +428,6 @@ export class SoundEngine {
 
   ui() { if (this.ok) this.tone(1300, this.now, 0.05, { gain: 0.05 }); }
   coin() { if (!this.ok) return; const t = this.now; this.tone(1567, t, 0.12, { type: 'square', gain: 0.05 }); this.tone(2093, t + 0.08, 0.3, { type: 'square', gain: 0.05 }); }
-  tick() { if (this.ok) this.noise(this.now, 0.015, { type: 'highpass', freq: 3000, gain: 0.25 }); }
   notify() { if (!this.ok) return; const t = this.now; this.tone(880, t, 0.2, { gain: 0.08 }); this.tone(1320, t + 0.1, 0.3, { gain: 0.07 }); }
   pop() { if (this.ok) this.tone(600, this.now, 0.1, { freqEnd: 1200, gain: 0.12 }); }
   /** משב רוח של מסע על החיה */

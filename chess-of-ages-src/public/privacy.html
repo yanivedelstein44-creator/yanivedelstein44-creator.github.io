@@ -50,7 +50,7 @@
           <li>No account, no cookies, no ads, no analytics and no tracking pixels.</li>
           <li>Your islands, museum, gems, outfits, pets, board skins and settings are stored only on your device. We can't see them.</li>
           <li>Games against the bots, the Time Pirates or a friend on the same device are played entirely on your device. Nothing about them is sent anywhere.</li>
-          <li>Online play with a friend is optional. Only what that game needs (a random anonymous ID, the display name you chose, your avatar's look and your moves) goes through Google Firebase. Only people who have your private room code can see it. No strangers, no free-text chat.</li>
+          <li>Online play with a friend is optional. Only what that game needs (a random anonymous ID, a display name you pick from a list of preset names, your avatar's look and your moves) goes through Google Firebase. Only people who have your private room code can see it. No strangers, no free-text chat.</li>
           <li>Purchases are optional. In the Google Play version, Google Play handles payment and we never see your payment details. The website and test versions use a test shop that never charges money.</li>
           <li>You can erase everything at any time: <b>Settings → Delete all my data</b>.</li>
         </ul>
@@ -79,17 +79,18 @@
             </tbody>
           </table>
         </div>
+        <p>Everything in this table stays on your device until you use <b>Settings → Delete all my data</b>, clear the site's data or uninstall the app.</p>
         <p>If the game hits a technical error, it may keep a short error note on your device to recover. It contains no personal data and is never sent anywhere.</p>
         <p>We don't use cookies, advertising IDs, fingerprinting, analytics tools or tracking pixels.</p>
       </section>
 
       <section aria-labelledby="en-online">
         <h2 id="en-online">3. Online play with a friend (optional)</h2>
-        <p><b>What is sent.</b> When you create or join a private room, the game sends: a random anonymous user ID, the display name you chose, your avatar's outfit, pet and symbol, the room code, your color, the moves, draw and rematch requests, the fixed reactions you send (there is no free-text chat) and whether you're connected.</p>
-        <p><b>Why.</b> Only to run the online game you asked for. For users in the EU and UK, the legal basis is providing the service you requested (GDPR article 6(1)(b)).</p>
+        <p><b>What is sent.</b> When you create or join a private room, the game sends: a random anonymous user ID, a display name you pick from a list of preset names, your avatar's outfit, pet and symbol, the room code, your color, the moves, draw and rematch requests, the fixed reactions you send (there is no free-text chat) and whether you're connected.</p>
+        <p><b>Why.</b> Only to run the online game you asked for. The anonymous ID is used only to keep your seat and your moves in a room. It isn't used for advertising, analytics or profiling. For users in the EU and UK, the legal basis is providing the service you requested (GDPR article 6(1)(b)).</p>
         <p><b>Who processes it.</b> Google Firebase (Realtime Database, with the data stored in Belgium in the EU, and Anonymous Authentication) runs online play for us as our service provider. Like any internet service, Google also processes technical data such as your IP address to deliver it. Google may process technical and sign-in data in other countries under its data processing terms.</p>
         <p><b>Who can see it.</b> Only people who have the room code: the friend you invited and spectators you share the code with. There is no matchmaking with strangers, and rooms can't be listed or searched.</p>
-        <p><b>How long.</b> A room is deleted when the player who created it leaves it, or the next time that player opens online play if an old room was left open. <b>Settings → Delete all my data</b> also deletes the rooms you created from the server.</p>
+        <p><b>How long.</b> A room is deleted when the player who created it leaves it, or the next time that player opens online play if an old room was left open. <b>Settings → Delete all my data</b> also deletes the rooms you created from the server. Your anonymous account stays in Firebase until you use <b>Delete all my data</b>, which deletes it.</p>
         <p><b>Is it required?</b> No law requires you to give this data, and online play is optional. If you don't want to send it, don't use online play. Everything else in the game works without it.</p>
       </section>
 
@@ -100,6 +101,7 @@
           <li><b>When you share.</b> Invite links, room codes and share images are created on your device and sent by you, through WhatsApp or your device's share menu. We don't receive the recipients' details.</li>
           <li><b>Service providers.</b> Google Firebase for online play (section 3), GitHub, which hosts the website and the updates (section 5), and Google Play for installing the app and for payments (section 6). Each processes data under its own terms.</li>
           <li><b>When the law requires it.</b> For example, a valid order from a competent authority.</li>
+          <li><b>Transfers abroad.</b> The online-play database is in Belgium, in the EU. Google (for Firebase sign-in) and GitHub (for hosting) may also process technical data in the United States and other countries. They do so under their data processing terms, which use safeguards such as the EU's standard contractual clauses or the EU-U.S. Data Privacy Framework.</li>
         </ul>
       </section>
 
@@ -110,7 +112,7 @@
           <li><b>Our website and the Android app downloaded from it:</b> the website, the game's files and its updates are hosted on GitHub Pages (GitHub, Inc.).</li>
           <li><b>The Google Play version:</b> Google Play installs and updates the app under Google's privacy policy. The game's content updates inside the app are also downloaded from GitHub Pages, from a separate folder for that version.</li>
         </ul>
-        <p>As a hosting provider, GitHub may log technical data when files are fetched, such as IP address, device and browser type, and request time. It uses that data to deliver the files and keep the service secure.</p>
+        <p>As a hosting provider, GitHub may log technical data when files are fetched, such as IP address, device and browser type, and request time. It uses that data to deliver the files and keep the service secure, and keeps it as set out in GitHub's own privacy statement.</p>
         <p>When the game opens, and then about every 20–30 minutes while it's open, it checks a small <code>version.json</code> file for its channel and installs updates at a safe moment. No usage statistics are sent with these checks.</p>
       </section>
 
@@ -125,13 +127,13 @@
         </ul>
         <p>Gems are never sold. You earn them by playing. Nothing that is sold makes the bots weaker or helps you win a game. Free rewards such as daily gifts and the Royal Treasure Chest are never sold for money.</p>
         <p><b>Payment.</b> In the Google Play version, purchases use Google Play's billing system, and Google processes the payment under Google's own terms and privacy policy. We never receive your card or bank details.</p>
-        <p><b>What the game handles.</b> On your device, the game talks to Google Play to show prices, complete a purchase and restore what you bought. It stores on your device which items you own, with the order reference and purchase time, so it can deliver them, avoid delivering them twice and remove an item if the purchase is refunded. None of this is sent to our own servers. Google also shows us order details in our developer console (for example the order number, product, price, date and the buyer's country), which we use only to handle refunds, cancellations and support requests. For users in the EU and UK, the legal basis is performing the purchase you asked for (GDPR article 6(1)(b)).</p>
+        <p><b>What the game handles.</b> On your device, the game talks to Google Play to show prices, complete a purchase and restore what you bought. It stores on your device which items you own, with the order reference and purchase time, so it can deliver them, avoid delivering them twice and remove an item if the purchase is refunded. It also keeps a list of your purchases on this device only (item, date, price and Google order number), which you can see under <b>Settings → My purchases</b>; <b>Delete all my data</b> deletes it. None of this is sent to our own servers. Google also shows us order details in our developer console (for example the order number, product, price, date and the buyer's country), which we use only to handle refunds, cancellations and support requests. For users in the EU and UK, the legal basis is performing the purchase you asked for (GDPR article 6(1)(b)).</p>
         <p>On the website and in test versions the shop runs in test mode: no money is charged and no payment details are collected. Refunds, cancellations and restoring purchases are explained in the <a href="./terms.html#en-pay">Terms of use</a>.</p>
       </section>
 
       <section aria-labelledby="en-kids">
         <h2 id="en-kids">7. Children</h2>
-        <p>The game doesn't ask for an email, phone number or real name. Please choose a display name that isn't your full real name. Online play only connects you with a friend you invite using a private code: there's no matchmaking with strangers and no free-text chat, only fixed reactions. A parent or guardian who has a question about a child's use of the game, or wants a child's data deleted, can contact us at the address in section 1.</p>
+        <p>The game doesn't ask for an email, phone number or real name. Your display name is a name you pick from a list of preset names, so no real name can be typed in. Online play only connects you with a friend you invite using a private code: there's no matchmaking with strangers and no free-text chat, only fixed reactions. A parent or guardian who has a question about a child's use of the game, or wants a child's data deleted, can contact us at the address in section 1.</p>
       </section>
 
       <section aria-labelledby="en-rights">
@@ -180,7 +182,7 @@
           <li>בלי חשבון, בלי עוגיות, בלי פרסומות, בלי כלי ניתוח ובלי פיקסלי מעקב.</li>
           <li>האיים, המוזיאון, היהלומים, הבגדים, החיות, סקיני הלוח וההגדרות נשמרים רק במכשיר שלך. אנחנו לא רואים אותם.</li>
           <li>משחקים נגד הבוטים, נגד פיראטי הזמן או נגד חבר על אותו מכשיר מתנהלים כולם במכשיר. שום דבר מהם לא נשלח.</li>
-          <li>משחק אונליין עם חבר הוא אופציונלי. רק מה שהמשחק צריך (מזהה אנונימי אקראי, שם התצוגה שבחרת, המראה של האווטאר והמהלכים) עובר דרך Google Firebase, ורק מי שיש לו את קוד החדר הפרטי יכול לראות אותו. אין זרים ואין צ׳אט חופשי.</li>
+          <li>משחק אונליין עם חבר הוא אופציונלי. רק מה שהמשחק צריך (מזהה אנונימי אקראי, שם תצוגה שבוחרים מתוך רשימת שמות מוכנים, המראה של האווטאר והמהלכים) עובר דרך Google Firebase, ורק מי שיש לו את קוד החדר הפרטי יכול לראות אותו. אין זרים ואין צ׳אט חופשי.</li>
           <li>רכישות הן אופציונליות. בגרסת Google Play התשלום מתבצע דרך Google Play ואנחנו לא רואים את פרטי התשלום. באתר ובגרסאות בדיקה יש חנות בדיקה שלא גובה כסף.</li>
           <li>אפשר למחוק הכול בכל רגע: <b>הגדרות ← מחק את כל הנתונים שלי</b>.</li>
         </ul>
@@ -209,17 +211,18 @@
             </tbody>
           </table>
         </div>
+        <p>כל מה שבטבלה נשאר במכשיר שלך עד שתשתמש ב<b>הגדרות ← מחק את כל הנתונים שלי</b>, תנקה את נתוני האתר או תסיר את האפליקציה.</p>
         <p>אם קורית במשחק תקלה טכנית, הוא עשוי לשמור במכשיר הערת שגיאה קצרה כדי להתאושש. אין בה מידע אישי והיא לא נשלחת לשום מקום.</p>
         <p>אנחנו לא משתמשים בעוגיות, במזהי פרסום, בטביעת אצבע דיגיטלית, בכלי ניתוח או בפיקסלי מעקב.</p>
       </section>
 
       <section aria-labelledby="he-online">
         <h2 id="he-online">3. משחק אונליין עם חבר (אופציונלי)</h2>
-        <p><b>מה נשלח.</b> כשאתה פותח חדר פרטי או מצטרף אליו, המשחק שולח: מזהה משתמש אנונימי אקראי, את שם התצוגה שבחרת, את הבגדים, החיה והסמל של האווטאר, את קוד החדר, את הצבע שלך, את המהלכים, בקשות תיקו ומשחק חוזר, את התגובות הקבועות שאתה שולח (אין צ׳אט חופשי) והאם אתה מחובר.</p>
-        <p><b>למה.</b> רק כדי להפעיל את משחק האונליין שביקשת. למשתמשים באיחוד האירופי ובבריטניה, הבסיס החוקי הוא מתן השירות שביקשת (סעיף 6(1)(b) ל-GDPR).</p>
+        <p><b>מה נשלח.</b> כשאתה פותח חדר פרטי או מצטרף אליו, המשחק שולח: מזהה משתמש אנונימי אקראי, שם תצוגה שבוחרים מתוך רשימת שמות מוכנים, את הבגדים, החיה והסמל של האווטאר, את קוד החדר, את הצבע שלך, את המהלכים, בקשות תיקו ומשחק חוזר, את התגובות הקבועות שאתה שולח (אין צ׳אט חופשי) והאם אתה מחובר.</p>
+        <p><b>למה.</b> רק כדי להפעיל את משחק האונליין שביקשת. המזהה האנונימי משמש רק כדי לשמור את המקום שלך ואת המהלכים שלך בחדר. הוא לא משמש לפרסום, לניתוח נתונים או לבניית פרופיל. למשתמשים באיחוד האירופי ובבריטניה, הבסיס החוקי הוא מתן השירות שביקשת (סעיף 6(1)(b) ל-GDPR).</p>
         <p><b>מי מעבד את המידע.</b> Google Firebase (מסד נתונים בזמן אמת שהמידע בו נשמר בבלגיה שבאיחוד האירופי, והתחברות אנונימית) מפעיל עבורנו את משחק האונליין כספק שירות. כמו כל שירות אינטרנט, Google מעבדת גם מידע טכני כמו כתובת IP כדי לספק אותו. Google עשויה לעבד מידע טכני ומידע התחברות במדינות אחרות, לפי תנאי עיבוד הנתונים שלה.</p>
         <p><b>מי רואה את המידע.</b> רק מי שיש לו את קוד החדר: החבר שהזמנת וצופים שקיבלו ממך את הקוד. אין שידוך עם זרים, ואי אפשר לראות רשימה של חדרים או לחפש חדרים.</p>
-        <p><b>לכמה זמן.</b> חדר נמחק כשמי שפתח אותו יוצא ממנו, או בפעם הבאה שהוא נכנס לאונליין אם חדר ישן נשאר פתוח. <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק גם מהשרת את החדרים שפתחת.</p>
+        <p><b>לכמה זמן.</b> חדר נמחק כשמי שפתח אותו יוצא ממנו, או בפעם הבאה שהוא נכנס לאונליין אם חדר ישן נשאר פתוח. <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק גם מהשרת את החדרים שפתחת. החשבון האנונימי שלך נשאר ב-Firebase עד שתשתמש ב<b>מחק את כל הנתונים שלי</b>, שמוחק אותו.</p>
         <p><b>האם חובה למסור את המידע?</b> אין חובה חוקית למסור אותו, והמשחק אונליין הוא אופציונלי. אם אינך רוצה לשלוח את המידע, פשוט אל תשחק אונליין. כל שאר המשחק עובד בלעדיו.</p>
       </section>
 
@@ -230,6 +233,7 @@
           <li><b>כשאתה משתף.</b> קישורי הזמנה, קודי חדרים ותמונות שיתוף נוצרים במכשיר שלך ואתה שולח אותם בוואטסאפ או בתפריט השיתוף של המכשיר. אנחנו לא מקבלים את פרטי הנמענים.</li>
           <li><b>ספקי שירות.</b> Google Firebase למשחק האונליין (סעיף 3), GitHub שמארח את האתר ואת העדכונים (סעיף 5), ו-Google Play להתקנת האפליקציה ולתשלומים (סעיף 6). כל אחד מהם מעבד מידע לפי התנאים שלו.</li>
           <li><b>כשהחוק מחייב.</b> למשל צו תקף של רשות מוסמכת.</li>
+          <li><b>העברה לחו״ל.</b> מסד הנתונים של משחק האונליין נמצא בבלגיה, באיחוד האירופי. Google (להתחברות ב-Firebase) ו-GitHub (לאחסון) עשויות לעבד מידע טכני גם בארצות הברית ובמדינות אחרות. הן עושות זאת לפי תנאי עיבוד הנתונים שלהן, שנשענים על אמצעי הגנה כמו הסעיפים החוזיים התקניים של האיחוד האירופי או מסגרת פרטיות הנתונים בין האיחוד לארצות הברית (<span lang="en" dir="ltr">EU-U.S. Data Privacy Framework</span>).</li>
         </ul>
       </section>
 
@@ -240,7 +244,7 @@
           <li><b>האתר שלנו ואפליקציית האנדרואיד שמורידים ממנו:</b> האתר, קבצי המשחק והעדכונים שלו מאוחסנים ב-GitHub Pages (GitHub, Inc.).</li>
           <li><b>גרסת Google Play:</b> ההתקנה והעדכונים של האפליקציה נעשים דרך Google Play לפי מדיניות הפרטיות של Google. גם עדכוני התוכן של המשחק בתוך האפליקציה יורדים מ-GitHub Pages, מתיקייה נפרדת לגרסה הזו.</li>
         </ul>
-        <p>כספק אחסון, GitHub עשוי לרשום מידע טכני כשמורידים ממנו קבצים, כמו כתובת IP, סוג מכשיר ודפדפן ושעת הבקשה. הוא משתמש במידע הזה כדי למסור את הקבצים ולשמור על אבטחת השירות.</p>
+        <p>כספק אחסון, GitHub עשוי לרשום מידע טכני כשמורידים ממנו קבצים, כמו כתובת IP, סוג מכשיר ודפדפן ושעת הבקשה. הוא משתמש במידע הזה כדי למסור את הקבצים ולשמור על אבטחת השירות, ושומר אותו לפי הצהרת הפרטיות של GitHub עצמו.</p>
         <p>כשהמשחק נפתח, ואחר כך בערך כל 20–30 דקות כל עוד הוא פתוח, הוא בודק קובץ קטן בשם <code>version.json</code> של הערוץ שלו ומתקין עדכונים ברגע מתאים. עם הבדיקות האלה לא נשלחת שום סטטיסטיקת שימוש.</p>
       </section>
 
@@ -255,13 +259,13 @@
         </ul>
         <p>יהלומים לא נמכרים. מרוויחים אותם במשחק. שום דבר שנמכר לא מחליש את הבוטים ולא עוזר לנצח במשחק. פרסים חינמיים כמו המתנה היומית ותיבת האוצר המלכותית אף פעם לא נמכרים בכסף.</p>
         <p><b>תשלום.</b> בגרסת Google Play הרכישות נעשות במערכת החיובים של Google Play, ו-Google מעבדת את התשלום לפי התנאים ומדיניות הפרטיות שלה. פרטי כרטיס או חשבון בנק לא מגיעים אלינו אף פעם.</p>
-        <p><b>מה המשחק מטפל בו.</b> במכשיר שלך המשחק מתקשר עם Google Play כדי להציג מחירים, להשלים רכישה ולשחזר את מה שקנית. הוא שומר במכשיר אילו פריטים בבעלותך, עם מספר ההזמנה ושעת הרכישה, כדי למסור אותם, לא למסור פעמיים ולהסיר פריט אם הרכישה הוחזרה. שום דבר מזה לא נשלח לשרתים שלנו. Google גם מציגה לנו בממשק המפתחים פרטי הזמנות (למשל מספר הזמנה, מוצר, מחיר, תאריך ומדינת הקונה), ואנחנו משתמשים בהם רק לטיפול בהחזרים, בביטולים ובפניות תמיכה. למשתמשים באיחוד האירופי ובבריטניה, הבסיס החוקי הוא ביצוע הרכישה שביקשת (סעיף 6(1)(b) ל-GDPR).</p>
+        <p><b>מה המשחק מטפל בו.</b> במכשיר שלך המשחק מתקשר עם Google Play כדי להציג מחירים, להשלים רכישה ולשחזר את מה שקנית. הוא שומר במכשיר אילו פריטים בבעלותך, עם מספר ההזמנה ושעת הרכישה, כדי למסור אותם, לא למסור פעמיים ולהסיר פריט אם הרכישה הוחזרה. הוא גם שומר רשימה של הרכישות שלך רק במכשיר הזה (פריט, תאריך, מחיר ומספר ההזמנה של Google), שאפשר לראות ב<b>הגדרות ← הרכישות שלי</b>, ו<b>מחק את כל הנתונים שלי</b> מוחק אותה. שום דבר מזה לא נשלח לשרתים שלנו. Google גם מציגה לנו בממשק המפתחים פרטי הזמנות (למשל מספר הזמנה, מוצר, מחיר, תאריך ומדינת הקונה), ואנחנו משתמשים בהם רק לטיפול בהחזרים, בביטולים ובפניות תמיכה. למשתמשים באיחוד האירופי ובבריטניה, הבסיס החוקי הוא ביצוע הרכישה שביקשת (סעיף 6(1)(b) ל-GDPR).</p>
         <p>באתר ובגרסאות בדיקה החנות פועלת במצב בדיקה: לא נגבה כסף ולא נאספים פרטי תשלום. החזרים, ביטולים ושחזור רכישות מוסברים ב<a href="./terms.html#he-pay">תנאי השימוש</a>.</p>
       </section>
 
       <section aria-labelledby="he-kids">
         <h2 id="he-kids">7. ילדים</h2>
-        <p>המשחק לא מבקש מייל, מספר טלפון או שם אמיתי. כדאי לבחור שם תצוגה שאינו השם המלא האמיתי. משחק אונליין מחבר רק עם חבר שהזמנת בקוד פרטי: אין שידוך עם זרים ואין צ׳אט חופשי, רק תגובות קבועות. הורה או אפוטרופוס שיש לו שאלה על השימוש של ילד במשחק, או שרוצה למחוק מידע של ילד, יכול לפנות אלינו בכתובת שבסעיף 1.</p>
+        <p>המשחק לא מבקש מייל, מספר טלפון או שם אמיתי. שם התצוגה הוא שם שבוחרים מתוך רשימת שמות מוכנים, כך שאי אפשר להקליד שם אמיתי. משחק אונליין מחבר רק עם חבר שהזמנת בקוד פרטי: אין שידוך עם זרים ואין צ׳אט חופשי, רק תגובות קבועות. הורה או אפוטרופוס שיש לו שאלה על השימוש של ילד במשחק, או שרוצה למחוק מידע של ילד, יכול לפנות אלינו בכתובת שבסעיף 1.</p>
       </section>
 
       <section aria-labelledby="he-rights">

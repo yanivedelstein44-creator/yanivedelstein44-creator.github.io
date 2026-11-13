@@ -1,7 +1,7 @@
 /**
  * אייקונים וקטוריים בסגנון משחק (Game UI) — במקום אימוג'ים.
  * כל אייקון בנוי משכבות נתיב (24×24) עם גרדיאנט, קו מתאר כהה אחיד וברק עדין לנפח.
- * אותם נתונים מצוירים גם כ-SVG בממשק וגם על Canvas (גלגל המזל, כרטיס שיתוף, אימוג'ים מעל הדמויות).
+ * אותם נתונים מצוירים גם כ-SVG בממשק וגם על Canvas (כרטיס שיתוף, אימוג'ים מעל הדמויות).
  */
 const NS = 'http://www.w3.org/2000/svg';
 const OUTLINE = '#22140a';
@@ -72,7 +72,6 @@ export const ICONS = {
   check: [L('M4.5 12.6l4.8 4.8L19.5 7', 'green', { line: true, w: 3.2 })],
   gift: [L(R(4.5, 11.2, 15, 9.6, 1), 'red'), L(R(3, 7.4, 18, 4, 1), 'red'), L(R(10.9, 7.4, 2.2, 13.4), 'gold'), L('M12 7.4C10 3.4 6 4.2 7.4 7.4zM12 7.4c2-4 6-3.2 4.6 0z', 'gold')],
   chest: [L(R(3, 10.5, 18, 9.5, 1.2), 'wood'), L('M3 10.5V9a5 4 0 0 1 5-4h8a5 4 0 0 1 5 4v1.5z', 'wood'), L(R(3, 9.8, 18, 1.8), 'gold'), L(R(10.4, 10.6, 3.2, 4.2, 0.8), 'gold')],
-  wheel: [L(C(12, 12, 9.6), 'gold'), L(C(12, 12, 7.6), 'purple'), L('M12 4.4v15.2M4.4 12h15.2M6.6 6.6l10.8 10.8M17.4 6.6 6.6 17.4', 'gold', { line: true, w: 1.3, noOutline: true }), L(C(12, 12, 1.9), 'gold'), L(poly([[12, 0.9], [14.2, 4.4], [9.8, 4.4]]), 'red')],
   hourglass: [L(R(5, 2.5, 14, 2, 1), 'wood'), L(R(5, 19.5, 14, 2, 1), 'wood'), L('M6.6 4.5h10.8c0 4-3.6 5.6-3.6 7.5s3.6 3.5 3.6 7.5H6.6c0-4 3.6-5.6 3.6-7.5S6.6 8.5 6.6 4.5z', 'ice'), L('M9 18.6h6c-.6-1.8-2-2.6-3-3.6-1 1-2.4 1.8-3 3.6z', 'fire', { noOutline: true })],
   paw: [L('M12 11.5c3.2 0 6 3.2 6 5.6 0 2-1.6 3-3.2 3-1.2 0-1.8-.6-2.8-.6s-1.6.6-2.8.6C7.6 20.1 6 19.1 6 17.1c0-2.4 2.8-5.6 6-5.6z', 'gold'), L(`${C(7, 9.4, 1.9)}${C(10.2, 6.3, 1.9)}${C(13.8, 6.3, 1.9)}${C(17, 9.4, 1.9)}`, 'gold')],
   shield: [L('M12 2.4l8 3v6c0 5.4-3.4 9.3-8 10.8-4.6-1.5-8-5.4-8-10.8v-6z', 'blue'), L('M12 5.3l5.4 2v4c0 3.8-2.3 6.7-5.4 7.9z', 'gold', { noOutline: true, op: 0.95 })],
@@ -139,7 +138,7 @@ export const EMOJI_ICON = {
   '💎': 'gem', '👑': 'crown', '🎁': 'gift', '✨': 'sparkle', '🏆': 'trophy', '🏗️': 'castle', '🏗': 'castle', '⚡': 'bolt', '🔒': 'lock', '✓': 'check', '✅': 'check',
   '🔄': 'refresh', '⚠️': 'info', '⚠': 'info', 'ℹ️': 'info', 'ℹ': 'info', '📲': 'device', '🎉': 'sparkle', '🤖': 'robot', '🤝': 'handshake', '🏳️': 'flag', '🏳': 'flag',
   '⚙️': 'gear', '⚙': 'gear', '🌐': 'globe', '🎨': 'palette', '📄': 'doc', '🗑️': 'trash', '🗑': 'trash', '🔗': 'link', '🧭': 'compass', '🎯': 'target', '📸': 'camera',
-  '💡': 'bulb', '😀': 'smile', '🔊': 'sound', '🔇': 'mute', '🎵': 'music', '🔕': 'mute', '🔭': 'panorama', '🧩': 'puzzle', '⏳': 'hourglass', '🐾': 'paw', '🎡': 'wheel',
+  '💡': 'bulb', '😀': 'smile', '🔊': 'sound', '🔇': 'mute', '🎵': 'music', '🔕': 'mute', '🔭': 'panorama', '🧩': 'puzzle', '⏳': 'hourglass', '🐾': 'paw',
   '🏯': 'temple', '🧰': 'chest', '⭐': 'star', '🌟': 'star', '🔥': 'fire', '🛡️': 'shield', '🛡': 'shield', '⚔️': 'swords', '⚔': 'swords', '🏰': 'castle', '🏛️': 'temple', '🏛': 'temple',
   '🌆': 'city', '📅': 'calendar', '🧥': 'shirt', '📐': 'setsquare', '🪓': 'axe', '🎆': 'burst', '🏮': 'lantern', '💖': 'heart', '🎃': 'pumpkin', '❄️': 'snowflake', '❄': 'snowflake',
   '💰': 'coin', '🔎': 'search', '🔍': 'search', '📱': 'device', '🎓': 'cap', '💬': 'chat', '📈': 'chart', '📍': 'pin', '👍': 'thumb', '😮': 'wow', '😂': 'laugh', '😡': 'angry',

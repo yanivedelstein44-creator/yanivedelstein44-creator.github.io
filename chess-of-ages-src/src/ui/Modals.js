@@ -7,13 +7,14 @@ import { t, tn, getLang, shortName } from './i18n.js';
 import { icon, EMBLEMS, emblemIcon } from './icons.js';
 import { starRow } from './MapPanel.js';
 import { TIME_CONTROLS, APP_VERSION, APP } from '../config/AppConfig.js';
-import { FULL_GAME, formatPrice } from '../config/EconomyConfig.js';
-import { PaymentProvider } from '../core/Economy.js';
+import { FULL_GAME } from '../config/EconomyConfig.js';
 import { ACHIEVEMENTS } from '../core/Achievements.js';
 import { GLYPH } from '../game/GameController.js';
 import { ISLAND_COUNT, HUB_ID, REGION_COUNT, PREMIUM_WORLDS, islandDef, regionIslands, regionOf, tierOf } from '../config/Islands.js';
 import { getEra } from '../config/Eras.js';
 import { LEGAL_PAGES, openLegalPage } from './LegalPages.js';
+import { realPrice, realPurchase, productInfo, openMyPurchases } from './PurchaseUI.js';
+import { NAME_TITLES, NAME_EPITHETS, parseNameKey, withPresetName } from '../core/PlayerName.js';
 
 const TXT = '︎';
 
@@ -38,10 +39,15 @@ export function openFriend(app) {
   });
 }
 
-/** איי הפרימיום (100–129) — רכישה חד-פעמית, עם דרקון השעונים הזהוב כבונוס */
+/**
+ * איי הפרימיום (100–129) — רכישה חד-פעמית, עם דרקון השעונים הזהוב כבונוס.
+ * נפתח מאי פרימיום נעול (GameApp.travelTo) ומההגדרות ("לפרטים ולפתיחה"). הקנייה עוברת דרך ui/PurchaseUI.js:
+ * הודעת "רכישה בכסף אמיתי" לפני חלון התשלום של Google, ואחרי הצלחה — רישום ב"הרכישות שלי" וכרטיס הרכישה;
+ * רק כשהכרטיס נסגר ממשיכים (למשל מסע לאי שנפתח).
+ */
 export function openFullGame(app, onUnlocked) {
-  const { economy, ui, sound } = app;
-  const priceLabel = (typeof PaymentProvider.priceLabel === 'function' && PaymentProvider.priceLabel(FULL_GAME)) || (FULL_GAME.price ? formatPrice(FULL_GAME.price) : t('priceSoon'));
+  const { economy, ui } = app;
+  const priceLabel = realPrice(FULL_GAME) || t('priceSoon');
   const body = h('div', { class: 'fullgame' },
     h('div', { class: 'hero-ic' }, icon('castle', { size: 64 })),
     h('p', {}, t('fullBody')),
@@ -58,11 +64,13 @@ export function openFullGame(app, onUnlocked) {
       { label: t('later'), onClick: (c) => c.close() },
       { label: economy.sandbox ? t('unlockTest') : (economy.canBuyReal(FULL_GAME) ? t('unlock') : t('playSoon')), icon: 'lock', primary: true, onClick: async (c) => {
         if (!economy.canBuyReal(FULL_GAME)) { ui.toast(t('playSoonBody'), { icon: 'info' }); return; } // גרסת Play לפני חיבור Billing
-        const res = await economy.purchaseFullGame(() => Promise.resolve(true));
-        if (res.ok || (res.restored && economy.ownsFullGame())) { c.close(); sound.jackpot(); ui.toast(res.ok ? `${t('fullOwned')}!` : res.reason, { kind: 'gold', icon: 'crown' }); app.onPremiumUnlocked?.(); onUnlocked?.(); }
-        else if (res.pending) ui.toast(res.reason, { icon: 'hourglass', duration: 4200 });
-        else if (res.busy) ui.toast(res.reason, { icon: 'hourglass' });
-        else if (!res.cancelled) ui.toast(res.reason, { kind: 'bad' });
+        const unlocked = () => { c.close(); app.onPremiumUnlocked?.(); };
+        await realPurchase(app, productInfo(FULL_GAME.id), (cs) => economy.purchaseFullGame(cs), {
+          onDone: unlocked,
+          afterCard: () => onUnlocked?.(),
+          // החנות אמרה "כבר בבעלותך" — הוחזר בלי חיוב (בלי כרטיס ובלי רישום)
+          onRestored: () => { if (economy.ownsFullGame()) { unlocked(); onUnlocked?.(); } },
+        });
       } },
     ],
   });
@@ -169,11 +177,41 @@ export function openAchievements(app) {
   return app.ui.modal({ title: t('achievements'), titleIcon: 'trophy', body: grid });
 }
 
+/**
+ * שם התצוגה — בחירה מרשימה קבועה, בלי טקסט חופשי (כך שום פרט אישי לא נשלח במשחק אונליין):
+ * תואר × כינוי ("אביר הזהב"), או תואר + המספר של הפרופיל ("מלך 123" — ברירת המחדל). core/PlayerName.js
+ */
+function namePicker(app) {
+  const { store } = app;
+  const lang = getLang() === 'he' ? 'he' : 'en';
+  const prof = withPresetName(store.get('profile'), lang);
+  const cur = parseNameKey(prof.nameKey);
+  const opt = (value, label, on) => h('option', { value, selected: on }, label);
+  const titleSel = h('select', { id: 'pn-title' }, ...NAME_TITLES.map(([id, heBase, , en]) => opt(id, lang === 'he' ? heBase : en, id === cur.title)));
+  const epSel = h('select', { id: 'pn-epithet' }, opt(prof.nameNum, prof.nameNum, !!cur.num),
+    ...NAME_EPITHETS.map(([id, he, en]) => opt(id, lang === 'he' ? he : en, id === cur.epithet)));
+  const shown = h('b', { class: 'np-name', 'aria-live': 'polite' }, prof.name);
+  const pick = () => {
+    const next = withPresetName({ ...store.get('profile'), nameKey: `${titleSel.value}:${epSel.value}` }, lang);
+    store.set({ profile: next });
+    shown.textContent = next.name;
+    app.refreshHud();
+  };
+  titleSel.addEventListener('change', pick);
+  epSel.addEventListener('change', pick);
+  return h('fieldset', { class: 'name-pick' },
+    h('legend', {}, t('name')),
+    shown,
+    h('div', { class: 'np-row' },
+      h('div', { class: 'field' }, h('label', { for: 'pn-title' }, t('npTitle')), titleSel),
+      h('div', { class: 'field' }, h('label', { for: 'pn-epithet' }, t('npEpithet')), epSel)),
+    h('p', { class: 'np-note' }, t('npNote')));
+}
+
 export function openSettings(app) {
   const { store, ui, economy } = app;
   const s = store.get('settings');
   const prof = store.get('profile');
-  const nameIn = h('input', { id: 'pname', value: prof.name, maxlength: 18, autocomplete: 'nickname', onchange: (e) => { store.set({ profile: { ...store.get('profile'), name: e.target.value.trim().slice(0, 18) || prof.name } }); app.refreshHud(); } });
   const cur = emblemIcon(prof.avatar);
   const emRow = h('div', { class: 'emblems', role: 'radiogroup', 'aria-label': t('avatar') }, ...EMBLEMS.map((e) => h('button', { class: 'tap', role: 'radio', 'aria-checked': String(cur === e), 'aria-label': t(`lngEm_${e}`), onclick: (ev) => { store.set({ profile: { ...store.get('profile'), avatar: e } }); emRow.querySelectorAll('button').forEach((b) => b.setAttribute('aria-checked', 'false')); ev.currentTarget.setAttribute('aria-checked', 'true'); app.refreshHud(); } }, icon(e, { size: 26 }))));
   const langSeg = segment([['he', 'עברית'], ['en', 'English']], s.lang || getLang(), (v) => { store.setSetting('lang', v); m.close(); app.setLanguage(v); });
@@ -187,7 +225,7 @@ export function openSettings(app) {
     : h('div', { class: 'btn-row' }, h('button', { class: 'btn small tap', onclick: () => { m.close(); openFullGame(app); } }, ...withIcon('crown', tn('לפרטים ולפתיחה', 'Details & unlock'), 16)));
   const body = h('div', { class: 'settings' },
     h('h3', {}, ...withIcon('crown', t('profile'), 16)),
-    h('div', { class: 'field' }, h('label', { for: 'pname' }, t('name')), nameIn),
+    namePicker(app),
     emRow,
     h('h3', {}, ...withIcon('castle', t('fullGame'), 16)), fullRow,
     h('h3', {}, ...withIcon('globe', t('language'), 16)), langSeg,
@@ -195,7 +233,9 @@ export function openSettings(app) {
     h('h3', {}, ...withIcon('eye', t('a11yReduceMotion'), 16)), mSeg,
     h('h3', {}, ...withIcon('lock', t('lgSection'), 16)), h('p', { style: { textAlign: 'start' } }, t('privacyText')),
     // [legal] מדיניות פרטיות, תנאי שימוש, הצהרת נגישות ורישיונות — הדפים הציבוריים בתוך המשחק
-    h('div', { class: 'btn-row legal-links' }, ...LEGAL_PAGES.map(([page, ic, key]) => h('button', { class: 'btn small tap', onclick: () => openLegalPage(app, page) }, ...withIcon(ic, t(key), 16)))),
+    h('div', { class: 'btn-row legal-links' }, ...LEGAL_PAGES.map(([page, ic, key]) => h('button', { class: 'btn small tap', onclick: () => openLegalPage(app, page) }, ...withIcon(ic, t(key), 16))),
+      // הרכישות בכסף אמיתי מהמכשיר הזה (מחיר, תאריך, מספר הזמנה) ופרטי המפתח
+      h('button', { class: 'btn small tap', onclick: () => openMyPurchases(app) }, ...withIcon('coin', t('mpTitle'), 16))),
     h('p', { style: { textAlign: 'start', fontSize: '12px' } }, t('keyboardHelp')),
     h('div', { class: 'btn-row' }, h('button', { class: 'btn small tap', onclick: async (e) => {
       const btn = e.currentTarget; btn.disabled = true; ui.toast(t('checkingUpdates'), { icon: 'refresh' });

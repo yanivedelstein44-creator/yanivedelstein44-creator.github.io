@@ -24,6 +24,11 @@ export const UPDATE_URL = withSlash(env.VITE_UPDATE_BASE || env.VITE_UPDATE_URL 
 /** קישור להורדת APK חדש (רק כשנדרש עדכון "מקומי" מלא) */
 export const APK_URL = env.VITE_APK_URL || '';
 /** סרטונים גדולים (הטריילר בקולנוע) נטענים מהאתר רק כשצופים בהם — לא בתוך חבילת העדכון */
+/**
+ * פרטי המפתח שמוצגים לקונה בכרטיס "הרכישה הושלמה" (אחרי רכישה בכסף אמיתי).
+ * חייבים להתאים לפרטים ב-public/legal-config.js (דפי הפרטיות והתנאים) — כשמשנים אחד, משנים גם את השני.
+ */
+export const SELLER = { name: 'Yaniv Edelstein', email: 'yanivedelstein33@gmail.com' };
 export const MEDIA_URL = withSlash(env.VITE_MEDIA_URL || 'https://yanivedelstein44-creator.github.io/chess-of-ages-media/');
 
 /**
