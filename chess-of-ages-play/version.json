@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.5.7",
-  "build": "1.5.7-1794586919176",
-  "buildTime": 1794586919176,
-  "date": "2026-11-13T16:21:59.176Z",
+  "version": "1.5.8",
+  "build": "1.5.8-1794594523643",
+  "buildTime": 1794594523643,
+  "date": "2026-11-13T18:28:43.643Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.5.7-1794586919176.zip",
-  "checksum": "273153ad76f218c6cb67c6a12c1ac04011ef1ebb2140796628c54232dbed4768",
+  "bundle": "update/bundle-1.5.8-1794594523643.zip",
+  "checksum": "573033f0da9159b8d79dfe254b559bf63302a4ebd96843f0015cd61fead500db",
   "apk": "",
-  "notes": "Premium film and the trailer in the cinema"
+  "notes": "Purchase notice and receipt card, My purchases, preset player names"
 }
