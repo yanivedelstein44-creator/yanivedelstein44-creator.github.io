@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.5.0",
-  "build": "1.5.0-1794525794174",
-  "buildTime": 1794525794174,
-  "date": "2026-11-12T23:23:14.174Z",
+  "version": "1.5.5",
+  "build": "1.5.5-1794576244322",
+  "buildTime": 1794576244322,
+  "date": "2026-11-13T13:24:04.322Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.5.0-1794525794174.zip",
-  "checksum": "6373bcd1bf9d7c7ff72d333b8b5edcefc230ed20832a4e5796c6760d88a89b63",
+  "bundle": "update/bundle-1.5.5-1794576244322.zip",
+  "checksum": "a5082d1e8e97a3b4644efbce4e264fd3326fa94538bdd095ba39adf21a614748",
   "apk": "",
-  "notes": "Google Play purchases with Restore purchases"
+  "notes": "Gold Premium button in the middle of the Shop tabs"
 }
