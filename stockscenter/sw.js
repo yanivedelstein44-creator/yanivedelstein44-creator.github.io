@@ -2,7 +2,7 @@
    Never touches api.github.com (data + token) or ../fixtures (demo data); those go straight to the network.
    Bump VERSION on every publish (tests/shell.test.mjs checks it equals APP_VERSION in version.js, and that SHELL lists
    every module, stylesheet and font the app loads: QA R2-m3). */
-const VERSION = "1.1.1";
+const VERSION = "1.1.2";
 const CACHE = `stockscenter-shell-${VERSION}`;
 
 const SHELL = [

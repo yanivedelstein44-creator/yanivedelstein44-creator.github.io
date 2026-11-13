@@ -23,7 +23,8 @@ export function ranking({ stocks, notes = {}, ctx = {}, limit = 0, label }) {
     render();
   };
   const view = wide ? rankTable({ onOpen: open, onSort: setSort, limit, label }) : rankCard({ onOpen: open, label });
-  // desktop: the sub-score columns are hidden below 1366 px, so the chips (testid sortchip-*) stand in for those headers there
+  // desktop: if the table card is narrower than 560 px its sub-score columns are hidden, and these chips (testid
+  // sortchip-*) stand in for those headers there; otherwise CSS hides the chips (container query on .cat-main)
   const chips = wide ? sortChips({ value: app.sortKey, onChange: setSort, testPrefix: "sortchip", cls: "sortbar--desk" }) : sortChips({ value: app.sortKey, onChange: setSort });
   const render = () => view.update(rankStocks(stocks, app.sortKey, app.slider), app.sortKey);
   const rerender = rafThrottle(render);
