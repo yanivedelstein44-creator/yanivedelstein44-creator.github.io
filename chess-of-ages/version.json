@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.5.1",
-  "build": "1.5.1-1794535159183",
-  "buildTime": 1794535159183,
-  "date": "2026-11-13T01:59:19.183Z",
+  "version": "1.5.2",
+  "build": "1.5.2-1794553148942",
+  "buildTime": 1794553148942,
+  "date": "2026-11-13T06:59:08.942Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.5.1-1794535159183.zip",
-  "checksum": "7a59cf1b8c4087e4bbbb3bb2ea7822a788999cf15c0b54e41d553e2d8d971563",
+  "bundle": "update/bundle-1.5.2-1794553148942.zip",
+  "checksum": "e0ebc330cfbd1ebddc9f0697399096364afca7cc614c701ac49aa4625e872689",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Join page opens in Hebrew"
+  "notes": "Trailer on the join page"
 }
