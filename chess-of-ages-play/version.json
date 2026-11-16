@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.6.2",
-  "build": "1.6.2-1794844506419",
-  "buildTime": 1794844506419,
-  "date": "2026-11-16T15:55:06.419Z",
+  "version": "1.6.3",
+  "build": "1.6.3-1794851695474",
+  "buildTime": 1794851695474,
+  "date": "2026-11-16T17:54:55.474Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.6.2-1794844506419.zip",
-  "checksum": "c072de4f1d1c4ccd53f09581dfc6be4bf756fa049d0d7770e781836619040ca4",
+  "bundle": "update/bundle-1.6.3-1794851695474.zip",
+  "checksum": "a09d52cd94706ec75a10e214f91c3d5ecf5f44099c6e9548da08212e3d0af440",
   "apk": "",
-  "notes": "Pieces stand out on light boards: a thin outline and a soft shadow under every piece; accessibility statement updated"
+  "notes": "A small lagoon in front of the chess plaza: when a bonus ad is ready, the dolphin swims under the island into the lagoon with a Bonus label; otherwise it swims in the open sea"
 }
