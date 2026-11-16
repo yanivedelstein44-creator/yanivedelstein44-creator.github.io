@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { createPiece, applyPieceMaterials, PIECE_HEIGHT } from './PieceFactory.js';
 import { eraMaterials } from './Materials.js';
+import { PieceReadability } from './PieceReadability.js';
 import { drawnTexture, glowTexture, mesh, G } from './kit.js';
 
 export const BOARD_TOP = 0.36;
@@ -76,6 +77,9 @@ export class ChessBoard3D {
     this.time = 0;
     this.buildBoard();
     this.buildHighlights();
+    // קריאוּת הכלים: קו מתאר, צל מגע, שמנת/אור שוליים (PieceReadability.js)
+    this.readability = new PieceReadability(this.group, sceneMgr, BOARD_TOP);
+    this.readability.setBoard(this.mats);
     sceneMgr.onUpdate((dt, t) => this.update(dt, t));
   }
 
@@ -191,7 +195,16 @@ export class ChessBoard3D {
   }
 
   // ---------- כלים ----------
-  matsFor(color) { return color === 'w' ? this.mats.white : this.mats.black; }
+  matsFor(color) { const look = this.readability.look(this.mats); return color === 'w' ? look.white : look.black; }
+
+  /** ניגודיות הכלים: 'off' (מראה מקורי) | 'normal' (A) | 'plus' (A+, ברירת המחדל) | 'high' (B). מוחל מיד על כל הכלים */
+  setPieceContrast(mode = 'plus') {
+    this.readability.setMode(mode);
+    if (this.selected) this.selGlow.visible = mode === 'off';
+    this.readability.setBoard(this.pendingMats || this.mats);
+    for (const p of this.pieces.values()) this.applyPieceLook(p, this.pendingMats && this.morphDone?.has(p) ? this.pendingMats : this.mats);
+  }
+  get pieceContrast() { return this.readability.mode; }
 
   setPosition(boardArray) {
     for (const p of this.pieces.values()) this.group.remove(p);
@@ -206,7 +219,8 @@ export class ChessBoard3D {
 
   /** מחליף מראה של כלי קיים לפי ערכת חומרים */
   applyPieceLook(p, set) {
-    applyPieceMaterials(p, p.userData.color === 'w' ? set.white : set.black);
+    const look = this.readability.look(set);
+    applyPieceMaterials(p, p.userData.color === 'w' ? look.white : look.black);
   }
 
   spawnPiece(type, color, square, mats = this.matsFor(color)) {
@@ -216,6 +230,7 @@ export class ChessBoard3D {
     p.userData.square = square;
     this.group.add(p);
     this.pieces.set(square, p);
+    this.readability.attach(p);
     return p;
   }
 
@@ -231,7 +246,10 @@ export class ChessBoard3D {
     gsap.to(p.position, { y: BOARD_TOP + 0.28, duration: 0.22, ease: 'back.out(2)' });
     this.selRing.position.set(x, BOARD_TOP + 0.03, z);
     this.selGlow.position.set(x, BOARD_TOP + 0.02, z);
-    this.selRing.visible = this.selGlow.visible = true;
+    this.selRing.visible = true;
+    // במצבי הקריאוּת צל המגע של הכלי הנבחר מתחזק ומחליף את העיגול השחור
+    this.readability.setSelected(p);
+    this.selGlow.visible = this.readability.mode === 'off';
     this.selRing.scale.setScalar(0.4);
     gsap.to(this.selRing.scale, { x: 1, y: 1, z: 1, duration: 0.3, ease: 'back.out(2)' });
     for (const mv of moves) {
@@ -263,6 +281,7 @@ export class ChessBoard3D {
       if (p) gsap.to(p.position, { y: BOARD_TOP, duration: 0.18, ease: 'power2.out' });
     }
     this.selected = null;
+    this.readability.setSelected(null);
     this.selRing.visible = this.selGlow.visible = false;
     this.clearMarkers();
   }
@@ -434,6 +453,7 @@ export class ChessBoard3D {
     this.pendingMats = eraMaterials(this.matKey);
     if (instant) { this.mats = this.pendingMats; this.pendingMats = null; this.applyAll(); return; }
     this.morphDone = new Set();
+    this.readability.setBoard(this.pendingMats);
   }
 
   /** לוח ייחודי של האי (איי פרימיום); מוחל בקריאת setEra הבאה או מיד */
@@ -460,6 +480,7 @@ export class ChessBoard3D {
 
   applyAll() {
     const m = this.mats;
+    this.readability.setBoard(m);
     this.dais.material = m.dais; this.frame.material = m.frame; this.trim.material = m.trim;
     this.squares.forEach((s) => { s.material = s.userData.light ? m.light : m.dark; });
     for (const p of this.pieces.values()) this.applyPieceLook(p, m);
@@ -522,6 +543,7 @@ export class ChessBoard3D {
   // ---------- לולאה ----------
   update(dt, t) {
     this.time = t;
+    this.readability.update(dt);
     const pulse = 0.5 + 0.5 * Math.sin(t * 5);
     this.markers.forEach((m) => {
       const s = m.userData.cap ? 1 + pulse * 0.08 : 0.95 + pulse * 0.12;

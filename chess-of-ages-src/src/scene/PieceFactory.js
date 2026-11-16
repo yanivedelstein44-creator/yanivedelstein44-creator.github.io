@@ -134,7 +134,7 @@ export function createPiece(type, color, mats) {
 /** החלפת חומרים בכלי קיים */
 export function applyPieceMaterials(piece, mats) {
   piece.traverse((o) => {
-    if (o.isMesh) o.material = o.userData.role === 'body' ? mats.body : mats.accent;
+    if (o.isMesh && o.userData.role !== 'outline') o.material = o.userData.role === 'body' ? mats.body : mats.accent; // קו המתאר שומר על החומר שלו
   });
 }
 
