@@ -6,6 +6,7 @@
  * (עטיפת Play מגרסה 1003 ומעלה — android-wrapper/build-aab.sh). בדפדפן, ב-APK מהאתר ובעטיפות ישנות אין פרסומות:
  * הדולפין רק שוחה וקופץ (קישוט), בלי תג ובלי חלון. לבדיקות בדפדפן: ‎?fakeads (פרסומת מדומה של 5 שניות;
  * ‎?fakeads=eea מדמה את טופס ההסכמה האירופי, ‎?fakeads=nofill — אין פרסומת).
+ * עד ההשקה ב-Google Play גם גרסת Play מציגה פרסומות בדיקה של Google ("Test Ad") — ADS.live ב-config/AdsConfig.js.
  *
  * הזרימה (כל שלב רק אחרי לחיצה של השחקן):
  *  1. נגיעה בדולפין → חלון "פרסומת: צפה עד הסוף וקבל 20 יהלומים" (ui/AdOffer.js) עם "צפה בפרסומת" / "לא עכשיו".
@@ -78,8 +79,8 @@ class NativeAds {
   }
   async load({ npa }) {
     await this.listen();
-    const real = ADMOB_IDS.rewarded;
-    // בלי מזהה אמיתי — יחידת הבדיקה של Google (פרסומות "Test Ad", בלי הכנסות ובלי סיכון לחשבון)
+    const real = ADS.live ? ADMOB_IDS.rewarded : '';
+    // עד ההשקה (ADS.live כבוי) או בלי מזהה אמיתי — יחידת הבדיקה של Google (פרסומות "Test Ad", בלי הכנסות ובלי סיכון לחשבון)
     await this.p.prepareRewardVideoAd({ adId: real || ADMOB_IDS.testRewarded, isTesting: !real, npa: !!npa, immersiveMode: true });
   }
   show(h) {

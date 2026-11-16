@@ -19,11 +19,20 @@ export const ADS = {
   personalizedDefault: false,
   /** דירוג התוכן המקסימלי של הפרסומות (AdMob): ParentalGuidance — מתאים לרוב הקהל, גם לבני נוער */
   maxAdContentRating: 'ParentalGuidance',
+  /**
+   * פרסומות אמיתיות (true) או פרסומות הבדיקה של Google, "Test Ad" (false).
+   * עד ההשקה ב-Google Play — false: חשבון AdMob עוד לא אושר (בלי פרטי תשלום אין מודעות אמיתיות, והבודקים היו
+   * מקבלים "אין פרסומת" בכל נגיעה), וצפייה של המפתח או של בודקים בתשלום בפרסומות אמיתיות עלולה להיחשב תנועה
+   * לא תקינה. פרסומות הבדיקה עוברות את אותה זרימה בדיוק (הסכמה, צפייה, 20 יהלומים), בלי הכנסות.
+   * ביום ההשקה: true → scripts/publish-site.sh ואז scripts/publish-play.sh (עדכון OTA, בלי AAB חדש),
+   * ובאותו יום ב-AdMob: קישור האפליקציה ל-Google Play.
+   */
+  live: false,
 };
 
 /**
  * מזהי AdMob. מזהה יחידת פרסומת אינו סוד (הוא נמצא בכל אפליקציה). מזהה האפליקציה (‎~) נכנס למניפסט בבניית ה-AAB
- * (android-wrapper/build-aab.sh, ADMOB_APP_ID). כל עוד אין מזהה אמיתי — פרסומות בדיקה של Google (isTesting).
+ * (android-wrapper/build-aab.sh, ADMOB_APP_ID). כל עוד ADS.live כבוי או שאין מזהה אמיתי — פרסומות בדיקה של Google (isTesting).
  */
 export const ADMOB_IDS = {
   /** מזהה האפליקציה ב-AdMob (‎~) — נכנס למניפסט בבניית ה-AAB (build-aab.sh קורא אותו מכאן) */
