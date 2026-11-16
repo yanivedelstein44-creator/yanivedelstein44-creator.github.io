@@ -2,8 +2,9 @@
 <!--
   Privacy Policy — Chess of Ages: Island Realms
   Developer name and contact email come from legal-config.js (the only place to set them).
-  Online play with a friend (Firebase) is described in section 3. Database security rules: firebase/database.rules.json in the source.
-  Have a lawyer review the wording before release. This is not legal advice.
+  Online play with a friend or in the Arena of Ages (Firebase) is described in section 3. Database security rules: firebase/database.rules.json in the source.
+  The optional rewarded ad in the Google Play version (Google AdMob) is described in section 4 (id en-ads / he-ads; the game links to it).
+  Have a lawyer review the wording before release, especially sections 3, 4 and 8 (see COMPLIANCE.md section 0). This is not legal advice.
 -->
 <html lang="en" dir="ltr">
 <head>
@@ -12,7 +13,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>Privacy Policy | Chess of Ages</title>
-  <meta name="description" content="Privacy policy of Chess of Ages: Island Realms: what the game stores on your device, what online play sends, and your rights." />
+  <meta name="description" content="Privacy policy of Chess of Ages: Island Realms: what the game stores on your device, what online play and the optional ad in the Google Play version send, and your rights." />
   <meta name="theme-color" content="#0b0912" />
   <meta name="color-scheme" content="dark" />
   <meta name="robots" content="index,follow" />
@@ -42,15 +43,16 @@
         <a href="./licenses.html" data-keep-lang>Open-source licenses</a>
       </nav>
       <h1>Privacy Policy</h1>
-      <p class="meta">Chess of Ages: Island Realms · Last updated: <time data-legal="updated">2026-11-13</time></p>
+      <p class="meta">Chess of Ages: Island Realms · Last updated: <time data-legal="updated">2026-11-16</time></p>
 
       <section aria-labelledby="en-summary">
         <h2 id="en-summary">The short version</h2>
         <ul class="summary">
-          <li>No account, no cookies, no ads, no analytics and no tracking pixels.</li>
+          <li>No account, no cookies, no analytics and no tracking pixels. The website and the app from our website have no ads.</li>
           <li>Your islands, museum, gems, outfits, pets, board skins and settings are stored only on your device. We can't see them.</li>
           <li>Games against the bots, the Time Pirates or a friend on the same device are played entirely on your device. Nothing about them is sent anywhere.</li>
-          <li>Online play with a friend is optional. Only what that game needs (a random anonymous ID, a display name you pick from a list of preset names, your avatar's look and your moves) goes through Google Firebase. Only people who have your private room code can see it. No strangers, no free-text chat.</li>
+          <li>Online play is optional: with a friend you invite with a private code, or in the Arena of Ages against players who are waiting for an opponent. Only what the game needs (a random anonymous ID, a display name you pick from a list of preset names, your avatar's look and your moves) goes through Google Firebase. There's no free-text chat, only fixed reactions, and in the Arena you can block a player.</li>
+          <li>The Google Play version has one optional ad: at the dolphin by the Central Island you can choose to watch a short ad for gems. The game asks you every time. The ad comes from Google AdMob, which receives technical data such as your device's advertising ID (section 4).</li>
           <li>Purchases are optional. In the Google Play version, Google Play handles payment and we never see your payment details. The website and test versions use a test shop that never charges money.</li>
           <li>You can erase everything at any time: <b>Settings → Delete all my data</b>.</li>
         </ul>
@@ -70,43 +72,58 @@
             <caption>Local storage used by the game</caption>
             <thead><tr><th scope="col">Name</th><th scope="col">What it contains</th><th scope="col">Why</th><th scope="col">How long</th></tr></thead>
             <tbody>
-              <tr><td><code>chess_ages_progress</code></td><td>Conquered islands, stars, Time Pirate timers, museum pieces, the island you're on, wins, losses and draws, rating, display name and symbol, settings (sound, language, graphics, motion), a saved unfinished game, achievements, and the codes of online rooms you're in or created (so you can return to a room and so your old rooms can be closed)</td><td>To keep your progress between visits</td><td>Until you delete it</td></tr>
-              <tr><td><code>chess_ages_economy</code></td><td>Gem balance, owned outfits, pets (including Sky Nest pets) and their growth, pet colors, resident bots, board skins, what you have equipped, 24-hour trials, item shards, Premium and double-gems status, a record of purchases (test purchases, or Google Play purchase confirmations with no payment details), daily-gift timers</td><td>To run the in-game shop and rewards</td><td>Until you delete it</td></tr>
+              <tr><td><code>chess_ages_progress</code></td><td>Conquered islands, stars, Time Pirate timers, museum pieces, the island you're on, wins, losses and draws, rating, display name and symbol, settings (sound, language, graphics, motion, and in the Google Play version your ad choice: general or personalized ads), a saved unfinished game, achievements, the codes of online rooms you're in or created (so you can return to a room and so your old rooms can be closed), whether you've seen the Arena notice, and the players you blocked in the Arena (only their random anonymous IDs)</td><td>To keep your progress between visits</td><td>Until you delete it</td></tr>
+              <tr><td><code>chess_ages_economy</code></td><td>Gem balance, owned outfits, pets (including Sky Nest pets) and their growth, pet colors, resident bots, board skins, what you have equipped, 24-hour trials, item shards, Premium and double-gems status, a record of purchases (test purchases, or Google Play purchase confirmations with no payment details), daily-gift timers, and in the Google Play version the ad counters (ads watched today and the time of the last one, so the limits work)</td><td>To run the in-game shop and rewards</td><td>Until you delete it</td></tr>
               <tr><td><code>chess_ages_last_login</code></td><td>The date you last claimed the daily reward</td><td>To count your login streak</td><td>Until you delete it</td></tr>
               <tr><td>App cache (<code>chess-ages-…</code>)</td><td>Copies of the game's own files. No personal data.</td><td>So the game opens offline and updates itself</td><td>Replaced by every update</td></tr>
               <tr><td><code>firebaseLocalStorageDb</code> (only if you play online)</td><td>An anonymous sign-in token from Firebase Authentication: a random ID, with no email, name or password</td><td>So you keep your seat in an online room</td><td>Until you delete the game's data</td></tr>
               <tr><td><code>firebase-heartbeat-database</code> (only if you play online)</td><td>Technical data that Google's Firebase software keeps about itself: its version and the days it was used. It's sent to Google with online-play sign-in requests. No name or game data.</td><td>Part of how the Firebase software works</td><td>Until you delete the game's data</td></tr>
+              <tr><td>Google AdMob and consent data (Google Play version, only after you choose to watch an ad)</td><td>Data that Google's ad and consent software keeps in the app's storage, such as your consent choices (in the EEA, the UK and Switzerland, a standard consent string) and data it uses to deliver ads, limit how often you see them and prevent fraud</td><td>Part of how Google's ad software works</td><td>As set by Google, until you delete the app's data or uninstall it</td></tr>
             </tbody>
           </table>
         </div>
         <p>Everything in this table stays on your device until you use <b>Settings → Delete all my data</b>, clear the site's data or uninstall the app.</p>
         <p>If the game hits a technical error, it may keep a short error note on your device to recover. It contains no personal data and is never sent anywhere.</p>
-        <p>We don't use cookies, advertising IDs, fingerprinting, analytics tools or tracking pixels.</p>
+        <p>We don't use cookies, fingerprinting, analytics tools or tracking pixels. The website and the app from our website don't use advertising IDs. The Google Play version uses your device's advertising ID only through Google AdMob, for the optional ad (section 4).</p>
       </section>
 
       <section aria-labelledby="en-online">
-        <h2 id="en-online">3. Online play with a friend (optional)</h2>
-        <p><b>What is sent.</b> When you create or join a private room, the game sends: a random anonymous user ID, a display name you pick from a list of preset names, your avatar's outfit, pet and symbol, the room code, your color, the moves, draw and rematch requests, the fixed reactions you send (there is no free-text chat) and whether you're connected.</p>
+        <h2 id="en-online">3. Online play (optional): with a friend or in the Arena</h2>
+        <p><b>What is sent.</b> When you create or join a room (a private room for a friend, or a room in the Arena of Ages), the game sends: a random anonymous user ID, a display name you pick from a list of preset names, your avatar's outfit, pet and symbol, the room code, your color, the moves, draw and rematch requests, the fixed reactions you send (there is no free-text chat), whether you're connected and, in the Arena, the island the game is played on.</p>
+        <p><b>The Arena of Ages.</b> In the Arena you play against players you don't know. While you wait for an opponent, a short listing of your room is visible to everyone who opens the Arena: your display name from the preset list, your symbol, the island and how long you've been waiting. It's removed as soon as someone joins, when you leave, or when your connection drops. Arena rooms have no spectators. If you block a player, only their random anonymous ID is saved, on your device, and the game doesn't notify them.</p>
         <p><b>Why.</b> Only to run the online game you asked for. The anonymous ID is used only to keep your seat and your moves in a room. It isn't used for advertising, analytics or profiling. For users in the EU and UK, the legal basis is providing the service you requested (GDPR article 6(1)(b)).</p>
         <p><b>Who processes it.</b> Google Firebase (Realtime Database, with the data stored in Belgium in the EU, and Anonymous Authentication) runs online play for us as our service provider. Like any internet service, Google also processes technical data such as your IP address to deliver it. Google may process technical and sign-in data in other countries under its data processing terms.</p>
-        <p><b>Who can see it.</b> Only people who have the room code: the friend you invited and spectators you share the code with. There is no matchmaking with strangers, and rooms can't be listed or searched.</p>
-        <p><b>How long.</b> A room is deleted when the player who created it leaves it, or the next time that player opens online play if an old room was left open. <b>Settings → Delete all my data</b> also deletes the rooms you created from the server. Your anonymous account stays in Firebase until you use <b>Delete all my data</b>, which deletes it.</p>
+        <p><b>Who can see it.</b> In a room for a friend: only people who have the room code, meaning the friend you invited and spectators you share the code with. Those rooms can't be listed or searched. In the Arena: your opponent sees what the room contains, and while you wait, everyone in the Arena sees your listing (described above).</p>
+        <p><b>How long.</b> A room is deleted when the player who created it leaves it, or the next time that player opens online play if an old room was left open. An Arena listing is deleted as soon as someone joins, when you leave or when you disconnect, and a listing left behind for 30 minutes may be cleared by any copy of the game. <b>Settings → Delete all my data</b> also deletes the rooms you created from the server. Your anonymous account stays in Firebase until you use <b>Delete all my data</b>, which deletes it.</p>
         <p><b>Is it required?</b> No law requires you to give this data, and online play is optional. If you don't want to send it, don't use online play. Everything else in the game works without it.</p>
       </section>
 
+      <section aria-labelledby="en-ads">
+        <h2 id="en-ads">4. The optional ad (Google Play version only)</h2>
+        <p><b>What it is.</b> In the Google Play version, a dolphin swims in the water by the Central Island. If you tap it, the game explains the offer and asks whether you want to watch a short ad (a "rewarded ad") for 20 gems. You can close the ad at any time, and then you just don't get the gems. There's at most one ad every 5 minutes and up to 10 a day, and no other ads are shown in the game. The website and the Android app from our website have no ads at all: there, the dolphin is only decoration.</p>
+        <p><b>Who shows the ad.</b> Google AdMob, a Google service (Google Ireland Limited for users in the EEA, the UK and Switzerland, and Google LLC elsewhere). The game doesn't request an ad until you tap the dolphin and choose to watch one.</p>
+        <p><b>What Google receives.</b> To show the ad, Google's ad software in the app sends Google technical data: your device's advertising ID, your IP address (from which an approximate location can be inferred), device and app information (such as the model, Android version, language and app version), information about the ad and how you interacted with it, and diagnostic data such as crash and performance information.</p>
+        <p><b>Why.</b> To show the ad, to measure it (for example, that it was watched to the end, so you get the gems) and to prevent fraud and abuse. If you choose personalized ads, Google also uses this data to pick ads based on your interests. Even general (non-personalized) ads use such data to limit how often an ad is shown, for aggregated reporting and to prevent fraud.</p>
+        <p><b>Your choice.</b> In the European Economic Area, the UK and Switzerland, Google's consent form appears before the first ad, and you can change your choice later under <b>Settings → Ads → Privacy options for ads</b>. Elsewhere, the game asks you once whether you prefer general or personalized ads. General ads are the default, and you can change this at any time under <b>Settings → Ads</b>. You can also reset or delete your device's advertising ID in your Android settings (Settings → Google → Ads, or Settings → Privacy → Ads, depending on the device).</p>
+        <p><b>What we receive.</b> Only aggregated reports from AdMob, such as how many ads were shown and the earnings. We don't receive your advertising ID, your IP address or anything that identifies you.</p>
+        <p><b>Google's terms.</b> Google processes this data under its own privacy policy (<a href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">policies.google.com/privacy</a>). How Google uses information from apps that use its services: <a href="https://policies.google.com/technologies/partner-sites" rel="noopener noreferrer" target="_blank">policies.google.com/technologies/partner-sites</a>. Google may process the data in the United States and in other countries, under the safeguards in its terms.</p>
+        <p><b>Is it required?</b> No. Watching an ad is optional, and everything else in the game works without it. Ads are requested as suitable for a general audience with parental guidance (the "PG" rating).</p>
+      </section>
+
       <section aria-labelledby="en-share">
-        <h2 id="en-share">4. Sharing and who receives data</h2>
-        <p>We don't sell or rent personal data, and we don't use it for advertising. Data reaches others only in these cases:</p>
+        <h2 id="en-share">5. Sharing and who receives data</h2>
+        <p>We don't sell or rent personal data. Data reaches others only in these cases:</p>
         <ul>
           <li><b>When you share.</b> Invite links, room codes and share images are created on your device and sent by you, through WhatsApp or your device's share menu. We don't receive the recipients' details.</li>
-          <li><b>Service providers.</b> Google Firebase for online play (section 3), GitHub, which hosts the website and the updates (section 5), and Google Play for installing the app and for payments (section 6). Each processes data under its own terms.</li>
+          <li><b>Service providers.</b> Google Firebase for online play (section 3), GitHub, which hosts the website and the updates (section 6), and Google Play for installing the app and for payments (section 7). Each processes data under its own terms.</li>
+          <li><b>Google AdMob</b>, only in the Google Play version and only when you choose to watch the ad (section 4). Google receives that data under its own privacy policy.</li>
           <li><b>When the law requires it.</b> For example, a valid order from a competent authority.</li>
-          <li><b>Transfers abroad.</b> The online-play database is in Belgium, in the EU. Google (for Firebase sign-in) and GitHub (for hosting) may also process technical data in the United States and other countries. They do so under their data processing terms, which use safeguards such as the EU's standard contractual clauses or the EU-U.S. Data Privacy Framework.</li>
+          <li><b>Transfers abroad.</b> The online-play database is in Belgium, in the EU. Google (for Firebase sign-in and for the optional ad) and GitHub (for hosting) may also process technical data in the United States and other countries. They do so under their data processing terms, which use safeguards such as the EU's standard contractual clauses or the EU-U.S. Data Privacy Framework.</li>
         </ul>
       </section>
 
       <section aria-labelledby="en-host">
-        <h2 id="en-host">5. Website, hosting and automatic updates</h2>
+        <h2 id="en-host">6. Website, hosting and automatic updates</h2>
         <p>The same game is released through two channels:</p>
         <ul>
           <li><b>Our website and the Android app downloaded from it:</b> the website, the game's files and its updates are hosted on GitHub Pages (GitHub, Inc.).</li>
@@ -117,41 +134,41 @@
       </section>
 
       <section aria-labelledby="en-pay">
-        <h2 id="en-pay">6. Purchases</h2>
-        <p>Islands 1–99 are free, and the game has no ads at all. These optional items cost real money:</p>
+        <h2 id="en-pay">7. Purchases</h2>
+        <p>Islands 1–99 are free. The only ad is the optional one at the dolphin in the Google Play version (section 4). These optional items cost real money:</p>
         <ul>
           <li><b>Premium Islands</b>: a one-time purchase that unlocks islands 100–129 and the Golden Clockwork Dragon.</li>
           <li><b>Double gems for a week</b>: for 7 days, every win against a bot or the Time Pirates gives twice the gems. Each purchase adds another 7 days.</li>
           <li><b>Board skins</b>: cosmetic looks for the board and pieces, each a one-time purchase. Other skins are free and earned by conquering islands.</li>
           <li><b>Legendary Sky Nest pets</b> (Thunder Dragon, Crystal Griffin, Sky Whale): cosmetic flying pets, each a one-time purchase. The other Sky Nest pets are earned by playing.</li>
         </ul>
-        <p>Gems are never sold. You earn them by playing. Nothing that is sold makes the bots weaker or helps you win a game. Free rewards such as daily gifts and the Royal Treasure Chest are never sold for money.</p>
+        <p>Gems are never sold. You earn them by playing, and in the Google Play version also by watching the optional ad at the dolphin. Nothing that is sold makes the bots weaker or helps you win a game. Free rewards such as daily gifts and the Royal Treasure Chest are never sold for money.</p>
         <p><b>Payment.</b> In the Google Play version, purchases use Google Play's billing system, and Google processes the payment under Google's own terms and privacy policy. We never receive your card or bank details.</p>
         <p><b>What the game handles.</b> On your device, the game talks to Google Play to show prices, complete a purchase and restore what you bought. It stores on your device which items you own, with the order reference and purchase time, so it can deliver them, avoid delivering them twice and remove an item if the purchase is refunded. It also keeps a list of your purchases on this device only (item, date, price and Google order number), which you can see under <b>Settings → My purchases</b>; <b>Delete all my data</b> deletes it. None of this is sent to our own servers. Google also shows us order details in our developer console (for example the order number, product, price, date and the buyer's country), which we use only to handle refunds, cancellations and support requests. For users in the EU and UK, the legal basis is performing the purchase you asked for (GDPR article 6(1)(b)).</p>
         <p>On the website and in test versions the shop runs in test mode: no money is charged and no payment details are collected. Refunds, cancellations and restoring purchases are explained in the <a href="./terms.html#en-pay">Terms of use</a>.</p>
       </section>
 
       <section aria-labelledby="en-kids">
-        <h2 id="en-kids">7. Children</h2>
-        <p>The game doesn't ask for an email, phone number or real name. Your display name is a name you pick from a list of preset names, so no real name can be typed in. Online play only connects you with a friend you invite using a private code: there's no matchmaking with strangers and no free-text chat, only fixed reactions. A parent or guardian who has a question about a child's use of the game, or wants a child's data deleted, can contact us at the address in section 1.</p>
+        <h2 id="en-kids">8. Children</h2>
+        <p>The game doesn't ask for an email, phone number or real name. Your display name is a name you pick from a list of preset names, so no real name can be typed in. Online play with a friend connects you only with someone you invite using a private code. In the Arena of Ages you play against players you don't know, but no one can write to you: there's no free-text chat, only preset names and fixed reactions, and you can block a player. The optional ad in the Google Play version is requested as suitable for a general audience with parental guidance. A parent or guardian who has a question about a child's use of the game, or wants a child's data deleted, can contact us at the address in section 1.</p>
       </section>
 
       <section aria-labelledby="en-rights">
-        <h2 id="en-rights">8. Your choices and rights</h2>
+        <h2 id="en-rights">9. Your choices and rights</h2>
         <ul>
-          <li><b>Delete everything:</b> <b>Settings → Delete all my data</b> erases your progress and items on this device, deletes the online rooms you created and removes the anonymous sign-in. You can also clear the site's data or uninstall the app.</li>
-          <li><b>Your rights under the law:</b> depending on where you live, you may have the right to see the personal data we hold about you, correct it, delete it, or object to its use. This includes Israel's Privacy Protection Law and the EU/UK GDPR, which also give the rights to restrict processing and to data portability. Write to <span data-legal="email">[CONTACT EMAIL]</span>. Because almost everything is stored only on your device, we usually hold no data about you outside an active online room.</li>
+          <li><b>Delete everything:</b> <b>Settings → Delete all my data</b> erases your progress and items on this device, deletes the online rooms you created, removes the anonymous sign-in and, in the Google Play version, resets the ad consent choices. You can also clear the site's data or uninstall the app. Your device's advertising ID is reset in your Android settings (section 4).</li>
+          <li><b>Your rights under the law:</b> depending on where you live, you may have the right to see the personal data we hold about you, correct it, delete it, or object to its use. This includes Israel's Privacy Protection Law and the EU/UK GDPR, which also give the rights to restrict processing and to data portability. Write to <span data-legal="email">[CONTACT EMAIL]</span>. Because almost everything is stored only on your device, we usually hold no data about you outside an active online room or Arena listing.</li>
           <li><b>Complaints:</b> you may complain to the Israeli Privacy Protection Authority, or to the data protection authority where you live.</li>
         </ul>
       </section>
 
       <section aria-labelledby="en-sec">
-        <h2 id="en-sec">9. Security</h2>
-        <p>The website, updates and online play use HTTPS. Online rooms are protected by server-side security rules: rooms can't be listed, only people with the code can open a room, only the two players can change the game, and only the player whose turn it is can make a move. We collect as little as the game needs.</p>
+        <h2 id="en-sec">10. Security</h2>
+        <p>The website, updates and online play use HTTPS. Online rooms are protected by server-side security rules: rooms for a friend can't be listed and only people with the code can open them, the Arena's list shows only the short listing described in section 3, only the two players can change the game, and only the player whose turn it is can make a move. We collect as little as the game needs.</p>
       </section>
 
       <section aria-labelledby="en-change">
-        <h2 id="en-change">10. Changes</h2>
+        <h2 id="en-change">11. Changes</h2>
         <p>If we change how the game handles data, we'll update this page and the date at the top before the change takes effect. A significant change will also be shown in the game.</p>
       </section>
 
@@ -174,15 +191,16 @@
         <a href="./licenses.html" data-keep-lang>רישיונות קוד פתוח</a>
       </nav>
       <h1>מדיניות פרטיות</h1>
-      <p class="meta">שחמט העידנים: ממלכות האיים (Chess of Ages: Island Realms) · עודכן לאחרונה: <time data-legal="updated">2026-11-13</time></p>
+      <p class="meta">שחמט העידנים: ממלכות האיים (Chess of Ages: Island Realms) · עודכן לאחרונה: <time data-legal="updated">2026-11-16</time></p>
 
       <section aria-labelledby="he-summary">
         <h2 id="he-summary">בקצרה</h2>
         <ul class="summary">
-          <li>בלי חשבון, בלי עוגיות, בלי פרסומות, בלי כלי ניתוח ובלי פיקסלי מעקב.</li>
+          <li>בלי חשבון, בלי עוגיות, בלי כלי ניתוח ובלי פיקסלי מעקב. באתר ובאפליקציה שמורידים מהאתר אין פרסומות.</li>
           <li>האיים, המוזיאון, היהלומים, הבגדים, החיות, סקיני הלוח וההגדרות נשמרים רק במכשיר שלך. אנחנו לא רואים אותם.</li>
           <li>משחקים נגד הבוטים, נגד פיראטי הזמן או נגד חבר על אותו מכשיר מתנהלים כולם במכשיר. שום דבר מהם לא נשלח.</li>
-          <li>משחק אונליין עם חבר הוא אופציונלי. רק מה שהמשחק צריך (מזהה אנונימי אקראי, שם תצוגה שבוחרים מתוך רשימת שמות מוכנים, המראה של האווטאר והמהלכים) עובר דרך Google Firebase, ורק מי שיש לו את קוד החדר הפרטי יכול לראות אותו. אין זרים ואין צ׳אט חופשי.</li>
+          <li>משחק אונליין הוא אופציונלי: עם חבר שהזמנת בקוד פרטי, או בזירת העידנים מול שחקנים שמחכים ליריב. רק מה שהמשחק צריך (מזהה אנונימי אקראי, שם תצוגה שבוחרים מתוך רשימת שמות מוכנים, המראה של האווטאר והמהלכים) עובר דרך Google Firebase. אין צ׳אט חופשי, רק תגובות קבועות, ובזירה אפשר לחסום שחקן.</li>
+          <li>בגרסת Google Play יש פרסומת אחת, לבחירתך: אצל הדולפין שליד האי המרכזי אפשר לצפות בפרסומת קצרה ולקבל יהלומים. המשחק שואל אותך בכל פעם. את הפרסומת מציגה Google AdMob, שמקבלת מידע טכני כמו מזהה הפרסום של המכשיר (סעיף 4).</li>
           <li>רכישות הן אופציונליות. בגרסת Google Play התשלום מתבצע דרך Google Play ואנחנו לא רואים את פרטי התשלום. באתר ובגרסאות בדיקה יש חנות בדיקה שלא גובה כסף.</li>
           <li>אפשר למחוק הכול בכל רגע: <b>הגדרות ← מחק את כל הנתונים שלי</b>.</li>
         </ul>
@@ -202,43 +220,58 @@
             <caption>האחסון המקומי שהמשחק משתמש בו</caption>
             <thead><tr><th scope="col">שם</th><th scope="col">מה יש בו</th><th scope="col">למה</th><th scope="col">לכמה זמן</th></tr></thead>
             <tbody>
-              <tr><td><code>chess_ages_progress</code></td><td>איים שנכבשו, כוכבים, טיימרים של פיראטי הזמן, חלקי המוזיאון, האי שאתה נמצא בו, ניצחונות, הפסדים ותיקו, דירוג, שם תצוגה וסמל, הגדרות (צליל, שפה, גרפיקה, תנועה), משחק שמור שלא הסתיים, הישגים, וקודי חדרי אונליין שאתה נמצא בהם או פתחת (כדי לחזור לחדר וכדי לסגור חדרים ישנים)</td><td>כדי לשמור את ההתקדמות בין ביקורים</td><td>עד שתמחק</td></tr>
-              <tr><td><code>chess_ages_economy</code></td><td>יתרת יהלומים, בגדים, חיות (כולל חיות קן השמיים) וההתפתחות שלהן, צבעי חיות, בוטים תושבים, סקינים ללוח, מה שאתה לובש, ניסיונות של 24 שעות, שברי פריטים, מצב פרימיום ויהלומים כפולים, רישום רכישות (רכישות בדיקה, או אישורי רכישה של Google Play בלי פרטי תשלום), טיימרים של המתנה היומית</td><td>כדי להפעיל את החנות ואת הפרסים במשחק</td><td>עד שתמחק</td></tr>
+              <tr><td><code>chess_ages_progress</code></td><td>איים שנכבשו, כוכבים, טיימרים של פיראטי הזמן, חלקי המוזיאון, האי שאתה נמצא בו, ניצחונות, הפסדים ותיקו, דירוג, שם תצוגה וסמל, הגדרות (צליל, שפה, גרפיקה, תנועה, ובגרסת Google Play גם הבחירה שלך בפרסומות: כלליות או מותאמות אישית), משחק שמור שלא הסתיים, הישגים, קודי חדרי אונליין שאתה נמצא בהם או פתחת (כדי לחזור לחדר וכדי לסגור חדרים ישנים), האם ראית את הודעת הזירה, והשחקנים שחסמת בזירה (רק המזהים האנונימיים האקראיים שלהם)</td><td>כדי לשמור את ההתקדמות בין ביקורים</td><td>עד שתמחק</td></tr>
+              <tr><td><code>chess_ages_economy</code></td><td>יתרת יהלומים, בגדים, חיות (כולל חיות קן השמיים) וההתפתחות שלהן, צבעי חיות, בוטים תושבים, סקינים ללוח, מה שאתה לובש, ניסיונות של 24 שעות, שברי פריטים, מצב פרימיום ויהלומים כפולים, רישום רכישות (רכישות בדיקה, או אישורי רכישה של Google Play בלי פרטי תשלום), טיימרים של המתנה היומית, ובגרסת Google Play מוני הפרסומות (כמה פרסומות ראית היום ומתי הייתה האחרונה, כדי שהמגבלות יעבדו)</td><td>כדי להפעיל את החנות ואת הפרסים במשחק</td><td>עד שתמחק</td></tr>
               <tr><td><code>chess_ages_last_login</code></td><td>התאריך האחרון שבו קיבלת את המתנה היומית</td><td>כדי לספור רצף כניסות</td><td>עד שתמחק</td></tr>
               <tr><td>מטמון האפליקציה (<code>chess-ages-…</code>)</td><td>עותקים של קבצי המשחק עצמו. אין בו מידע אישי.</td><td>כדי שהמשחק ייפתח גם בלי אינטרנט ויתעדכן לבד</td><td>מתחלף בכל עדכון</td></tr>
               <tr><td><code>firebaseLocalStorageDb</code> (רק אם שיחקת אונליין)</td><td>אסימון התחברות אנונימי של Firebase Authentication: מזהה אקראי, בלי מייל, שם או סיסמה</td><td>כדי לשמור לך את המקום בחדר אונליין</td><td>עד שתמחק את נתוני המשחק</td></tr>
               <tr><td><code>firebase-heartbeat-database</code> (רק אם שיחקת אונליין)</td><td>מידע טכני שהתוכנה של Google Firebase שומרת על עצמה: הגרסה שלה והימים שבהם השתמשו בה. הוא נשלח ל-Google עם בקשות ההתחברות למשחק האונליין. בלי שם ובלי נתוני משחק.</td><td>חלק מהאופן שבו התוכנה של Firebase עובדת</td><td>עד שתמחק את נתוני המשחק</td></tr>
+              <tr><td>מידע של Google AdMob ושל טופס ההסכמה (בגרסת Google Play, רק אחרי שבחרת לצפות בפרסומת)</td><td>מידע שהתוכנה של Google לפרסומות ולהסכמה שומרת באחסון של האפליקציה, כמו הבחירות שלך בטופס ההסכמה (באזור הכלכלי האירופי, בבריטניה ובשווייץ: מחרוזת הסכמה תקנית) ומידע שמשמש אותה להציג פרסומות, להגביל כמה פעמים רואים אותן ולמנוע הונאות</td><td>חלק מהאופן שבו התוכנה של Google לפרסומות עובדת</td><td>לפי Google, עד שתמחק את נתוני האפליקציה או תסיר אותה</td></tr>
             </tbody>
           </table>
         </div>
         <p>כל מה שבטבלה נשאר במכשיר שלך עד שתשתמש ב<b>הגדרות ← מחק את כל הנתונים שלי</b>, תנקה את נתוני האתר או תסיר את האפליקציה.</p>
         <p>אם קורית במשחק תקלה טכנית, הוא עשוי לשמור במכשיר הערת שגיאה קצרה כדי להתאושש. אין בה מידע אישי והיא לא נשלחת לשום מקום.</p>
-        <p>אנחנו לא משתמשים בעוגיות, במזהי פרסום, בטביעת אצבע דיגיטלית, בכלי ניתוח או בפיקסלי מעקב.</p>
+        <p>אנחנו לא משתמשים בעוגיות, בטביעת אצבע דיגיטלית, בכלי ניתוח או בפיקסלי מעקב. באתר ובאפליקציה שמורידים מהאתר אין שימוש במזהי פרסום. גרסת Google Play משתמשת במזהה הפרסום של המכשיר רק דרך Google AdMob, לפרסומת שאתה בוחר לראות (סעיף 4).</p>
       </section>
 
       <section aria-labelledby="he-online">
-        <h2 id="he-online">3. משחק אונליין עם חבר (אופציונלי)</h2>
-        <p><b>מה נשלח.</b> כשאתה פותח חדר פרטי או מצטרף אליו, המשחק שולח: מזהה משתמש אנונימי אקראי, שם תצוגה שבוחרים מתוך רשימת שמות מוכנים, את הבגדים, החיה והסמל של האווטאר, את קוד החדר, את הצבע שלך, את המהלכים, בקשות תיקו ומשחק חוזר, את התגובות הקבועות שאתה שולח (אין צ׳אט חופשי) והאם אתה מחובר.</p>
+        <h2 id="he-online">3. משחק אונליין (אופציונלי): עם חבר או בזירה</h2>
+        <p><b>מה נשלח.</b> כשאתה פותח חדר או מצטרף אליו (חדר פרטי לחבר, או חדר בזירת העידנים), המשחק שולח: מזהה משתמש אנונימי אקראי, שם תצוגה שבוחרים מתוך רשימת שמות מוכנים, את הבגדים, החיה והסמל של האווטאר, את קוד החדר, את הצבע שלך, את המהלכים, בקשות תיקו ומשחק חוזר, את התגובות הקבועות שאתה שולח (אין צ׳אט חופשי), האם אתה מחובר, ובזירה גם את האי שבו משחקים.</p>
+        <p><b>זירת העידנים.</b> בזירה משחקים מול שחקנים שלא מכירים. כשאתה מחכה ליריב, כל מי שפותח את הזירה רואה רשומה קצרה של החדר שלך: שם התצוגה מהרשימה, הסמל שלך, האי וכמה זמן אתה מחכה. היא נמחקת ברגע שמישהו נכנס, כשאתה יוצא או כשהחיבור שלך נופל. בחדרי הזירה אין צופים. אם חסמת שחקן, נשמר רק המזהה האנונימי האקראי שלו, במכשיר שלך, והמשחק לא מודיע לו על כך.</p>
         <p><b>למה.</b> רק כדי להפעיל את משחק האונליין שביקשת. המזהה האנונימי משמש רק כדי לשמור את המקום שלך ואת המהלכים שלך בחדר. הוא לא משמש לפרסום, לניתוח נתונים או לבניית פרופיל. למשתמשים באיחוד האירופי ובבריטניה, הבסיס החוקי הוא מתן השירות שביקשת (סעיף 6(1)(b) ל-GDPR).</p>
         <p><b>מי מעבד את המידע.</b> Google Firebase (מסד נתונים בזמן אמת שהמידע בו נשמר בבלגיה שבאיחוד האירופי, והתחברות אנונימית) מפעיל עבורנו את משחק האונליין כספק שירות. כמו כל שירות אינטרנט, Google מעבדת גם מידע טכני כמו כתובת IP כדי לספק אותו. Google עשויה לעבד מידע טכני ומידע התחברות במדינות אחרות, לפי תנאי עיבוד הנתונים שלה.</p>
-        <p><b>מי רואה את המידע.</b> רק מי שיש לו את קוד החדר: החבר שהזמנת וצופים שקיבלו ממך את הקוד. אין שידוך עם זרים, ואי אפשר לראות רשימה של חדרים או לחפש חדרים.</p>
-        <p><b>לכמה זמן.</b> חדר נמחק כשמי שפתח אותו יוצא ממנו, או בפעם הבאה שהוא נכנס לאונליין אם חדר ישן נשאר פתוח. <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק גם מהשרת את החדרים שפתחת. החשבון האנונימי שלך נשאר ב-Firebase עד שתשתמש ב<b>מחק את כל הנתונים שלי</b>, שמוחק אותו.</p>
+        <p><b>מי רואה את המידע.</b> בחדר לחבר: רק מי שיש לו את קוד החדר, כלומר החבר שהזמנת וצופים שקיבלו ממך את הקוד. את החדרים האלה אי אפשר לראות ברשימה או לחפש. בזירה: היריב שלך רואה את מה שיש בחדר, וכשאתה מחכה, כל מי שנמצא בזירה רואה את הרשומה שלך (כמתואר למעלה).</p>
+        <p><b>לכמה זמן.</b> חדר נמחק כשמי שפתח אותו יוצא ממנו, או בפעם הבאה שהוא נכנס לאונליין אם חדר ישן נשאר פתוח. רשומה בזירה נמחקת ברגע שמישהו נכנס, כשאתה יוצא או כשהחיבור נופל, ורשומה שנשארה 30 דקות יכולה להימחק בידי כל עותק של המשחק. <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק גם מהשרת את החדרים שפתחת. החשבון האנונימי שלך נשאר ב-Firebase עד שתשתמש ב<b>מחק את כל הנתונים שלי</b>, שמוחק אותו.</p>
         <p><b>האם חובה למסור את המידע?</b> אין חובה חוקית למסור אותו, והמשחק אונליין הוא אופציונלי. אם אינך רוצה לשלוח את המידע, פשוט אל תשחק אונליין. כל שאר המשחק עובד בלעדיו.</p>
       </section>
 
+      <section aria-labelledby="he-ads">
+        <h2 id="he-ads">4. הפרסומת לבחירתך (רק בגרסת Google Play)</h2>
+        <p><b>מה זה.</b> בגרסת Google Play שוחה דולפין במים שליד האי המרכזי. כשנוגעים בו, המשחק מסביר את ההצעה ושואל אם אתה רוצה לצפות בפרסומת קצרה (״פרסומת מתגמלת״) ולקבל 20 יהלומים. אפשר לסגור את הפרסומת בכל רגע, ואז פשוט לא מקבלים את היהלומים. יש לכל היותר פרסומת אחת כל 5 דקות ועד 10 ביום, ואין במשחק פרסומות אחרות. באתר ובאפליקציית האנדרואיד שמורידים מהאתר אין פרסומות בכלל, והדולפין שם הוא רק קישוט.</p>
+        <p><b>מי מציג את הפרסומת.</b> Google AdMob, שירות של Google (Google Ireland Limited למשתמשים באזור הכלכלי האירופי, בבריטניה ובשווייץ, ו-Google LLC בשאר העולם). המשחק לא מבקש פרסומת עד שאתה נוגע בדולפין ובוחר לצפות.</p>
+        <p><b>מה Google מקבלת.</b> כדי להציג את הפרסומת, התוכנה של Google באפליקציה שולחת ל-Google מידע טכני: מזהה הפרסום של המכשיר, כתובת ה-IP (שממנה אפשר להעריך מיקום משוער), פרטי המכשיר והאפליקציה (כמו הדגם, גרסת אנדרואיד, השפה וגרסת האפליקציה), מידע על הפרסומת ועל האופן שבו צפית בה, ונתוני אבחון כמו קריסות וביצועים.</p>
+        <p><b>למה.</b> כדי להציג את הפרסומת, למדוד אותה (למשל שצפית בה עד הסוף, כדי שתקבל את היהלומים) ולמנוע הונאות ושימוש לרעה. אם בחרת פרסומות מותאמות אישית, Google משתמשת במידע גם כדי לבחור פרסומות לפי תחומי העניין שלך. גם פרסומות כלליות (לא מותאמות אישית) משתמשות במידע כזה כדי להגביל כמה פעמים מוצגת פרסומת, לדוחות מצטברים ולמניעת הונאות.</p>
+        <p><b>הבחירה שלך.</b> באזור הכלכלי האירופי, בבריטניה ובשווייץ מופיע לפני הפרסומת הראשונה טופס ההסכמה של Google, ואפשר לשנות את הבחירה אחר כך ב<b>הגדרות ← פרסומות ← אפשרויות פרטיות לפרסומות</b>. בשאר העולם המשחק שואל אותך פעם אחת אם אתה מעדיף פרסומות כלליות או מותאמות אישית. ברירת המחדל היא פרסומות כלליות, ואפשר לשנות בכל עת ב<b>הגדרות ← פרסומות</b>. אפשר גם לאפס או למחוק את מזהה הפרסום של המכשיר בהגדרות של אנדרואיד (הגדרות ← Google ← מודעות, או הגדרות ← פרטיות ← מודעות, לפי המכשיר).</p>
+        <p><b>מה אנחנו מקבלים.</b> רק דוחות מצטברים מ-AdMob, כמו כמה פרסומות הוצגו וכמה הן הכניסו. אנחנו לא מקבלים את מזהה הפרסום, את כתובת ה-IP או שום דבר שמזהה אותך.</p>
+        <p><b>התנאים של Google.</b> Google מעבדת את המידע הזה לפי מדיניות הפרטיות שלה (<a href="https://policies.google.com/privacy?hl=iw" rel="noopener noreferrer" target="_blank">policies.google.com/privacy</a>). איך Google משתמשת במידע מאפליקציות שמשתמשות בשירותים שלה: <a href="https://policies.google.com/technologies/partner-sites?hl=iw" rel="noopener noreferrer" target="_blank">policies.google.com/technologies/partner-sites</a>. Google עשויה לעבד את המידע בארצות הברית ובמדינות אחרות, לפי אמצעי ההגנה שבתנאים שלה.</p>
+        <p><b>האם חובה?</b> לא. הצפייה בפרסומת היא לבחירתך, וכל שאר המשחק עובד בלעדיה. הפרסומות מתבקשות כמתאימות לקהל הרחב בהדרכת הורים (דירוג ״PG״).</p>
+      </section>
+
       <section aria-labelledby="he-share">
-        <h2 id="he-share">4. שיתוף ומי מקבל מידע</h2>
-        <p>אנחנו לא מוכרים ולא משכירים מידע אישי, ולא משתמשים בו לפרסום. מידע מגיע לאחרים רק במקרים האלה:</p>
+        <h2 id="he-share">5. שיתוף ומי מקבל מידע</h2>
+        <p>אנחנו לא מוכרים ולא משכירים מידע אישי. מידע מגיע לאחרים רק במקרים האלה:</p>
         <ul>
           <li><b>כשאתה משתף.</b> קישורי הזמנה, קודי חדרים ותמונות שיתוף נוצרים במכשיר שלך ואתה שולח אותם בוואטסאפ או בתפריט השיתוף של המכשיר. אנחנו לא מקבלים את פרטי הנמענים.</li>
-          <li><b>ספקי שירות.</b> Google Firebase למשחק האונליין (סעיף 3), GitHub שמארח את האתר ואת העדכונים (סעיף 5), ו-Google Play להתקנת האפליקציה ולתשלומים (סעיף 6). כל אחד מהם מעבד מידע לפי התנאים שלו.</li>
+          <li><b>ספקי שירות.</b> Google Firebase למשחק האונליין (סעיף 3), GitHub שמארח את האתר ואת העדכונים (סעיף 6), ו-Google Play להתקנת האפליקציה ולתשלומים (סעיף 7). כל אחד מהם מעבד מידע לפי התנאים שלו.</li>
+          <li><b>Google AdMob</b>, רק בגרסת Google Play ורק כשאתה בוחר לצפות בפרסומת (סעיף 4). Google מקבלת את המידע הזה לפי מדיניות הפרטיות שלה.</li>
           <li><b>כשהחוק מחייב.</b> למשל צו תקף של רשות מוסמכת.</li>
-          <li><b>העברה לחו״ל.</b> מסד הנתונים של משחק האונליין נמצא בבלגיה, באיחוד האירופי. Google (להתחברות ב-Firebase) ו-GitHub (לאחסון) עשויות לעבד מידע טכני גם בארצות הברית ובמדינות אחרות. הן עושות זאת לפי תנאי עיבוד הנתונים שלהן, שנשענים על אמצעי הגנה כמו הסעיפים החוזיים התקניים של האיחוד האירופי או מסגרת פרטיות הנתונים בין האיחוד לארצות הברית (<span lang="en" dir="ltr">EU-U.S. Data Privacy Framework</span>).</li>
+          <li><b>העברה לחו״ל.</b> מסד הנתונים של משחק האונליין נמצא בבלגיה, באיחוד האירופי. Google (להתחברות ב-Firebase ולפרסומת שאתה בוחר לראות) ו-GitHub (לאחסון) עשויות לעבד מידע טכני גם בארצות הברית ובמדינות אחרות. הן עושות זאת לפי תנאי עיבוד הנתונים שלהן, שנשענים על אמצעי הגנה כמו הסעיפים החוזיים התקניים של האיחוד האירופי או מסגרת פרטיות הנתונים בין האיחוד לארצות הברית (<span lang="en" dir="ltr">EU-U.S. Data Privacy Framework</span>).</li>
         </ul>
       </section>
 
       <section aria-labelledby="he-host">
-        <h2 id="he-host">5. האתר, האחסון והעדכונים האוטומטיים</h2>
+        <h2 id="he-host">6. האתר, האחסון והעדכונים האוטומטיים</h2>
         <p>אותו משחק מופץ בשני ערוצים:</p>
         <ul>
           <li><b>האתר שלנו ואפליקציית האנדרואיד שמורידים ממנו:</b> האתר, קבצי המשחק והעדכונים שלו מאוחסנים ב-GitHub Pages (GitHub, Inc.).</li>
@@ -249,41 +282,41 @@
       </section>
 
       <section aria-labelledby="he-pay">
-        <h2 id="he-pay">6. רכישות</h2>
-        <p>איים 1–99 חינמיים, ואין במשחק פרסומות בכלל. הפריטים האלה הם אופציונליים ועולים כסף אמיתי:</p>
+        <h2 id="he-pay">7. רכישות</h2>
+        <p>איים 1–99 חינמיים. הפרסומת היחידה היא זו שאצל הדולפין בגרסת Google Play, ורק אם בוחרים בה (סעיף 4). הפריטים האלה הם אופציונליים ועולים כסף אמיתי:</p>
         <ul>
           <li><b>איי הפרימיום</b>: רכישה חד-פעמית שפותחת את איים 100–129 ואת דרקון השעונים הזהוב.</li>
           <li><b>יהלומים כפולים לשבוע</b>: במשך 7 ימים כל ניצחון על בוט או על פיראטי הזמן נותן פי 2 יהלומים. כל רכישה מוסיפה עוד 7 ימים.</li>
           <li><b>סקינים ללוח</b>: מראה קוסמטי ללוח ולכלים, כל אחד ברכישה חד-פעמית. סקינים אחרים חינמיים ומרוויחים אותם בכיבוש איים.</li>
           <li><b>חיות קן השמיים האגדיות</b> (דרקון הברקים, גריפון הקריסטל, לווייתן השמיים): חיות מעופפות קוסמטיות, כל אחת ברכישה חד-פעמית. שאר חיות קן השמיים מרוויחים במשחק.</li>
         </ul>
-        <p>יהלומים לא נמכרים. מרוויחים אותם במשחק. שום דבר שנמכר לא מחליש את הבוטים ולא עוזר לנצח במשחק. פרסים חינמיים כמו המתנה היומית ותיבת האוצר המלכותית אף פעם לא נמכרים בכסף.</p>
+        <p>יהלומים לא נמכרים. מרוויחים אותם במשחק, ובגרסת Google Play גם בצפייה בפרסומת אצל הדולפין, אם בוחרים בה. שום דבר שנמכר לא מחליש את הבוטים ולא עוזר לנצח במשחק. פרסים חינמיים כמו המתנה היומית ותיבת האוצר המלכותית אף פעם לא נמכרים בכסף.</p>
         <p><b>תשלום.</b> בגרסת Google Play הרכישות נעשות במערכת החיובים של Google Play, ו-Google מעבדת את התשלום לפי התנאים ומדיניות הפרטיות שלה. פרטי כרטיס או חשבון בנק לא מגיעים אלינו אף פעם.</p>
         <p><b>מה המשחק מטפל בו.</b> במכשיר שלך המשחק מתקשר עם Google Play כדי להציג מחירים, להשלים רכישה ולשחזר את מה שקנית. הוא שומר במכשיר אילו פריטים בבעלותך, עם מספר ההזמנה ושעת הרכישה, כדי למסור אותם, לא למסור פעמיים ולהסיר פריט אם הרכישה הוחזרה. הוא גם שומר רשימה של הרכישות שלך רק במכשיר הזה (פריט, תאריך, מחיר ומספר ההזמנה של Google), שאפשר לראות ב<b>הגדרות ← הרכישות שלי</b>, ו<b>מחק את כל הנתונים שלי</b> מוחק אותה. שום דבר מזה לא נשלח לשרתים שלנו. Google גם מציגה לנו בממשק המפתחים פרטי הזמנות (למשל מספר הזמנה, מוצר, מחיר, תאריך ומדינת הקונה), ואנחנו משתמשים בהם רק לטיפול בהחזרים, בביטולים ובפניות תמיכה. למשתמשים באיחוד האירופי ובבריטניה, הבסיס החוקי הוא ביצוע הרכישה שביקשת (סעיף 6(1)(b) ל-GDPR).</p>
         <p>באתר ובגרסאות בדיקה החנות פועלת במצב בדיקה: לא נגבה כסף ולא נאספים פרטי תשלום. החזרים, ביטולים ושחזור רכישות מוסברים ב<a href="./terms.html#he-pay">תנאי השימוש</a>.</p>
       </section>
 
       <section aria-labelledby="he-kids">
-        <h2 id="he-kids">7. ילדים</h2>
-        <p>המשחק לא מבקש מייל, מספר טלפון או שם אמיתי. שם התצוגה הוא שם שבוחרים מתוך רשימת שמות מוכנים, כך שאי אפשר להקליד שם אמיתי. משחק אונליין מחבר רק עם חבר שהזמנת בקוד פרטי: אין שידוך עם זרים ואין צ׳אט חופשי, רק תגובות קבועות. הורה או אפוטרופוס שיש לו שאלה על השימוש של ילד במשחק, או שרוצה למחוק מידע של ילד, יכול לפנות אלינו בכתובת שבסעיף 1.</p>
+        <h2 id="he-kids">8. ילדים</h2>
+        <p>המשחק לא מבקש מייל, מספר טלפון או שם אמיתי. שם התצוגה הוא שם שבוחרים מתוך רשימת שמות מוכנים, כך שאי אפשר להקליד שם אמיתי. משחק אונליין עם חבר מחבר רק עם מי שהזמנת בקוד פרטי. בזירת העידנים משחקים מול שחקנים שלא מכירים, אבל אף אחד לא יכול לכתוב לך: אין צ׳אט חופשי, רק שמות מוכנים ותגובות קבועות, ואפשר לחסום שחקן. הפרסומת לבחירה בגרסת Google Play מתבקשת כמתאימה לקהל הרחב בהדרכת הורים. הורה או אפוטרופוס שיש לו שאלה על השימוש של ילד במשחק, או שרוצה למחוק מידע של ילד, יכול לפנות אלינו בכתובת שבסעיף 1.</p>
       </section>
 
       <section aria-labelledby="he-rights">
-        <h2 id="he-rights">8. הבחירות והזכויות שלך</h2>
+        <h2 id="he-rights">9. הבחירות והזכויות שלך</h2>
         <ul>
-          <li><b>למחוק הכול:</b> <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק את ההתקדמות והפריטים במכשיר, מוחק את חדרי האונליין שפתחת ומסיר את ההתחברות האנונימית. אפשר גם לנקות את נתוני האתר או להסיר את האפליקציה.</li>
-          <li><b>הזכויות שלך לפי החוק:</b> לפי חוק הגנת הפרטיות בישראל, ולפי ה-GDPR באיחוד האירופי ובבריטניה, ייתכן שיש לך זכות לעיין במידע עליך, לתקן אותו, למחוק אותו או להתנגד לשימוש בו. ה-GDPR נותן גם זכות להגביל עיבוד ולקבל את המידע בפורמט נייד. כתוב אל <span data-legal="email">[CONTACT EMAIL]</span>. כמעט הכול נשמר רק במכשיר שלך, ולכן בדרך כלל אין אצלנו מידע עליך מחוץ לחדר אונליין פעיל.</li>
+          <li><b>למחוק הכול:</b> <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק את ההתקדמות והפריטים במכשיר, מוחק את חדרי האונליין שפתחת, מסיר את ההתחברות האנונימית, ובגרסת Google Play גם מאפס את בחירות ההסכמה לפרסומות. אפשר גם לנקות את נתוני האתר או להסיר את האפליקציה. את מזהה הפרסום של המכשיר מאפסים בהגדרות של אנדרואיד (סעיף 4).</li>
+          <li><b>הזכויות שלך לפי החוק:</b> לפי חוק הגנת הפרטיות בישראל, ולפי ה-GDPR באיחוד האירופי ובבריטניה, ייתכן שיש לך זכות לעיין במידע עליך, לתקן אותו, למחוק אותו או להתנגד לשימוש בו. ה-GDPR נותן גם זכות להגביל עיבוד ולקבל את המידע בפורמט נייד. כתוב אל <span data-legal="email">[CONTACT EMAIL]</span>. כמעט הכול נשמר רק במכשיר שלך, ולכן בדרך כלל אין אצלנו מידע עליך מחוץ לחדר אונליין פעיל או לרשומה בזירה.</li>
           <li><b>תלונות:</b> אפשר להגיש תלונה לרשות להגנת הפרטיות, או לרשות להגנת המידע במדינה שבה אתה גר.</li>
         </ul>
       </section>
 
       <section aria-labelledby="he-sec">
-        <h2 id="he-sec">9. אבטחה</h2>
-        <p>האתר, העדכונים והמשחק אונליין פועלים ב-HTTPS. חדרי האונליין מוגנים בכללי אבטחה בצד השרת: אי אפשר לראות רשימת חדרים, רק מי שיש לו את הקוד יכול לפתוח חדר, רק שני השחקנים יכולים לשנות את המשחק, ורק השחקן שתורו יכול לבצע מהלך. אנחנו אוספים רק את המינימום שהמשחק צריך.</p>
+        <h2 id="he-sec">10. אבטחה</h2>
+        <p>האתר, העדכונים והמשחק אונליין פועלים ב-HTTPS. חדרי האונליין מוגנים בכללי אבטחה בצד השרת: את החדרים לחבר אי אפשר לראות ברשימה ורק מי שיש לו את הקוד יכול לפתוח אותם, ברשימת הזירה מופיעה רק הרשומה הקצרה שמתוארת בסעיף 3, רק שני השחקנים יכולים לשנות את המשחק, ורק השחקן שתורו יכול לבצע מהלך. אנחנו אוספים רק את המינימום שהמשחק צריך.</p>
       </section>
 
       <section aria-labelledby="he-change">
-        <h2 id="he-change">10. שינויים</h2>
+        <h2 id="he-change">11. שינויים</h2>
         <p>אם נשנה את הדרך שבה המשחק מטפל במידע, נעדכן את הדף הזה ואת התאריך שבראשו לפני שהשינוי ייכנס לתוקף. על שינוי משמעותי נודיע גם בתוך המשחק.</p>
       </section>
 

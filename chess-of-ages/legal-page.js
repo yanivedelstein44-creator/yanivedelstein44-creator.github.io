@@ -1,7 +1,7 @@
 /**
  * Shared behavior of the public legal pages (privacy, terms, licenses, accessibility):
  *  - "embedded" mode when the page is shown inside the game (iframe): hides the back link and page nav.
- *  - One language at a time: English by default (a page can set <html data-default-lang="he">),
+ *  - One language at a time: English by default (a page can set <html data-default-lang="he">, or "auto" for the phone's language),
  *    the other language with #he / #en (or ?lang=he). Anchors such as #he-rights
  *    open the Hebrew version at that section. Without JavaScript both languages stay visible.
  * Each language lives in <article data-lang="en|he" data-title="…">. Language links: <a data-set-lang="en|he">.
@@ -21,11 +21,20 @@
     return null;
   }
 
+  // data-default-lang="auto": the phone's language — Hebrew phones get Hebrew, everyone else English
+  function fallback() {
+    var d = root.getAttribute('data-default-lang') || 'en';
+    if (d !== 'auto') return d;
+    var l = '';
+    try { l = String((navigator.languages && navigator.languages[0]) || navigator.language || '').toLowerCase(); } catch (e) { /* old browser */ }
+    return (l.indexOf('he') === 0 || l.indexOf('iw') === 0) ? 'he' : 'en';
+  }
+
   var current = null;
   function apply(lang) {
     var arts = document.querySelectorAll('article[data-lang]');
     if (!arts.length) return;
-    lang = lang || current || root.getAttribute('data-default-lang') || 'en';
+    lang = lang || current || fallback();
     current = lang;
     root.classList.add('one-lang');
     for (var i = 0; i < arts.length; i++) arts[i].hidden = arts[i].getAttribute('data-lang') !== lang;

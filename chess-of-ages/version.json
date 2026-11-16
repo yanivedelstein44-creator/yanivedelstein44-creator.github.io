@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.5.8",
-  "build": "1.5.8-1794594491288",
-  "buildTime": 1794594491288,
-  "date": "2026-11-13T18:28:11.288Z",
+  "version": "1.6.0",
+  "build": "1.6.0-1794838388436",
+  "buildTime": 1794838388436,
+  "date": "2026-11-16T14:13:08.436Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.5.8-1794594491288.zip",
-  "checksum": "048db2c9479110f1527152e6f833f9a533293ef3a5c493211a35169a1773328d",
+  "bundle": "update/bundle-1.6.0-1794838388436.zip",
+  "checksum": "7bc1f298acc7bfdc09fb44c94734832777713e071a0624c9687729525f44a42b",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Purchase notice and receipt card, My purchases, preset player names"
+  "notes": "Arena of Ages: play online against waiting players, on a random island every game; Online button and the arena ring around the board; a dolphin by the Central Island; privacy policy and terms updated"
 }
