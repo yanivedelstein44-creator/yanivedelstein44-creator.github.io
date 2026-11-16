@@ -1,0 +1,1 @@
+versionName=1.2.0 versionCode=7 build-tools=37.0.0
