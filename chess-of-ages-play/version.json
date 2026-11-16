@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.6.3",
-  "build": "1.6.3-1794851695474",
-  "buildTime": 1794851695474,
-  "date": "2026-11-16T17:54:55.474Z",
+  "version": "1.6.4",
+  "build": "1.6.4-1794852752941",
+  "buildTime": 1794852752941,
+  "date": "2026-11-16T18:12:32.941Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.6.3-1794851695474.zip",
-  "checksum": "a09d52cd94706ec75a10e214f91c3d5ecf5f44099c6e9548da08212e3d0af440",
+  "bundle": "update/bundle-1.6.4-1794852752941.zip",
+  "checksum": "9b9b9163120c75c9ea2ec7eacf85985ea111abf95befb669fd881c63922a7105",
   "apk": "",
-  "notes": "A small lagoon in front of the chess plaza: when a bonus ad is ready, the dolphin swims under the island into the lagoon with a Bonus label; otherwise it swims in the open sea"
+  "notes": "Until the official launch, the dolphin's bonus ads are Google test ads (marked Test Ad); you still get the 20 gems"
 }
