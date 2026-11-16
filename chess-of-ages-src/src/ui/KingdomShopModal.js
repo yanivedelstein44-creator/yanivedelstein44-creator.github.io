@@ -272,7 +272,7 @@ export function openKingdomShop(app, { tab = 'wardrobe', slot: wantSlot = null, 
     const islands = h('div', { class: 'card premium', role: 'group', 'aria-label': t('fullTitle') },
       h('div', { class: 'p-head' }, icon('castle', { size: 40 }), h('h3', {}, t('fullTitle'))),
       h('ul', {}, h('li', {}, t('premiumPoint1')), h('li', {}, t('premiumPoint2')), h('li', {}, t('premiumPoint3')), h('li', { class: 'bonus' }, t('dragonBonus'))),
-      h('div', { class: 'p-foot' }, h('span', { class: 'p-note' }, t('noAdsNote')),
+      h('div', { class: 'p-foot' }, h('span', { class: 'p-note' }, t(app.rewardAds?.available ? 'gemsNoteAds' : 'gemsNote')),
         ownsIslands ? h('span', { class: 'state on' }, icon('check', { size: 16 }), t('owned'))
           : realBtn(FULL_GAME, () => realBuy((c) => economy.purchaseFullGame(c), () => app.onPremiumUnlocked?.(), productInfo(FULL_GAME.id)), t('fullTitle'))));
     const left = economy.boostLeftMs();

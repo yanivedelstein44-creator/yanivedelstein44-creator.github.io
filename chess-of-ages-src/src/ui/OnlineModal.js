@@ -1,7 +1,7 @@
 /**
  * "משחק נגד חבר": על אותו מכשיר, או אונליין — הזמנה עם קישור/קוד פרטי, הצטרפות וצפייה.
  * חדר ההמתנה (שיתוף מערכת / וואטסאפ / העתקה) ובחירת אימוג'י בזמן משחק.
- * אין שידוך עם זרים ואין צ'אט חופשי — רק מי שקיבל את הקוד נכנס.
+ * בחדר של חבר רק מי שקיבל את הקוד נכנס (משחק מול שחקנים אחרים — בזירת העידנים, ui/ArenaModal.js). אין צ'אט חופשי.
  */
 import { Capacitor } from '@capacitor/core';
 import { h, withIcon } from './UI.js';
@@ -176,6 +176,17 @@ export function openEmotePicker(app) {
   const row = h('div', { class: 'emote-row' }, ...ONLINE.emotes.map(([id, ic]) => h('button', {
     class: 'emote-btn tap', 'aria-label': id, onclick: () => { m.close(); app.online.sendEmote(id); },
   }, icon(ic, { size: 40 }))));
-  const m = app.ui.modal({ title: t('emotes'), titleIcon: 'smile', body: row, center: true });
+  // בזירת העידנים (מול שחקן שלא מכירים): אפשר לחסום — יוצאים מהמשחק ולא נפגשים שוב
+  const room = app.online.room;
+  const opp = room?.isArena && room.isPlayer ? room.opponent() : null;
+  const body = opp?.uid ? h('div', {}, row, h('div', { class: 'btn-row block-row' }, h('button', {
+    class: 'btn small danger tap', onclick: async () => {
+      m.close();
+      const name = opp.name || t('arenaRival');
+      if (!(await app.ui.confirm(t('arenaBlockQ').replace('{name}', name), t('arenaBlock'), { danger: true }))) return;
+      if (await app.online.blockOpponent()) app.ui.toast(t('arenaBlocked'), { icon: 'shield', duration: 4000 });
+    },
+  }, ...withIcon('shield', t('arenaBlock'), 16)))) : row;
+  const m = app.ui.modal({ title: t('emotes'), titleIcon: 'smile', body, center: true });
   return m;
 }

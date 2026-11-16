@@ -1,14 +1,15 @@
 /**
- * חדר אונליין פרטי — משחק נגד חבר שהזמנת (קישור או קוד), עם צופים.
- * אין שידוך עם זרים ואין רשימת חדרים: נכנסים רק עם הקוד. אין צ'אט חופשי — רק אימוג'י קבועים.
+ * חדר אונליין — משחק נגד חבר שהזמנת (קישור או קוד, עם צופים), או חדר בזירת העידנים (pub: מופיע בלובי
+ * עד שמישהו נכנס, באי אקראי isl, בלי צופים). אין צ'אט חופשי — רק אימוג'י קבועים, ושמות מהרשימה הקבועה.
  *
  * מבנה החדר במסד הנתונים (rooms/{CODE}):
  *   v, t (זמן יצירה), host, hc (צבע המארח), hn/hl (שם/מראה המארח), guest, gn/gl,
  *   ply + mv (מהלכים בפורמט UCI מופרדים ברווח), at, res ("w:checkmate" / "d:agreement"),
  *   dr (מי הציע תיקו), rm/{uid} (בקשות למשחק חוזר), g (מספר המשחק בחדר),
- *   on/{uid} (נוכחות שחקנים), sp/{uid} (צופים), em/{uid} (אימוג'י אחרון).
+ *   on/{uid} (נוכחות שחקנים), sp/{uid} (צופים), em/{uid} (אימוג'י אחרון),
+ *   pub (חדר בזירה), isl (האי של המשחק בזירה, 1–99; מתחלף במשחק חוזר).
  */
-import { ONLINE, PUBLIC_URL } from '../config/AppConfig.js';
+import { ONLINE, ARENA, PUBLIC_URL } from '../config/AppConfig.js';
 import { getBackend } from './backend.js';
 import { localizeIncomingName } from '../core/PlayerName.js';
 import { getLang } from '../ui/i18n.js';
@@ -28,6 +29,22 @@ export const ROOM_PROTO_MIN = 1;
 const clip = (s, n) => String(s || '').slice(0, n);
 const isDenied = (e) => /permission/i.test(String(e?.code || '') + String(e?.message || ''));
 const SAFE_ID = /^[a-z0-9_:-]{1,40}$/i;
+
+/** מספר אי חוקי לזירה (1–99), או null */
+export function arenaIsland(v) {
+  const n = Number(v);
+  return Number.isInteger(n) && n >= 1 && n <= ARENA.islands ? n : null;
+}
+/** אי אקראי לזירה (2–99: לא האי המרכזי, שהוא הבית) — שונה מהאי הקודם אם יש */
+export function randomArenaIsland(prev = null) {
+  const buf = new Uint32Array(1);
+  for (let i = 0; i < 8; i++) {
+    crypto.getRandomValues(buf);
+    const n = 2 + (buf[0] % (ARENA.islands - 1));
+    if (n !== prev) return n;
+  }
+  return prev === 2 ? 3 : 2;
+}
 
 export function makeCode() {
   const a = ONLINE.alphabet;
@@ -80,14 +97,16 @@ export class OnlineRoom {
   on(ev, fn) { (this.handlers[ev] ||= []).push(fn); return this; }
   emit(ev, ...args) { (this.handlers[ev] || []).forEach((fn) => { try { fn(...args); } catch (e) { console.error(e); } }); }
 
-  /** חדר חדש — אתה המארח. color: 'w' | 'b' | 'random' */
-  static async create(me, { color = 'w' } = {}) {
+  /** חדר חדש — אתה המארח. color: 'w' | 'b' | 'random'. בזירה: arena = { isl } (חדר ציבורי באי isl) */
+  static async create(me, { color = 'w', arena = null } = {}) {
     const be = await getBackend();
     const hc = color === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : color;
     for (let i = 0; i < 6; i++) {
       const code = makeCode();
       try {
-        await be.create(code, { v: ROOM_PROTO, t: be.ts(), host: be.uid, hc, hn: clip(me.name, 24), hl: me.look, ply: 0, mv: '', g: 1, at: be.ts() });
+        const data = { v: ROOM_PROTO, t: be.ts(), host: be.uid, hc, hn: clip(me.name, 24), hl: me.look, ply: 0, mv: '', g: 1, at: be.ts() };
+        if (arena) Object.assign(data, { pub: true, isl: arenaIsland(arena.isl) || 1 });
+        await be.create(code, data);
         const room = new OnlineRoom(be, code, 'host', me);
         await room.start();
         return room;
@@ -166,6 +185,10 @@ export class OnlineRoom {
   get result() { return parseResult(this.data?.res); }
   get spectators() { return Object.keys(this.data?.sp || {}).filter((u) => u !== this.uid).length; }
   get drawOfferFrom() { return this.data?.dr || null; }
+  /** חדר בזירת העידנים (ציבורי) */
+  get isArena() { return this.data?.pub === true; }
+  /** האי של המשחק בזירה (1–99), או null בחדר של חבר */
+  get island() { return this.isArena ? arenaIsland(this.data?.isl) : null; }
   /** פרטי השחקן בצבע מסוים */
   player(color) {
     const d = this.data || {};
@@ -195,7 +218,9 @@ export class OnlineRoom {
     const d = this.data;
     if (this.role !== 'host' || !d?.res || !d.guest || !d.rm?.[d.host] || !d.rm?.[d.guest] || this.restarting) return Promise.resolve();
     this.restarting = true;
-    return this.be.update(this.code, { ply: 0, mv: '', res: null, dr: null, rm: null, hc: d.hc === 'w' ? 'b' : 'w', g: (d.g || 1) + 1, at: this.be.ts() })
+    const patch = { ply: 0, mv: '', res: null, dr: null, rm: null, hc: d.hc === 'w' ? 'b' : 'w', g: (d.g || 1) + 1, at: this.be.ts() };
+    if (d.pub === true) patch.isl = randomArenaIsland(arenaIsland(d.isl)); // בזירה: כל משחק באי אחר
+    return this.be.update(this.code, patch)
       .catch(() => {}).finally(() => { this.restarting = false; });
   }
   emote(e) { return this.be.update(this.code, { [`em/${this.uid}`]: { e, t: this.be.ts() } }); }

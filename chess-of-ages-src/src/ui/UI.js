@@ -156,7 +156,7 @@ export class UI {
   }
 
   /**
-   * הסרגל התחתון לפי המקום: באי המרכזי (הבית) — מפה · חנות · פרימיום · חבר · קרב; בשאר האיים — מפה · הביתה · קרב
+   * הסרגל התחתון לפי המקום: באי המרכזי (הבית) — מפה · חנות · פרימיום · חבר · זירה · קרב; בשאר האיים — מפה · הביתה · זירה · קרב
    */
   setDock(hub) {
     const H = this.hd;
@@ -169,6 +169,8 @@ export class UI {
       const prem = dockBtn('premium', 'crown', t('tabPremium'), () => { this.setActiveTab('premium'); H.onPremium(); }, 'prem');
       btns.push(shop, prem, dockBtn('friend', 'users', t('friend'), () => { this.setActiveTab('friend'); H.onFriend(); }));
     } else btns.push(dockBtn('home', 'home', t('home'), () => H.onHome()));
+    // זירת העידנים — משחק אונליין מול מי שמחכה עכשיו, באי אקראי (ui/ArenaModal.js)
+    btns.push(dockBtn('arena', 'globe', t('arenaTab'), () => { this.setActiveTab('arena'); H.onArena?.(); }, 'arena'));
     btns.push(dockBtn('battle', 'swords', t('battle'), () => H.onBattle(), 'build'));
     this.dock.replaceChildren(...btns);
     this.dock.style.gridTemplateColumns = `repeat(${btns.length}, 1fr)`;

@@ -10,6 +10,7 @@ import { wipeEverything } from '../core/DataWipe.js';
 import { withPresetName } from '../core/PlayerName.js';
 import { Economy } from '../core/Economy.js';
 import { initPlayBilling, ensurePlayBilling } from '../core/PlayBilling.js';
+import { RewardedAds } from '../core/RewardedAds.js';
 import { Achievements } from '../core/Achievements.js';
 import { Progression } from '../game/Progression.js';
 import { GameController, PIECE_VALUE, GLYPH } from '../game/GameController.js';
@@ -46,6 +47,7 @@ import { Tutorial } from '../ui/Tutorial.js';
 import { Updater } from '../update/Updater.js';
 import { OnlineController } from './OnlineController.js';
 import { openFriendHub, joinFromLink, openEmotePicker } from '../ui/OnlineModal.js';
+import { openArena } from '../ui/ArenaModal.js';
 import { getEra } from '../config/Eras.js';
 import { PETS, isFlyer } from '../config/Pets.js';
 import { ECONOMY, PET_GROWTH } from '../config/EconomyConfig.js';
@@ -140,7 +142,8 @@ export class GameApp {
 
   eraDef(id) { return getEra(id); }
   currentEraMaterials() { return eraMaterials(getEra(this.kingdom.eraId || 1).key); }
-  get islandId() { return this.progression.currentIsland(); }
+  /** האי שמוצג עכשיו: בזמן משחק בזירת העידנים — האי של החדר (בלי לשנות את ההתקדמות); אחרת — האי הנוכחי */
+  get islandId() { return this.arenaIsland || this.progression.currentIsland(); }
   get atHub() { return this.islandId === HUB_ID; }
 
   handlers() {
@@ -151,6 +154,7 @@ export class GameApp {
       // כפתור הפרימיום בסרגל התחתון: מסך הפרימיום לבד (איים, מאיץ יהלומים), כמו הטבעת המרחפת
       onPremium: () => { this.sound.ui(); this.openShop('premium', null, true); },
       onFriend: () => { this.sound.ui(); openFriendHub(this); },
+      onArena: () => { this.sound.ui(); openArena(this); },
       onEmote: () => { this.sound.ui(); openEmotePicker(this); },
       onLeave: () => { this.sound.ui(); this.online.leave(); },
       onHome: () => { this.sound.ui(); this.travelTo(HUB_ID, { battle: false, overview: true }); },
@@ -204,6 +208,8 @@ export class GameApp {
     // ההודעה "שוחזרו N רכישות" מוצגת אחרי הפתיחה הקולנועית (בזמן הפתיחה הממשק מוסתר)
     initPlayBilling(this.economy, { notify: (msg) => this.afterIntro(() => this.ui.toast(msg, { kind: 'good', icon: 'check', duration: 4200 }), 300) })
       .catch(() => false);
+    // פרסומות מתגמלות אצל הדולפין: רק בגרסת Play עם התוסף של AdMob (עטיפה 1003 ומעלה); בשאר — הדולפין רק קישוט
+    this.rewardAds = new RewardedAds(this);
     this.board.setSkin(this.economy.boardSkin);
     this.grantEarnedSkins(false);
     this.grantEarnedSkyPets(false);
@@ -418,7 +424,7 @@ export class GameApp {
       // משחק אונליין: היריב הוא החבר (שם, לבוש וחיה כפי שהוא נראה אצלו). בצפייה: הלבן מול השחור
       const r = this.online.room;
       const asOpp = (p, waiting) => ({
-        name: p.name || (waiting ? t('waitingShort') : t('friend')), avatar: p.look.avatar || 'knight', pet: p.look.pet || 'wolf_cub', petHue: p.look.petHue || 0,
+        name: p.name || (waiting ? t('waitingShort') : t(r.isArena ? 'arenaRival' : 'friend')), avatar: p.look.avatar || 'knight', pet: p.look.pet || 'wolf_cub', petHue: p.look.petHue || 0,
         loadout: p.look.loadout, look: {}, friend: true, online: p.online, joined: p.joined, uid: p.uid,
       });
       if (this.mode === 'watch') { this.watchWhite = asOpp(r.player('w')); this.opponent = asOpp(r.player('b')); }
@@ -471,13 +477,15 @@ export class GameApp {
     const front = pr.frontier();
     const lock = pr.lockReason();
     let next = '';
-    if (id === HUB_ID) next = `${t('museumPieces')}: ${pr.conqueredCount()}`;
+    const arena = !!this.arenaIsland; // באי של הזירה אין בוט לכבוש — רק משחק ידידותי
+    if (arena) next = t('arenaHud');
+    else if (id === HUB_ID) next = `${t('museumPieces')}: ${pr.conqueredCount()}`;
     else if (this.opponent?.pirates && !this.opponent.practice) next = t('piratesHere');
     else if (this.opponent?.pirates) next = t('piratesReturn').replace('{t}', fmtDur(pr.pirateReturnIn(id)));
     else next = t('beatToConquer');
     this.ui.setIsland({
       id, name: id === HUB_ID ? t('hubName') : islandLabel(id), regionName: tn(d.era.he, d.era.en), boss: d.boss, region: regionOf(id),
-      conquered: pr.conqueredCount(), total: ISLAND_COUNT, frontier: front, next, lock, pirates: !!this.opponent?.pirates,
+      conquered: pr.conqueredCount(), total: ISLAND_COUNT, frontier: front, next, lock: arena ? null : lock, pirates: !!this.opponent?.pirates,
     });
     const prof = this.store.get('profile');
     const cap = this.game.captured();
@@ -493,10 +501,10 @@ export class GameApp {
     const room = (this.mode === 'online' || this.mode === 'watch') ? this.online.room : null;
     const colorName = (c) => (c === 'w' ? t('white') : t('black'));
     if (this.game.result) status = this.resultText().title;
-    else if (room && !room.hasGuest) status = t('waitingFriend');
+    else if (room && !room.hasGuest) status = t(room.isArena ? 'arenaWaitTitle' : 'waitingFriend');
     else if (check) status = t('check');
     else if (this.thinking) status = this.mode === 'ai' ? tn(era.thinking, era.thinkingEn) : t('thinking');
-    else if (this.mode === 'online') status = turn === me ? t('yourTurn') : t('friendTurn');
+    else if (this.mode === 'online') status = turn === me ? t('yourTurn') : t(this.online.room?.isArena ? 'arenaRivalTurn' : 'friendTurn');
     else if (this.mode === 'watch') status = `${t('turnOf')} ${colorName(turn)}`;
     else status = t('yourTurn');
     const watchers = room && room.spectators ? ` · ${t('spectatorsN').replace('{n}', String(room.spectators))}` : '';
@@ -637,6 +645,11 @@ export class GameApp {
     let bld = this.atHub && !this.busy ? this.museum.pick(x, y) : null;
     // החיה המעופפת לא "גונבת" נגיעות מהלוח (למשל כשהיא צוללת מעליו)
     if (bld === 'shop_sky' && this.board.hitsBoard(x, y)) bld = null;
+    // הדולפין שבמים: חלון "צפה בפרסומת וקבל יהלומים" (core/RewardedAds.js), ובלי פרסומות — רק קפיצה שמחה
+    if (bld === 'ad_dolphin') { this.sound.ui(); if (this.rewardAds) this.rewardAds.onDolphinTap(); else this.museum.dolphin?.wave(); return; }
+    // הטבעת שסביב הלוח: זירת העידנים. נגיעה שפוגעת בלוח, או כשכלי מסומן, נשארת של הלוח (לא פותחים בטעות)
+    if (bld === 'arena_ring' && (this.selected || this.board.hitsBoard(x, y))) bld = null;
+    if (bld === 'arena_ring') { this.museum.arenaRing?.tap(); this.ui.setActiveTab('arena'); openArena(this); return; } // tap() מנגן גונג משלו
     if (bld === 'cinema') { this.sound.ui(); this.openCinema(); return; }
     if (bld === 'shop_sky') { if (this.museum.sky?.loopT >= 0) return; this.sound.ui(); this.museum.skyLoop(); setTimeout(() => { if (this.atHub && !this.ui.modalOpen) this.openShop('sky', null, true); }, 600); return; }
     if (bld === 'shop_gifts') { this.sound.ui(); this.openDaily(); return; }
@@ -1164,7 +1177,11 @@ export class GameApp {
     if (!pr.isUnlocked(id)) { this.ui.toast(t('lockedBeatPrev').replace('{n}', String(id - 1)), { kind: 'bad', icon: 'lock' }); return; }
     if (pr.needsFullGame(id)) { M.openFullGame(this, () => this.travelTo(id, { battle, overview })); return; }
     const from = pr.currentIsland();
-    if (id !== from && !(await this.confirmLeave())) return;
+    // מהזירה כל מסע (גם "הביתה") הוא יציאה מהחדר — עם אישור; היציאה עצמה כבר מחזירה לאי המרכזי
+    const fromArena = !!this.arenaIsland;
+    if ((id !== from || fromArena) && !(await this.confirmLeave())) return;
+    if (this.arenaIsland) await this.showArenaIsland(null);
+    if (fromArena && id === from) return;
     this.traveling = true;
     this.busy = true;
     this.deselect();
@@ -1305,6 +1322,7 @@ export class GameApp {
 
   async startIslandBattle({ quiet = false, keepResident = false } = {}) {
     if (this.online.active) await this.online.detach();
+    if (this.arenaIsland) await this.showArenaIsland(null); // הבוט של האי — לא באי של הזירה
     if (!keepResident) this.residentOpp = null;
     this.mode = 'ai';
     this.myColor = 'w';
@@ -1331,6 +1349,7 @@ export class GameApp {
   /** משחק נגד חבר על אותו מכשיר — באי המרכזי */
   async startFriendGame(tcId) {
     if (this.online.active) await this.online.detach();
+    if (this.arenaIsland) await this.showArenaIsland(null);
     if (!this.atHub) { await this.travelTo(HUB_ID, { battle: false }); }
     this.residentOpp = null;
     this.mode = 'local';
@@ -1348,14 +1367,23 @@ export class GameApp {
     this.ui.toast(t('gameStarted'), { icon: 'users' });
   }
 
-  // ======================= אונליין עם חבר =======================
-  /** נכנסים לחדר: הלוח של החדר ליד השולחן באי המרכזי */
+  // ======================= אונליין (חבר / זירת העידנים) =======================
+  /**
+   * נכנסים לחדר. חדר של חבר: ליד השולחן באי המרכזי. חדר בזירה: באי של החדר (אקראי), בלי לשנות את
+   * ההתקדמות שלך — ביציאה חוזרים לאי המרכזי.
+   */
   async enterOnline(room) {
     this.ui.closeAll();
-    if (!this.atHub) {
-      this.progression.setCurrent(HUB_ID);
-      this.ui.setDock(true);
-      this.showIsland(HUB_ID);
+    const isl = room.island;
+    if (isl) {
+      if (isl !== this.arenaIsland) await this.showArenaIsland(isl);
+    } else {
+      if (this.arenaIsland) await this.showArenaIsland(null);
+      if (!this.atHub) {
+        this.progression.setCurrent(HUB_ID);
+        this.ui.setDock(true);
+        this.showIsland(HUB_ID);
+      }
     }
     this.residentOpp = null;
     this.mode = room.isPlayer ? 'online' : 'watch';
@@ -1377,10 +1405,25 @@ export class GameApp {
     this.sm.toGameplay(1.0, this.viewSide()); // בלי לחכות — חדר ההמתנה נפתח מיד
   }
 
-  /** יוצאים מהחדר: חוזרים לבוט של האי המרכזי */
+  /**
+   * מעבר לאי של הזירה (או חזרה ממנו, isl = null) — ענני מעבר, האי מוצג, וההתקדמות לא משתנה
+   * (האי לא נחשב "ביקור", לא נכבש, והמפה ממשיכה להראות אותך באי המרכזי)
+   */
+  async showArenaIsland(isl) {
+    if ((isl || null) === (this.arenaIsland || null)) return;
+    try { await CloudWipe.cover(0.4); } catch { /* בלי אנימציה */ }
+    this.arenaIsland = isl || null;
+    this.ui.setDock(this.atHub);
+    this.showIsland(this.islandId);
+    this.refreshHud();
+    CloudWipe.reveal(0.6);
+  }
+
+  /** יוצאים מהחדר: חוזרים לבוט של האי המרכזי (מהזירה — חוזרים קודם לאי המרכזי) */
   async exitOnline() {
     if (this.mode !== 'online' && this.mode !== 'watch') return;
     this.watchWhite = null;
+    if (this.arenaIsland) await this.showArenaIsland(null);
     await this.startIslandBattle({ quiet: true });
     this.sm.toGameplay(1.0, 'w');
   }
@@ -1388,6 +1431,8 @@ export class GameApp {
   /** משחק חוזר בחדר: לוח חדש, הצבעים מתחלפים */
   async restartOnline(room) {
     this.ui.closeAll();
+    // בזירה: כל משחק באי אחר
+    if (room.island && room.island !== this.arenaIsland) await this.showArenaIsland(room.island);
     this.myColor = room.myColor || 'w';
     this.resetBoardState();
     this.setupOpponentForMode();
@@ -1404,8 +1449,8 @@ export class GameApp {
     this.setupOpponentForMode();
     this.applyLoadout();
     this.sound.notify?.();
-    const name = room.opponent()?.name || t('friend');
-    this.ui.toast(t('friendJoined').replace('{name}', name), { kind: 'gold', icon: 'users', duration: 3800 });
+    const name = room.opponent()?.name || t(room.isArena ? 'arenaRival' : 'friend');
+    this.ui.toast(t(room.isArena ? 'arenaJoined' : 'friendJoined').replace('{name}', name), { kind: 'gold', icon: room.isArena ? 'swords' : 'users', duration: 3800 });
     this.refreshHud();
   }
 
@@ -1499,6 +1544,7 @@ export class GameApp {
   openCinema() { if (!this.atHub) { this.ui.toast(t('cinemaAtHub'), { icon: 'home' }); return; } openCinemaModal(this); }
   shareKingdom() { shareKingdom(this); }
   async startTutorial() {
+    if (this.online.active && !(await this.confirmLeave())) return;
     if (!this.atHub) await this.travelTo(HUB_ID, { battle: false });
     if (this.mode !== 'ai' || this.game.ply > 0) await this.startIslandBattle({ quiet: true });
     this.tutorial.start();

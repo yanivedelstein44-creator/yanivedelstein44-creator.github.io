@@ -430,6 +430,39 @@ export class SoundEngine {
   coin() { if (!this.ok) return; const t = this.now; this.tone(1567, t, 0.12, { type: 'square', gain: 0.05 }); this.tone(2093, t + 0.08, 0.3, { type: 'square', gain: 0.05 }); }
   notify() { if (!this.ok) return; const t = this.now; this.tone(880, t, 0.2, { gain: 0.08 }); this.tone(1320, t + 0.1, 0.3, { gain: 0.07 }); }
   pop() { if (this.ok) this.tone(600, this.now, 0.1, { freqEnd: 1200, gain: 0.12 }); }
+  /** ציוץ דולפין קצר ושמח: שלוש שריקות עולות ואחריהן כמה נקישות */
+  dolphinChirp() {
+    if (!this.ok) return;
+    const t = this.now, k = 1 + (Math.random() - 0.5) * 0.08;
+    [[0, 1700, 3000, 0.1], [0.11, 2100, 3500, 0.09], [0.21, 2500, 4200, 0.17]].forEach(([dt, f0, f1, d]) => {
+      this.tone(f0 * k, t + dt, d, { freqEnd: f1 * k, gain: 0.085, attack: 0.012 });
+      this.tone(f0 * k * 1.5, t + dt, d, { type: 'triangle', freqEnd: f1 * k * 1.5, gain: 0.018, attack: 0.012 });
+    });
+    for (let i = 0; i < 4; i++) this.noise(t + 0.42 + i * 0.034, 0.02, { type: 'bandpass', freq: 3800, q: 6, gain: 0.05 });
+  }
+  /** גונג טקסי רך של טבעת הזירה: מכה נמוכה עם צלילים עיליים לא הרמוניים, ואחריה שלושה פעמונים עולים */
+  arenaChime() {
+    if (!this.ok) return;
+    const t = this.now, k = 1 + (Math.random() - 0.5) * 0.03, f = 174.6 * k;
+    this.noise(t, 0.09, { type: 'bandpass', freq: 900, freqEnd: 300, q: 0.8, gain: 0.06 });
+    this.tone(f, t, 1.5, { gain: 0.11, attack: 0.008, freqEnd: f * 0.985 });
+    this.tone(f * 2.01, t, 1.1, { gain: 0.05, attack: 0.008 });
+    this.tone(f * 2.76, t, 0.8, { gain: 0.03, attack: 0.006 });
+    this.tone(f * 5.4, t, 0.35, { gain: 0.012, attack: 0.004 });
+    [[0.1, 4], [0.24, 6], [0.4, 8]].forEach(([dt, m], i) => {
+      this.tone(f * m, t + dt, 0.7, { gain: 0.045 - i * 0.008, attack: 0.006, dest: this.out(i - 1 ? (i - 1) * 0.35 : 0) });
+      this.tone(f * m * 2.76, t + dt, 0.3, { gain: 0.01, attack: 0.004 });
+    });
+  }
+  /** התזת מים (size: 0.3 אדווה קטנה … 2 קפיצה גדולה) */
+  splash(size = 1) {
+    if (!this.ok) return;
+    const t = this.now, s = Math.max(0.3, Math.min(2, size));
+    this.tone(150, t, 0.16, { freqEnd: 60, gain: 0.07 * s });
+    this.noise(t, 0.14, { type: 'lowpass', freq: 900, freqEnd: 300, gain: 0.15 * s });
+    this.noise(t, 0.45 + 0.3 * s, { type: 'bandpass', freq: 2600, freqEnd: 900, q: 0.7, gain: 0.1 * s, attack: 0.02 });
+    this.noise(t + 0.06, 0.6 + 0.4 * s, { type: 'highpass', freq: 4200, gain: 0.035 * s, attack: 0.05 });
+  }
   /** משב רוח של מסע על החיה */
   whoosh(dur = 1.6) { if (!this.ok) return; const t = this.now; this.noise(t, dur, { type: 'bandpass', freq: 260, freqEnd: 1300, q: 0.8, gain: 0.2, attack: dur * 0.45 }); }
   land() { if (!this.ok) return; const t = this.now; this.noise(t, 0.3, { type: 'lowpass', freq: 600, gain: 0.3 }); this.tone(196, t, 0.28, { type: 'triangle', gain: 0.1, freqEnd: 98 }); }

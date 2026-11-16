@@ -4,7 +4,8 @@
  *  1. The online rooms this device created (from the server) and the current room, if any.
  *  2. The anonymous Firebase account (deleted, or at least signed out) and its local token
  *     (IndexedDB "firebaseLocalStorageDb" and any "firebase:" keys).
- *  3. All of the game's local data ("chess_ages*" keys): progress, gems, items, pets, settings.
+ *  3. All of the game's local data ("chess_ages*" keys): progress, gems, items, pets, settings, the ad counters
+ *     and the ad choice (and, in the Play version with ads, the Google consent stored on the device).
  * The language choice is kept (the player picked it on purpose). The service-worker cache holds
  * only the game's own files, so it stays (the game keeps working offline).
  * Firebase is loaded only if this device used online play — no new anonymous account just to delete.
@@ -84,6 +85,8 @@ export async function wipeEverything(app) {
     const go = await app.ui.confirm(t('lgRoomsFail'), t('lgDeviceOnly'), { danger: true });
     if (!go) return false;
   }
+  // ההסכמה לפרסומות של Google (UMP) שנשמרה במכשיר — גם היא מתאפסת (גרסת Play עם פרסומות)
+  try { await app.rewardAds?.resetConsent?.(); } catch { /* אין פרסומות בעותק הזה */ }
   wipeFirebaseLocal();
   wipeAllLocalData();
   // the language stays: a fresh profile that only remembers it (everything else starts from zero)

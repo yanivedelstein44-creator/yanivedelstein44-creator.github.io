@@ -24,6 +24,8 @@ import { buildPetRig, tickRig } from './PetCompanion3D.js';
 import { PETS, SKY_PET_IDS, isFlyer } from '../config/Pets.js';
 import { drawIcon } from '../ui/icons.js';
 import { t } from '../ui/i18n.js';
+import { HubDolphin } from './Dolphin3D.js';
+import { HubArenaRing } from './ArenaRing3D.js';
 
 const TAU = Math.PI * 2;
 const V3 = THREE.Vector3;
@@ -599,7 +601,25 @@ export class HubMuseum {
     this.walkers = [];
     this.residentIds = [...(app.economy.s.residents || [])];
     this.buildBuildings();
+    // הדולפין שבמים מול האי — נגיעה בו: פרסומת מתגמלת (core/RewardedAds.js) או סתם קפיצה
+    this.dolphin = new HubDolphin(this);
+    // הטבעת המשובצת שסביב הלוח — נגיעה בה: זירת העידנים (משחק אונליין מול מי שמחכה)
+    this.arenaRing = new HubArenaRing(this);
     this.sm.onUpdate((dt, tt) => this.update(dt, tt));
+  }
+
+  /**
+   * רדיוס החוף בזווית מסוימת (atan2(z, x)): האי הבסיסי, או הקצה החיצוני של האריחים שנצמדו בכיוון הזה.
+   * הדולפין שוחה קצת מעבר לקו הזה, כך שהוא תמיד במים גם כשהאי גדל.
+   */
+  shoreRadius(angle) {
+    let r = HUB_BASE_R;
+    for (const p of this.pieces || []) {
+      const s = p.slot;
+      const d = Math.abs(Math.atan2(Math.sin(angle - s.a), Math.cos(angle - s.a)));
+      if (d <= s.span * 0.62) r = Math.max(r, s.rOut);
+    }
+    return r;
   }
 
   buildBuildings() {
@@ -688,8 +708,13 @@ export class HubMuseum {
     if (g) { const p = new V3(0, 4.25, -0.3); g.localToWorld(p); this.app.fx?.sparkle?.([p.x, p.y, p.z], 42, [0xffe08a, 0xbff4ff, 0xff8ab8]); }
   }
 
+  /** שלט צף בסגנון של המבנים (לטבעת הזירה) */
+  makeLabel(text, ic) { return labelSprite(text, ic); }
+
   /** שלטים בשפה הנוכחית */
   relabel() {
+    this.dolphin?.relabel();
+    this.arenaRing?.relabel();
     if (this.sky) { const o = this.sky.label, lab = labelSprite(t('shopSky'), 'wing'); lab.scale.copy(o.scale); lab.position.copy(o.position); this.group.remove(o); o.material.map.dispose(); o.material.dispose(); this.group.add(lab); this.sky.label = lab; }
     if (this.premiumBand) { const old = this.premiumBand.material.map; this.premiumBand.material.map = premiumRingTexture(t('shopPremium')); this.premiumBand.material.needsUpdate = true; old?.dispose(); }
     for (const g of this.buildings) {
@@ -715,6 +740,8 @@ export class HubMuseum {
     this.syncSkyPet();
     this.group.visible = on;
     if (on) { this.rebuild(); this.spawnResidents(); } else this.clearResidents();
+    this.dolphin?.setActive(on);
+    this.arenaRing?.setActive(on);
     this.placeSeason(on);
   }
 
@@ -1034,6 +1061,8 @@ export class HubMuseum {
     this.updateDragon(dt, tt);
     this.updateSkyPet(dt, tt);
     this.updateWalkers(dt, tt);
+    this.dolphin?.update(dt, tt);
+    this.arenaRing?.update(dt, tt);
     for (const l of this.micro || []) {
       const { pos, home, ph, n, vy } = l;
       for (let i = 0; i < n; i++) {
@@ -1060,10 +1089,10 @@ export class HubMuseum {
     }
   }
 
-  /** נגיעה בבניין: 'cinema' / 'museum' / 'shop_head' / 'shop_armor' / 'shop_weapon' / 'shop_aura' / 'shop_boards' / 'shop_pets' / 'shop_gifts' / 'shop_premium' / 'shop_sky' (החיה המעופפת) / null */
+  /** נגיעה בבניין: 'cinema' / 'museum' / 'shop_head' / 'shop_armor' / 'shop_weapon' / 'shop_aura' / 'shop_boards' / 'shop_pets' / 'shop_gifts' / 'shop_premium' / 'shop_sky' (החיה המעופפת) / 'ad_dolphin' (הדולפין) / 'arena_ring' (הטבעת שסביב הלוח) / null */
   pick(x, y) {
     if (!this.active) return null;
-    const objs = [...this.buildings, this.premiumRing, this.sky?.g, this.sky?.label, this.dragon?.g.visible ? this.dragon.g : null].filter(Boolean);
+    const objs = [...this.buildings, this.premiumRing, this.sky?.g, this.sky?.label, this.dragon?.g.visible ? this.dragon.g : null, ...(this.dolphin?.pickTargets() || []), ...(this.arenaRing?.pickTargets() || [])].filter(Boolean);
     const hit = this.sm.pick(x, y, objs)[0];
     if (!hit) return null;
     let o = hit.object;

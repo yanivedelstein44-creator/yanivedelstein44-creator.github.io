@@ -13,6 +13,7 @@ import { GLYPH } from '../game/GameController.js';
 import { ISLAND_COUNT, HUB_ID, REGION_COUNT, PREMIUM_WORLDS, islandDef, regionIslands, regionOf, tierOf } from '../config/Islands.js';
 import { getEra } from '../config/Eras.js';
 import { LEGAL_PAGES, openLegalPage } from './LegalPages.js';
+import { adsSettings } from './AdOffer.js';
 import { realPrice, realPurchase, productInfo, openMyPurchases } from './PurchaseUI.js';
 import { NAME_TITLES, NAME_EPITHETS, parseNameKey, withPresetName } from '../core/PlayerName.js';
 
@@ -231,6 +232,8 @@ export function openSettings(app) {
     h('h3', {}, ...withIcon('globe', t('language'), 16)), langSeg,
     h('h3', {}, ...withIcon('palette', t('quality'), 16)), qSeg,
     h('h3', {}, ...withIcon('eye', t('a11yReduceMotion'), 16)), mSeg,
+    // פרסומות (רק בעותק שיש בו פרסומות — גרסת Play): הסבר, ובחירה בין כלליות למותאמות (או אפשרויות הפרטיות של Google)
+    ...adsSettings(app),
     h('h3', {}, ...withIcon('lock', t('lgSection'), 16)), h('p', { style: { textAlign: 'start' } }, t('privacyText')),
     // [legal] מדיניות פרטיות, תנאי שימוש, הצהרת נגישות ורישיונות — הדפים הציבוריים בתוך המשחק
     h('div', { class: 'btn-row legal-links' }, ...LEGAL_PAGES.map(([page, ic, key]) => h('button', { class: 'btn small tap', onclick: () => openLegalPage(app, page) }, ...withIcon(ic, t(key), 16))),

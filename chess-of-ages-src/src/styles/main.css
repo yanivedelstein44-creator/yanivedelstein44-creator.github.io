@@ -264,6 +264,8 @@ button:focus-visible, [role='button']:focus-visible, input:focus-visible, select
 @keyframes popIn { from { transform: scale(0.88); opacity: 0; } to { transform: none; opacity: 1; } }
 .modal-head { position: relative; min-height: 40px; display: flex; align-items: center; padding-inline-end: 46px; margin-bottom: 8px; flex: none; }
 .modal-head:not(.has-title) { min-height: 0; margin-bottom: 0; }
+/* חלון אישור בלי כותרת: הטקסט לא נכנס מתחת לכפתור הסגירה (גם בשתי השפות — ריווח שווה בשני הצדדים, כדי שהטקסט יישאר ממורכז) */
+.modal-head:not(.has-title) + p { padding-inline: 40px; }
 .modal h2 { margin: 0; font-size: 19px; color: var(--gold-2); display: flex; align-items: center; gap: 8px; }
 .modal-head h2 { flex: 1; }
 .modal h3 { margin: 14px 0 8px; font-size: 14px; color: var(--gold); display: flex; align-items: center; gap: 6px; }
@@ -704,3 +706,52 @@ input, select, textarea { font-size: max(16px, 1em); }
 /* Text drawn straight over the 3D scene gets a dark backing so it keeps 4.5:1 contrast on bright skies and sand */
 .float-label.emote span { background: rgba(12, 8, 22, 0.78); padding: 1px 7px; border-radius: 8px; text-shadow: none; }
 .shop-stage .stage-hint { left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: 92%; padding: 3px 10px; border-radius: 10px; background: rgba(12, 8, 22, 0.72); color: var(--text); }
+
+/* [ads] פרסומות מתגמלות אצל הדולפין: חלון ההסבר, בחירת הפרטיות, טעינה, ופרסומת מדומה לבדיקות (‎?fakeads) */
+.modal.ad-offer-modal .ad-offer { display: grid; gap: 8px; text-align: center; }
+.ad-offer .ad-prize { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 18px; margin: 2px auto 4px; border-radius: 18px;
+  background: radial-gradient(120% 140% at 50% 0%, rgba(95, 211, 255, 0.28), rgba(123, 77, 255, 0.12) 60%, transparent); border: 1.5px solid rgba(95, 211, 255, 0.55);
+  box-shadow: 0 0 22px rgba(95, 211, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.18); }
+.ad-offer .ad-prize b { font-size: 34px; font-weight: 900; color: #d9fbff; text-shadow: 0 0 14px rgba(95, 211, 255, 0.7), 0 2px 0 #1b1240; direction: ltr; }
+.ad-offer .ad-main { margin: 0; font-weight: 800; font-size: 17px; line-height: 1.45; }
+.ad-offer .ad-rule { margin: 0; font-size: 14px; color: var(--muted); line-height: 1.45; }
+.ad-offer .ad-limits { margin: 0; font-size: 13px; color: var(--gold-2); }
+.ad-offer .ad-by, .ad-choice .ad-by { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); }
+.modal.ad-choice-modal .ad-choice { text-align: start; font-size: 14.5px; line-height: 1.5; }
+.modal.ad-choice-modal .ad-choice p { margin: 0 0 8px; }
+.btn.ad-pick { flex: 1; background: linear-gradient(180deg, #3a2e5e, #241a40); border-color: rgba(242, 201, 76, 0.8); color: var(--gold-2); }
+.modal-back.center .modal.ad-loading { width: auto; padding: 18px 24px; }
+.ad-load { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 16px; }
+.ad-spin { width: 22px; height: 22px; border-radius: 50%; border: 3px solid rgba(242, 201, 76, 0.25); border-top-color: var(--gold); animation: adSpin 0.8s linear infinite; }
+@keyframes adSpin { to { transform: rotate(360deg); } }
+.ad-set-note { font-size: 12.5px; color: var(--muted); text-align: start; margin: 6px 0 0; }
+.fake-ad { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, #2a3f7a, #0b0816 70%); color: #fff; font-family: inherit; }
+.fake-ad .fa-close { position: absolute; top: max(14px, env(safe-area-inset-top)); inset-inline-end: 14px; width: 48px; height: 48px; border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.5); background: rgba(0, 0, 0, 0.45); color: #fff; display: grid; place-items: center; cursor: pointer; }
+.fake-ad .fa-card { display: grid; justify-items: center; gap: 12px; text-align: center; padding: 24px; }
+.fake-ad small { letter-spacing: 0.3em; color: #ffd36a; font-weight: 800; }
+.fake-ad h2 { margin: 0; font-size: 24px; }
+.fake-ad .fa-ring { width: 110px; height: 110px; border-radius: 50%; display: grid; place-items: center; border: 5px solid rgba(255, 211, 106, 0.85); box-shadow: 0 0 30px rgba(255, 211, 106, 0.35); }
+.fake-ad .fa-count { font-size: 46px; font-weight: 900; }
+.fake-ad .fa-status { font-size: 15px; color: #cfe0ff; max-width: 260px; }
+.modal.ad-choice-modal .btn-row { flex-direction: column; align-items: stretch; }
+.modal.ad-choice-modal .btn-row .btn.ad-pick { width: 100%; }
+
+/* [arena] זירת העידנים: החלון הראשי, רשימת החדרים הפנויים, כפתור הסרגל */
+.arena .ar-hero { display: grid; justify-items: center; text-align: center; gap: 2px; }
+.arena .ar-hero p { margin: 0 0 6px; font-weight: 700; line-height: 1.45; }
+.arena .ar-safe { display: flex; align-items: flex-start; gap: 6px; margin: 0 0 10px; font-size: 13px; color: var(--muted); text-align: start; line-height: 1.45; }
+.arena .ar-safe svg { flex: none; margin-top: 2px; }
+.arena .ar-h { margin: 14px 0 6px; }
+.arena .ar-count { color: var(--muted); font-weight: 600; }
+.arena .ar-list { display: grid; gap: 8px; margin-bottom: 12px; max-height: 42vh; overflow-y: auto; }
+.arena .ar-empty { margin: 4px 0 8px; font-size: 14px; color: var(--muted); text-align: center; }
+.arena .ar-empty.bad { color: #ffb3bb; }
+.arena .ar-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)); border: 1.5px solid rgba(255, 255, 255, 0.1); }
+.arena .ar-em { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(0, 0, 0, 0.25); }
+.arena .ar-who { flex: 1; min-width: 0; display: grid; gap: 1px; text-align: start; }
+.arena .ar-who b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.arena .ar-who span { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dock-btn.arena:not(.active) { border-color: rgba(95, 211, 255, 0.75); color: #d9fbff; box-shadow: 0 4px 0 #0c0818, 0 0 12px rgba(95, 211, 255, 0.28), inset 0 1.5px 0 rgba(255, 255, 255, 0.14); }
+.dock-btn.arena:not(.active):active { box-shadow: 0 1px 0 #0c0818, inset 0 1.5px 0 rgba(255, 255, 255, 0.14); }
+.block-row { margin-top: 12px; justify-content: center; }

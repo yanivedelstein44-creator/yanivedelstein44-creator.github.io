@@ -1,5 +1,5 @@
 /**
- * צד השרת של משחק אונליין עם חבר — Firebase Realtime Database + התחברות אנונימית.
+ * צד השרת של משחק אונליין (חבר וזירת העידנים) — Firebase Realtime Database + התחברות אנונימית.
  * הקובץ נטען רק כשנכנסים למשחק אונליין (import דינמי), כדי שהפתיחה של המשחק תישאר מהירה.
  * כל ההרשאות נאכפות בשרת (firebase/database.rules.json).
  */
@@ -8,7 +8,7 @@ import {
   initializeAuth, signInAnonymously, indexedDBLocalPersistence, browserLocalPersistence,
   browserSessionPersistence, inMemoryPersistence,
 } from 'firebase/auth';
-import { getDatabase, ref, set, update, get, onValue, onDisconnect, remove, serverTimestamp } from 'firebase/database';
+import { getDatabase, ref, set, update, get, onValue, onDisconnect, remove, serverTimestamp, query, orderByChild, limitToLast } from 'firebase/database';
 import { FIREBASE } from '../config/AppConfig.js';
 
 export async function createFirebaseBackend({ tabSession = false } = {}) {
@@ -56,6 +56,27 @@ export async function createFirebaseBackend({ tabSession = false } = {}) {
     },
     onConnection(cb) {
       return onValue(ref(db, '.info/connected'), (snap) => cb(!!snap.val()));
+    },
+    // ---------- הלובי של זירת העידנים: רק חדרים שמחכים ליריב ----------
+    /** החדרים הפנויים (החדשים ביותר), כאובייקט { CODE: { v, t, host, n, e, i } } */
+    async lobbyList(limit) {
+      return (await get(query(ref(db, 'lobby'), orderByChild('t'), limitToLast(limit)))).val() || {};
+    },
+    lobbyWatch(limit, cb, onError) {
+      return onValue(query(ref(db, 'lobby'), orderByChild('t'), limitToLast(limit)), (snap) => cb(snap.val() || {}), (err) => onError?.(err));
+    },
+    /** החדר שלך בלובי — נמחק לבד אם החיבור נופל */
+    async lobbyOpen(code, entry) {
+      const r = ref(db, `lobby/${code}`);
+      await set(r, entry);
+      // אחרי שהרשומה קיימת (חוקי השרת מתירים למחוק רק רשומה קיימת שלך). רשומה שנשארה בכל זאת — מסוננת אחרי 10 דקות
+      await onDisconnect(r).remove();
+    },
+    lobbyTouch: (code) => update(ref(db, `lobby/${code}`), { t: serverTimestamp() }),
+    async lobbyClose(code) {
+      const r = ref(db, `lobby/${code}`);
+      try { await onDisconnect(r).cancel(); } catch { /* לא מחובר */ }
+      try { await remove(r); } catch { /* כבר נמחק */ }
     },
   };
 }

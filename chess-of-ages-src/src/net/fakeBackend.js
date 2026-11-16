@@ -26,7 +26,7 @@ export function createFakeBackend() {
     bc?.postMessage(c);
     notify(c);
   };
-  if (bc) bc.onmessage = (e) => notify(e.data);
+  if (bc) bc.onmessage = (e) => { if (e.data === '__lobby') setTimeout(() => lobbyListeners.forEach((fn) => fn()), latency); else notify(e.data); };
   const setPath = (obj, path, val) => {
     const parts = path.split('/');
     let o = obj;
@@ -35,7 +35,16 @@ export function createFakeBackend() {
     if (val === null) delete o[last]; else o[last] = val;
   };
   const sleep = () => new Promise((r) => setTimeout(r, latency));
-  window.addEventListener('pagehide', () => { for (const k of live) { const [c, ...rest] = k.split('/'); const r = read(c); if (r) { setPath(r, rest.join('/'), null); write(c, r); } } });
+  const LOBBY = 'fakenet:lobby';
+  const lobbyListeners = new Set();
+  const readLobby = () => { try { return JSON.parse(localStorage.getItem(LOBBY) || '{}') || {}; } catch { return {}; } };
+  const writeLobby = (v) => { localStorage.setItem(LOBBY, JSON.stringify(v)); bc?.postMessage('__lobby'); setTimeout(() => lobbyListeners.forEach((fn) => fn()), latency); };
+  window.addEventListener('pagehide', () => {
+    for (const k of live) {
+      if (k.startsWith('lobby/')) { const lob = readLobby(); delete lob[k.slice(6)]; localStorage.setItem(LOBBY, JSON.stringify(lob)); bc?.postMessage('__lobby'); continue; }
+      const [c, ...rest] = k.split('/'); const r = read(c); if (r) { setPath(r, rest.join('/'), null); write(c, r); }
+    }
+  });
 
   return {
     kind: 'fake',
@@ -53,7 +62,9 @@ export function createFakeBackend() {
       if (!room) throw denied();
       const isPlayer = room.host === uid || room.guest === uid;
       const keys = Object.keys(patch);
-      const own = (k) => k.startsWith(`on/${uid}`) || k.startsWith(`sp/${uid}`) || k.startsWith(`em/${uid}`);
+      const own = (k) => k.startsWith(`on/${uid}`) || (room.pub !== true && (k.startsWith(`sp/${uid}`) || k.startsWith(`em/${uid}`)));
+      if ('isl' in patch && patch.isl !== room.isl && !(room.res && room.host === uid)) throw denied();
+      if ('pub' in patch && patch.pub !== room.pub) throw denied();
       const joining = !room.guest && patch.guest === uid && room.host !== uid;
       if (!isPlayer && !joining && !keys.every(own)) throw denied();
       if (joining && !keys.every((k) => ['guest', 'gn', 'gl'].includes(k) || own(k))) throw denied();
@@ -77,5 +88,43 @@ export function createFakeBackend() {
     async setLive(code, sub, value) { live.add(`${code}/${sub}`); await this.update(code, { [sub]: value }); },
     async clearLive(code, sub) { live.delete(`${code}/${sub}`); try { await this.update(code, { [sub]: null }); } catch { /* החדר נמחק */ } },
     onConnection(cb) { setTimeout(() => cb(true), 0); return () => {}; },
+    // ---------- הלובי של זירת העידנים (כמו בשרת: רק המארח כותב; האורח שנכנס או כל אחד אחרי 30 דקות — מוחק) ----------
+    async lobbyList(limit) {
+      await sleep();
+      return Object.fromEntries(Object.entries(readLobby()).sort((a, b) => a[1].t - b[1].t).slice(-limit));
+    },
+    lobbyWatch(limit, cb) {
+      const fn = () => cb(Object.fromEntries(Object.entries(readLobby()).sort((a, b) => a[1].t - b[1].t).slice(-limit)));
+      lobbyListeners.add(fn);
+      setTimeout(fn, latency);
+      return () => lobbyListeners.delete(fn);
+    },
+    async lobbyOpen(code, entry) {
+      await sleep();
+      const room = read(code);
+      if (!room || room.host !== uid || room.guest || room.pub !== true || entry.host !== uid || entry.i !== room.isl) throw denied();
+      const lob = readLobby();
+      lob[code] = resolveTs(entry);
+      live.add(`lobby/${code}`);
+      writeLobby(lob);
+    },
+    async lobbyTouch(code) {
+      await sleep();
+      const lob = readLobby();
+      if (!lob[code] || lob[code].host !== uid) throw denied();
+      lob[code].t = Date.now();
+      writeLobby(lob);
+    },
+    async lobbyClose(code) {
+      await sleep();
+      const lob = readLobby();
+      const e = lob[code];
+      if (!e) return;
+      const room = read(code);
+      if (e.host !== uid && room?.guest !== uid && room && e.t > Date.now() - 30 * 60e3) throw denied();
+      delete lob[code];
+      live.delete(`lobby/${code}`);
+      writeLobby(lob);
+    },
   };
 }

@@ -68,15 +68,52 @@
         },
         "sp": {
           "$uid": {
-            ".write": "auth != null && auth.uid === $uid && data.parent().parent().child('host').exists()",
+            ".write": "auth != null && auth.uid === $uid && data.parent().parent().child('host').exists() && data.parent().parent().child('pub').val() !== true",
             ".validate": "newData.hasChildren(['n']) && newData.child('n').isString() && newData.child('n').val().length <= 24"
           }
         },
         "em": {
           "$uid": {
-            ".write": "auth != null && auth.uid === $uid && data.parent().parent().child('host').exists()",
+            ".write": "auth != null && auth.uid === $uid && data.parent().parent().child('host').exists() && (data.parent().parent().child('pub').val() !== true || data.parent().parent().child('host').val() === auth.uid || data.parent().parent().child('guest').val() === auth.uid)",
             ".validate": "newData.hasChildren(['e', 't']) && newData.child('e').isString() && newData.child('e').val().matches(/^(gg|wow|lol|hmm|hi|clap|fire|heart|cool|sad)$/) && newData.child('t').isNumber()"
           }
+        },
+        "pub": {
+          ".validate": "newData.isBoolean() && newData.val() === true && (!data.exists() || newData.val() === data.val())"
+        },
+        "isl": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 99 && newData.val() % 1 === 0 && (!data.exists() || newData.val() === data.val() || (data.parent().child('res').exists() && data.parent().child('host').val() === auth.uid))"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "lobby": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "t"
+      ],
+      "$code": {
+        ".write": "auth != null && $code.matches(/^[A-HJ-NP-Z2-9][A-HJ-NP-Z2-9][A-HJ-NP-Z2-9][A-HJ-NP-Z2-9][A-HJ-NP-Z2-9][A-HJ-NP-Z2-9]$/) && ((!data.exists() && newData.child('host').val() === auth.uid && root.child('rooms').child($code).child('host').val() === auth.uid && root.child('rooms').child($code).child('pub').val() === true && !root.child('rooms').child($code).child('guest').exists()) || (data.exists() && newData.exists() && data.child('host').val() === auth.uid && !root.child('rooms').child($code).child('guest').exists()) || (data.exists() && !newData.exists() && (data.child('host').val() === auth.uid || root.child('rooms').child($code).child('guest').val() === auth.uid || !root.child('rooms').child($code).exists() || data.child('t').val() < now - 1800000)))",
+        ".validate": "newData.hasChildren(['v', 't', 'host', 'n', 'i'])",
+        "v": {
+          ".validate": "newData.isNumber()"
+        },
+        "t": {
+          ".validate": "newData.isNumber() && newData.val() === now"
+        },
+        "host": {
+          ".validate": "newData.isString() && newData.val() === auth.uid"
+        },
+        "n": {
+          ".validate": "newData.isString() && newData.val().length <= 24"
+        },
+        "e": {
+          ".validate": "newData.isString() && newData.val().length <= 24 && newData.val().matches(/^[a-z]+$/)"
+        },
+        "i": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 99 && newData.val() % 1 === 0 && newData.val() === root.child('rooms').child($code).child('isl').val()"
         },
         "$other": {
           ".validate": false

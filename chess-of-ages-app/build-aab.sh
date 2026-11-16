@@ -10,6 +10,9 @@
 #  • Google Play Billing: התוסף @capgo/native-purchases (Play Billing Library 9) נוסף רק כאן — ה-APK מהאתר נשאר בלי חיובים.
 #    ההרשאה com.android.vending.BILLING מגיעה במיזוג מהספרייה, והבנייה נכשלת אם היא חסרה.
 #  • התוצר: bundleRelease (‏.aab). Google Play דורשת היום targetSdk 36 — זה מה שתבנית Capacitor 8 מגדירה.
+#  • פרסומות מתגמלות (הדולפין באי המרכזי): התוסף @capacitor-community/admob (Google Mobile Ads SDK + UMP) נוסף רק כאן,
+#    עם מזהה האפליקציה של AdMob במניפסט (ADMOB_APP_ID). ההרשאה com.google.android.gms.permission.AD_ID מגיעה במיזוג
+#    מהספרייה — והבנייה נכשלת אם היא או המזהה חסרים. ה-APK מהאתר נשאר בלי פרסומות.
 #
 # חתימה: ה-AAB נחתם אחר כך במפתח ההעלאה (upload key) בעזרת sign-aab.sh, מחוץ לריפו.
 # את מה שמגיע למשתמשים חותמת Google (Play App Signing, מפתח שנוצר אצל Google).
@@ -20,6 +23,8 @@ PLAY_DIR="$(cd "${PLAY_DIR:-../chess-of-ages-play}" && pwd)"
 PLAY_ID="com.chessofages.islandrealms"
 UA_MARK="CoAStore/play"
 PURCHASES_VERSION="8.9.11"   # @capgo/native-purchases — Play Billing Library 9.x (חובה לאפליקציות חדשות ב-Play)
+ADMOB_VERSION="8.3.2"        # @capacitor-community/admob — Google Mobile Ads SDK 25.x + User Messaging Platform (UMP)
+ADMOB_APP_ID="${ADMOB_APP_ID:-ca-app-pub-7781980348428898~7022902368}"   # AdMob → Apps → Chess of Ages: Island Realms → App ID
 
 [ -f "$PLAY_DIR/version.json" ] || { echo "לא נמצא $PLAY_DIR/version.json — קודם מקדמים גרסה ל-Play (scripts/publish-play.sh)"; exit 1; }
 rm -rf www out android && mkdir -p www out
@@ -49,11 +54,11 @@ c.android = Object.assign({}, c.android, { appendUserAgent: '$UA_MARK' });
 fs.writeFileSync('capacitor.config.json', JSON.stringify(c, null, 2));
 "
 
-# Google Play Billing — רק בגרסת Play (Capacitor מוצא תוספים לפי dependencies ב-package.json; המקור משוחזר בסוף)
+# Google Play Billing ו-AdMob — רק בגרסת Play (Capacitor מוצא תוספים לפי dependencies ב-package.json; המקור משוחזר בסוף)
 node -e "
 const fs = require('fs');
 const p = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-p.dependencies = Object.assign({}, p.dependencies, { '@capgo/native-purchases': '$PURCHASES_VERSION' });
+p.dependencies = Object.assign({}, p.dependencies, { '@capgo/native-purchases': '$PURCHASES_VERSION', '@capacitor-community/admob': '$ADMOB_VERSION' });
 fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\\n');
 "
 
@@ -70,6 +75,9 @@ grep -q 'xmlns:tools=' "$MANIFEST" || sed -i 's#<manifest xmlns:android="http://
 sed -i 's#</manifest>#    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />\n</manifest>#' "$MANIFEST"
 # Google Play Billing: ההרשאה נכתבת גם במפורש (ליתר ביטחון; הספרייה מוסיפה אותה גם במיזוג)
 sed -i 's#</manifest>#    <uses-permission android:name="com.android.vending.BILLING" />\n</manifest>#' "$MANIFEST"
+# AdMob: מזהה האפליקציה (חובה — בלעדיו ה-SDK קורס בפתיחה), ואתחול/טעינה ברקע כדי לא לחסום את ה-UI (פחות ANR)
+grep -q 'name="admob_app_id"' "$RES/values/strings.xml" || sed -i "s#</resources>#    <string name=\"admob_app_id\" translatable=\"false\">${ADMOB_APP_ID}</string>\n</resources>#" "$RES/values/strings.xml"
+sed -i 's#</application>#    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="@string/admob_app_id" />\n        <meta-data android:name="com.google.android.gms.ads.flag.OPTIMIZE_INITIALIZATION" android:value="true" />\n        <meta-data android:name="com.google.android.gms.ads.flag.OPTIMIZE_AD_LOADING" android:value="true" />\n    </application>#' "$MANIFEST"
 
 # 3) גרסה: versionName כמו העטיפה; versionCode חייב רק לעלות בכל העלאה ל-Play
 VER="$(node -p "require('./package.json').version")"
@@ -89,8 +97,12 @@ if grep -q 'REQUEST_INSTALL_PACKAGES' "$MERGED"; then echo "שגיאה: REQUEST_
 grep -q 'com.android.vending.BILLING' "$MERGED" || { echo "שגיאה: חסרה הרשאת com.android.vending.BILLING (תוסף Play Billing לא נכלל)"; exit 1; }
 PERMS="$(grep -oE 'uses-permission[^>]*android:name="[^"]+"' "$MERGED" | grep -oE 'name="[^"]+"' | cut -d'"' -f2 | sort -u | tr '\n' ' ')"
 grep -q 'NativePurchases' "$APP/android/app/src/main/assets/capacitor.plugins.json" || { echo "שגיאה: NativePurchases לא רשום ב-capacitor.plugins.json"; exit 1; }
+grep -q '"AdMob"\|AdMob' "$APP/android/app/src/main/assets/capacitor.plugins.json" || { echo "שגיאה: AdMob לא רשום ב-capacitor.plugins.json"; exit 1; }
+grep -q 'com.google.android.gms.ads.APPLICATION_ID' "$MERGED" || { echo "שגיאה: חסר מזהה האפליקציה של AdMob במניפסט"; exit 1; }
+grep -q 'com.google.android.gms.permission.AD_ID' "$MERGED" || { echo "שגיאה: חסרה ההרשאה AD_ID (נדרשת להצהרת Advertising ID ב-Play)"; exit 1; }
+grep -q "${ADMOB_APP_ID}" "$RES/values/strings.xml" || { echo "שגיאה: מזהה AdMob לא נכתב ל-strings.xml"; exit 1; }
 TARGET="$(grep -oE 'targetSdkVersion = [0-9]+' variables.gradle | grep -oE '[0-9]+' || true)"
 [ "${TARGET:-0}" -ge 36 ] || { echo "שגיאה: targetSdk ${TARGET} — Google Play דורשת 36 ומעלה"; exit 1; }
-echo "applicationId=${PLAY_ID} versionName=${VER} versionCode=${VCODE} targetSdk=${TARGET} web=$(node -e "process.stdout.write(require(process.argv[1]).build)" "$PLAY_DIR/version.json") billing=@capgo/native-purchases@${PURCHASES_VERSION}" > "$APP/out/INFO.txt"
+echo "applicationId=${PLAY_ID} versionName=${VER} versionCode=${VCODE} targetSdk=${TARGET} web=$(node -e "process.stdout.write(require(process.argv[1]).build)" "$PLAY_DIR/version.json") billing=@capgo/native-purchases@${PURCHASES_VERSION} admob=@capacitor-community/admob@${ADMOB_VERSION} admobApp=${ADMOB_APP_ID}" > "$APP/out/INFO.txt"
 echo "permissions=${PERMS}" >> "$APP/out/INFO.txt"
 ls -la "$APP/out"
