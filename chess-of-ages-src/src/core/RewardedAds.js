@@ -1,5 +1,6 @@
 /**
- * פרסומות מתגמלות (Google AdMob, פורמט Rewarded) — הדולפין שבמים מול האי המרכזי.
+ * פרסומות מתגמלות (Google AdMob, פורמט Rewarded) — הדולפין של האי המרכזי: כשיש פרסומת זמינה הוא בלגונה שמול
+ * רחבת השחמט עם תגית "בונוס", ובהמתנה הוא בים הפתוח (scene/Dolphin3D.js, scene/HubLagoon.js).
  *
  * איפה זה פועל: רק בגרסת Google Play, באפליקציה שיש בה את התוסף הנייטיב '@capacitor-community/admob'
  * (עטיפת Play מגרסה 1003 ומעלה — android-wrapper/build-aab.sh). בדפדפן, ב-APK מהאתר ובעטיפות ישנות אין פרסומות:
@@ -129,7 +130,7 @@ export class RewardedAds {
   todayCount() { const s = this.st; return s.day === dayKey() ? s.count || 0 : 0; }
   left() { return Math.max(0, ADS.dailyCap - this.todayCount()); }
 
-  /** { state: 'off' | 'ready' | 'wait' | 'done', secs } — לתג שמעל הדולפין ולנגיעה בו */
+  /** { state: 'off' | 'ready' | 'wait' | 'done', secs } — איפה הדולפין (ready = בלגונה, אחרת בים) ומה קורה בנגיעה בו */
   status(now = Date.now()) {
     if (!this.available) return { state: 'off', secs: 0 };
     if (this.left() <= 0) return { state: 'done', secs: 0 };

@@ -194,16 +194,20 @@ export class SceneManager {
     lathe.computeVertexNormals();
     this.rockMat = new THREE.MeshStandardMaterial({ map: stoneTex('islandRock', 0x6a5848, 0x2e241c, { freq: 4, seed: 30 }), roughness: 1 });
     this.rockMat.map.repeat.set(6, 3);
-    island.add(mesh(lathe, this.rockMat, { receive: true }));
+    const rock = mesh(lathe, this.rockMat, { receive: true });
+    island.add(rock);
 
     // דשא על השפה
     const rim = mesh(new THREE.TorusGeometry(27, 0.45, 6, 96), this.groundMat, { rot: [Math.PI / 2, 0, 0], pos: [0, -0.25, 0] });
     island.add(rim);
     // הים מסביב (במקום שמיים מתחת לאי) + חוף שמשתפל אל המים
     this.sea = new Sea(this.world);
-    island.add(this.sea.beach(27));
+    const beach = this.sea.beach(27);
+    island.add(beach);
     this.world.add(island);
     this.island = island;
+    // האי המרכזי מחליף את ארבעת אלה בגרסה עם פתח לתעלה של הלגונה (HubLagoon.js)
+    this.islandParts = { top, rock, rim, beach, rockProfile: pts };
 
     // איונים קטנים בים: דשא, חוף חול ועץ או סלע
     this.islets = [];

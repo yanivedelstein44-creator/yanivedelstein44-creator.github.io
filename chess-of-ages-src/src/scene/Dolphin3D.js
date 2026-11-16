@@ -1,28 +1,37 @@
 /**
- * הדולפין של האי המרכזי — שוחה במים שמול האי (החזית, מול המצלמה במבט הרחב) וקופץ מדי פעם.
- * נגיעה בו: אם אפשר לצפות בפרסומת מתגמלת — חלון הסבר (core/RewardedAds.js); אחרת רק קפיצה שמחה.
+ * הדולפין של האי המרכזי. שני מקומות:
+ *  - הים הפתוח (אין פרסומת זמינה: בהמתנה, נגמרו להיום, או גרסה בלי פרסומות): שוחה רגוע מול החוף וקופץ מדי פעם, בלי תגית.
+ *  - הלגונה הקטנה שמול רחבת השחמט (HubLagoon.js), כשיש פרסומת זמינה: צולל בים, "שוחה מתחת לאי" ועולה בלגונה,
+ *    מוציא את פלג הגוף העליון מהמים, צף וקופץ קלות עם אדוות, ומעליו תגית "בונוס" כמו של המבנים.
+ *    כשהפרסומת כבר לא זמינה (אחרי צפייה): צולל בלגונה וחוזר לים. אחרי פרס — קודם קפיצת חגיגה עם סיבוב.
+ * נגיעה בו (גם בתגית): אם אפשר לצפות בפרסומת — חלון הסבר (core/RewardedAds.js); אחרת קפיצה קטנה.
  *
  * ממשק (HubMuseum ו-RewardedAds קוראים רק לזה):
- *  new HubDolphin(hub)   hub = HubMuseum: hub.group, hub.sm, hub.app (fx, sound), hub.shoreRadius(angle), hub.extent
- *  setActive(on)         האי המרכזי מוצג / לא
+ *  new HubDolphin(hub)   hub = HubMuseum: hub.group, hub.sm, hub.app (fx, sound), hub.shoreRadius(angle), hub.extent, hub.makeLabel()
+ *  setActive(on)         האי המרכזי מוצג / לא (כשנכנסים לאי ויש פרסומת זמינה — הוא כבר בלגונה)
  *  update(dt, tt)        כל פריים (רק כשהאי פעיל)
- *  setOffer(o)           { state: 'off' | 'ready' | 'wait' | 'done', secs } — התג שמעל הדולפין
- *  pickTargets()         אובייקטים לנגיעה, עם userData.bid = 'ad_dolphin'
- *  celebrate()           קפיצה גדולה + נצנוצים (קיבלת יהלומים)
+ *  setOffer(o)           { state: 'off' | 'ready' | 'wait' | 'done', secs } — 'ready' = ללגונה, כל השאר = לים
+ *  pickTargets()         אובייקטים לנגיעה (userData.bid = 'ad_dolphin'): הדולפין, ובלגונה גם התגית
+ *  celebrate()           קיבלת יהלומים: קפיצה גבוהה עם סיבוב ונצנוצים (בלגונה — ואז צלילה וחזרה לים)
  *  wave()                קפיצה קטנה (נגיעה בלי פרסומת)
  *  relabel()             השפה התחלפה
  *  worldPos(out)         מיקום הדולפין בעולם (לתווית "+20" על המסך)
  *
+ * מצבים (this.mode):
+ *  sea → dive (צולל ליד החוף) → under (מוסתר: "מתחת לאי") → rise (עולה בלגונה) → lagoon
+ *  lagoon → sink (צולל, או קפיצת חגיגה וצלילה) → under → surface (עולה בים מול האי) → sea
+ *
  * מבנה:
- *  ==== ART ====   הדגם (15 חלקים מפוסלים שמתמזגים ל-2 רשתות), החומרים, גלי הגוף (בשיידר), מרקמי המים והתג.
+ *  ==== ART ====   הדגם (15 חלקים מפוסלים שמתמזגים ל-2 רשתות), החומרים, גלי הגוף (בשיידר) ומרקמי המים.
  *  ==== /ART ====
- *  HubDolphin      מסלול השחייה, הקפיצות, ההתזות, התג והנגיעה. בלי הקצאות זיכרון בתוך update.
+ *  HubDolphin      המצבים, מסלול השחייה, הקפיצות, ההתזות, התגית והנגיעה. בלי הקצאות זיכרון בתוך update.
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SEA_Y } from './Sea.js';
-import { addCharacterRim, glowTexture } from './kit.js';
-import { drawIcon } from '../ui/icons.js';
+import { addCharacterRim } from './kit.js';
+import { LAGOON } from './HubLagoon.js';
+import { t } from '../ui/i18n.js';
 
 const TAU = Math.PI * 2;
 const BID = 'ad_dolphin';
@@ -170,49 +179,16 @@ function shadeTexture() {
   });
 }
 
-/** בועה עגולה עם מסגרת זהב וחוד קטן למטה (מצביעה על הדולפין) + אייקון; badge — אייקון קטן בפינה */
-function drawRoundTag(x, ic, { badge = null, dim = false } = {}) {
-  x.clearRect(0, 0, 256, 256);
-  const cx = 128, cy = 112, r = 92;
-  const shape = () => { x.beginPath(); x.arc(cx, cy, r, Math.PI * 0.62, Math.PI * 0.38, false); x.lineTo(cx, 238); x.closePath(); };
-  x.save();
-  x.shadowColor = dim ? 'rgba(10,6,24,0.5)' : 'rgba(255,205,90,0.75)'; x.shadowBlur = 14;
-  const bg = x.createLinearGradient(0, cy - r, 0, 238);
-  bg.addColorStop(0, dim ? 'rgba(40,30,66,0.9)' : 'rgba(58,36,104,0.96)'); bg.addColorStop(1, 'rgba(16,10,32,0.94)');
-  shape(); x.fillStyle = bg; x.fill();
-  x.restore();
-  const gold = x.createLinearGradient(0, cy - r, 0, 238);
-  gold.addColorStop(0, '#fff6c2'); gold.addColorStop(0.45, '#f5cd55'); gold.addColorStop(1, '#b5832a');
-  shape(); x.lineWidth = 8; x.lineJoin = 'round'; x.strokeStyle = dim ? 'rgba(242,201,76,0.8)' : gold; x.stroke();
-  x.beginPath(); x.arc(cx, cy, r - 12, Math.PI * 1.15, Math.PI * 1.75); x.lineWidth = 5; x.lineCap = 'round'; x.strokeStyle = 'rgba(255,255,255,0.28)'; x.stroke();
-  drawIcon(x, ic, cx, cy, dim ? 104 : 128);
-  if (badge) {
-    x.beginPath(); x.arc(196, 170, 36, 0, TAU); x.fillStyle = 'rgba(22,14,44,0.97)'; x.fill();
-    x.lineWidth = 5; x.strokeStyle = gold; x.stroke();
-    drawIcon(x, badge, 196, 171, 48);
-  }
-}
-/** בועת המתנה: שעון חול + m:ss, באותה מסגרת זהב של תוויות הבניינים */
-function drawWaitTag(x, text) {
-  x.clearRect(0, 0, 320, 112);
-  const r = 46;
-  x.fillStyle = 'rgba(16,10,32,0.88)'; x.beginPath(); x.moveTo(8 + r, 8); x.arcTo(312, 8, 312, 104, r); x.arcTo(312, 104, 8, 104, r); x.arcTo(8, 104, 8, 8, r); x.arcTo(8, 8, 312, 8, r); x.fill();
-  x.lineWidth = 5; x.strokeStyle = 'rgba(242,201,76,0.95)'; x.stroke();
-  drawIcon(x, 'hourglass', 66, 56, 62);
-  x.fillStyle = '#fff3c8'; x.font = `800 ${text.length > 5 ? 44 : 56}px Rubik, Arial, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
-  x.fillText(text, 200, 59);
-}
-const fmtTime = (secs) => {
-  const s = Math.max(0, Math.ceil(secs)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = String(s % 60).padStart(2, '0');
-  return h ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`;
-};
 // ==== /ART ====
 
-const RIPPLES = 10;
-const ARC = 0.52;          // חצי קשת השחייה ברדיאנים (≈ 60°–120°) — כך הדולפין והתג נשארים במסך גם בטלפון לאורך
+const RIPPLES = 12;
+const ARC = 0.52;          // חצי קשת השחייה ברדיאנים (≈ 60°–120°) — כך הדולפין נשאר במסך גם בטלפון לאורך
 const CRUISE = 0.27;       // מהירות הפאזה לאורך המסלול
-// גודל התג במבט הרחב, בפיקסלים של המסך: [רוחב, גובה]
-const TAG_PX = { ready: [58, 58], wait: [74, 26], done: [34, 34] };
+const S_LAGOON = 1.25;     // הגודל בלגונה (בים הוא גדל עם האי, כדי שייקרא היטב במבט הרחב)
+const UNDER_SECS = 1.2;    // כמה זמן הוא "שוחה מתחת לאי"
+const STAND_PITCH = 0.98;  // ≈ 56°: האף למעלה ומעט אל המצלמה (רואים את הפנים), פלג הגוף העליון מחוץ למים
+const LABEL = [4.2, 1.26]; // התגית — באותו גודל כמו התגיות של המבנים (HubMuseum.labelSprite)
+const LAGOON_MODES = { rise: 1, lagoon: 1, sink: 1 };
 
 export class HubDolphin {
   constructor(hub) {
@@ -252,43 +228,42 @@ export class HubDolphin {
     this.hit = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6), new THREE.MeshBasicMaterial({ visible: false }));
     this.hit.userData.bid = BID;
 
-    // ----- התג -----
-    this.tagTex = {
-      ready: canvasTex(256, 256, (x) => drawRoundTag(x, 'video', { badge: 'gem' })),
-      done: canvasTex(256, 256, (x) => drawRoundTag(x, 'moon', { dim: true })),
-      wait: canvasTex(320, 112, (x) => drawWaitTag(x, '0:00')),
-    };
-    this.tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.tagTex.ready, transparent: true, depthWrite: false, fog: false }));
-    this.tag.renderOrder = 11;
-    this.tag.visible = false;
-    this.tag.userData.bid = BID;
-    this.halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: 0xffd36a, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
-    this.halo.renderOrder = 10;
-    this.halo.visible = false;
-    this.waitText = '';
-    this.waitShown = -1;
-    this.offerAt = 0;
+    // ----- התגית "בונוס" (רק בלגונה): בדיוק כמו התגיות של המבנים -----
+    this.label = hub.makeLabel(t('adBonus'), 'gem');
+    this.label.userData.bid = BID;
+    this.label.renderOrder = 11;
+    this.label.visible = false;
     this.pop = 1;
 
-    this.nodes = [this.g, this.shade, this.ripMesh, this.hit, this.tag, this.halo];
+    this.nodes = [this.g, this.shade, this.ripMesh, this.hit, this.label];
     this.nodes.forEach((n) => hub.group.add(n));
-    this.targets = [this.hit, this.tag];
+    this.seaTargets = [this.hit];
+    this.lagoonTargets = [this.hit, this.label];
     this.noTargets = [];
 
     // ----- מצב התנועה -----
+    this.mode = 'sea';
+    this.modeT = 0;
+    this.ev = 0;             // אירועים חד-פעמיים בתוך מצב (התזות, נצנוצים) — סיביות
+    this.leap = false;       // ה-sink הנוכחי הוא קפיצת חגיגה
+    this.exitAt = -1;
+    this.from = 0;           // הגובה בתחילת הצלילה בלגונה
     this.phi = Math.random() * TAU;
     this.s = 1.7;
     this.shoreR = 0; this.shoreT = 0; this.shoreIn = 0;
     this.x = 0; this.y = SEA_Y - 1; this.z = 0;
     this.px = 0; this.pz = 0; this.py = this.y;
-    this.yaw = 0; this.pitch = 0; this.vy = 0; this.bank = 0;
+    this.yaw = 0; this.pitch = 0; this.vy = 0; this.bank = 0; this.roll = 0; this.pitchRate = 0;
     this.boost = 1;
     this.first = true;
     this.jump = { on: false, t: 0, T: 1, H: 1, spin: 0, from: 0, gem: false, loud: false, apex: false };
     this.above = false;
     this.nextJump = 3 + Math.random() * 3;
     this.wakeT = 0;
-    this.tagY = SEA_Y + 2;
+    this.hop = { on: false, t: 0, T: 0.75, H: 0.5 };
+    this.nextHop = 2.5;
+    this.ringT = 0;
+    this.glintT = 2.5;
     this.tt = 0;
 
     // אפשרויות חלקיקים שמוקצות פעם אחת (update לא יוצר אובייקטים)
@@ -305,66 +280,103 @@ export class HubDolphin {
   // ---------- ממשק ----------
   setActive(on) {
     this.active = !!on;
-    this.first = true;
-    this.g.visible = this.shade.visible = this.ripMesh.visible = this.active;
-    this.syncTag();
+    this.exitAt = -1;
+    this.jump.on = false;
+    // נכנסים לאי: אם יש פרסומת זמינה הדולפין כבר מחכה בלגונה, אחרת הוא בים
+    this.enter(this.offer.state === 'ready' ? 'lagoon' : 'sea', true);
   }
 
   setOffer(o) {
-    const prev = this.offer.state;
-    this.offer = { state: 'off', secs: 0, ...o };
-    if (!TAG_PX[this.offer.state]) this.offer.state = 'off';
-    this.offerAt = this.tt;
-    if (this.offer.state !== prev) { this.pop = 0; this.waitShown = -1; }
-    this.syncTag();
-    if (this.offer.state === 'wait') this.drawWait(this.offer.secs);
+    const st = o?.state;
+    this.offer = { state: st === 'ready' || st === 'wait' || st === 'done' ? st : 'off', secs: o?.secs || 0 };
   }
 
-  pickTargets() { return this.active ? this.targets : this.noTargets; }
+  pickTargets() {
+    if (!this.active || this.mode === 'under') return this.noTargets;
+    return this.label.visible ? this.lagoonTargets : this.seaTargets;
+  }
 
-  /** קיבלת יהלומים: קפיצה גבוהה עם סיבוב, נצנוצי יהלום, ציוץ והתזה */
+  /** קיבלת יהלומים: קפיצה גבוהה עם סיבוב, נצנוצי יהלום, ציוץ והתזה. בלגונה — ואחריה צלילה וחזרה לים */
   celebrate() {
-    this.startJump(3.5, 1.9, 1, true, true);
     this.hub.app.sound?.dolphinChirp?.();
+    if (this.mode === 'lagoon' || this.mode === 'rise') { this.leap = true; this.enter('sink'); return; }
+    if (this.mode !== 'sea') return;
+    this.startJump(3.5, 1.9, 1, true, true);
     this.sparkle(46);
   }
 
   /** נגיעה בלי פרסומת: קפיצה קטנה וציוץ */
   wave() {
-    this.startJump(1.5, 1.1, 0, false, true);
     this.hub.app.sound?.dolphinChirp?.();
+    if (this.mode === 'lagoon') { const h = this.hop; h.on = true; h.t = 0; h.T = 0.7; h.H = 0.75; return; }
+    if (this.mode === 'sea') this.startJump(1.5, 1.1, 0, false, true);
   }
 
   relabel() {
-    drawRoundTag(this.tagTex.ready.image.getContext('2d'), 'video', { badge: 'gem' }); this.tagTex.ready.needsUpdate = true;
-    drawRoundTag(this.tagTex.done.image.getContext('2d'), 'moon', { dim: true }); this.tagTex.done.needsUpdate = true;
-    this.waitShown = -1;
-    if (this.offer.state === 'wait') this.drawWait(this.offer.secs - (this.tt - this.offerAt));
+    const fresh = this.hub.makeLabel(t('adBonus'), 'gem');
+    const old = this.label.material.map;
+    this.label.material.map = fresh.material.map;
+    this.label.material.needsUpdate = true;
+    fresh.material.dispose();
+    old?.dispose();
   }
 
   worldPos(out = new THREE.Vector3()) {
-    out.set(this.x, Math.max(this.y, SEA_Y + 0.4), this.z);
+    const lag = LAGOON_MODES[this.mode] ? 1.2 * this.s : 0;
+    out.set(this.x, Math.max(this.y + lag, SEA_Y + 0.4), this.z);
     this.hub.group.updateWorldMatrix(true, false);
     return out.applyMatrix4(this.hub.group.matrixWorld);
   }
 
-  // ---------- התג ----------
-  syncTag() {
-    const st = this.offer.state, show = this.active && st !== 'off';
-    this.tag.visible = show;
-    this.halo.visible = show && st === 'ready';
-    if (st !== 'off' && this.tag.material.map !== this.tagTex[st]) { this.tag.material.map = this.tagTex[st]; this.tag.material.needsUpdate = true; }
+  // ---------- מצבים ----------
+  enter(mode, snap = false) {
+    this.mode = mode;
+    this.modeT = 0;
+    this.ev = 0;
+    const [lx, lz] = LAGOON.spot;
+    if (mode === 'sea' && snap) { this.first = true; this.s = this.seaScale(); }
+    else if (mode === 'dive') { this.ripple(this.x, this.z, 0.4 * this.s, 2.3 * this.s, 1.4, 0.7); this.splash(0.55, false); }
+    else if (mode === 'surface') { this.phi = 0.12; this.first = true; this.s = this.seaScale(); }
+    else if (mode === 'rise' || (mode === 'lagoon' && snap)) {
+      this.s = S_LAGOON;
+      this.x = this.px = lx; this.z = this.pz = lz;
+      this.yaw = this.faceCamera(lx, lz);
+      this.pitch = mode === 'rise' ? 1.38 : STAND_PITCH;
+      this.y = this.py = mode === 'rise' ? SEA_Y - 2.6 * S_LAGOON : SEA_Y + 0.22 * S_LAGOON;
+      this.vy = 0; this.roll = this.bank = 0;
+      this.pop = mode === 'lagoon' ? 1 : 0;
+    } else if (mode === 'lagoon') {
+      if (this.hub.sm.overviewOn) this.hub.app.sound?.dolphinChirp?.();
+    } else if (mode === 'sink') { this.from = this.y; this.hop.on = false; }
+    else if (mode === 'under') this.leap = false;
+    this.syncVis();
   }
 
-  drawWait(secs) {
-    const whole = Math.max(0, Math.ceil(secs));
-    if (whole === this.waitShown) return;
-    this.waitShown = whole;
-    const text = fmtTime(whole);
-    if (text === this.waitText && this.waitDrawn) return;
-    this.waitText = text; this.waitDrawn = true;
-    drawWaitTag(this.tagTex.wait.image.getContext('2d'), text);
-    this.tagTex.wait.needsUpdate = true;
+  /** מתי לעבור מצב: פרסומת זמינה → ללגונה; לא זמינה → לים */
+  steer(want, tt) {
+    const m = this.mode;
+    if (want) this.exitAt = -1;
+    if ((m === 'sea' || m === 'surface') && want && !this.jump.on) this.enter('dive');
+    else if (m === 'lagoon' && !want) {
+      // בזמן חלון הפרסומת (busy) מחכים; אחר כך רגע לקפיצת החגיגה (celebrate) לפני שצוללים
+      if (this.hub.app.rewardAds?.busy) { this.exitAt = -1; return; }
+      if (this.exitAt < 0) this.exitAt = tt + 2.2;
+      if (tt >= this.exitAt) this.enter('sink');
+    }
+  }
+
+  syncVis() {
+    const show = this.active && this.mode !== 'under';
+    this.g.visible = this.shade.visible = show;
+    this.ripMesh.visible = this.active;
+    if (!show || this.mode !== 'lagoon') this.label.visible = this.active && this.mode === 'rise' && this.modeT > 0.7;
+  }
+
+  seaScale() { return 1.7 * Math.pow((this.hub.extent || 17) / 17, 0.8); }
+
+  faceCamera(x, z) {
+    const c = this.hub.sm.camera.position;
+    return Math.atan2(c.x - x, c.z - z);
   }
 
   // ---------- קפיצות, התזות ----------
@@ -402,23 +414,23 @@ export class HubDolphin {
     if (fx) {
       this.toWorld(this.x, SEA_Y + 0.1, this.z);
       const d = this._drops, m = this._mist;
-      d.count = (low ? 8 : 16) * size; d.spread[0] = d.spread[2] = 0.45 * s;
+      d.count = Math.round((low ? 8 : 16) * size); d.spread[0] = d.spread[2] = 0.45 * s;
       d.radial[0] = 0.9 * s; d.radial[1] = (2 + size) * s; d.vel[1] = (2.6 + size * 1.6) * s; d.velSpread[1] = 1.5 * s;
       d.size[0] = 0.1 * s; d.size[1] = 0.26 * s; d.gravity = 9 * s;
       fx.norm.emit(d);
       m.count = low ? 2 : 5; m.spread[0] = m.spread[2] = 0.5 * s; m.size[0] = 0.5 * s; m.size[1] = 1.0 * s; m.vel[1] = 1.1 * s;
       fx.norm.emit(m);
     }
-    // קפיצות הסרק נשמעות רק במבט הרחב (שם רואים את הדולפין), ובשקט
+    // ההתזות נשמעות רק במבט הרחב (שם רואים את הדולפין), ובשקט — חוץ מהחגיגה
     if (loud) this.hub.app.sound?.splash?.(size);
     else if (this.hub.sm.overviewOn) this.hub.app.sound?.splash?.(size * 0.4);
   }
 
-  sparkle(n) {
+  sparkle(n, y = Math.max(this.y, SEA_Y) + 0.5 * this.s) {
     const fx = this.hub.app.fx;
     if (!fx) return;
     const s = this.s, g = this._gems;
-    this.toWorld(this.x, Math.max(this.y, SEA_Y) + 0.5 * s, this.z);
+    this.toWorld(this.x, y, this.z);
     g.count = n; g.spread[0] = g.spread[1] = g.spread[2] = 0.6 * s; g.radial[0] = 1.4 * s; g.radial[1] = 4.2 * s; g.vel[1] = 2 * s; g.size[0] = 0.16 * s; g.size[1] = 0.4 * s;
     fx.add.emit(g);
   }
@@ -428,13 +440,29 @@ export class HubDolphin {
     if (!this.active) return;
     dt = Math.min(dt, 0.1);
     this.tt = tt;
-    const hub = this.hub, j = this.jump;
-    // גודל: נקרא היטב במבט הרחב וגדל עם האי
-    const ext = hub.extent || 17;
-    const s = this.s = 1.7 * Math.pow(ext / 17, 0.8);
+    this.modeT += dt;
+    this.steer(this.offer.state === 'ready', tt);
+    const m = this.mode;
+    if (m === 'under') {
+      // "שוחה מתחת לאי": מוסתר, ואז עולה בלגונה (יש פרסומת) או בים מול האי (אין)
+      if (this.modeT >= UNDER_SECS) this.enter(this.offer.state === 'ready' ? 'rise' : 'surface');
+      this.updateRipples(dt);
+      return;
+    }
+    const lagoon = !!LAGOON_MODES[m];
+    if (lagoon) this.swimLagoon(dt, tt); else this.swimSea(dt, tt);
+    if (this.mode === 'under') { this.updateRipples(dt); return; }
+    this.applyModel(dt, tt, lagoon);
+    this.updateRipples(dt);
+    this.updateShade(lagoon);
+    this.updateTap(dt, tt, lagoon);
+  }
 
-    // --- המסלול: לולאה מוארכת לאורך החוף הקדמי; בקצוות הוא צולל ומסתובב מתחת למים ---
-    this.boost += ((j.on ? 1.55 : 1) - this.boost) * Math.min(1, dt * 4);
+  /** בים: לולאה מוארכת לאורך החוף הקדמי; בקצוות צולל ומסתובב מתחת למים. dive / surface — אותה לולאה עם צלילה / עלייה */
+  swimSea(dt, tt) {
+    const hub = this.hub, j = this.jump, mode = this.mode;
+    const s = this.s = this.seaScale();
+    this.boost += ((j.on || mode === 'dive' ? 1.55 : 1) - this.boost) * Math.min(1, dt * 4);
     this.phi = (this.phi + dt * CRUISE * this.boost) % TAU;
     const sn = Math.sin(this.phi), cs = Math.cos(this.phi);
     const a = Math.PI / 2 + ARC * sn;
@@ -451,19 +479,27 @@ export class HubDolphin {
     const rad = this.shoreR + 4.25 + 0.75 * cs + (s - 1.7) * 0.5;
     const x = Math.cos(a) * rad, z = Math.sin(a) * rad;
 
-    // --- גובה: שיוט עם גב שעולה ויורד, צלילה בקצוות, קפיצה ---
+    // --- גובה: שיוט עם גב שעולה ויורד, צלילה בקצוות, קפיצה, צלילה מתחת לאי / עלייה ממנו ---
     let jy = 0;
     if (j.on) {
       j.t += dt;
       if (j.t >= j.T) j.on = false; else jy = this.jumpY(j);
-    } else {
+    } else if (mode === 'sea') {
       this.nextJump -= dt;
       if (this.nextJump <= 0 && Math.abs(Math.sin(this.phi + 0.25)) < 0.82) this.startJump(2.2, 1.45, 0, false, false);
     }
+    let dive = 0;
+    if (mode === 'dive') { const u = clamp(this.modeT / 1.3, 0, 1); dive = -2.7 * s * u * u; }
+    else if (mode === 'surface') {
+      const u = clamp(this.modeT / 1.25, 0, 1);
+      dive = -2.3 * s * (1 - easeOut(u));
+      if (u > 0.6 && !(this.ev & 1)) { this.ev |= 1; this.ripple(x, z, 0.3 * s, 1.6 * s, 1.3, 0.55); }
+    }
     const ends = j.on ? 0 : sstep(0.88, 0.995, Math.abs(sn));
-    const y = SEA_Y + (-0.3 + 0.17 * Math.sin(tt * 1.5) - 1.15 * ends) * s + jy;
+    const y = SEA_Y + (-0.3 + 0.17 * Math.sin(tt * 1.5) - 1.15 * ends) * s + jy + dive;
 
-    if (this.first) { this.first = false; this.px = x; this.pz = z; this.py = y; this.yaw = a + (cs > 0 ? -Math.PI : 0); this.above = false; this.tagY = SEA_Y + 2 * s; }
+    // --- כיוון: לפי המהירות ---
+    if (this.first) { this.first = false; this.px = x; this.pz = z; this.py = y; this.yaw = a + (cs > 0 ? -Math.PI : 0); this.above = y > SEA_Y + 0.12 * s; this.pitch = 0; this.vy = 0; }
     const vx = (x - this.px) / dt, vz = (z - this.pz) / dt, vyNow = (y - this.py) / dt;
     this.px = x; this.pz = z; this.py = y;
     this.x = x; this.y = y; this.z = z;
@@ -477,21 +513,9 @@ export class HubDolphin {
     const pitchT = clamp(Math.atan2(this.vy, Math.max(sp, 1.6 * s)), -1.2, 1.2);
     const pitchStep = (pitchT - this.pitch) * Math.min(1, dt * 10);
     this.pitch += pitchStep;
+    this.pitchRate = pitchStep / dt;
     this.bank += (clamp(-yawRate * 0.35, -0.5, 0.5) - this.bank) * Math.min(1, dt * 4);
-
-    // --- הדגם ---
-    this.g.position.set(x, y, z);
-    this.g.rotation.y = this.yaw;
-    this.g.scale.setScalar(s);
-    this.pitchNode.rotation.x = -this.pitch;
-    let roll = this.bank;
-    if (j.on && j.spin) roll += j.spin * TAU * easeInOut(sstep(0.16, 0.8, j.t / j.T));
-    this.rollNode.rotation.z = roll;
-    const st = 1 + 0.07 * clamp(Math.abs(this.vy) / (9 * s), 0, 1); // מתיחה במהירות אנכית גבוהה
-    this.rollNode.scale.set(1 / Math.sqrt(st), 1 / Math.sqrt(st), st);
-    this.U.ph.value = (this.U.ph.value + dt * (5 + 5 * this.boost)) % TAU;
-    this.U.amp.value = 0.13 + 0.09 * (this.boost - 1) / 0.55 + 0.03 * Math.sin(tt * 0.7);
-    this.U.curve.value += (clamp((pitchStep / dt) * 0.045, -0.085, 0.085) - this.U.curve.value) * Math.min(1, dt * 8);
+    this.roll = this.bank + (j.on && j.spin ? j.spin * TAU * easeInOut(sstep(0.16, 0.8, j.t / j.T)) : 0);
 
     // --- יציאה מהמים / כניסה למים ---
     const above = y > SEA_Y + 0.12 * s;
@@ -509,12 +533,104 @@ export class HubDolphin {
     }
     // שובל קטן מאחורי סנפיר הגב כשהוא חותך את המים
     this.wakeT -= dt;
-    if (this.wakeT <= 0 && !j.on && ends < 0.3) {
+    if (this.wakeT <= 0 && !j.on && ends < 0.3 && dive > -0.5 * s) {
       this.wakeT = 0.5;
       this.ripple(x - Math.sin(this.yaw) * 0.4 * s, z - Math.cos(this.yaw) * 0.4 * s, 0.25 * s, 1.15 * s, 1.5, 0.3);
     }
+    if (mode === 'dive' && this.modeT >= 1.3) this.enter('under');
+    else if (mode === 'surface' && this.modeT >= 1.25) this.enter('sea');
+  }
 
-    // --- אדוות ---
+  /** בלגונה: עולה מהעומק, "עומד" עם פלג הגוף העליון מחוץ למים (מול המצלמה), צף וקופץ קלות; צולל או קופץ קפיצת חגיגה */
+  swimLagoon(dt, tt) {
+    const s = this.s = S_LAGOON, fx = this.hub.app.fx;
+    const [lx, lz] = LAGOON.spot;
+    const standY = SEA_Y + s * (0.22 + 0.07 * Math.sin(tt * 2.6));
+    let x = lx + Math.sin(tt * 0.45) * 0.12, z = lz + Math.cos(tt * 0.37) * 0.08, y = standY;
+    let pitchT = STAND_PITCH + 0.06 * Math.sin(tt * 1.9);
+    const yawT = this.faceCamera(lx, lz) + 0.24 * Math.sin(tt * 0.7);
+    let rollT = 0.05 * Math.sin(tt * 1.3), fast = false;
+    const mode = this.mode, k = this.modeT;
+
+    if (mode === 'rise') {
+      // מהעומק אל העמידה, עם "קפיצה" קטנה מעל ומעט התזה כשהוא פורץ את פני המים
+      const u = clamp(k / 1.05, 0, 1), deep = SEA_Y - 2.6 * s;
+      y = deep + (standY - deep) * backOut(u);
+      pitchT = 1.38 + (pitchT - 1.38) * easeOut(u);
+      fast = true;
+      if (u > 0.42 && !(this.ev & 1)) { this.ev |= 1; this.x = x; this.z = z; this.splash(0.75, false); }
+      if (u >= 1) this.enter('lagoon');
+    } else if (mode === 'lagoon') {
+      const h = this.hop;
+      if (h.on) {
+        h.t += dt;
+        const v = h.t / h.T;
+        if (v >= 1) { h.on = false; this.ripple(x, z, 0.4 * s, 2.0 * s, 1.2, 0.85); }
+        else y += h.H * s * 4 * v * (1 - v);
+      } else if ((this.nextHop -= dt) <= 0) {
+        h.on = true; h.t = 0; h.T = 0.75; h.H = 0.4 + Math.random() * 0.25;
+        this.nextHop = 3.2 + Math.random() * 2.2;
+      }
+      // אדוות סביבו כל הזמן, ומדי פעם נצנוץ יהלומים ליד הראש — כדי למשוך את העין
+      if ((this.ringT -= dt) <= 0) { this.ringT = 0.8; this.ripple(x, z, 0.45 * s, 1.85 * s, 1.6, 0.55); }
+      if ((this.glintT -= dt) <= 0 && fx) {
+        this.glintT = 4 + Math.random() * 2;
+        this.toWorld(x, standY + 2.1 * s, z);
+        const g = this._gems; g.count = 8; g.spread[0] = g.spread[1] = g.spread[2] = 0.35 * s; g.radial[0] = 0.4 * s; g.radial[1] = 1.4 * s; g.vel[1] = 1.2 * s; g.size[0] = 0.1 * s; g.size[1] = 0.24 * s;
+        fx.add.emit(g);
+      }
+    } else if (this.leap) {
+      // קפיצת חגיגה: למעלה מחוץ למים עם סיבוב, מעל לשיא האף יורד, ונכנס למים ולמטה (ומשם "מתחת לאי" לים)
+      const u = clamp(k / 1.55, 0, 1), y0 = this.from, apex = SEA_Y + 3.0 * s, deep = SEA_Y - 2.8 * s;
+      y = u < 0.42 ? y0 + (apex - y0) * (1 - (1 - u / 0.42) ** 2) : apex - (apex - deep) * ((u - 0.42) / 0.58) ** 2;
+      pitchT = 1.35 - 2.7 * sstep(0.25, 0.75, u);
+      rollT += TAU * easeInOut(sstep(0.15, 0.7, u));
+      z += 0.9 * sstep(0.3, 0.9, u);
+      fast = true;
+      this.x = x; this.z = z;
+      if (u > 0.06 && !(this.ev & 1)) { this.ev |= 1; this.splash(1.0, true); this.sparkle(26, SEA_Y + 0.6 * s); }
+      if (u > 0.42 && !(this.ev & 2)) { this.ev |= 2; this.sparkle(70, apex); }
+      if (y < SEA_Y + 0.2 * s && u > 0.6 && !(this.ev & 4)) { this.ev |= 4; this.splash(1.6, true); }
+      if (fx && y > SEA_Y + 0.5 * s) { this.toWorld(x, y, z); this._trail.size[0] = 0.1 * s; this._trail.size[1] = 0.22 * s; fx.add.emit(this._trail); }
+      if (u >= 1) this.enter('under');
+    } else {
+      // צלילה רגילה: נוטה קדימה ונעלם מתחת למים
+      const u = clamp(k / 0.95, 0, 1), deep = SEA_Y - 2.4 * s;
+      y = this.from + (deep - this.from) * u * u;
+      pitchT = STAND_PITCH - 2.0 * easeInOut(u);
+      z += 0.5 * u;
+      fast = true;
+      if (u > 0.4 && !(this.ev & 1)) { this.ev |= 1; this.x = x; this.z = z; this.splash(0.7, false); }
+      if (u >= 1) this.enter('under');
+    }
+
+    const vyNow = (y - this.py) / dt;
+    this.px = x; this.pz = z; this.py = y;
+    this.x = x; this.y = y; this.z = z;
+    this.vy += (vyNow - this.vy) * Math.min(1, dt * 14);
+    this.yaw += angDiff(yawT, this.yaw) * Math.min(1, dt * 5);
+    const pitchStep = (pitchT - this.pitch) * Math.min(1, dt * (fast ? 12 : 6));
+    this.pitch += pitchStep;
+    this.pitchRate = pitchStep / dt;
+    this.roll = this.bank = rollT;
+    this.boost += (1 - this.boost) * Math.min(1, dt * 4);
+  }
+
+  applyModel(dt, tt, lagoon) {
+    const s = this.s;
+    this.g.position.set(this.x, this.y, this.z);
+    this.g.rotation.y = this.yaw;
+    this.g.scale.setScalar(s);
+    this.pitchNode.rotation.x = -this.pitch;
+    this.rollNode.rotation.z = this.roll;
+    const st = 1 + 0.07 * clamp(Math.abs(this.vy) / (9 * s), 0, 1); // מתיחה במהירות אנכית גבוהה
+    this.rollNode.scale.set(1 / Math.sqrt(st), 1 / Math.sqrt(st), st);
+    this.U.ph.value = (this.U.ph.value + dt * (lagoon ? 6 : 5 + 5 * this.boost)) % TAU;
+    this.U.amp.value = (lagoon ? 0.09 : 0.13 + 0.09 * (this.boost - 1) / 0.55) + 0.03 * Math.sin(tt * 0.7);
+    this.U.curve.value += (clamp(this.pitchRate * 0.045, -0.085, 0.085) - this.U.curve.value) * Math.min(1, dt * 8);
+  }
+
+  updateRipples(dt) {
     const R = this.rip, m = this._m;
     let any = false;
     for (let i = 0; i < RIPPLES; i++) {
@@ -530,38 +646,41 @@ export class HubDolphin {
     }
     if (any || this.ripDirty) { this.ripMesh.instanceMatrix.needsUpdate = true; this.ripMesh.instanceColor.needsUpdate = true; }
     this.ripDirty = any;
+  }
 
-    // --- צללית על פני המים ---
-    const air = clamp((y - SEA_Y) / (3 * s), 0, 1), deep = clamp((SEA_Y - y) / (1.6 * s) - 0.4, 0, 1);
-    this.shade.position.set(x, SEA_Y + 0.02, z);
+  /** הצללית על פני המים: בים — לאורך הגוף; בלגונה — עיגול רך סביב קו המים */
+  updateShade(lagoon) {
+    const s = this.s, y = this.y;
+    this.shade.position.set(this.x, SEA_Y + 0.02, this.z);
     this.shade.rotation.y = this.yaw;
+    if (lagoon) {
+      const deep = clamp((SEA_Y - y) / (2 * s), 0, 1), air = clamp((y - SEA_Y - 0.5 * s) / (2.5 * s), 0, 1);
+      this.shade.scale.set(1.35 * s, 1, 1.35 * s);
+      this.shade.material.opacity = 0.36 * (1 - deep * 0.8) * (1 - air * 0.5);
+      return;
+    }
+    const air = clamp((y - SEA_Y) / (3 * s), 0, 1), deep = clamp((SEA_Y - y) / (1.6 * s) - 0.4, 0, 1);
     this.shade.scale.set(1.5 * s * (1 - air * 0.35), 1, 4.2 * s * (1 - air * 0.35) * Math.max(0.35, Math.cos(this.pitch)));
     this.shade.material.opacity = 0.42 * (1 - air * 0.45) * (1 - deep * 0.75);
+  }
 
-    // --- נגיעה ותג: עוקבים אחרי הדולפין; כשהוא מתחת למים — מעל פני המים במקום שבו הוא ---
-    const cam = hub.sm.camera, surf = Math.max(y, SEA_Y);
-    const v = this._v.set(x, surf, z).applyMatrix4(hub.group.matrixWorld);
+  /** אזור הנגיעה עוקב אחרי הדולפין; בלגונה — גם התגית שמעליו (קל ללחוץ בטלפון) */
+  updateTap(dt, tt, lagoon) {
+    const hub = this.hub, s = this.s, cam = hub.sm.camera;
+    const cy = lagoon ? SEA_Y + 1.05 * s : Math.max(this.y, SEA_Y) + 0.5 * s;
+    const v = this._v.set(this.x, cy, this.z).applyMatrix4(hub.group.matrixWorld);
     const perPx = (2 * cam.position.distanceTo(v) * Math.tan((cam.fov * Math.PI) / 360)) / (hub.sm.height || window.innerHeight || 800);
-    const k17 = ext / 17;
-    this.hit.position.set(x, surf + 0.5 * s, z);
-    this.hit.scale.setScalar(clamp(34 * perPx, 2.1 * s, 3.4 * k17));
-    const state = this.offer.state, px = TAG_PX[state];
-    if (px && this.tag.visible) {
-      if (state === 'wait') this.drawWait(this.offer.secs - (tt - this.offerAt));
-      this.pop = Math.min(1, this.pop + dt / 0.4);
-      const ready = state === 'ready';
-      const breathe = ready ? 1 + 0.06 * Math.sin(tt * 3.2) : 1;
-      const h = clamp(px[1] * perPx, 0.45 * px[1] * 0.062 * k17, 1.2 * px[1] * 0.062 * k17) * backOut(this.pop) * breathe;
-      const w = h * (px[0] / px[1]);
-      this.tagY += (surf + 1.85 * s + h * 0.62 - this.tagY) * Math.min(1, dt * 9);
-      const ty = this.tagY + Math.sin(tt * 2) * 0.1 * s;
-      this.tag.position.set(x, ty, z);
-      this.tag.scale.set(w, h, 1);
-      if (ready) {
-        this.halo.position.set(x, ty + h * 0.05, z);
-        this.halo.scale.setScalar(h * (2.0 + 0.25 * Math.sin(tt * 3.2)));
-        this.halo.material.opacity = 0.34 + 0.16 * Math.sin(tt * 3.2);
-      }
+    const k17 = (hub.extent || 17) / 17;
+    this.hit.position.set(this.x, cy, this.z);
+    this.hit.scale.setScalar(lagoon ? clamp(30 * perPx, 1.7, 2.6) : clamp(34 * perPx, 2.1 * s, 3.4 * k17));
+    const show = this.mode === 'lagoon' || (this.mode === 'rise' && this.modeT > 0.7);
+    if (show && !this.label.visible) { this.label.visible = true; if (this.mode === 'rise') this.pop = 0; }
+    else if (!show) this.label.visible = false;
+    if (show) {
+      this.pop = Math.min(1, this.pop + dt / 0.45);
+      const p = backOut(this.pop);
+      this.label.scale.set(LABEL[0] * p, LABEL[1] * p, 1);
+      this.label.position.set(this.x, SEA_Y + 2.6 * s + 0.95 + Math.sin(tt * 2) * 0.1, this.z);
     }
   }
 }

@@ -26,6 +26,7 @@ import { drawIcon } from '../ui/icons.js';
 import { t } from '../ui/i18n.js';
 import { HubDolphin } from './Dolphin3D.js';
 import { HubArenaRing } from './ArenaRing3D.js';
+import { HubLagoon } from './HubLagoon.js';
 
 const TAU = Math.PI * 2;
 const V3 = THREE.Vector3;
@@ -601,6 +602,8 @@ export class HubMuseum {
     this.walkers = [];
     this.residentIds = [...(app.economy.s.residents || [])];
     this.buildBuildings();
+    // הלגונה הקטנה שמול רחבת השחמט — כשיש פרסומת זמינה הדולפין שוחה לשם מתחת לאי
+    this.lagoon = new HubLagoon(this, HUB_BASE_R);
     // הדולפין שבמים מול האי — נגיעה בו: פרסומת מתגמלת (core/RewardedAds.js) או סתם קפיצה
     this.dolphin = new HubDolphin(this);
     // הטבעת המשובצת שסביב הלוח — נגיעה בה: זירת העידנים (משחק אונליין מול מי שמחכה)
@@ -740,6 +743,7 @@ export class HubMuseum {
     this.syncSkyPet();
     this.group.visible = on;
     if (on) { this.rebuild(); this.spawnResidents(); } else this.clearResidents();
+    this.lagoon?.setActive(on);
     this.dolphin?.setActive(on);
     this.arenaRing?.setActive(on);
     this.placeSeason(on);
@@ -763,6 +767,7 @@ export class HubMuseum {
       && !(z > 6.3 && Math.abs(x) < 7)
       && ![[-3, 6.4], [3, 6.3], [3, -6.5], [-3, -6.4]].some(([sx, sz]) => Math.hypot(x - sx, z - sz) < 1.75 + rad)
       && this.blockers.every((o) => Math.hypot(x - o.x, z - o.z) > o.r + rad + 0.2)
+      && !this.lagoon?.contains(x, z, rad + 0.3)
       && placed.every((o) => Math.hypot(x - o.x, z - o.z) > o.rad + rad + 0.25);
     // קודם מה שכבר במקום טוב, ואז מזיזים את השאר למקומות פנויים (גם זה מזה)
     const move = [];
@@ -789,6 +794,7 @@ export class HubMuseum {
     if (Math.hypot(x, z) > HUB_BASE_R - 1.5) return false;
     if (Math.abs(x) < 6.4 + m && Math.abs(z) < 8 + m) return false;
     for (const o of this.blockers) if (Math.hypot(x - o.x, z - o.z) < o.r + m) return false;
+    if (this.lagoon?.contains(x, z, m + 0.4)) return false; // לא הולכים במים
     return true;
   }
   /** הקו הישר בין שתי נקודות לא עובר דרך מבנה או דרך הלוח */
@@ -1061,6 +1067,7 @@ export class HubMuseum {
     this.updateDragon(dt, tt);
     this.updateSkyPet(dt, tt);
     this.updateWalkers(dt, tt);
+    this.lagoon?.update(dt, tt);
     this.dolphin?.update(dt, tt);
     this.arenaRing?.update(dt, tt);
     for (const l of this.micro || []) {

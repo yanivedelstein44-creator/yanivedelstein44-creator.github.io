@@ -111,7 +111,7 @@ npm run cap:open   # פתיחה ב-Android Studio ← Build APK
 
 ## רכישות (כרגע במצב בדיקה)
 
-יש שלושה סוגי מוצרים בכסף אמיתי (`src/config/EconomyConfig.js`, המחירים ייקבעו). יהלומים לא נמכרים ישירות. פרסומת יש רק בגרסת Play, ורק לבחירת השחקן: הדולפין במים מציע פרסומת מתגמלת (AdMob, ‏`src/core/RewardedAds.js`, ‏`src/config/AdsConfig.js`):
+יש שלושה סוגי מוצרים בכסף אמיתי (`src/config/EconomyConfig.js`, המחירים ייקבעו). יהלומים לא נמכרים ישירות. פרסומת יש רק בגרסת Play, ורק לבחירת השחקן: הדולפין מציע פרסומת מתגמלת (AdMob, ‏`src/core/RewardedAds.js`, ‏`src/config/AdsConfig.js`). כשיש פרסומת זמינה הוא צולל בים ועולה בלגונה הקטנה שמול רחבת השחמט, עם תגית "בונוס" (‏`src/scene/HubLagoon.js`, ‏`src/scene/Dolphin3D.js`); בהמתנה הוא שוחה בים בלי תגית:
 
 | מוצר | מזהה | סוג |
 |---|---|---|

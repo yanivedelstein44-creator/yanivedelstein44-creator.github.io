@@ -114,7 +114,7 @@ const HE = {
   // [arena] end
   // [ads] start — פרסומות מתגמלות אצל הדולפין (core/RewardedAds.js, ui/AdOffer.js)
   adTitle: 'פרסומת', adOfferMain: 'צפה בפרסומת קצרה עד הסוף וקבל {n} יהלומים.', adOfferRule: 'אפשר לדלג או לסגור בכל רגע, ואז פשוט לא מקבלים יהלומים.',
-  adOfferLimits: 'פעם ב-{m} דקות · עד {cap} ביום · נשארו היום: {left}', adOfferBy: 'את הפרסומת מציגה Google AdMob.', adPrivacyLink: 'פרטיות',
+  adOfferLimits: 'פעם ב-{m} דקות · עד {cap} ביום · נשארו היום: {left}', adOfferBy: 'את הפרסומת מציגה Google AdMob.', adPrivacyLink: 'פרטיות', adBonus: 'בונוס',
   adWatch: 'צפה בפרסומת', adNotNow: 'לא עכשיו', adLoading: 'טוען פרסומת…', adThanks: '+{n} יהלומים, תודה שצפית!',
   adEarly: 'הפרסומת נסגרה לפני הסוף, אז הפעם אין יהלומים.', adNoFill: 'אין כרגע פרסומת זמינה. נסה שוב בעוד כמה דקות.', adOffline: 'צריך חיבור לאינטרנט כדי לצפות בפרסומת.',
   adWait: 'הדולפין נח. הפרסומת הבאה בעוד {t}.', adDone: 'הדולפין סיים להיום. מחר יש עוד יהלומים.', adNoConsent: 'בלי הסכמה לפרסומות אי אפשר להציג פרסומת. אפשר לשנות את זה בהגדרות ← פרסומות.',
@@ -242,7 +242,7 @@ const EN = {
   // [arena] end
   // [ads] start
   adTitle: 'Ad', adOfferMain: 'Watch a short ad to the end and get {n} gems.', adOfferRule: "You can skip or close it at any time; you just won't get the gems.",
-  adOfferLimits: 'Once every {m} minutes · up to {cap} a day · left today: {left}', adOfferBy: 'The ad is shown by Google AdMob.', adPrivacyLink: 'Privacy',
+  adOfferLimits: 'Once every {m} minutes · up to {cap} a day · left today: {left}', adOfferBy: 'The ad is shown by Google AdMob.', adPrivacyLink: 'Privacy', adBonus: 'Bonus',
   adWatch: 'Watch the ad', adNotNow: 'Not now', adLoading: 'Loading the ad…', adThanks: '+{n} gems. Thanks for watching!',
   adEarly: 'The ad closed before the end, so no gems this time.', adNoFill: 'No ad is available right now. Try again in a few minutes.', adOffline: 'You need an internet connection to watch an ad.',
   adWait: 'The dolphin is resting. Next ad in {t}.', adDone: "The dolphin is done for today. More gems tomorrow.", adNoConsent: "Ads can't be shown without consent. You can change this in Settings → Ads.",
