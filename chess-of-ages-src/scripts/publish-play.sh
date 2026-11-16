@@ -60,6 +60,7 @@ if [ -n "${NO_PUSH:-}" ]; then echo "✔ v${VER} הוכן בערוץ Play ב-${D
 cd "$SITE_REPO"
 git add "$PLAY_DIR_NAME"
 git commit -m "Chess of Ages ${VER} → Google Play channel${NOTES:+: ${NOTES}}${COMMIT_TRAILER:+
+
 ${COMMIT_TRAILER}}"
 git push origin HEAD:main
 echo "✔ v${VER} קודם ל-Play — שחקני Play יקבלו 'יש עדכון חדש' תוך כמה דקות"

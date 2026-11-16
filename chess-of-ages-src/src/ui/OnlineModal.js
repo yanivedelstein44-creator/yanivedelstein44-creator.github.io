@@ -11,6 +11,7 @@ import { segment } from './Modals.js';
 import { TIME_CONTROLS, ONLINE } from '../config/AppConfig.js';
 import { normCode, validCode, prettyCode, inviteUrl } from '../net/OnlineRoom.js';
 import { openLegalPage } from './LegalPages.js';
+import { withServerWait } from './ServerWait.js';
 
 const native = () => Capacitor?.isNativePlatform?.() || false;
 
@@ -19,6 +20,7 @@ function errText(e) {
   if (e?.code === 'full') return t('roomFullWatch');
   if (e?.code === 'needUpdate') return t('playRoomNeedUpdate'); // החדר נוצר בגרסה חדשה יותר
   if (e?.code === 'friendOld') return t('playRoomFriendOld'); // החדר נוצר בגרסה ישנה מדי
+  if (e?.code === 'timeout' && navigator.onLine !== false) return t('onlineBusy'); // יש אינטרנט אבל השרת לא עונה (למשל מלא)
   return t('onlineError');
 }
 
@@ -105,9 +107,10 @@ export function openFriendHub(app) {
     m.close();
     app.ui.toast(t('connecting'), { icon: 'globe' });
     try {
-      const room = await app.online.host(color);
+      const room = await withServerWait(app, () => app.online.host(color));
       openWaitingRoom(app, room);
     } catch (e) {
+      if (e?.code === 'cancel') return;
       console.warn('online host failed', e);
       app.ui.toast(errText(e), { kind: 'bad', duration: 4500 });
     }
@@ -129,9 +132,10 @@ export async function joinFlow(app, code, watch = false) {
   if (!(await app.confirmLeave())) return;
   app.ui.toast(t('connecting'), { icon: 'globe' });
   try {
-    await app.online.join(code, { watch });
+    await withServerWait(app, () => app.online.join(code, { watch }));
     if (app.mode === 'watch') app.ui.toast(t('watching'), { icon: 'eye' });
   } catch (e) {
+    if (e?.code === 'cancel') return;
     if (e?.code === 'full' && !watch) {
       if (await app.ui.confirm(t('roomFullWatch'), t('watchGame'))) await joinFlow(app, code, true);
       return;

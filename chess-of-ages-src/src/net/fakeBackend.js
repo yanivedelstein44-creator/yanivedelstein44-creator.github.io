@@ -11,16 +11,23 @@ const resolveTs = (v) => {
   return v;
 };
 const denied = () => Object.assign(new Error('PERMISSION_DENIED: Permission denied'), { code: 'PERMISSION_DENIED' });
+// כמו ב-firebaseBackend: לפעולה שהשחקן מחכה לה יש זמן מקסימלי
+const withTimeout = (p, ms = 12000) => { let t; return Promise.race([p, new Promise((_, rej) => { t = setTimeout(() => rej(Object.assign(new Error('timeout'), { code: 'timeout' })), ms); })]).finally(() => clearTimeout(t)); };
 
 export function createFakeBackend() {
   let uid = sessionStorage.getItem('fakenet:uid');
   if (!uid) { uid = `u${Math.random().toString(36).slice(2, 10)}`; sessionStorage.setItem('fakenet:uid', uid); }
-  const latency = Number(new URLSearchParams(location.search).get('fakelag')) || 60;
+  const qs = new URLSearchParams(location.search);
+  const latency = Number(qs.get('fakelag')) || 60;
+  // ?fakefull=N — "השרת מלא" ב-N השניות הראשונות: הפעולות מחכות (כמו Firebase כשהחיבור נדחה), ואז השרת "מתפנה"
+  const fullUntil = Date.now() + (Number(qs.get('fakefull')) || 0) * 1000;
+  const isFull = () => Date.now() < fullUntil;
+  const gate = async () => { while (isFull()) await new Promise((r) => setTimeout(r, 250)); };
   const bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('fakenet') : null;
   const listeners = new Map();
   const live = new Set();
   const read = (c) => { try { return JSON.parse(localStorage.getItem(KEY(c)) || 'null'); } catch { return null; } };
-  const notify = (c) => setTimeout(() => (listeners.get(c) || new Set()).forEach((cb) => cb(read(c))), latency);
+  const notify = (c) => setTimeout(() => { if (isFull()) { notify(c); return; } (listeners.get(c) || new Set()).forEach((cb) => cb(read(c))); }, isFull() ? 500 : latency);
   const write = (c, v) => {
     if (v == null) localStorage.removeItem(KEY(c)); else localStorage.setItem(KEY(c), JSON.stringify(v));
     bc?.postMessage(c);
@@ -34,11 +41,12 @@ export function createFakeBackend() {
     const last = parts[parts.length - 1];
     if (val === null) delete o[last]; else o[last] = val;
   };
-  const sleep = () => new Promise((r) => setTimeout(r, latency));
+  const sleep = async () => { await gate(); await new Promise((r) => setTimeout(r, latency)); };
   const LOBBY = 'fakenet:lobby';
   const lobbyListeners = new Set();
   const readLobby = () => { try { return JSON.parse(localStorage.getItem(LOBBY) || '{}') || {}; } catch { return {}; } };
   const writeLobby = (v) => { localStorage.setItem(LOBBY, JSON.stringify(v)); bc?.postMessage('__lobby'); setTimeout(() => lobbyListeners.forEach((fn) => fn()), latency); };
+  const lobbySoon = (fn) => { const go = () => (isFull() ? setTimeout(go, 500) : fn()); setTimeout(go, latency); };
   window.addEventListener('pagehide', () => {
     for (const k of live) {
       if (k.startsWith('lobby/')) { const lob = readLobby(); delete lob[k.slice(6)]; localStorage.setItem(LOBBY, JSON.stringify(lob)); bc?.postMessage('__lobby'); continue; }
@@ -50,12 +58,10 @@ export function createFakeBackend() {
     kind: 'fake',
     uid,
     ts: () => TS,
-    async create(code, data) {
-      await sleep();
-      if (read(code)) throw denied();
-      write(code, resolveTs(data));
+    create(code, data) {
+      return withTimeout((async () => { await sleep(); if (read(code)) throw denied(); write(code, resolveTs(data)); })());
     },
-    async get(code) { await sleep(); return read(code); },
+    get(code) { return withTimeout((async () => { await sleep(); return read(code); })()); },
     async update(code, patch) {
       await sleep();
       const room = read(code);
@@ -78,7 +84,7 @@ export function createFakeBackend() {
       for (const [k, v] of Object.entries(patch)) setPath(next, k, resolveTs(v));
       write(code, next);
     },
-    async remove(code) { await sleep(); const r = read(code); if (r && r.host !== uid) throw denied(); write(code, null); },
+    remove(code) { return withTimeout((async () => { await sleep(); const r = read(code); if (r && r.host !== uid) throw denied(); write(code, null); })()); },
     watch(code, cb) {
       if (!listeners.has(code)) listeners.set(code, new Set());
       listeners.get(code).add(cb);
@@ -87,19 +93,24 @@ export function createFakeBackend() {
     },
     async setLive(code, sub, value) { live.add(`${code}/${sub}`); await this.update(code, { [sub]: value }); },
     async clearLive(code, sub) { live.delete(`${code}/${sub}`); try { await this.update(code, { [sub]: null }); } catch { /* החדר נמחק */ } },
-    onConnection(cb) { setTimeout(() => cb(true), 0); return () => {}; },
+    onConnection(cb) {
+      let off = false;
+      const tick = () => { if (off) return; if (isFull()) { cb(false); setTimeout(tick, 500); } else cb(true); };
+      setTimeout(tick, 0);
+      return () => { off = true; };
+    },
     // ---------- הלובי של זירת העידנים (כמו בשרת: רק המארח כותב; האורח שנכנס או כל אחד אחרי 30 דקות — מוחק) ----------
-    async lobbyList(limit) {
-      await sleep();
-      return Object.fromEntries(Object.entries(readLobby()).sort((a, b) => a[1].t - b[1].t).slice(-limit));
+    lobbyList(limit) {
+      return withTimeout((async () => { await sleep(); return Object.fromEntries(Object.entries(readLobby()).sort((a, b) => a[1].t - b[1].t).slice(-limit)); })());
     },
     lobbyWatch(limit, cb) {
-      const fn = () => cb(Object.fromEntries(Object.entries(readLobby()).sort((a, b) => a[1].t - b[1].t).slice(-limit)));
+      const fn = () => { if (isFull()) return; cb(Object.fromEntries(Object.entries(readLobby()).sort((a, b) => a[1].t - b[1].t).slice(-limit))); };
       lobbyListeners.add(fn);
-      setTimeout(fn, latency);
+      lobbySoon(fn);
       return () => lobbyListeners.delete(fn);
     },
-    async lobbyOpen(code, entry) {
+    lobbyOpen(code, entry) { return withTimeout(this.lobbyOpenNow(code, entry)); },
+    async lobbyOpenNow(code, entry) {
       await sleep();
       const room = read(code);
       if (!room || room.host !== uid || room.guest || room.pub !== true || entry.host !== uid || entry.i !== room.isl) throw denied();

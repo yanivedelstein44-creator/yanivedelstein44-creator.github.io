@@ -11,8 +11,13 @@ import { t, getLang, islandLabel } from './i18n.js';
 import { icon, emblemIcon } from './icons.js';
 import { localizeIncomingName } from '../core/PlayerName.js';
 import { openLegalPage } from './LegalPages.js';
+import { withServerWait } from './ServerWait.js';
 
-const errText = (e) => (e?.code === 'needUpdate' ? t('playRoomNeedUpdate') : t('onlineError'));
+const errText = (e) => {
+  if (e?.code === 'needUpdate') return t('playRoomNeedUpdate');
+  if (e?.code === 'timeout' && navigator.onLine !== false) return t('onlineBusy'); // יש אינטרנט אבל השרת לא עונה (למשל מלא)
+  return t('onlineError');
+};
 const ago = (ms) => { const m = Math.floor(Math.max(0, Date.now() - ms) / 60000); return m < 1 ? t('arenaJustNow') : `${m} ${t('mShort')}`; };
 
 /** הודעת פרטיות — פעם אחת, לפני הכניסה הראשונה לזירה */
@@ -52,9 +57,11 @@ export async function openArena(app) {
   let stop = null;
   const m = app.ui.modal({ title: t('arenaTitle'), titleIcon: 'globe', body, className: 'arena-modal', onClose: () => { try { stop?.(); } catch { /* */ } app.ui.setActiveTab(null); } });
 
+  let got = false;
   const render = (rooms) => {
     if (m.closed) return;
-    if (rooms === null) { list.replaceChildren(h('p', { class: 'ar-empty bad' }, t('arenaListError'))); count.textContent = ''; return; }
+    if (rooms !== undefined) got = got || rooms !== null;
+    if (rooms === null) { list.replaceChildren(h('p', { class: 'ar-empty bad' }, t(navigator.onLine === false ? 'arenaListError' : 'arenaListBusy'))); count.textContent = ''; return; }
     count.textContent = rooms.length ? `(${rooms.length})` : '';
     if (!rooms.length) { list.replaceChildren(h('p', { class: 'ar-empty' }, t('arenaEmpty'))); return; }
     list.replaceChildren(...rooms.map((e) => {
@@ -66,16 +73,19 @@ export async function openArena(app) {
     }));
   };
   app.online.watchArena(render).then((un) => { if (m.closed) un?.(); else stop = un; }).catch(() => render(null));
+  // בלי חיבור לשרת (או כשהוא מלא) הרשימה לא מגיעה — אחרי 12 שניות מציגים הודעה, וממשיכים להאזין (אם תגיע — תוצג)
+  setTimeout(() => { if (!got && !m.closed) render(null); }, 12000);
 
   async function quick() {
     if (!(await app.confirmLeave())) return;
     m.close();
     app.ui.toast(t('arenaSearching'), { icon: 'globe' });
     try {
-      const res = await app.online.arenaQuick();
+      const res = await withServerWait(app, () => app.online.arenaQuick());
       if (res.joined) app.ui.toast(t('arenaFound').replace('{name}', res.room.opponent()?.name || t('arenaRival')), { kind: 'gold', icon: 'swords', duration: 3600 });
       else openArenaWaiting(app, res.room);
     } catch (e) {
+      if (e?.code === 'cancel') return;
       console.warn('arena quick failed', e);
       app.ui.toast(errText(e), { kind: 'bad', duration: 4500 });
     }
@@ -86,9 +96,10 @@ export async function openArena(app) {
     m.close();
     app.ui.toast(t('connecting'), { icon: 'globe' });
     try {
-      const room = await app.online.arenaJoin(entry);
+      const room = await withServerWait(app, () => app.online.arenaJoin(entry));
       app.ui.toast(t('arenaFound').replace('{name}', room.opponent()?.name || t('arenaRival')), { kind: 'gold', icon: 'swords', duration: 3600 });
     } catch (e) {
+      if (e?.code === 'cancel') return;
       if (['full', 'notFound'].includes(e?.code)) { app.ui.toast(t('arenaTaken'), { icon: 'info', duration: 3800 }); openArena(app); return; }
       console.warn('arena join failed', e);
       app.ui.toast(errText(e), { kind: 'bad', duration: 4500 });
@@ -100,8 +111,9 @@ export async function openArena(app) {
     m.close();
     app.ui.toast(t('connecting'), { icon: 'globe' });
     try {
-      openArenaWaiting(app, await app.online.arenaHost());
+      openArenaWaiting(app, await withServerWait(app, () => app.online.arenaHost()));
     } catch (e) {
+      if (e?.code === 'cancel') return;
       console.warn('arena host failed', e);
       app.ui.toast(errText(e), { kind: 'bad', duration: 4500 });
     }

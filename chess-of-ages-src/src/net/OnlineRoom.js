@@ -27,6 +27,11 @@ export const ROOM_PROTO = 1;
 export const ROOM_PROTO_MIN = 1;
 
 const clip = (s, n) => String(s || '').slice(0, n);
+/** זמן מקסימלי לפעולה שהשחקן מחכה לה (בלי אינטרנט / שרת מלא) — שגיאה 'timeout' במקום המתנה בלי סוף */
+export function withTimeout(p, ms = 12000) {
+  let t;
+  return Promise.race([p, new Promise((_, rej) => { t = setTimeout(() => rej(new RoomError('timeout')), ms); })]).finally(() => clearTimeout(t));
+}
 const isDenied = (e) => /permission/i.test(String(e?.code || '') + String(e?.message || ''));
 const SAFE_ID = /^[a-z0-9_:-]{1,40}$/i;
 
@@ -132,7 +137,7 @@ export class OnlineRoom {
     else if (!watch) {
       if (data.guest) throw new RoomError('full');
       try {
-        await be.update(code, { guest: be.uid, gn: clip(me.name, 24), gl: me.look });
+        await withTimeout(be.update(code, { guest: be.uid, gn: clip(me.name, 24), gl: me.look }));
         role = 'guest';
       } catch (e) {
         if (isDenied(e)) throw new RoomError('full');
@@ -145,18 +150,22 @@ export class OnlineRoom {
   }
 
   async start() {
+    let timedOut = false;
     await new Promise((resolve) => {
       let first = true;
+      // בלי חיבור לשרת התמונה הראשונה של החדר לא מגיעה — לא מחכים לנצח
+      const t = setTimeout(() => { if (first) { first = false; timedOut = true; resolve(); } }, 15000);
       this.unsub = this.be.watch(this.code, (d) => {
         const prev = this.data;
         this.data = d;
-        if (first) { first = false; this.seenEmotes(d); resolve(); }
+        if (first) { first = false; clearTimeout(t); this.seenEmotes(d); resolve(); }
         if (this.closed) return;
         if (!d) { this.emit('gone'); return; }
         this.checkEmotes(d);
         this.emit('change', d, prev);
-      }, (err) => { if (first) { first = false; resolve(); } this.emit('error', err); });
+      }, (err) => { if (first) { first = false; clearTimeout(t); resolve(); } this.emit('error', err); });
     });
+    if (timedOut) { try { this.unsub?.(); } catch { /* */ } this.closed = true; throw new RoomError('timeout'); }
     if (!this.data) throw new RoomError('notFound');
     // נוכחות: נרשמת מחדש אחרי כל התחברות (הרשת בטלפון נופלת ועולה)
     this.connUnsub = this.be.onConnection((ok) => {

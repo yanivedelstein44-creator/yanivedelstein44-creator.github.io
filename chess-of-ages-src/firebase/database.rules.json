@@ -63,19 +63,19 @@
         "on": {
           "$uid": {
             ".write": "auth != null && auth.uid === $uid && data.parent().parent().child('host').exists()",
-            ".validate": "newData.isBoolean()"
+            ".validate": "newData.isBoolean() && $uid === auth.uid"
           }
         },
         "sp": {
           "$uid": {
             ".write": "auth != null && auth.uid === $uid && data.parent().parent().child('host').exists() && data.parent().parent().child('pub').val() !== true",
-            ".validate": "newData.hasChildren(['n']) && newData.child('n').isString() && newData.child('n').val().length <= 24"
+            ".validate": "newData.hasChildren(['n']) && newData.child('n').isString() && newData.child('n').val().length <= 24 && $uid === auth.uid"
           }
         },
         "em": {
           "$uid": {
             ".write": "auth != null && auth.uid === $uid && data.parent().parent().child('host').exists() && (data.parent().parent().child('pub').val() !== true || data.parent().parent().child('host').val() === auth.uid || data.parent().parent().child('guest').val() === auth.uid)",
-            ".validate": "newData.hasChildren(['e', 't']) && newData.child('e').isString() && newData.child('e').val().matches(/^(gg|wow|lol|hmm|hi|clap|fire|heart|cool|sad)$/) && newData.child('t').isNumber()"
+            ".validate": "newData.hasChildren(['e', 't']) && newData.child('e').isString() && newData.child('e').val().matches(/^(gg|wow|lol|hmm|hi|clap|fire|heart|cool|sad)$/) && newData.child('t').isNumber() && $uid === auth.uid"
           }
         },
         "pub": {
