@@ -100,7 +100,7 @@ grep -q 'NativePurchases' "$APP/android/app/src/main/assets/capacitor.plugins.js
 grep -q '"AdMob"\|AdMob' "$APP/android/app/src/main/assets/capacitor.plugins.json" || { echo "שגיאה: AdMob לא רשום ב-capacitor.plugins.json"; exit 1; }
 grep -q 'com.google.android.gms.ads.APPLICATION_ID' "$MERGED" || { echo "שגיאה: חסר מזהה האפליקציה של AdMob במניפסט"; exit 1; }
 grep -q 'com.google.android.gms.permission.AD_ID' "$MERGED" || { echo "שגיאה: חסרה ההרשאה AD_ID (נדרשת להצהרת Advertising ID ב-Play)"; exit 1; }
-grep -q "${ADMOB_APP_ID}" "$RES/values/strings.xml" || { echo "שגיאה: מזהה AdMob לא נכתב ל-strings.xml"; exit 1; }
+grep -q "${ADMOB_APP_ID}" "$APP/android/app/src/main/res/values/strings.xml" || { echo "שגיאה: מזהה AdMob לא נכתב ל-strings.xml"; exit 1; }  # (כאן אנחנו בתוך android/ — לכן נתיב מלא)
 TARGET="$(grep -oE 'targetSdkVersion = [0-9]+' variables.gradle | grep -oE '[0-9]+' || true)"
 [ "${TARGET:-0}" -ge 36 ] || { echo "שגיאה: targetSdk ${TARGET} — Google Play דורשת 36 ומעלה"; exit 1; }
 echo "applicationId=${PLAY_ID} versionName=${VER} versionCode=${VCODE} targetSdk=${TARGET} web=$(node -e "process.stdout.write(require(process.argv[1]).build)" "$PLAY_DIR/version.json") billing=@capgo/native-purchases@${PURCHASES_VERSION} admob=@capacitor-community/admob@${ADMOB_VERSION} admobApp=${ADMOB_APP_ID}" > "$APP/out/INFO.txt"
