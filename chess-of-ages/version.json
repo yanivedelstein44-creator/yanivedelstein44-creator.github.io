@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.6.1",
-  "build": "1.6.1-1794842346240",
-  "buildTime": 1794842346240,
-  "date": "2026-11-16T15:19:06.240Z",
+  "version": "1.6.2",
+  "build": "1.6.2-1794844483523",
+  "buildTime": 1794844483523,
+  "date": "2026-11-16T15:54:43.523Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.6.1-1794842346240.zip",
-  "checksum": "e91d564668f481a73361502f6a8c25afe785df25dcf76d0791d090fcdb505e64",
+  "bundle": "update/bundle-1.6.2-1794844483523.zip",
+  "checksum": "df138c35e674423a2b319e4c78c6466277d7e7be7846c2684598b84095891c04",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Online: if the server is full, a waiting window lets you in by itself as soon as there's room; clearer messages on a slow connection; licenses page updated"
+  "notes": "Pieces stand out on light boards: a thin outline and a soft shadow under every piece; accessibility statement updated"
 }
