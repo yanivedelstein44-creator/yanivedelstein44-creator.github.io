@@ -320,7 +320,7 @@ function reminderMsg(x, today) {
   if (x.kids) parts.push(x.kids);
   if (ev.location) parts.push(ev.location);
   const st = x.alr && ['strong', 'normal', 'quiet'].includes(ev.remind_style) ? ev.remind_style : null;
-  return { title: `${ev.kind === 'shift' ? '🕒' : '⏰'} ${ev.title}`, body: parts.join(' · '), url: `/?d=${x.d}`, tag: `rem-${ev.id}-${x.d}`, sticky: st ? st === 'strong' : (!ev.all_day && x.off <= 60), ...(st ? { style: st } : {}) };
+  return { title: `${ev.kind === 'shift' ? '🕒' : (ev.category === '🎂' ? '🎂' : '⏰')} ${ev.title}${ev.birth_year && +x.d.slice(0, 4) >= ev.birth_year ? ` (${+x.d.slice(0, 4) - ev.birth_year})` : ''}`, body: parts.join(' · '), url: `/?d=${x.d}`, tag: `rem-${ev.id}-${x.d}`, sticky: st ? st === 'strong' : (!ev.all_day && x.off <= 60), ...(st ? { style: st } : {}) };
 }
 async function doReminders(now, mems) {
   const { data: evs, error } = await db.from('events').select('*').or('reminders.neq.{},alerts.neq.{}');
