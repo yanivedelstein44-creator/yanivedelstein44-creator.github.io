@@ -230,6 +230,7 @@ export function installDesktopMock(adapter) {
       if (!busy && tvLoginUntil) state.tv = true;
       return { ok: true, logged_in: state.tv, checked_at: iso(clock.now()), login_in_progress: busy, last_login: state.tv ? iso(clock.now()) : null };
     },
+    getInstallLink: () => wait(80, { ok: true, url: "https://yanivedelstein44-creator.github.io/stockscenter/#/install", qr_svg: fakeQr() }),
     getPairing: () => {
       if (!state.has_phone_token) return { ok: false, message_he: "כדי לחבר את הטלפון צריך קודם להגדיר מפתח לטלפון" };
       const code = "eyJvIjoiZGVtbyIsInIiOiJkZW1vIiwidCI6IkRFTU8tTk9ULUEtUkVBTC1UT0tFTiJ9";
@@ -247,7 +248,7 @@ export function installDesktopMock(adapter) {
       }),
     openUrl: async (u) => ((window.__openedUrls = window.__openedUrls || []).push(u), { ok: true }), // test hook
     openLogs: async () => ({ ok: true }),
-    getVersion: async () => ({ ok: true, version: "1.0.4" }),
+    getVersion: async () => ({ ok: true, version: "1.0.5" }),
     checkForUpdates: () => wait(700, { ok: true, available: false, version: "1.0.1", message_he: "אתה משתמש בגרסה העדכנית" }),
   };
   // test hook: methods listed in window.__mockFail answer like a failing bridge call

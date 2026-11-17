@@ -29,14 +29,16 @@ export function phoneWarningText(cfg) {
   return `המפתח לטלפון צריך לקרוא את מאגר הנתונים ${data} ולא להיות מסוגל לגעת במאגר הקוד ${code}. צור מפתח חדש לפי ההוראות, עם ${data} בלבד, והדבק אותו כאן.`;
 }
 
-/** The three install steps shown next to the QR (desktop window). */
-export function installGuide() {
+/** The three install steps next to the QR (desktop window). paired: the QR also connects (a phone key exists). */
+export function installGuide(paired = true) {
   return h(
     "ol",
     { class: "guide", "data-testid": "install-guide" },
     h("li", {}, "סרוק את הקוד במצלמת הטלפון, או שלח לעצמך את הקישור."),
     h("li", {}, "בדף שנפתח בטלפון לחץ ", h("b", {}, "״הורד״"), ", ואז ״התקן״."),
-    h("li", {}, "זהו. האפליקציה מופיעה במסך הבית, כבר מחוברת למחשב.")
+    paired
+      ? h("li", {}, "זהו. האפליקציה מופיעה במסך הבית, כבר מחוברת למחשב.")
+      : h("li", {}, "כדי שהאפליקציה תראה את הסריקות: צור כאן למטה מפתח לטלפון (פעם אחת), וסרוק שוב את הקוד.")
   );
 }
 
@@ -57,17 +59,13 @@ export function phoneBlock(cfg, { onUpdate } = {}) {
   const urlTxt = h("div", { class: "qr__url num", dir: "ltr", "data-testid": "pairing-url" });
   const actions = h("div", { class: "block__actions", "data-testid": "pairing-actions" });
   const qrMsg = h("p", { class: "field__error", role: "alert", hidden: true });
+  const guideSlot = h("div", {});
+  const keyNote = h("p", { class: "field__help", "data-testid": "pairing-key-note" });
   const install = h(
     "div",
     { class: "pair-install", "data-testid": "pair-install", hidden: true },
     h("div", { class: "pair-install__qr" }, qr, urlTxt),
-    h(
-      "div",
-      { class: "pair-install__main" },
-      installGuide(),
-      actions,
-      h("p", { class: "field__help", "data-testid": "pairing-key-note" }, "הקישור כולל את מפתח הטלפון, אז שלח אותו רק לעצמך. נשלח בטעות למישהו? צור מפתח טלפון חדש והדבק אותו כאן למטה.")
-    )
+    h("div", { class: "pair-install__main" }, guideSlot, actions, keyNote)
   );
   const guideBox = h("div", {});
   const tokenHead = h("h3", { class: "pair-token__head" });
@@ -80,27 +78,34 @@ export function phoneBlock(cfg, { onUpdate } = {}) {
     warn.hidden = !(has && ok === false);
     warn.replaceChildren(h("span", { class: "banner__text" }, phoneWarningText(cur)));
     tokenIn.placeholder = has ? "•••••••• (שמור). הדבק מפתח חדש כדי להחליף" : "github_pat_…";
-    tokenHead.textContent = has ? "מפתח הטלפון" : "פעם אחת: מפתח לטלפון";
+    tokenHead.textContent = has ? "מפתח הטלפון" : "כדי לחבר את האפליקציה לסריקות: מפתח לטלפון (פעם אחת)";
     const guide = phoneTokenGuide({ dataRepo: repos(cur).data });
     // with a key saved the guide folds away (it is needed again only to replace the key)
     guideBox.replaceChildren(has ? h("details", { class: "pair-token__more" }, h("summary", {}, "איך יוצרים מפתח חדש לטלפון"), guide) : guide);
   }
 
+  // ALWAYS a QR: before a phone key exists it only installs (public link, getInstallLink); with a key it installs AND
+  // connects (pairing link with the phone token, getPairing).
   async function loadQr() {
-    install.hidden = true;
+    const paired = !!cur.has_phone_token;
     qrMsg.hidden = true;
     actions.replaceChildren();
     urlTxt.textContent = "";
-    if (!cur.has_phone_token) return;
     install.hidden = false;
+    install.dataset.mode = paired ? "pair" : "install";
+    guideSlot.replaceChildren(installGuide(paired));
+    keyNote.textContent = paired
+      ? "הקישור כולל את מפתח הטלפון, אז שלח אותו רק לעצמך. נשלח בטעות למישהו? צור מפתח טלפון חדש והדבק אותו כאן למטה."
+      : "הקוד הזה רק מתקין, בלי מפתח, ואפשר לשלוח אותו בלי חשש. אחרי שתשמור מפתח לטלפון יופיע כאן קוד שגם מחבר.";
     qr.replaceChildren(h("div", { class: "skel__b qr__skeleton" }));
     try {
-      const p = await callBridge("getPairing");
+      const p = paired ? await callBridge("getPairing") : await callBridge("getInstallLink"); // literal names: test_integration checks them
       qr.replaceChildren(h("div", { class: "qr__img", html: p.qr_svg }));
       urlTxt.textContent = (p.url || "").replace(/#pair=.*/, "#pair=…"); // the token never shows on screen
+      const copied = paired ? "הקישור הועתק. שלח אותו רק לעצמך" : "הקישור הועתק";
       if (p.url)
         actions.append(
-          h("button", { class: "btn btn--primary btn--pill", type: "button", "data-testid": "copy-link", onClick: async () => toast((await copyText(p.url)) ? "הקישור הועתק. שלח אותו רק לעצמך" : "ההעתקה נכשלה") }, icon("copy", 18, 2), "העתק קישור"),
+          h("button", { class: "btn btn--primary btn--pill", type: "button", "data-testid": "copy-link", onClick: async () => toast((await copyText(p.url)) ? copied : "ההעתקה נכשלה") }, icon("copy", 18, 2), "העתק קישור"),
           h("button", { class: "btn btn--secondary btn--pill", type: "button", "data-testid": "whatsapp-link", onClick: () => callBridge("openUrl", whatsappUrl(p.url)).catch((e) => toast(e.message_he || "הפתיחה נכשלה")) }, "שלח בוואטסאפ")
         );
     } catch (e) {
