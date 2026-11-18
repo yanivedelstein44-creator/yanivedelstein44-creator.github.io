@@ -88,7 +88,8 @@ export function planCard(stock, settings, sheet) {
     h("div", { class: "plan__p " + cls }, h("span", { class: "plan__pk" }, k), ltr(v, "plan__pv"), note ? h("span", { class: "plan__pn" }, note) : null);
   const ctx = h("div", { class: "plan__ctx", hidden: true });
   const trend = TREND_HE[e.trend] || "";
-  const breakout = isNum(e.breakout) ? h("p", { class: "plan__line", "data-testid": "plan-breakout" }, "כניסה בפריצה: סגירה יומית מעל ", ltr(fmtPrice(e.breakout)), ", עם סטופ ב-", ltr(fmtPrice(e.breakout - e.risk_per_share)), ".") : null;
+  const isBreakout = st.key === "breakout";
+  const breakout = isNum(e.breakout) && !isBreakout ? h("p", { class: "plan__line", "data-testid": "plan-breakout" }, "כניסה בפריצה: סגירה יומית מעל ", ltr(fmtPrice(e.breakout)), ", עם סטופ ב-", ltr(fmtPrice(e.breakout - e.risk_per_share)), ".") : null;
 
   const el = h(
     "section",
@@ -97,9 +98,9 @@ export function planCard(stock, settings, sheet) {
     h(
       "div",
       { class: "plan__prices" },
-      p("מומלץ", fmtPrice(e.entry), null, "plan__p--main"),
+      p(isBreakout ? "קנייה מעל" : "מומלץ", fmtPrice(e.entry), null, "plan__p--main"),
       p("מקסימום", fmtPrice(e.max_entry)),
-      p("עכשיו", fmtPrice(price), isNum(vsEntry) && Math.abs(vsEntry) >= 0.0005 ? `${pctHe(vsEntry)} מהמומלץ` : null)
+      p("עכשיו", fmtPrice(price), isNum(vsEntry) && Math.abs(vsEntry) >= 0.0005 ? `${pctHe(vsEntry)} ${isBreakout ? "ממחיר הקנייה" : "מהמומלץ"}` : null)
     ),
     h("p", { class: "plan__why", "data-testid": "plan-why" }, [st.text, whyLine(e), trend ? `${trend}.` : ""].filter(Boolean).join(" ")),
     h(
