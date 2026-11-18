@@ -1,6 +1,7 @@
 // The stock sheet (MergedStock): a bottom sheet on the phone, a 440 px drawer in the desktop window.
-// Ticker, name · sector, price and change, list chips, the total ring; five labeled bars; the 2×2 risk panel; insider
-// and earnings cards; the Claude note; news (http/https links only, opened outside the app). Sticky action bar:
+// Ticker, name · sector, price and change, list chips, the total ring; five labeled bars; "מחיר קנייה" (the swing
+// plan with stop, take profit 1 and 2 and "הסבר", SPEC §6.10; the older 2×2 risk panel for data without a plan);
+// insider and earnings cards; the Claude note; news (http/https links only, opened outside the app). Sticky action bar:
 // "פתח ב-TradingView" and the watchlist toggle.
 import { h, icon, ltr } from "../dom.js";
 import { app, catName, watched, toggleWatch, onLive } from "../state.js";
@@ -13,6 +14,8 @@ import { scoreBars } from "./miniBars.js";
 import { flagList, tag } from "./flags.js";
 import { openExternal } from "./extLink.js";
 import { openSheet } from "./sheet.js";
+import { planCard } from "./planCard.js";
+import { hasPlan } from "../plan.js";
 
 const isNum = (x) => typeof x === "number" && Number.isFinite(x);
 
@@ -69,7 +72,7 @@ function riskPanel(stock, settings, sheet) {
       h("span", { class: "sh-risk__v" }, h("bdi", { dir: "ltr", class: "num" }, v), unit ? h("span", { class: "sh-risk__unit" }, " " + unit) : null),
       note ? h("span", { class: "sh-risk__n" }, note) : null
     );
-  const mult = isNum(r.atr_mult) ? r.atr_mult : 1.5;
+  const mult = isNum(r.atr_mult) ? r.atr_mult : 2;
   const basis = r.target_basis === "resistance" ? "התנגדות של 60 יום" : r.target_basis === "atr" ? "3 × ATR מעל המחיר" : null;
   const rrOk = isNum(r.rr) && r.rr >= 2;
   const pos = positionSize(stock, settings);
@@ -88,7 +91,7 @@ function riskPanel(stock, settings, sheet) {
     "div",
     { class: "sh-risk", "data-testid": "risk-row" },
     cell("סטופ", fmtPrice(r.stop), `${mult.toLocaleString("he-IL")} × ATR מתחת למחיר`),
-    cell("יעד", fmtPrice(r.target), basis),
+    cell("טייק פרופיט", fmtPrice(r.target), basis),
     cell("סיכוי מול סיכון", isNum(r.rr) ? r.rr.toFixed(2) : "—", isNum(r.rr) ? (rrOk ? "2 ומעלה, תקין" : "מתחת ל-2, נמוך") : null, { cls: isNum(r.rr) && !rrOk ? "is-warn" : "" }),
     posCell
   );
@@ -184,7 +187,7 @@ export function openStockSheet(stock, ctx = {}) {
   const calc = computeTotal(stock.scores, (stock.lists || []).length, app.slider);
   let handle = null;
   const sheet = () => handle;
-  const flags = flagList(stock, calc);
+  const flags = flagList(stock, calc, { plan: false }); // the plan card shows its own status
   const body = h(
     "div",
     { class: "sh" },
@@ -192,7 +195,7 @@ export function openStockSheet(stock, ctx = {}) {
     ctx.notInLists ? h("p", { class: "sh-note-line", "data-testid": "not-in-lists" }, "המניה לא מופיעה היום באף רשימה. מוצגים הנתונים האחרונים ששמרת.") : null,
     h("div", { class: "sh-sec" }, scoreBars(stock.scores)),
     flags.length ? h("div", { class: "sh-flags" }, flags.map(tag)) : null,
-    riskPanel(stock, app.settings, sheet),
+    hasPlan(stock) ? planCard(stock, app.settings, sheet) : riskPanel(stock, app.settings, sheet),
     sideCards(stock),
     ctx.note ? h("section", { class: "sh-claude" }, h("span", { class: "kicker sh-kicker" }, "הערת Claude"), h("p", { class: "sh-quote" }, `״${ctx.note}״`)) : null,
     newsBlock(stock)

@@ -1,4 +1,4 @@
-// Hash router: #/home #/cat/<id> #/combined #/history #/history/<date> #/history/<date>/combined #/history/<date>/<id> #/settings #/setup #/phone #/install
+// Hash router: #/home #/cat/<id> #/combined #/markets #/history #/history/<date> #/history/<date>/combined #/history/<date>/<id> #/settings #/setup #/phone #/install
 /** The 10 category ids of SPEC §2; anything else in a route goes home. */
 export const CATEGORY_IDS = ["momentum", "fundamental", "pullback", "volume_breakout", "oversold", "analyst", "low_vol", "rel_strength", "earnings_next", "earnings_recent"];
 const isDate = (x) => /^\d{4}-\d{2}-\d{2}$/.test(x || "");
@@ -22,6 +22,7 @@ export function parseHash(hash) {
   if (!parts.length || (a === "home" && parts.length === 1)) r = { name: "home" };
   else if (a === "cat" && isCat(b) && parts.length === 2) r = { name: "cat", id: b };
   else if (a === "combined" && parts.length === 1) r = { name: "combined" };
+  else if (a === "markets" && parts.length === 1) r = { name: "markets" };
   else if (a === "settings" && parts.length === 1) r = { name: "settings" };
   else if (a === "setup" && parts.length === 1) r = { name: "setup" };
   else if (a === "phone" && parts.length === 1) r = { name: "phone" };
@@ -42,8 +43,8 @@ export function guardRoute(route, { desktop = false } = {}) {
   return route;
 }
 
-/** Routes that show the phone's bottom nav pill (the three top-level destinations). */
-export const TOP_LEVEL = new Set(["home", "combined", "history"]);
+/** Routes that show the phone's bottom nav pill (the top-level destinations). */
+export const TOP_LEVEL = new Set(["home", "combined", "markets", "history"]);
 
 /** The screen a "back" button leads to. */
 export function parentOf(route) {

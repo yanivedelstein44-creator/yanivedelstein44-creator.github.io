@@ -42,6 +42,7 @@
   /* States */
   --sc-warn-bg: #FDF1E2;       --sc-warn-fg: #8A4B06;        /* earnings soon, R:R low */
   --sc-danger-bg: #FDE7DB;     --sc-danger-fg: #9A3412;      /* weak component (gate), errors */
+  --sc-good-bg: #E3F4EC;       --sc-good-fg: #1F7A55;        /* in the buy zone, a supportive market (4.7:1) */
   --sc-up: #1F7A55;            /* positive change */
   --sc-down: #B42318;          /* negative change */
   --sc-weak-dot: #C2410C;      /* a sub-score below 40 (decorative bar) */

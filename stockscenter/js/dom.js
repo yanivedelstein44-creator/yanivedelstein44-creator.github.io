@@ -54,6 +54,7 @@ export function svg(markup) {
 export const PATHS = {
   home: "M3 11l9-8 9 8v10h-6v-6H9v6H3z",
   layers: "M12 3l9 5-9 5-9-5z M3 13l9 5 9-5",
+  markets: "M3 20h18 M6.5 16v-5 M11 16V6 M15.5 16v-7 M20 16v-3",
   scan: "M20 12a8 8 0 1 1-2.3-5.7 M20 4v5h-5",
   history: "M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16 M12 8v4l3 2",
   search: "M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-5-5",

@@ -325,7 +325,7 @@ async function desktopBlocks(rerender) {
   out.push(card("מסכי הסריקה", h("p", { class: "field__help" }, "כתובת כל מסך שמור ב-TradingView. שם המסך חייב להיות זהה לשם בכתובת."), urlInputs.map(({ c, el }) => field({ id: `url-${c.id}`, label: c.name_he, control: el })), h("div", { class: "block__actions" }, saveUrls)));
 
   // Behaviour
-  let atrSaved = cfg.atr_mult ?? 1.5;
+  let atrSaved = cfg.atr_mult ?? 2;
   const atr = input({ id: "atr", type: "text", inputmode: "decimal", dir: "ltr", value: String(atrSaved), "data-testid": "atr" });
   atr.addEventListener("change", async () => {
     const v = parseFloat(atr.value);
@@ -348,7 +348,7 @@ async function desktopBlocks(rerender) {
       h("div", { class: "switchrow" }, h("label", { for: "autostart" }, "הפעלה עם הדלקת המחשב"), toggle({ id: "autostart", checked: !!cfg.autostart, label: "הפעלה עם הדלקת המחשב", onChange: (v) => callBridge("saveSettings", { autostart: v }) })),
       h("p", { class: "field__help", "data-testid": "tray-note" }, "התוכנה עולה ישר לסמל ליד השעון, בלי חלון. גם X רק מסתיר את החלון: הסריקות ממשיכות. יציאה מלאה: קליק ימני על הסמל ואז ״יציאה״. לא רואה את הסמל? לחץ על החץ ^ ליד השעון."),
       h("div", { class: "switchrow" }, h("label", { for: "auto-update" }, "עדכון אוטומטי של התוכנה"), toggle({ id: "auto-update", checked: cfg.auto_update !== false, label: "עדכון אוטומטי של התוכנה", onChange: (v) => callBridge("saveSettings", { auto_update: v }) })),
-      field({ id: "atr", label: "מכפיל ATR לסטופ", control: atr, help: "סטופ = מחיר פחות מכפיל × ATR. ברירת מחדל 1.5. ישפיע מהסריקה הבאה." })
+      field({ id: "atr", label: "מכפיל ATR לסטופ", control: atr, help: "סטופ = מחיר הכניסה פחות מכפיל × ATR. ברירת מחדל 2, מתאים לסווינג של כמה שבועות. ישפיע מהסריקה הבאה." })
     )
   );
 

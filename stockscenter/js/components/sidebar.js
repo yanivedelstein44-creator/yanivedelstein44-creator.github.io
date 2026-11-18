@@ -10,6 +10,7 @@ import { openSearch } from "./searchSheet.js";
 const NAV = [
   ["home", "#/home", "בית", "home"],
   ["combined", "#/combined", "דירוג משולב", "layers"],
+  ["markets", "#/markets", "שווקים", "markets"],
   ["history", "#/history", "היסטוריה", "history"],
   ["phone", "#/phone", "התקן בטלפון", "phone", "desktop"], // desktop window only: one QR installs and pairs the phone app
   ["settings", "#/settings", "הגדרות", "settings"],

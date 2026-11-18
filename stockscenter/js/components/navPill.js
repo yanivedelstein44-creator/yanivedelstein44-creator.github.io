@@ -1,4 +1,4 @@
-// Phone bottom nav pill (MergedHome): בית, משולב, the floating "סרוק הכל", היסטוריה, חיפוש מניה.
+// Phone bottom nav pill (MergedHome): בית, משולב, the floating "סרוק הכל", שווקים, היסטוריה, חיפוש מניה.
 // Shown on the three top-level screens; it hides on scroll down, shows on scroll up and respects the safe area.
 import { h, icon } from "../dom.js";
 import { navScan } from "./scanButton.js";
@@ -13,6 +13,7 @@ export function navPill() {
     link("home", "#/home", "בית", "home"),
     link("combined", "#/combined", "דירוג משולב", "layers"),
     scan.el,
+    link("markets", "#/markets", "שווקים", "markets"),
     link("history", "#/history", "היסטוריה", "history"),
     h("button", { class: "navpill__btn", type: "button", "aria-label": "חיפוש מניה", "data-testid": "nav-search", onClick: () => openSearch() }, icon("search", 24, 2), h("span", { class: "navpill__dot", "aria-hidden": "true" }))
   );

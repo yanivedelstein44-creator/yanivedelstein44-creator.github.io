@@ -239,6 +239,9 @@ export class GitHubAdapter {
   getHistoryIndex() {
     return this.readJson("history/index.json");
   }
+  getMarket() {
+    return this.readJson("latest/market.json");
+  }
   getHistoryIndexFor(date) {
     return this.readJson(`history/${date}/index.json`);
   }

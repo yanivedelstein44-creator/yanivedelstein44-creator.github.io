@@ -1,12 +1,13 @@
 // Home. Phone (MergedHome): the blue header panel (dateline, PC status, wordmark, bell + settings, scan progress),
-// the lead story, "במעקב", and "הרשימות שלי" (10 category cards). Desktop: the masthead "היום", the lead story,
-// a grid of category cards and a combined preview.
+// the market bar, the lead story, "במעקב", and "הרשימות שלי" (10 category cards). Desktop: the masthead "היום", the
+// market bar, the lead story, a grid of category cards and a combined preview.
 import { h, icon, clear, isWide, ltr } from "../dom.js";
 import { app, refreshIndex, catName, onLive } from "../state.js";
 import { clock, fmtInt, datelineHe, editionHe, firstSentences, stocksHe, nyToday, timeAgo } from "../format.js";
 import { rankStocks, computeTotal } from "../scoring/total.js";
 import { skeleton, emptyState, errorState } from "../components/states.js";
 import { installCard } from "../components/installCard.js";
+import { marketBar } from "../components/marketBar.js";
 import { statusPill } from "../components/statusPill.js";
 import { scanProgress, roundScan, scanState } from "../components/scanButton.js";
 import { masthead, sectionHead, metaLine, kicker } from "../components/chrome.js";
@@ -327,6 +328,7 @@ export async function mount(root) {
     const never = idx.categories.every((c) => c.count == null && !c.scanned_at);
     const body = h("div", { class: "home" + (wide ? " home--wide" : "") });
     root.append(body);
+    body.append(marketBar()); // hidden until the markets page exists (SPEC §6.11)
     if (never && app.status?.restoring)
       body.append(
         h(

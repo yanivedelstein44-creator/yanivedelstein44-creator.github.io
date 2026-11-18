@@ -80,6 +80,9 @@ export class FixtureAdapter {
   getHistoryIndex() {
     return this._json("history/index.json");
   }
+  getMarket() {
+    return this._json("latest/market.json");
+  }
   getHistoryIndexFor(date) {
     return this._json(`history/${date}/index.json`);
   }
@@ -148,7 +151,7 @@ export function installDesktopMock(adapter) {
       code_repo: "stockscenter",
       data_repo: "stockscenter-data",
       pwa_url: "https://yanivedelstein44-creator.github.io/stockscenter/",
-      atr_mult: 1.5,
+      atr_mult: 2,
       report_enabled: true,
       autostart: true,
       auto_update: true,
@@ -178,6 +181,7 @@ export function installDesktopMock(adapter) {
     getCategory: (id) => adapter.getCategory(id).catch(() => ({ ok: false, message_he: "אין נתונים עדיין. הרץ סריקה כדי להתחיל" })),
     getCombined: () => adapter.getCombined(),
     getHistoryIndex: () => adapter.getHistoryIndex(),
+    getMarket: () => adapter.getMarket().catch(() => ({ schema: 1, updated_at: null, as_of: null, regime: null, groups: [], sectors: [], curve: null, events: [], missing: [] })),
     getHistoryIndexFor: (d) => adapter.getHistoryIndexFor(d).catch(() => ({ ok: false, message_he: "אין נתונים עדיין. הרץ סריקה כדי להתחיל" })),
     getHistoryCategory: (d, id) => adapter.getHistoryCategory(d, id).catch(() => ({ ok: false, message_he: "אין נתונים עדיין. הרץ סריקה כדי להתחיל" })),
     getHistoryCombined: (d) => adapter.getHistoryCombined(d).catch(() => ({ ok: false, message_he: "אין נתונים עדיין. הרץ סריקה כדי להתחיל" })),
@@ -248,7 +252,7 @@ export function installDesktopMock(adapter) {
       }),
     openUrl: async (u) => ((window.__openedUrls = window.__openedUrls || []).push(u), { ok: true }), // test hook
     openLogs: async () => ({ ok: true }),
-    getVersion: async () => ({ ok: true, version: "1.0.5" }),
+    getVersion: async () => ({ ok: true, version: "1.0.7" }),
     checkForUpdates: () => wait(700, { ok: true, available: false, version: "1.0.1", message_he: "אתה משתמש בגרסה העדכנית" }),
   };
   // test hook: methods listed in window.__mockFail answer like a failing bridge call

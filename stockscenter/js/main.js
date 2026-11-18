@@ -2,7 +2,7 @@
 // Phone (< 1024 px): each screen draws its own top (the home header panel or the slim top bar); the nav pill sits at
 // the bottom of the three top-level screens. Desktop window (>= 1024 px): the blue sidebar on the right + the content.
 import { h, clear, brandMark, isWide, wideMQ } from "./dom.js";
-import { app, loadSettings, startPolling, refreshStatus, refreshIndex, refreshDesktopInfo } from "./state.js";
+import { app, loadSettings, startPolling, refreshStatus, refreshIndex, refreshDesktopInfo, loadMarket } from "./state.js";
 import { startRouter, sectionOf, guardRoute, stampEntry, TOP_LEVEL } from "./router.js";
 import { GitHubAdapter, consumePairingFromHash } from "./data/github.js";
 import { LocalAdapter, waitForPywebview } from "./data/local.js";
@@ -79,6 +79,7 @@ const SCREENS = {
   cat: () => import("./screens/category.js").then((m) => m.mount),
   historyCat: () => import("./screens/category.js").then((m) => m.mount),
   combined: () => import("./screens/combined.js").then((m) => m.mount),
+  markets: () => import("./screens/markets.js").then((m) => m.mount),
   historyCombined: () => import("./screens/combined.js").then((m) => m.mount),
   history: () => import("./screens/history.js").then((m) => m.mountList),
   historyDay: () => import("./screens/history.js").then((m) => m.mountDay),
@@ -98,7 +99,7 @@ function setThemeColor(route) {
 }
 
 /** Child screens restore their parent's scroll position when the user comes back. */
-const PARENT = (r) => (r.name === "cat" || r.name === "settings" || r.name === "phone" || r.name === "install" || r.name === "combined" || r.name === "history" ? "#/home" : r.name === "historyDay" ? "#/history" : r.name === "historyCat" || r.name === "historyCombined" ? `#/history/${r.date}` : null);
+const PARENT = (r) => (r.name === "cat" || r.name === "settings" || r.name === "phone" || r.name === "install" || r.name === "combined" || r.name === "markets" || r.name === "history" ? "#/home" : r.name === "historyDay" ? "#/history" : r.name === "historyCat" || r.name === "historyCombined" ? `#/history/${r.date}` : null);
 
 async function main() {
   app.adapter = await pickAdapter();
@@ -225,6 +226,15 @@ async function main() {
   });
 
   await dataReady;
+  loadMarket(); // the market bar, the markets page and the sector chips in the lists (SPEC §6.11)
+  let marketStamp = app.index?.updated_at || "";
+  app.bus.on("index", (idx) => {
+    const stamp = idx?.updated_at || "";
+    if (stamp !== marketStamp) {
+      marketStamp = stamp;
+      loadMarket({ force: true }); // a scan ends with a fresh markets page
+    }
+  });
   if (app.mode.desktop) app.bus.on("tick", () => refreshDesktopInfo()); // phone-token check results land in the status line
   startPolling();
   registerServiceWorker();

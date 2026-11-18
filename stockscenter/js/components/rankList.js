@@ -5,6 +5,7 @@ import { h } from "../dom.js";
 import { totalBadge, setBadge } from "./scoreRing.js";
 import { miniBars, scoreTiles, scoresText, COMPONENT_LABELS } from "./miniBars.js";
 import { flagList, riskChips, tag, listsLabel, nameLine } from "./flags.js";
+import { planStatus } from "../plan.js";
 
 const isNum = (x) => typeof x === "number" && Number.isFinite(x);
 
@@ -12,11 +13,14 @@ function rankRow(first, { onOpen }) {
   const stock = first.stock;
   const n = h("span", { class: "rrow__n num", "aria-hidden": "true" });
   const sym = h("bdi", { class: "rrow__sym", dir: "ltr" }, String(stock.symbol));
+  // 1.0.7: every row says when the price is in the plan's buy zone (the sheet and the #1 row show the full status)
+  const st = planStatus(stock);
+  const zone = st && st.key === "in_zone" ? h("span", { class: "rrow__zone", "data-testid": "row-in-zone" }, st.label) : null;
   const name = nameLine("rrow__name", stock.name, listsLabel(stock));
   const keyVal = h("span", { class: "rrow__key num", "aria-hidden": "true", hidden: true });
   const barsBox = h("span", { class: "rrow__bars" });
   const badge = totalBadge(first.total);
-  const hit = h("button", { class: "rrow__hit", type: "button" }, n, h("span", { class: "rrow__id" }, sym, name), keyVal, barsBox, badge);
+  const hit = h("button", { class: "rrow__hit", type: "button" }, n, h("span", { class: "rrow__id" }, zone ? h("span", { class: "rrow__symline" }, sym, zone) : sym, name), keyVal, barsBox, badge);
   const more = h("div", { class: "rrow__more", hidden: true });
   const el = h("article", { class: "stock rrow", "data-testid": `stock-card-${stock.symbol}`, "data-symbol": stock.symbol }, hit, more);
   let cur = first;
@@ -36,7 +40,7 @@ function rankRow(first, { onOpen }) {
     keyVal.textContent = k ? (kv == null ? "—" : String(kv)) : "";
     hit.setAttribute(
       "aria-label",
-      `מקום ${i + 1}: ${stock.symbol}${stock.name ? ", " + stock.name : ""}. ${isNum(r.total) ? "ציון כולל " + r.total : "אין ציון כולל"}${k ? `. ${COMPONENT_LABELS[k]} ${kv ?? "חסר"}` : ""}. ${scoresText(stock.scores)}`
+      `מקום ${i + 1}: ${stock.symbol}${stock.name ? ", " + stock.name : ""}. ${isNum(r.total) ? "ציון כולל " + r.total : "אין ציון כולל"}${k ? `. ${COMPONENT_LABELS[k]} ${kv ?? "חסר"}` : ""}. ${scoresText(stock.scores)}${zone ? ". " + st.label : ""}`
     );
     const isLead = i === 0;
     const sig = `${r.total}|${r.gate}`;

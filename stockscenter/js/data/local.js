@@ -75,6 +75,9 @@ export class LocalAdapter {
   getHistoryIndex() {
     return callBridge("getHistoryIndex");
   }
+  getMarket() {
+    return callBridge("getMarket");
+  }
   getHistoryIndexFor(date) {
     return callBridge("getHistoryIndexFor", date);
   }

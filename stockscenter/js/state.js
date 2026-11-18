@@ -51,6 +51,7 @@ export const app = {
   sortKey: "total",
   status: null,
   index: null,
+  market: null, // latest/market.json (SPEC §6.11), loaded on demand by loadMarket()
   offline: false, // the phone has no connection (online/offline events, network failures)
   error: null, // {message_he, needsSettings}
   pendingScan: null, // {ids, id, at, baseline}
@@ -233,6 +234,33 @@ export async function refreshIndex() {
     setError(e);
   }
   return app.index;
+}
+
+const MARKET_MAX_AGE_MS = 10 * 60 * 1000;
+let marketAt = 0;
+let marketReq = null;
+
+/** The markets page (SPEC §6.11), cached for 10 minutes; `force` after a scan. Emits "market". Never throws. */
+export function loadMarket({ force = false } = {}) {
+  if (!app.adapter || typeof app.adapter.getMarket !== "function") return Promise.resolve(app.market);
+  if (!force && app.market && Date.now() - marketAt < MARKET_MAX_AGE_MS) return Promise.resolve(app.market);
+  if (marketReq) return marketReq;
+  marketReq = (async () => {
+    try {
+      const doc = await app.adapter.getMarket();
+      if (doc && Array.isArray(doc.groups)) {
+        app.market = doc;
+        marketAt = Date.now();
+        app.bus.emit("market", doc);
+      }
+    } catch (e) {
+      // no page yet (before the first refresh) or offline: keep the last one
+    } finally {
+      marketReq = null;
+    }
+    return app.market;
+  })();
+  return marketReq;
 }
 
 export async function refreshStatus() {
