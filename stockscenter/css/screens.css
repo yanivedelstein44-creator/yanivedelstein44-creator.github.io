@@ -246,6 +246,7 @@ body.is-scrolled .topbar { box-shadow: 0 1px 0 var(--sc-line); }
   .sidecat__name { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sidecat__count { min-width: 26px; height: 22px; padding: 0 6px; border-radius: 11px; font-size: var(--sc-fs-small); font-weight: 800; display: inline-flex; align-items: center; justify-content: center; background: var(--sc-on-primary-a18); color: var(--sc-on-primary); }
   .sidecat__count.is-error { background: var(--sc-danger-bg); color: var(--sc-danger-fg); }
+  .sidenav__count { margin-inline-start: auto; min-width: 26px; height: 22px; padding: 0 6px; border-radius: 11px; font-size: var(--sc-fs-small); font-weight: 800; display: inline-flex; align-items: center; justify-content: center; background: var(--sc-good-bg); color: var(--sc-good-fg); }
   .sidecat.is-current { background: var(--sc-surface); color: var(--sc-ink); }
   .sidecat.is-current .sidecat__count { background: var(--sc-primary-tint); color: var(--sc-primary-strong); }
   .sidecat.is-current .rscan--side { background: var(--sc-surface-3); color: var(--sc-primary); }
@@ -449,3 +450,44 @@ body.is-scrolled .topbar { box-shadow: 0 1px 0 var(--sc-line); }
   .mk-grid .mk-source { margin: 14px 2px 0; }
   .cat-side .mk-sectors .sechead { padding-top: 6px; }
 }
+
+/* ----- "מחיר מומלץ" (1.0.9) ----- */
+.buy-phone { display: flex; flex-direction: column; gap: 4px; }
+.buy-phone .mbar { margin: 4px 0 6px; }
+.buy-sec { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.buy-sec .sechead { padding-inline: 2px; }
+.buy-card { margin: 0; overflow: hidden; }
+.buyrow__hit { align-items: flex-start; padding-block: 12px; }
+.buyrow__gap { font-size: var(--sc-fs-small); font-weight: 700; color: var(--sc-good-fg); }
+.buyrow__gap.is-pullback { color: var(--sc-warn-fg); }
+.buyrow__gap.is-breakout { color: var(--sc-primary-strong); }
+.buyrow__nums { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 3px; font-size: var(--sc-fs-small); color: var(--sc-ink-3); }
+.buyrow__nums b { color: var(--sc-ink); font-weight: 700; }
+.buyrow__old { font-weight: 500; color: var(--sc-ink-3); }
+.buy-phone .report { margin-top: 14px; }
+.btable { min-width: 640px; }
+.btable td { white-space: nowrap; }
+.btable .bt-c-stock { width: 160px; }
+.btable .bt-c-state { width: 100px; }
+.btable .bt-c-price, .btable .bt-c-entry, .btable .bt-c-max, .btable .bt-c-stop, .btable .bt-c-tp1 { width: 88px; }
+.btable .bt-c-rr { width: 50px; }
+.btable .bt-c-total { width: 58px; }
+@container rtcard (max-width: 860px) { .btable .bt-c-max { display: none; } } /* the highest price is in the sheet */
+.bt-gap { font-size: var(--sc-fs-small); font-weight: 700; color: var(--sc-good-fg); }
+.bt-gap.is-pullback { color: var(--sc-warn-fg); }
+.bt-gap.is-breakout { color: var(--sc-primary-strong); }
+.bt-num { font-weight: 600; }
+@media (min-width: 1024px) {
+  .buy-main { display: flex; flex-direction: column; gap: 6px; }
+  .buy-main .buy-sec { margin-top: 4px; }
+  .buy-main .buy-sec + .buy-sec { margin-top: 14px; }
+}
+.buyteaser { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin: 10px var(--sc-gutter) 0; color: inherit; text-decoration: none; }
+.buyteaser:hover { background: var(--sc-surface-2); }
+.buyteaser__icon { width: 40px; height: 40px; flex: none; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: var(--sc-good-bg); color: var(--sc-good-fg); }
+.buyteaser__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.buyteaser__title { font-weight: 800; font-size: var(--sc-fs-lead); }
+.buyteaser__sub { font-size: var(--sc-fs-small); color: var(--sc-ink-3); }
+.buyteaser__count { min-width: 30px; height: 26px; padding: 0 8px; border-radius: 13px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; background: var(--sc-good-bg); color: var(--sc-good-fg); }
+.buyteaser__go { color: var(--sc-ink-4); flex: none; }
+@media (min-width: 1024px) { .buyteaser { margin: 0 0 14px; } }

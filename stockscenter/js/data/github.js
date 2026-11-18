@@ -289,6 +289,17 @@ export class GitHubAdapter {
       requested_at: new Date(this.now()).toISOString(),
       source: "pwa",
     };
+    return this._writeCommand(cmd, "scan request");
+  }
+
+  /** 1.0.9: ask the PC program to check for a new version now and install it when idle (SPEC §4.7). */
+  async requestUpdate() {
+    const cmd = { schema: 1, id: this.uuid(), action: "update", requested_at: new Date(this.now()).toISOString(), source: "pwa" };
+    return this._writeCommand(cmd, "update request");
+  }
+
+  /** One command file: the newest request replaces an older one the PC has not read yet. */
+  async _writeCommand(cmd, message) {
     const content = bytesToB64(new TextEncoder().encode(JSON.stringify(cmd, null, 1)));
     for (let attempt = 0; attempt < 2; attempt++) {
       let sha;
@@ -300,7 +311,7 @@ export class GitHubAdapter {
           ref: null,
           accept: "json",
           method: "PUT",
-          body: { message: "scan request", content, branch: "commands", ...(sha ? { sha } : {}) },
+          body: { message, content, branch: "commands", ...(sha ? { sha } : {}) },
         })
       );
       if (put.ok) return { ok: true, id: cmd.id };

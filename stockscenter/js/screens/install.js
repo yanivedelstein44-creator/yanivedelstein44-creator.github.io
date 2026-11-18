@@ -7,6 +7,7 @@ import { topBar } from "../components/chrome.js";
 import { canOfferInstall, installSteps } from "../data/install.js";
 import { installState, onInstallChange, alreadyInstalled } from "../installPrompt.js";
 import { startInstall } from "../components/installFlow.js";
+import { PERSONAL_NOTE } from "../components/report.js";
 
 const POINTS = ["סמל משלה במסך הבית, בלי דפדפן מסביב", "מתעדכנת לבד בכל פתיחה", "מפתח החיבור נשמר רק בטלפון הזה"];
 
@@ -100,7 +101,8 @@ export async function mount(root) {
         steps,
         h("ul", { class: "install-hero__points" }, POINTS.map((t) => h("li", {}, icon("check", 16, 2.4), h("span", {}, t)))),
         pairHint,
-        more
+        more,
+        h("p", { class: "field__help install-hero__hint", "data-testid": "personal-note" }, PERSONAL_NOTE)
       )
     )
   );

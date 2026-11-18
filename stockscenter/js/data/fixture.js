@@ -43,6 +43,10 @@ export class FixtureAdapter {
     const offline = new URLSearchParams(location.search).get("pcoffline") === "1";
     const out = { ...base, heartbeat_at: iso(clock.now() - (offline ? 2 * 3600 * 1000 : 0)), local_only: new URLSearchParams(location.search).get("localonly") === "1", queued: 0 };
     if (this.lastScanAt) out.last_scan_at = this.lastScanAt;
+    // 1.0.9: the program's own update; ?pcupdate=waiting shows a downloaded version that waits for the PC to be idle
+    const upd = new URLSearchParams(location.search).get("pcupdate");
+    out.app_version = "1.0.9";
+    out.update = upd === "waiting" ? { state: "waiting", version: "1.0.10", checked_at: iso(clock.now() - 60 * 1000) } : { state: "none", version: null, checked_at: iso(this.updateAskedAt || clock.now() - 6 * 60 * 1000) };
     if (this.scan) {
       const { ids, t0, id } = this.scan;
       const total = ids.length;
@@ -94,6 +98,10 @@ export class FixtureAdapter {
   }
   async getImageUrl(path) {
     return new URL(path, BASE).href;
+  }
+  async requestUpdate() {
+    this.updateAskedAt = clock.now();
+    return { ok: true, id: `demo-cmd-${++this.cmdSeq}` };
   }
   async requestScan(ids) {
     const all = (await this.getIndex()).categories.map((c) => c.id);
@@ -252,7 +260,7 @@ export function installDesktopMock(adapter) {
       }),
     openUrl: async (u) => ((window.__openedUrls = window.__openedUrls || []).push(u), { ok: true }), // test hook
     openLogs: async () => ({ ok: true }),
-    getVersion: async () => ({ ok: true, version: "1.0.8" }),
+    getVersion: async () => ({ ok: true, version: "1.0.9" }),
     checkForUpdates: () => wait(700, { ok: true, available: false, version: "1.0.1", message_he: "אתה משתמש בגרסה העדכנית" }),
   };
   // test hook: methods listed in window.__mockFail answer like a failing bridge call

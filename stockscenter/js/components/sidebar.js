@@ -6,10 +6,13 @@ import { fmtInt } from "../format.js";
 import { statusPill } from "./statusPill.js";
 import { pillScan, roundScan, scanProgress } from "./scanButton.js";
 import { openSearch } from "./searchSheet.js";
+import { loadUniverse } from "../universe.js";
+import { buyCounts } from "../buy.js";
 
 const NAV = [
   ["home", "#/home", "בית", "home"],
   ["combined", "#/combined", "דירוג משולב", "layers"],
+  ["buy", "#/buy", "מחיר מומלץ", "target"], // 1.0.9: stocks at or near the plan's buy price
   ["markets", "#/markets", "שווקים", "markets"],
   ["history", "#/history", "היסטוריה", "history"],
   ["phone", "#/phone", "התקן בטלפון", "phone", "desktop"], // desktop window only: one QR installs and pairs the phone app
@@ -39,6 +42,22 @@ export function sidebar() {
     { class: "sidenav", "aria-label": "מסכים" },
     NAV.filter(([, , , , only]) => only !== "desktop" || app.mode.desktop).map(([key, href, label, ic]) => h("a", { class: "sidenav__a", href, "data-nav": key }, icon(ic, 19, 2), h("span", {}, label)))
   );
+  // the "מחיר מומלץ" item shows how many stocks are in the buy zone (after the lists of the scan are loaded)
+  const buyCount = h("span", { class: "sidenav__count num", "data-testid": "side-buy-count", hidden: true });
+  nav.querySelector('[data-nav="buy"]')?.append(buyCount);
+  const fillBuy = () =>
+    app.index
+      ? loadUniverse().then(
+          (u) => {
+            const c = buyCounts(u.stocks);
+            buyCount.hidden = !c.reached;
+            buyCount.textContent = fmtInt(c.reached);
+            buyCount.title = `${fmtInt(c.reached)} בטווח הקנייה · ${fmtInt(c.near)} קרובות`;
+          },
+          () => (buyCount.hidden = true)
+        )
+      : (buyCount.hidden = true);
+  fillBuy();
   const search = h("button", { class: "iconbtn iconbtn--onblue sidebar__search", type: "button", "aria-label": "חיפוש מניה", title: "חיפוש מניה (/)", "data-testid": "side-search", onClick: () => openSearch() }, icon("search", 19, 2.2));
   const cats = h("div", { class: "sidecats", "data-testid": "category-list" });
   const fillCats = () => cats.replaceChildren(...(app.index?.categories || []).map(catRow));
@@ -67,6 +86,7 @@ export function sidebar() {
   };
   onLive(el, "index", () => {
     fillCats();
+    fillBuy();
     setActive(section);
   });
   return { el, setActive };

@@ -97,6 +97,11 @@ export class LocalAdapter {
     const r = await callBridge("requestScan", ids && ids.length ? ids : ["all"]);
     return { ok: true, ...(r && typeof r === "object" ? r : {}) };
   }
+  /** Inside the program window the program itself checks (the same as "בדוק עדכונים"). */
+  async requestUpdate() {
+    const r = await callBridge("checkForUpdates");
+    return { ok: true, ...(r && typeof r === "object" ? r : {}) };
+  }
 }
 
 /**

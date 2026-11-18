@@ -3,6 +3,8 @@ import { h } from "../dom.js";
 import { fmtClock, splitFirstSentence } from "../format.js";
 
 export const DISCLAIMER = "הנתונים והציונים מוצגים לצורכי מידע בלבד ואינם מהווים ייעוץ השקעות.";
+/** 1.4.2: on the screens a stranger could reach without the owner's key (the public app shell). */
+export const PERSONAL_NOTE = "אפליקציה אישית, לשימוש הבעלים בלבד. לא שירות לציבור ולא ייעוץ השקעות.";
 
 export function reportCard(report, { compact = false } = {}) {
   if (!report) return null;

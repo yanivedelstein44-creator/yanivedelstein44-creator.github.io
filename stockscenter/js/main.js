@@ -80,6 +80,7 @@ const SCREENS = {
   historyCat: () => import("./screens/category.js").then((m) => m.mount),
   combined: () => import("./screens/combined.js").then((m) => m.mount),
   markets: () => import("./screens/markets.js").then((m) => m.mount),
+  buy: () => import("./screens/buy.js").then((m) => m.mount),
   historyCombined: () => import("./screens/combined.js").then((m) => m.mount),
   history: () => import("./screens/history.js").then((m) => m.mountList),
   historyDay: () => import("./screens/history.js").then((m) => m.mountDay),
@@ -99,7 +100,7 @@ function setThemeColor(route) {
 }
 
 /** Child screens restore their parent's scroll position when the user comes back. */
-const PARENT = (r) => (r.name === "cat" || r.name === "settings" || r.name === "phone" || r.name === "install" || r.name === "combined" || r.name === "markets" || r.name === "history" ? "#/home" : r.name === "historyDay" ? "#/history" : r.name === "historyCat" || r.name === "historyCombined" ? `#/history/${r.date}` : null);
+const PARENT = (r) => (r.name === "cat" || r.name === "settings" || r.name === "phone" || r.name === "install" || r.name === "combined" || r.name === "markets" || r.name === "buy" || r.name === "history" ? "#/home" : r.name === "historyDay" ? "#/history" : r.name === "historyCat" || r.name === "historyCombined" ? `#/history/${r.date}` : null);
 
 async function main() {
   app.adapter = await pickAdapter();

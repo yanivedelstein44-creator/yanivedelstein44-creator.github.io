@@ -17,6 +17,8 @@ import { stockLine } from "../components/rankList.js";
 import { rankTable } from "../components/rankTable.js";
 import { listsLabel } from "../components/flags.js";
 import { loadUniverse } from "../universe.js";
+import { PERSONAL_NOTE } from "../components/report.js";
+import { buyCounts } from "../buy.js";
 
 /** "<SYMBOL> מובילה את <the list>": definite Hebrew forms for the 10 SPEC lists. */
 const LEAD_OF = {
@@ -201,6 +203,31 @@ export function catCard(c, { testid = `category-row-${c.id}`, scanTestid = `scan
   return el;
 }
 
+/* ---------- "מחיר מומלץ" (1.0.9): a link with the counts of the latest scan ---------- */
+
+function buyTeaser() {
+  const sub = h("span", { class: "buyteaser__sub", "data-testid": "buy-teaser-sub" }, "מניות שהגיעו למחיר הקנייה המומלץ או קרובות אליו");
+  const count = h("span", { class: "buyteaser__count num", hidden: true });
+  const el = h(
+    "a",
+    { class: "card buyteaser", href: "#/buy", "data-testid": "buy-teaser" },
+    h("span", { class: "buyteaser__icon", "aria-hidden": "true" }, icon("target", 22, 2)),
+    h("span", { class: "buyteaser__txt" }, h("span", { class: "buyteaser__title" }, "מחיר מומלץ"), sub),
+    count,
+    h("span", { class: "buyteaser__go", "aria-hidden": "true" }, icon("chevron", 18, 2.2))
+  );
+  loadUniverse().then(
+    (u) => {
+      const c = buyCounts(u.stocks);
+      count.hidden = !c.reached;
+      count.textContent = fmtInt(c.reached);
+      sub.textContent = c.reached || c.near ? `${c.reached === 1 ? "מניה אחת" : `${fmtInt(c.reached)} מניות`} בטווח הקנייה · ${c.near === 1 ? "אחת קרובה" : `${fmtInt(c.near)} קרובות`}` : "אין כרגע מניה בטווח הקנייה או קרובה אליו";
+    },
+    () => {}
+  );
+  return el;
+}
+
 /* ---------- watchlist ("במעקב") ---------- */
 
 function watchSection() {
@@ -313,7 +340,8 @@ export async function mount(root) {
               kicker("חיבור ראשון"),
               h("p", { class: "state__title" }, "בוא נחבר את הטלפון למחשב"),
               h("p", { class: "state__text" }, "בתוכנה במחשב לחץ ״התקן בטלפון״ וסרוק את הקוד במצלמה. אפשר גם להעתיק משם את הקישור ולהדביק אותו כאן בהגדרות. המפתח נשמר רק בטלפון הזה."),
-              h("div", { class: "state__actions" }, h("a", { class: "btn btn--primary btn--pill", href: "#/settings" }, "להגדרות"), h("button", { class: "btn btn--ghost btn--pill", type: "button", onClick: load }, "נסה שוב"))
+              h("div", { class: "state__actions" }, h("a", { class: "btn btn--primary btn--pill", href: "#/settings" }, "להגדרות"), h("button", { class: "btn btn--ghost btn--pill", type: "button", onClick: load }, "נסה שוב")),
+              h("p", { class: "field__help", "data-testid": "personal-note" }, PERSONAL_NOTE)
             )
           )
         );
@@ -329,6 +357,7 @@ export async function mount(root) {
     const body = h("div", { class: "home" + (wide ? " home--wide" : "") });
     root.append(body);
     body.append(marketBar()); // hidden until the markets page exists (SPEC §6.11)
+    if (!never) body.append(buyTeaser()); // 1.0.9: stocks at or near the plan's buy price
     if (never && app.status?.restoring)
       body.append(
         h(

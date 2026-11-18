@@ -151,3 +151,16 @@ export function firstSentences(text, n = 2, maxLen = 190) {
 
 /** True only for absolute http(s) URLs: the only kind a news headline may link to. */
 export const isHttpUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
+
+/** "1.0.10" >= "1.0.9": numeric parts, missing parts are 0; false for anything that is not a version. */
+export function versionAtLeast(v, min) {
+  const a = String(v || "").split(".").map((x) => Number(x));
+  const b = String(min).split(".").map((x) => Number(x));
+  if (!v || a.some((x) => !Number.isInteger(x))) return false;
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const x = a[i] || 0;
+    const y = b[i] || 0;
+    if (x !== y) return x > y;
+  }
+  return true;
+}

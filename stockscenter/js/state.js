@@ -323,6 +323,31 @@ export async function requestScan(ids) {
   }
 }
 
+/**
+ * 1.0.9: ask the PC program to update itself now (the phone's "עדכן את התוכנה במחשב"). The program also checks by
+ * itself every 15 minutes; this only saves the wait. False when nothing was sent.
+ */
+export async function requestUpdate() {
+  if (phoneOffline()) {
+    app.toast("אין חיבור לאינטרנט");
+    return false;
+  }
+  if (pcState(app.status).kind === "offline") {
+    app.toast("המחשב לא מחובר");
+    return false;
+  }
+  if (typeof app.adapter?.requestUpdate !== "function") return false;
+  try {
+    await app.adapter.requestUpdate();
+    app.toast("הבקשה נשלחה. התוכנה תבדוק אם יש גרסה חדשה ותתקין אותה כשהיא פנויה", { ms: 5000 });
+    schedulePoll(1200);
+    return true;
+  } catch (e) {
+    app.toast(e?.message_he || "שליחת הבקשה נכשלה");
+    return false;
+  }
+}
+
 /* ---------- polling: 3 s while scanning, otherwise 30 s while the page is visible ---------- */
 
 let timer = null;

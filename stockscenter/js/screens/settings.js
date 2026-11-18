@@ -1,6 +1,7 @@
 // Settings: connection (PWA), position-size inputs, desktop-only configuration, version.
 import { h, clear, icon, ltr, isWide } from "../dom.js";
-import { app, saveSettings, refreshIndex, refreshStatus, refreshDesktopInfo, onLive } from "../state.js";
+import { app, saveSettings, refreshIndex, refreshStatus, refreshDesktopInfo, onLive, pcState, requestUpdate } from "../state.js";
+import { timeAgo, clock, versionAtLeast } from "../format.js";
 import { APP_VERSION } from "../../version.js";
 import { callBridge, runTvLogin } from "../data/local.js";
 import { DESKTOP_TOKEN_URL, DEFAULT_OWNER, DEFAULT_CODE_REPO, DEFAULT_DATA_REPO } from "../data/links.js";
@@ -143,6 +144,56 @@ function connectionBlock(rerender) {
     }),
     msg,
     h("div", { class: "block__actions" }, connect, paired && disconnect)
+  );
+}
+
+/* ---------- the program on the PC (phone, 1.0.9): its version and "עדכן את התוכנה במחשב" ---------- */
+
+function updateLineHe(u) {
+  const v = u.version ? ` ${u.version}` : "";
+  const when = u.checked_at ? ` · נבדק ${timeAgo(u.checked_at, clock.now())}` : "";
+  if (u.state === "downloading") return `מורידה את גרסה${v}`;
+  if (u.state === "waiting") return `גרסה${v} ירדה ותותקן כשאין סריקה`;
+  if (u.state === "installing") return `מתקינה את גרסה${v}`;
+  if (u.state === "error") return `בדיקת העדכון האחרונה נכשלה. התוכנה תנסה שוב בעוד 15 דקות${when}`;
+  return `התוכנה מעודכנת${when}`;
+}
+
+function pcProgramBlock() {
+  const ver = h("span", { class: "num", dir: "ltr", "data-testid": "pc-version" }, "—");
+  const line = h("p", { class: "field__help", role: "status", "data-testid": "pc-update-state" });
+  const btn = h("button", { class: "btn btn--secondary btn--pill", type: "button", "data-testid": "pc-update" }, "עדכן את התוכנה במחשב");
+  let busy = false;
+  const paint = () => {
+    const st = app.status;
+    const u = st && st.update && typeof st.update === "object" ? st.update : null;
+    const pc = pcState(st);
+    const able = !!st && versionAtLeast(st.app_version, "1.0.9"); // older programs ignore the update command
+    ver.textContent = (st && st.app_version) || "—";
+    if (!st) line.textContent = "אין עדיין חיבור לתוכנה במחשב.";
+    else if (u) line.textContent = updateLineHe(u);
+    else if (able) line.textContent = "התוכנה עוד לא בדקה עדכונים מאז שעלתה. הכפתור יבקש ממנה לבדוק עכשיו.";
+    else line.textContent = "הכפתור עובד מגרסה 1.0.9 של התוכנה. עד אז היא מתעדכנת לבד בבדיקה הבאה שלה.";
+    if (pc.kind === "offline") line.textContent += " · המחשב לא מחובר כרגע";
+    btn.disabled = busy || !able || pc.kind === "offline" || pc.kind === "unknown" || (u && u.state === "installing");
+  };
+  btn.addEventListener("click", async () => {
+    busy = true;
+    btn.textContent = "שולח…";
+    paint();
+    await requestUpdate();
+    busy = false;
+    btn.textContent = "עדכן את התוכנה במחשב";
+    paint();
+  });
+  paint();
+  onLive(line, "status", paint);
+  return card(
+    "התוכנה במחשב",
+    h("div", { class: "kv", "data-testid": "pc-version-row" }, h("span", {}, "גרסה במחשב"), ver),
+    line,
+    h("div", { class: "block__actions" }, btn),
+    h("p", { class: "field__help" }, "התוכנה בודקת עדכונים לבד כל 15 דקות ומתקינה אותם כשאין סריקה. הכפתור מבקש ממנה לבדוק עכשיו.")
   );
 }
 
@@ -413,7 +464,8 @@ function versionBlock() {
   };
   paintUpd();
   onLive(updErr, "status", paintUpd);
-  return card("אפליקציה", verRow, updErr, h("div", { class: "block__actions" }, btn), h("p", { class: "field__help" }, "הנתונים והציונים מוצגים לצורכי מידע בלבד ואינם מהווים ייעוץ השקעות."));
+  const auto = app.mode.desktop ? h("p", { class: "field__help", "data-testid": "auto-update-help" }, "התוכנה בודקת עדכונים לבד כל 15 דקות ומתקינה אותם כשאין סריקה. אפשר גם לבקש עדכון מהטלפון, בהגדרות של האפליקציה.") : null;
+  return card("אפליקציה", verRow, updErr, h("div", { class: "block__actions" }, btn), auto, h("p", { class: "field__help" }, "לשימוש אישי בלבד. הנתונים והציונים מוצגים לצורכי מידע בלבד ואינם מהווים ייעוץ השקעות."));
 }
 
 export async function mount(root) {
@@ -427,6 +479,7 @@ export async function mount(root) {
     root.append(grid);
     if (!app.mode.desktop) {
       grid.append(connectionBlock(render));
+      if (app.adapter.kind !== "github" || app.adapter.isPaired) grid.append(pcProgramBlock());
       const inst = installBlock();
       if (inst) grid.append(inst);
     }
