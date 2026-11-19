@@ -89,6 +89,27 @@ const ASSIST_SCHEMA = {
   },
   required: ['reply', 'changes']
 };
+const CAR_SCHEMA = {
+  type: 'object',
+  properties: {
+    summary: { type: 'string', description: 'One short Hebrew sentence: what the document is (e.g. "פוליסת ביטוח חובה", "חשבונית טיפול", "רישיון רכב").' },
+    doc_type: { type: 'string', enum: ['license', 'insurance', 'service', 'test', 'other'] },
+    plate: { type: 'string', description: 'Vehicle plate number exactly as written (digits and dashes). Empty if absent.' },
+    name: { type: 'string', description: 'Short Hebrew car name: make and model, e.g. "טויוטה קורולה". Empty if absent.' },
+    km: { type: 'integer', description: 'Odometer reading in km, only when the document states it. 0 if absent.' },
+    test_date: { type: 'string', description: 'YYYY-MM-DD: the date the annual test (טסט) / vehicle license is valid until, i.e. when the next test is due. Empty if absent.' },
+    license_date: { type: 'string', description: 'YYYY-MM-DD: the date the paid license fee (אגרת רישוי) is valid until. Empty if absent.' },
+    ins_date: { type: 'string', description: 'YYYY-MM-DD: the date the insurance policy ends. Empty if absent.' },
+    ins_name: { type: 'string', description: 'Insurance company name. Empty if absent.' },
+    service_date: { type: 'string', description: 'YYYY-MM-DD: the date a service/repair was done (invoice date). Empty if the document is not a service invoice.' },
+    service_title: { type: 'string', description: 'Short Hebrew description of the work, max 50 characters.' },
+    service_km: { type: 'integer', description: 'Odometer km at the service. 0 if absent.' },
+    service_cost: { type: 'integer', description: 'Total paid in NIS, whole number. 0 if absent.' },
+    confidence: { type: 'string', enum: ['high', 'medium', 'low'] }
+  },
+  required: ['summary', 'doc_type', 'plate', 'name', 'km', 'test_date', 'license_date', 'ins_date', 'ins_name', 'service_date', 'service_title', 'service_km', 'service_cost', 'confidence']
+};
+const CAR_SYSTEM = 'You read photos and PDFs of Israeli car documents (vehicle license רישיון רכב, test certificate אישור טסט, compulsory/comprehensive insurance policy, license fee receipt, garage invoice) for a Hebrew family calendar app, and report the facts in the requested JSON structure. Never invent values: leave a field empty (or 0) when the document does not state it. Write Hebrew text in Hebrew.';
 const ASSIST_SYSTEM = 'You help a couple manage their shared Hebrew family calendar. Turn the request into a list of changes (add, update, delete) in the requested JSON structure. The person reviews and approves every change before it is applied. Write titles, places and the reply in Hebrew. Never invent event ids.';
 const SYSTEM = 'You read photos and screenshots of schedules for a Hebrew family calendar app and report the calendar items in the requested JSON structure. Never invent items; when the image has no schedule, return an empty list. Write titles, places and the summary in Hebrew.';
 
@@ -162,6 +183,20 @@ function sanitize(items: unknown) {
   return out;
 }
 
+function sanitizeCar(o: any, today: string) {
+  const d = (s: unknown) => { const v = ymd(s); return v && v >= '2000-01-01' && v <= '2100-12-31' ? v : ''; };
+  const n = (v: unknown, max: number) => { const x = Math.round(Number(v)); return Number.isFinite(x) && x > 0 && x <= max ? x : null; };
+  const out: any = { type: ['license', 'insurance', 'service', 'test', 'other'].includes(o && o.doc_type) ? o.doc_type : 'other' };
+  const plate = clean(o && o.plate, 12).replace(/[^\d-]/g, ''); if (plate.replace(/\D/g, '').length >= 5) out.plate = plate;
+  const name = clean(o && o.name, 40); if (name) out.name = name;
+  const km = n(o && o.km, 2_000_000); if (km) out.km = km;
+  for (const k of ['test_date', 'license_date', 'ins_date']) { const v = d(o && o[k]); if (v) out[k] = v; }
+  const ins = clean(o && o.ins_name, 40); if (ins) out.ins_name = ins;
+  const sd = d(o && o.service_date);
+  if (sd && sd <= today) out.service = { date: sd, title: clean(o && o.service_title, 50) || 'טיפול', km: n(o && o.service_km, 2_000_000), cost: n(o && o.service_cost, 1_000_000) };
+  out.confidence = ['high', 'medium', 'low'].includes(o && o.confidence) ? o.confidence : 'medium';
+  return out;
+}
 const OWNERS = ['me', 'partner', 'both'];
 function sanitizeChanges(list: unknown, ids: Set<string>) {
   const out: any[] = [];
@@ -192,8 +227,9 @@ function sanitizeChanges(list: unknown, ids: Set<string>) {
 
 // ---------- Gemini (free tier) ----------
 type Opts = { media: boolean; thinking: boolean; schema: boolean };
-function geminiBody(img: string, mt: string, text: string, o: Opts, assist = false) {
-  const SC = assist ? ASSIST_SCHEMA : SCHEMA, SY = assist ? ASSIST_SYSTEM : SYSTEM;
+function geminiBody(img: string, mt: string, text: string, o: Opts, kind: boolean | string = false) {
+  const k = kind === true ? 'assist' : kind || 'scan';
+  const SC = k === 'assist' ? ASSIST_SCHEMA : k === 'car' ? CAR_SCHEMA : SCHEMA, SY = k === 'assist' ? ASSIST_SYSTEM : k === 'car' ? CAR_SYSTEM : SYSTEM;
   const image: any = img ? { inlineData: { mimeType: mt, data: img } } : null;
   if (image && o.media) image.mediaResolution = { level: 'media_resolution_high' }; // small print in rosters needs the sharper view
   const gc: any = { responseMimeType: 'application/json', maxOutputTokens: 16384 };
@@ -216,7 +252,7 @@ function readGemini(j: any) {
   try { if (a >= 0 && b > a) return JSON.parse(text.slice(a, b + 1)); } catch { /* fall through */ }
   throw new ScanError('failed', 502, 'bad json, finish ' + fr);
 }
-async function scanGemini(img: string, mt: string, text: string, t0: number, assist = false) {
+async function scanGemini(img: string, mt: string, text: string, t0: number, assist: boolean | string = false) {
   let o: Opts = { media: true, thinking: true, schema: true };
   let busy = false, last = '';
   for (const model of MODELS) {
@@ -319,9 +355,18 @@ Deno.serve(async req => {
       return json({ reply: clean(r0.out && r0.out.reply, 300), changes, model: r0.model, usage: r0.usage });
     }
     const img = typeof b.image === 'string' ? b.image.replace(/^data:[^,]+,/, '') : '';
-    const mt = ['image/jpeg', 'image/png', 'image/webp'].includes(b.mediaType) ? b.mediaType : 'image/jpeg';
+    const car = b.mode === 'car';
+    const mt = ['image/jpeg', 'image/png', 'image/webp'].concat(car ? ['application/pdf'] : []).includes(b.mediaType) ? b.mediaType : 'image/jpeg';
     if (!img || img.length > 8_000_000) return json({ error: 'image' }, 413);
     const today = ymd(b.today) || new Date().toISOString().slice(0, 10);
+    if (car) {
+      if (PROVIDER === 'claude') return json({ error: 'failed' }, 501);
+      called = true;
+      const rc = await scanGemini(img, mt, `Today is ${today}. Read this car document and fill the JSON structure. doc_type: license (רישיון רכב: its "תוקף הרישיון עד" date is the next test date), test (אישור טסט: the date the new test is valid until is the next test date), insurance (policy end date; insurance company name), service (garage or tire-shop invoice: the work, date, odometer, total), other. A license-fee (אגרת רישוי) receipt gives license_date. Dates as YYYY-MM-DD; in Israeli documents dates are written day/month/year.`, t0, 'car');
+      const doc = sanitizeCar(rc.out, today);
+      await db.from('scan_log').insert({ household_id: me.household_id, user_id: uid, model: rc.model, input_tokens: rc.usage.input, output_tokens: rc.usage.output, items: Object.keys(doc).length, ok: true });
+      return json({ summary: clean(rc.out && rc.out.summary, 160), doc, model: rc.model, usage: rc.usage });
+    }
     const roster = clean(b.rosterName, 40);
     if (roster) me = { ...me, roster_name: roster };
 
