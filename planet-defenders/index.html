@@ -65,6 +65,13 @@
  .feat .pi { width: 34px; height: 34px; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .6)) drop-shadow(0 0 8px currentColor); }
  .feat b { font-size: 15.5px; font-weight: 800; } .feat span { font-size: 13px; color: #b9cbe0; line-height: 1.35; }
  footer { text-align: center; font-size: 12px; color: var(--steel); opacity: .85; padding: 0 8px; }
+ footer p { margin: 0; }
+ .legal { list-style: none; margin: 0 0 4px; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; font-size: 13.5px; }
+ .legal li { display: flex; align-items: center; }
+ .legal li + li::before { content: '·'; color: var(--steel); padding-inline: 2px; }
+ .legal a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 7px; color: #d6e6f6; text-decoration: underline; text-underline-offset: 3px; }
+ .legal a:hover { color: #fff; }
+ .legal a:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 4px; }
  @media (min-width: 880px) {
   main { grid-template-columns: 1fr 1fr; gap: 20px 24px; padding-top: 34px; align-items: start; }
   .hero, footer { grid-column: 1 / -1; } .logo-svg { width: 620px; } .tag { font-size: 19px; }
@@ -99,6 +106,15 @@
   <li class="panel"><span style="color:#ffd23a;line-height:0"><svg class="pi pi-trophy" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><defs><linearGradient id="pg6" x1="0" y1="0" x2="0" y2="1"><stop offset=".3" stop-color="currentColor"/><stop offset="1" stop-color="currentColor" stop-opacity=".66"/></linearGradient></defs><path d="M7.2 5H4.3c0 3.1 1.3 4.9 3.7 5.3M16.8 5h2.9c0 3.1-1.3 4.9-3.7 5.3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.2 3.2h9.6v5.5c0 2.9-2.1 5.2-4.8 5.2s-4.8-2.3-4.8-5.2zM10.8 14h2.4v3.3h-2.4zM7.8 17.6h8.4l.9 3.3H6.9z" fill="url(#pg6)" fill-rule="evenodd" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8.2 3.9h1.7v5.3c0 1.1.3 2.1.9 2.9-1.6-.6-2.6-2.1-2.6-3.9z" fill="#fff" fill-opacity="0.55"/><path d="M7.8 17.6h8.4l.3 1H7.5z" fill="#06101f" fill-opacity="0.25"/></svg></span><b>100 שלבים</b><span>עשרה פרקים, יום ולילה, כוכבים חיים</span></li>
  </ul>
 </div>
-<footer>הקוד, הדגמים והצלילים מקוריים. המנוע התלת-ממדי: three.js (MIT).</footer>
+<footer>
+ <nav aria-label="מידע משפטי ויצירת קשר"><ul class="legal">
+  <li><a href="privacy.html">מדיניות פרטיות</a></li>
+  <li><a href="terms.html">תנאי שימוש ומכירה</a></li>
+  <li><a href="accessibility.html">הצהרת נגישות</a></li>
+  <li><a href="licenses.html">רישיונות</a></li>
+  <li><a href="mailto:yanivedelstein33@gmail.com">יצירת קשר</a></li>
+ </ul></nav>
+ <p>הקוד, הדגמים והצלילים מקוריים. המנוע התלת-ממדי: three.js (MIT).</p>
+</footer>
 </main></body>
 </html>
