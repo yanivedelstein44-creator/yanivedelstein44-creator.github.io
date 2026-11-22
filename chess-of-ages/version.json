@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.6.4",
-  "build": "1.6.4-1794852726763",
-  "buildTime": 1794852726763,
-  "date": "2026-11-16T18:12:06.763Z",
+  "version": "1.6.5",
+  "build": "1.6.5-1795361061465",
+  "buildTime": 1795361061465,
+  "date": "2026-11-22T15:24:21.465Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.6.4-1794852726763.zip",
-  "checksum": "87e4127e2ec623aa9be87032aab7c235a2a0096ba06d71dcd679510ccc7adf43",
+  "bundle": "update/bundle-1.6.5-1795361061465.zip",
+  "checksum": "ba40a92f5cacdaede0c9f12bc5902dbadcd0bfc80be34e7ab6845fb6bf74b21b",
   "apk": "https://yanivedelstein44-creator.github.io/chess-of-ages/download/chess-of-ages.apk",
-  "notes": "Behind the scenes: getting ready for the Google Play launch"
+  "notes": "The game now opens in your phone's language: Hebrew on a Hebrew phone, English on any other. A language you pick yourself still wins"
 }

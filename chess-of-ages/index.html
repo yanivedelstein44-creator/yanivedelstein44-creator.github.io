@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <script>/* CSP (web build only) - see scripts/vite-csp.mjs */(function(){try{var l=location,h=new RegExp("(^|\\.)(github\\.io|pages\\.dev)$");if(window.Capacitor||!(h.test(l.hostname)||/[?&]csp=1(&|$)/.test(l.search)))return;var m=document.createElement('meta');m.httpEquiv='Content-Security-Policy';m.content="default-src 'self'; script-src 'self' 'sha256-bGp4FoKWhU1nmalfJdJyBlct79lhQqkmMkLZ9OrxxW4=' 'sha256-J3oUsxP4dhWLDiHsBvlR+tuwkvq0KPd5h3qRj6r1oSU='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data: blob: https://yanivedelstein44-creator.github.io; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.firebaseio.com wss://*.firebaseio.com https://yanivedelstein44-creator.github.io; worker-src 'self' blob: data:; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests";document.head.appendChild(m);document.documentElement.setAttribute('data-csp','on');document.addEventListener('securitypolicyviolation',function(e){try{console.warn('[CSP] blocked',e.violatedDirective,e.blockedURI||'inline')}catch(_){}});}catch(e){}})();</script>
+    <script>/* CSP (web build only) - see scripts/vite-csp.mjs */(function(){try{var l=location,h=new RegExp("(^|\\.)(github\\.io|pages\\.dev)$");if(window.Capacitor||!(h.test(l.hostname)||/[?&]csp=1(&|$)/.test(l.search)))return;var m=document.createElement('meta');m.httpEquiv='Content-Security-Policy';m.content="default-src 'self'; script-src 'self' 'sha256-C1UWVc84POohF4RLasJHSkPfTciVm6CA6tXjMIQ3udo=' 'sha256-J3oUsxP4dhWLDiHsBvlR+tuwkvq0KPd5h3qRj6r1oSU='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data: blob: https://yanivedelstein44-creator.github.io; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://*.firebaseio.com wss://*.firebaseio.com https://yanivedelstein44-creator.github.io; worker-src 'self' blob: data:; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests";document.head.appendChild(m);document.documentElement.setAttribute('data-csp','on');document.addEventListener('securitypolicyviolation',function(e){try{console.warn('[CSP] blocked',e.violatedDirective,e.blockedURI||'inline')}catch(_){}});}catch(e){}})();</script>
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Chess of Ages: Island Realms</title>
@@ -35,15 +35,16 @@
     <link rel="icon" type="image/png" href="./icons/icon-192.png" />
     <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
     <script>
-      // שפה לפני הציור הראשון: אנגלית לכולם, עברית רק אם השחקן בחר בה (כפתור השפה או ההגדרות)
+      // שפה לפני הציור הראשון: לפי שפת הטלפון (עברית → עברית, כל שפה אחרת → אנגלית),
+      // ובחירה מפורשת של השחקן (כפתור השפה או ההגדרות) גוברת. אותו כלל כמו deviceLang ב-src/ui/i18n.js
       (function () {
-        var lang = 'en';
+        var lang = /^(he|iw)\b/i.test(navigator.language || '') ? 'he' : 'en';
         try { var s = JSON.parse(localStorage.getItem('chess_ages_progress') || 'null'); if (s && s.settings && s.settings.lang) lang = s.settings.lang; } catch (e) { /* storage blocked */ }
         var d = document.documentElement; d.lang = lang; d.dir = lang === 'he' ? 'rtl' : 'ltr';
         if (lang === 'he') { var m = document.querySelector('link[rel="manifest"]'); if (m) m.href = './manifest.he.json'; }
       })();
     </script>
-    <script type="module" crossorigin src="./assets/index-C4xnMJr2.js"></script>
+    <script type="module" crossorigin src="./assets/index-COk61CvY.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-B9HwJ1p7.css">
   </head>
   <body>
@@ -104,7 +105,7 @@
 </svg>
       <div class="loader-bar" aria-hidden="true"><i></i></div>
       <div class="splash-msg">Sailing to the islands…</div>
-      <div class="version">v1.6.4</div>
+      <div class="version">v1.6.5</div>
     </div>
     <script>
       if (document.documentElement.lang === 'he') (function () {
