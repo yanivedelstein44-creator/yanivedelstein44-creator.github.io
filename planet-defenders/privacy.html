@@ -3,10 +3,12 @@
   Privacy Policy: Orbit Defenders (מגיני הכוכבים), all channels: the Google Play version, the Android app from our website
   and the game in a browser. Written by the prepare-app-for-google-play skill (3.1, 3.2, 3.3, 3.5) in the structure of
   Chess of Ages' privacy.html. Developer name and contact email come from legal-config.js (the only place to set them).
-  Hebrew by default; the game links here with ?lang=he or ?lang=en, and #he-online / #he-pay open a section.
+  Hebrew by default; the game links here with ?lang=he or ?lang=en, and #he-online / #he-pay / #he-ads open a section.
   Online play (section 3): docs/online-net.md §3 and §7, server/src/*.js, game/src/net.js. Purchases (section 4): Google
-  Play Billing in the Play build only. The trailer (section 5): YouTube's player from youtube-nocookie.com, after a tap.
-  Facts checked against the code on Nov 21, 2026; what the code did not have yet is listed in google-play/COMPLIANCE.md.
+  Play Billing in the Play build only. Ads (section 4a): Google AdMob in the Play build only, after the tap on "Watch the
+  ad" (game/src/ads.js, ads_ui.js). The trailer (section 5): YouTube's player from youtube-nocookie.com, after a tap.
+  Facts checked against the code on Nov 21, 2026 (the 1.1.1 changes: diamond packs, the starter and supporter packs and
+  the ads, on Nov 22, 2026); what the code did not have yet is listed in google-play/COMPLIANCE.md.
 -->
 <html lang="he" dir="rtl" data-default-lang="he">
 <head>
@@ -15,7 +17,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>מדיניות פרטיות | מגיני הכוכבים</title>
-  <meta name="description" content="מדיניות הפרטיות של מגיני הכוכבים (Orbit Defenders): מה נשמר במכשיר, מה נשלח במשחק אונליין, ברכישות בגרסת Google Play ובטריילר, והזכויות שלך. Privacy policy of Orbit Defenders." />
+  <meta name="description" content="מדיניות הפרטיות של מגיני הכוכבים (Orbit Defenders): מה נשמר במכשיר, מה נשלח במשחק אונליין, ברכישות ובפרסומות בגרסת Google Play ובטריילר, והזכויות שלך. Privacy policy of Orbit Defenders." />
   <meta name="theme-color" content="#070b19" />
   <meta name="color-scheme" content="dark" />
   <meta name="robots" content="index,follow" />
@@ -45,15 +47,15 @@
         <a href="./licenses.html" data-keep-lang>רישיונות</a>
       </nav>
       <h1>מדיניות פרטיות</h1>
-      <p class="meta">מגיני הכוכבים (Orbit Defenders) · עודכן לאחרונה: <time data-legal="updated">2026-11-21</time></p>
+      <p class="meta">מגיני הכוכבים (Orbit Defenders) · עודכן לאחרונה: <time data-legal="updated">2026-11-22</time></p>
 
       <section aria-labelledby="he-summary">
         <h2 id="he-summary">בקצרה</h2>
         <ul class="summary">
-          <li>אין חשבון, אין פרסומות, אין כלי ניתוח (אנליטיקה), אין דיווח קריסות, אין עוגיות ואין מעקב.</li>
+          <li>אין חשבון, אין כלי ניתוח (אנליטיקה) ואין דיווח קריסות, והמשחק עצמו לא משתמש בעוגיות. פרסומות יש רק בגרסת Google&nbsp;Play, בכוכב החסות, ורק כשבוחרים לצפות. עד הנגיעה ב"צפה בפרסומת" שום קוד פרסום לא פועל, והפרסומות כלליות, לא מותאמות אישית, אלא אם בחרת אחרת (סעיף 4א).</li>
           <li>ההתקדמות, הקרבות השמורים, היהלומים, האוסף, ההגדרות והרשימה "הרכישות שלי" נשמרים רק במכשיר שלך. אנחנו לא רואים אותם.</li>
           <li>משחק נגד המחשב, בכל מצבי המשחק, מתנהל כולו במכשיר. שום דבר ממנו לא נשלח.</li>
-          <li>משחק אונליין הוא לבחירתך: עם חבר בקוד של 6 תווים, או בזירה מול שחקנים מהאינטרנט. נשלח רק מה שהמשחק צריך: מספר אקראי של הטלפון (בלי שם, חשבון או מייל), גרסת המשחק, הפקודות שלך במשחק, שם שבוחרים מרשימה קבועה, ובזירה גם הדירוג. אין צ׳אט ואין טקסט חופשי. השרת פועל ב-Cloudflare, והמידע שלו נשמר באיחוד האירופי (סעיף 3).</li>
+          <li>משחק אונליין הוא לבחירתך: עם חבר בקוד של 6 תווים, או בזירה מול שחקנים מהאינטרנט. נשלח רק מה שהמשחק צריך: מספר אקראי של הטלפון (בלי שם, חשבון או מייל), גרסת המשחק, הפקודות שלך במשחק, שם שבוחרים מרשימה קבועה, האם קנית את חבילת התומכים, ובזירה גם הדירוג. אין צ׳אט ואין טקסט חופשי. השרת פועל ב-Cloudflare, והמידע שלו נשמר באיחוד האירופי (סעיף 3).</li>
           <li>רכישות בכסף אמיתי יש רק בגרסת Google&nbsp;Play, והן לבחירתך. Google&nbsp;Play גובה את התשלום, ופרטי התשלום שלך לא מגיעים אלינו (סעיף 4). באתר שלנו ובאפליקציה שמורידים ממנו אין רכישות.</li>
           <li>הטריילר של המשחק נטען מיוטיוב רק אחרי שנוגעים בו (סעיף 5).</li>
           <li>אפשר למחוק הכול בכל רגע (סעיף 10).</li>
@@ -79,13 +81,15 @@
               <tr><td>הגדרות: שפה, צלילים, עוצמת המוזיקה והאפקטים, איכות הגרפיקה, "הפחת רעידות", סגנון התפריט</td><td><code>pd-lang</code>, <code>pd-sound</code>, <code>pd-vol-…</code>, <code>pd-gfx</code>, <code>pd-calm</code>, <code>pd-menu</code></td><td>כדי לזכור את הבחירות שלך</td></tr>
               <tr><td>אילו טיפים, הדרכות ושיעורים כבר ראית, וההגדרות של המשחק החופשי ושל הסימולטור</td><td><code>pd-tut</code>, <code>pd-guide-…</code>, <code>pd-lesson-…</code>, <code>pd-custom</code>, <code>pd-sim</code> ודומיהן</td><td>כדי שטיפים לא יחזרו ושההגדרות שלך יישמרו</td></tr>
               <tr><td>רק אם שיחקת אונליין: המספר האקראי של הטלפון, השם שבחרת מהרשימה, הגדרות החדר האחרון ושל הזירה, הדירוג האחרון שראית, שקראת את ההודעה שלפני משחק אונליין ושלפני הזירה, והשחקנים שחסמת (רק התגים המקוצרים שלהם)</td><td><code>pd-net-id</code>, <code>pd-online-name</code>, <code>pd-online-set</code>, <code>pd-arena-set</code>, <code>pd-arena-me</code>, <code>pd-arena-notice</code>, <code>pd-net-blocks</code></td><td>כדי לשחק אונליין (סעיף 3)</td></tr>
-              <tr><td>רק בגרסת Google&nbsp;Play, אחרי רכישה: אילו פריטים קנית, עם מספר ההזמנה של Google ואסימון הרכישה (<span lang="en" dir="ltr">purchase token</span>), והרשימה "הרכישות שלי" (פריט, תאריך, מחיר ומספר הזמנה)</td><td>רשומות <code>pd-</code> של החנות</td><td>כדי למסור את מה שקנית, לא למסור פעמיים, לשחזר רכישות ולהראות לך אותן (סעיף 4)</td></tr>
+              <tr><td>רק בגרסת Google&nbsp;Play, אחרי רכישה: אילו פריטים קנית, עם מספר ההזמנה של Google ואסימון הרכישה (<span lang="en" dir="ltr">purchase token</span>), כמה יהלומים קנית במכשיר הזה וכמה מהם עוד לא הוצאו, והרשימה "הרכישות שלי" (פריט, תאריך, מחיר ומספר הזמנה, ובחבילת יהלומים גם המצב שלה)</td><td>רשומות <code>pd-</code> של החנות; ספירת היהלומים שקנית ב-<code>pd-prog</code></td><td>כדי למסור את מה שקנית, לא למסור פעמיים, לשחזר רכישות, לטפל בהחזרים ולהראות לך אותן (סעיף 4)</td></tr>
+              <tr><td>רק בגרסת Google&nbsp;Play, אם קנית את חבילת התומכים: שהחבילה שלך, המתג של מסגרות הזהב, והאם כבר הוצגו מסך התודה והפסל ברובע השעשועים</td><td><code>pd-fan</code>, <code>pd-fan-gold</code>, <code>pd-fan-thanks</code>, <code>pd-fan-seen</code></td><td>כדי להציג את מה שהחבילה נותנת, ואת מסך התודה ואת הופעת הפסל רק פעם אחת (סעיפים 3 ו-4)</td></tr>
+              <tr><td>רק בגרסת Google&nbsp;Play: הבחירה שלך בין פרסומות כלליות למותאמות אישית, מתי נגמרה הפרסומת האחרונה וכמה פרסומות ראית עד הסוף היום. באזור הכלכלי האירופי, בבריטניה ובשווייץ גם התשובה שלך בטופס ההסכמה של Google, שה-SDK של Google שומר במכשיר</td><td><code>pd-ads-pers</code>; הזמן והספירה ב-<code>pd-prog</code>; התשובה בטופס: באחסון של ה-SDK של Google</td><td>כדי לזכור את הבחירה שלך ולשמור על המגבלה: פרסומת אחת ל-5 דקות, עד 5 ביום (סעיף 4א)</td></tr>
               <tr><td>רק באפליקציה שמורידים מהאתר: המתג "בדיקה אוטומטית", מועד הבדיקה האחרונה ותוצאתה, והגרסה החדשה של המשחק שהורדה</td><td><code>pd-updater</code>, IndexedDB <code>pd-updates</code></td><td>כדי להתקין עדכונים (סעיף 6)</td></tr>
             </tbody>
           </table>
         </div>
         <p>כל מה שבטבלה נשאר במכשיר עד שמוחקים אותו באחת הדרכים שבסעיף 10.</p>
-        <p>אנחנו לא משתמשים בעוגיות, במזהי פרסום, בטביעת אצבע דיגיטלית, באנליטיקה או בכלי דיווח קריסות. מנוע התלת-ממד (three.js) והגופן (Rubik) נמצאים בתוך המשחק. המשחק מתחבר לאינטרנט רק בשביל מה שמתואר בסעיפים 3 עד 6.</p>
+        <p>אנחנו לא משתמשים בעוגיות, בטביעת אצבע דיגיטלית, באנליטיקה או בכלי דיווח קריסות. את מזהה הפרסום של אנדרואיד קורא רק ה-SDK של Google לפרסומות, רק בגרסת Google&nbsp;Play ורק אחרי שבחרת לצפות בפרסומת (סעיף 4א). מנוע התלת-ממד (three.js) והגופן (Rubik) נמצאים בתוך המשחק. המשחק מתחבר לאינטרנט רק בשביל מה שמתואר בסעיפים 3 עד 6.</p>
       </section>
 
       <section aria-labelledby="he-online">
@@ -97,11 +101,12 @@
           <li>את גרסת המשחק, כדי ששני הטלפונים ישחקו באותה גרסה, ואת הגדרות המשחק שנבחרו (למשל המפה ומספר הכוכבים);</li>
           <li>את הפקודות שלך במשחק (מה בנית, שדרגת או שלחת, בערך פעמיים בשנייה), ומספרי בדיקה שמוודאים ששני הטלפונים רואים את אותו משחק;</li>
           <li>את השם שבחרת מרשימה קבועה (תואר וכינוי), ואת האותות המהירים שבחרת מרשימה קבועה של 6;</li>
+          <li>האם קנית את חבילת התומכים: סימן אחד, פעם אחת בכל משחק, ליד השם שבחרת. שום פרט אחר על רכישות לא נשלח;</li>
           <li>בזירה: את רשימת השחקנים שחסמת, כתגים מקוצרים. תג הוא קוד חד-כיווני שנגזר מהמספר האקראי של שחקן, ואי אפשר לשחזר ממנו את המספר.</li>
         </ul>
         <p>אין צ׳אט, אין טקסט חופשי, אין שמות מוקלדים ואין מיקום.</p>
         <p><b>הדירוג בזירה.</b> השרת שומר לכל מספר אקראי את הדירוג שלו: מספר הדירוג, ניצחונות, הפסדים, מספר המשחקים המדורגים, והיום האחרון שבו היה משחק מדורג. רק משחקי זירה מדורגים. משחק עם חבר לא מדורג.</p>
-        <p><b>מה רואים השחקנים האחרים.</b> חבר בחדר פרטי רואה את השם שבחרת מהרשימה, את הסמל של הצד שלך, את האותות שלך ואת המשחק עצמו. בזירה היריב רואה את אותם דברים וגם את הדירוג שלך (מספר הדירוג, ניצחונות, הפסדים ומשחקים). אף שחקן לא מקבל את המספר האקראי שלך או את כתובת ה-IP שלך. כדי שהיריב יוכל לחסום אותך, הטלפון שלו מקבל את התג המקוצר שלך.</p>
+        <p><b>מה רואים השחקנים האחרים.</b> חבר בחדר פרטי רואה את השם שבחרת מהרשימה, את הסמל של הצד שלך, את האותות שלך, האם קנית את חבילת התומכים (אז השם שלך מוצג אצלו בזהב, עם כוכב) ואת המשחק עצמו. בזירה היריב רואה את אותם דברים וגם את הדירוג שלך (מספר הדירוג, ניצחונות, הפסדים ומשחקים). אף שחקן לא מקבל את המספר האקראי שלך או את כתובת ה-IP שלך. כדי שהיריב יוכל לחסום אותך, הטלפון שלו מקבל את התג המקוצר שלך.</p>
         <p><b>חסימה.</b> במשחק בזירה ואחריו אפשר לחסום את היריב בנגיעה אחת: האותות שלו לא יוצגו לך, והזירה לא תצמיד אתכם שוב. רשימת החסומים נשמרת רק בטלפון שלך. היא נשלחת עם כל חיפוש בזירה, ונשארת בשרת רק כל עוד החיבור של החיפוש פתוח. השחקן החסום לא מקבל הודעה.</p>
         <p><b>מי מעבד את המידע ואיפה.</b> השרת של המשחק פועל ב-Cloudflare Workers וב-Durable Objects של <bdi>Cloudflare, Inc.</bdi>, שמעבדת את המידע בשבילנו כספקית שירות. החדרים, התור והזירה פועלים ושומרים את המידע שלהם רק באיחוד האירופי. החיבור עצמו נכנס דרך השרת של Cloudflare הקרוב אליך, שיכול להיות גם מחוץ לאיחוד, ו-Cloudflare רושמת גם מחוץ לאיחוד את המזהה הפנימי של כל חדר, לחיוב ולאיתור תקלות. כמו בכל שירות באינטרנט, Cloudflare מעבדת את כתובת ה-IP שלך כדי להעביר את החיבור ולאבטח אותו. הקוד של השרת שלנו לא קורא ולא שומר כתובות IP. Cloudflare עשויה לשמור בשבילנו יומן טכני של הבקשות לשרת עד 3 ימים (למשל השעה והכתובת שהתבקשה, שכוללת את המספר האקראי), ואנחנו משתמשים בו רק כדי למצוא ולתקן תקלות.</p>
         <p><b>לכמה זמן.</b></p>
@@ -117,11 +122,27 @@
 
       <section aria-labelledby="he-pay">
         <h2 id="he-pay">4. רכישות (רק בגרסת Google&nbsp;Play)</h2>
-        <p><b>מה אפשר לקנות.</b> בגרסת Google&nbsp;Play אפשר לקנות, לבחירתך, חבילות בכסף אמיתי: חבילת תומכים, מכפיל יהלומים x2, שלבי החור השחור 6 עד 30, כל החיות, כל הסקינים, "הכול", ומתקנים של רובע השעשועים. מה כל חבילה נותנת כתוב בחנות, ובתנאי השימוש והמכירה. יהלומים לא נמכרים בכסף: מרוויחים אותם רק במשחק. תיבות האוצר חינמיות.</p>
+        <p><b>מה אפשר לקנות.</b> בגרסת Google&nbsp;Play אפשר לקנות, לבחירתך, חבילות בכסף אמיתי: חבילות יהלומים, חבילת מתחילים, חבילת תומכים, מכפיל יהלומים x2, שלבי החור השחור 6 עד 30, כל החיות, כל הסקינים, "הכול", ומתקנים של רובע השעשועים. מה כל חבילה נותנת כתוב בחנות, ובתנאי השימוש והמכירה. יהלומים אפשר גם להרוויח במשחק, ובגרסת Google&nbsp;Play גם בפרסומת שבוחרים לצפות בה (סעיף 4א). תיבות האוצר חינמיות.</p>
         <p><b>תשלום.</b> הרכישות נעשות במערכת החיוב של Google&nbsp;Play, ו-Google מעבדת את התשלום לפי התנאים ומדיניות הפרטיות שלה. פרטי כרטיס האשראי או החשבון שלך לא מגיעים אלינו. בגרסת Google&nbsp;Play נמצאת ספריית החיוב של Google, והיא שולחת ל-Google גם נתונים טכניים על פעולת החיוב: אם פעולה הצליחה או נכשלה, ובעיות חיבור לשירות.</p>
-        <p><b>מה המשחק מקבל ושומר.</b> מ-Google&nbsp;Play המשחק מקבל רק את המוצר שנקנה, את מספר ההזמנה ואת אסימון הרכישה. הוא שומר אותם במכשיר כדי למסור את מה שקנית, לא למסור פעמיים, לשחזר רכישות ולהסיר פריט אם הרכישה הוחזרה. אחרי כל רכישה מוצג כרטיס "הרכישה הושלמה", והרשימה "הרכישות שלי" בהגדרות נשמרת רק במכשיר הזה ונמחקת כשמוחקים את הנתונים של המשחק (סעיף 10). שום דבר מזה לא נשלח לשרתים שלנו.</p>
+        <p><b>מה המשחק מקבל ושומר.</b> מ-Google&nbsp;Play המשחק מקבל רק את המוצר שנקנה, את מספר ההזמנה ואת אסימון הרכישה. הוא שומר אותם במכשיר כדי למסור את מה שקנית, לא למסור פעמיים, לשחזר רכישות ולהסיר פריט, או יהלומים שעוד לא הוצאו, אם הרכישה הוחזרה. אחרי כל רכישה מוצג כרטיס "הרכישה הושלמה", והרשימה "הרכישות שלי" בהגדרות נשמרת רק במכשיר הזה ונמחקת כשמוחקים את הנתונים של המשחק (סעיף 10). שום דבר מזה לא נשלח לשרתים שלנו.</p>
+        <p><b>חבילות יהלומים.</b> חבילת יהלומים היא מוצר מתכלה: אפשר לקנות אותה שוב ושוב. היהלומים שקנית נשמרים רק במכשיר הזה, בנתוני המשחק, ו-Google&nbsp;Play לא יכולה לשחזר אותם: לא בטלפון אחר ולא אחרי מחיקת הנתונים (סעיף 10). גם כאן שום דבר חדש לא נשלח אלינו: הקנייה, וההודעה ל-Google שהחבילה נוצלה כדי שאפשר יהיה לקנות אותה שוב, עוברות דרך ספריית החיוב של Google&nbsp;Play.</p>
         <p><b>מה Google מראה לנו.</b> ב-Play Console אנחנו רואים פרטי הזמנות (כמו מספר ההזמנה, המוצר, המחיר והמס ומצב ההזמנה), ואפשר לחפש בו הזמנה לפי המספר שלה או לפי כתובת המייל של הקונה. אנחנו משתמשים בזה רק כדי לטפל בביטולים, בהחזרים ובפניות תמיכה. למשתמשים באיחוד האירופי ובבריטניה, הבסיס החוקי הוא ביצוע הרכישה שביקשת (סעיף 6(1)(b) ל-GDPR).</p>
         <p>באתר שלנו ובאפליקציה שמורידים ממנו אין רכישות: החבילות שם מסומנות "בקרוב". ביטולים, החזרים ופרטי המוכר: ב<a href="./terms.html#he-pay">תנאי השימוש והמכירה</a>.</p>
+      </section>
+
+      <section aria-labelledby="he-ads">
+        <h2 id="he-ads">4א. פרסומות בכוכב החסות (רק בגרסת Google&nbsp;Play)</h2>
+        <p>בגרסת Google&nbsp;Play יש מקום אחד לפרסומות: כוכב החסות במפת הגלקסיה. נגיעה בו פותחת קודם הסבר: שזו פרסומת, מה מקבלים, שאפשר לסגור אותה בכל רגע ושהיא מוצגת על ידי Google AdMob. רק אם בחרת "צפה בפרסומת", המשחק מפעיל את ה-SDK של Google לפרסומות (<span lang="en" dir="ltr">Google Mobile Ads SDK 25.5.0</span>) ואת ה-SDK של טופס ההסכמה של Google (<span lang="en" dir="ltr">User Messaging Platform SDK 4.0.0</span>), וטוען פרסומת אחת. לפני זה שום קוד פרסום לא פועל ושום דבר לא נשלח ל-Google. מי שצופה בפרסומת עד הסוף מקבל מאיתנו (לא מ-Google) 20 יהלומים (40 עם מכפיל היהלומים x2), עד 5 פרסומות ביום ולפחות 5 דקות בין פרסומת לפרסומת. באתר שלנו ובאפליקציה שמורידים ממנו אין פרסומות.</p>
+        <ul>
+          <li><b>מה נשלח ל-Google ולמה:</b> כשבחרת לצפות, ה-SDK של Google אוסף באופן אוטומטי את המידע הבא ומשתף אותו עם Google, לפרסום, לניתוח (אנליטיקה) ולמניעת הונאה: את כתובת ה-IP של המכשיר, שבעזרתה אפשר להעריך את המיקום הכללי שלו; מזהי מכשיר וחשבון (מזהה הפרסום של אנדרואיד, מזהה <span lang="en" dir="ltr">app set ID</span>, ומזהים שקשורים לחשבונות שמחוברים במכשיר, אם יש); הפעולות שלך, כמו פתיחת האפליקציה, נגיעות וצפייה בסרטון; ומידע אבחון על הביצועים של האפליקציה ושל ה-SDK, כמו זמן הפתיחה של האפליקציה, קצב התקיעות וצריכת האנרגיה. כל המידע הזה מוצפן בזמן ההעברה (<span lang="en" dir="ltr">TLS</span>).</li>
+          <li><b>פרסומות כלליות או מותאמות אישית:</b> בפעם הראשונה שבחרת לצפות, המשחק שואל אילו פרסומות להציג. ברירת המחדל היא פרסומות כלליות, לא מותאמות אישית. אפשר לבחור פרסומות מותאמות אישית, ולשנות את הבחירה בכל רגע בהגדרות.</li>
+          <li><b>באזור הכלכלי האירופי, בבריטניה ובשווייץ:</b> לפני הפרסומת הראשונה מוצג טופס ההסכמה של Google, ואפשר לפתוח אותו שוב בהגדרות כדי לשנות את התשובה או לבטל את ההסכמה. הבסיס החוקי לפרסומות מותאמות אישית, ולשמירה או לקריאה של מידע במכשיר בידי ה-SDK של Google לצורכי פרסום, הוא ההסכמה שלך בטופס הזה (סעיף 6(1)(a) ל-GDPR). טעינת הפרסומת שבחרת לצפות בה ומתן היהלומים שלה נשענים על מתן השירות שביקשת (סעיף 6(1)(b) ל-GDPR).</li>
+          <li><b>מזהה הפרסום:</b> אפשר לאפס או למחוק אותו בכל רגע: הגדרות אנדרואיד ← פרטיות ← מודעות, ושם איפוס או מחיקה של מזהה הפרסום (בחלק מהטלפונים: הגדרות ← Google ← כל השירותים ← מודעות; השמות משתנים מטלפון לטלפון).</li>
+          <li><b>מה אנחנו מקבלים:</b> מ-Google אנחנו מקבלים רק דוחות מצטברים, כמו כמה פרסומות הוצגו וכמה הן הכניסו. אנחנו לא מקבלים את המזהים, את כתובת ה-IP או שום מידע על שחקן מסוים.</li>
+          <li><b>מה נשמר במכשיר:</b> הבחירה שלך, מתי נגמרה הפרסומת האחרונה וכמה פרסומות ראית עד הסוף היום (סעיף 2). <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק אותם ומאפס את הבחירה ואת התשובה בטופס ההסכמה של Google, והמשחק ישאל שוב בפעם הבאה שתבחר לצפות.</li>
+          <li><b>העברה לחו"ל:</b> Google עשויה לעבד את המידע בארצות הברית ובמדינות אחרות, לפי מדיניות הפרטיות שלה (<a href="https://policies.google.com/privacy?hl=iw" rel="noopener noreferrer" target="_blank">policies.google.com/privacy</a>). מה Google עושה במידע מאפליקציות כמו המשחק מוסבר בדף שלה "<a href="https://policies.google.com/technologies/partner-sites?hl=iw" rel="noopener noreferrer" target="_blank">האופן שבו Google משתמשת במידע מאפליקציות ומאתרים שמשתמשים בשירותים שלנו</a>". מה שכבר נשלח ל-Google נמצא אצלה ומטופל לפי המדיניות שלה.</li>
+          <li><b>תוכן:</b> רק פרסומות שמתאימות לכל הגילים (דירוג G של Google). פרסומת לא קופצת לבד ולא מופיעה באמצע שלב, ואפשר לסגור אותה בכל רגע (אז בלי יהלומים).</li>
+        </ul>
       </section>
 
       <section aria-labelledby="he-video">
@@ -145,25 +166,26 @@
       <section aria-labelledby="he-share">
         <h2 id="he-share">8. מי מקבל מידע</h2>
         <ul>
-          <li><b>אנחנו לא מוכרים ולא משכירים מידע אישי,</b> ולא משתפים אותו לפרסום. אין במשחק קוד של צד שלישי שאוסף מידע (לא פרסומות, לא אנליטיקה ולא דיווח קריסות), חוץ מספריית החיוב של Google בגרסת Google&nbsp;Play, שמדווחת ל-Google על פעולת החיוב (סעיף 4).</li>
+          <li><b>אנחנו לא מוכרים ולא משכירים מידע אישי.</b> אין במשחק אנליטיקה ואין דיווח קריסות. בגרסת Google&nbsp;Play יש רכיבים של Google שאוספים מידע: ספריית החיוב, שמדווחת ל-Google על פעולת החיוב (סעיף 4), ו-Google AdMob, שמקבלת מידע רק כשבחרת לצפות בפרסומת (סעיף 4א).</li>
           <li><b>ספקי שירות:</b> Cloudflare (השרת של המשחק אונליין, סעיף 3); Google (ההפצה והעדכונים של גרסת Google&nbsp;Play, החיוב ברכישות, הגיבוי של אנדרואיד אם הוא פועל, ויוטיוב אם בחרת לצפות בטריילר); GitHub (אחסון האתר והעדכונים של האפליקציה מהאתר). כל אחד מהם מעבד מידע לפי התנאים שלו.</li>
+          <li><b>Google כספקית הפרסומות:</b> בפרסומות Google פועלת לפי התנאים והמדיניות שלה, ולא רק בשבילנו. היא משתמשת במידע לפרסום, לניתוח (אנליטיקה) ולמניעת הונאה (סעיף 4א).</li>
           <li><b>שחקנים אחרים:</b> רק מה שמתואר בסעיף 3, ורק כשמשחקים אונליין.</li>
           <li><b>כשהחוק מחייב:</b> למשל צו תקף של רשות מוסמכת.</li>
-          <li><b>העברה לחו"ל:</b> המידע של המשחק אונליין נשמר באיחוד האירופי, ו-Cloudflare עשויה לעבד מידע טכני גם במדינות אחרות לפי תנאי עיבוד הנתונים שלה, שנשענים על הסעיפים החוזיים התקניים של האיחוד האירופי ועל מסגרת פרטיות הנתונים בין האיחוד לארצות הברית (<span lang="en" dir="ltr">EU-U.S. Data Privacy Framework</span>). Google ו-GitHub עשויות לעבד מידע טכני בארצות הברית ובמדינות אחרות, לפי התנאים שלהן.</li>
+          <li><b>העברה לחו"ל:</b> המידע של המשחק אונליין נשמר באיחוד האירופי, ו-Cloudflare עשויה לעבד מידע טכני גם במדינות אחרות לפי תנאי עיבוד הנתונים שלה, שנשענים על הסעיפים החוזיים התקניים של האיחוד האירופי ועל מסגרת פרטיות הנתונים בין האיחוד לארצות הברית (<span lang="en" dir="ltr">EU-U.S. Data Privacy Framework</span>). Google ו-GitHub עשויות לעבד מידע טכני בארצות הברית ובמדינות אחרות, לפי התנאים שלהן. זה כולל את המידע שנשלח ל-Google בזמן פרסומת (סעיף 4א).</li>
         </ul>
       </section>
 
       <section aria-labelledby="he-kids">
         <h2 id="he-kids">9. ילדים</h2>
-        <p>המשחק מיועד לגילאי 13 ומעלה. הוא לא מבקש שם, מייל, גיל, מספר טלפון או מיקום. השם במשחק אונליין נבחר מרשימה קבועה, כך שאי אפשר להקליד שם אמיתי, ואין צ׳אט. בזירה משחקים מול זרים, אבל הם רואים רק את השם מהרשימה, את הסמל, את הדירוג ואת המשחק, ואפשר לחסום שחקן בנגיעה אחת. רכישה בכסף אמיתי מתחת לגיל 18 רק באישור הורה (<a href="./terms.html#he-minors">תנאי השימוש והמכירה</a>). הורה או אפוטרופוס שיש לו שאלה על השימוש של ילד במשחק, או שרוצה שנמחק מידע של ילד, יכול לפנות אלינו בכתובת שבסעיף 1.</p>
+        <p>המשחק מיועד לגילאי 13 ומעלה. הוא לא מבקש שם, מייל, גיל, מספר טלפון או מיקום. השם במשחק אונליין נבחר מרשימה קבועה, כך שאי אפשר להקליד שם אמיתי, ואין צ׳אט. בזירה משחקים מול זרים, אבל הם רואים רק את השם מהרשימה (בזהב ועם כוכב, אם קנית את חבילת התומכים), את הסמל, את הדירוג ואת המשחק, ואפשר לחסום שחקן בנגיעה אחת. הפרסומות בכוכב החסות מוגבלות לתוכן שמתאים לכל הגילים (דירוג G של Google). רכישה בכסף אמיתי מתחת לגיל 18 רק באישור הורה (<a href="./terms.html#he-minors">תנאי השימוש והמכירה</a>). הורה או אפוטרופוס שיש לו שאלה על השימוש של ילד במשחק, או שרוצה שנמחק מידע של ילד, יכול לפנות אלינו בכתובת שבסעיף 1.</p>
       </section>
 
       <section aria-labelledby="he-rights">
         <h2 id="he-rights">10. הבחירות והזכויות שלך</h2>
         <ul>
-          <li><b>למחוק הכול:</b> <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק קודם את הדירוג שלך בזירה מהשרת של המשחק (סעיף 3), ואז את כל מה שהמשחק שומר במכשיר (סעיף 2), כולל המספר האקראי לאונליין, רשימת החסומים והגרסה החדשה שהורדה (באפליקציה מהאתר; היא יורדת שוב לבד). אפשר גם: הגדרות אנדרואיד ← אפליקציות ← מגיני הכוכבים ← אחסון ← ניקוי האחסון, או הסרת האפליקציה. בדפדפן: מחיקת הנתונים של האתר. גיבוי בחשבון Google נמחק מהגדרות הגיבוי בטלפון או מ-Google Drive. רכישות דרך Google&nbsp;Play נשארות מקושרות לחשבון Google שלך, ואפשר לשחזר אותן.</li>
-          <li><b>אין חובה למסור מידע:</b> המשחק לא מבקש ממך מידע אישי. משחק אונליין ורכישות הם לבחירתך, וכיבוי בדיקת העדכונים רק עוצר את העדכונים האוטומטיים.</li>
-          <li><b>הזכויות שלך לפי החוק:</b> לפי חוק הגנת הפרטיות יש לך זכות לעיין במידע שמוחזק עליך ולבקש לתקן אותו. לפי ה-GDPR באיחוד האירופי ובבריטניה יש גם זכות למחוק אותו, להגביל את השימוש בו או להתנגד לו, ולקבל אותו בקובץ. כתוב ל-&#8288;<span data-legal="email">[CONTACT EMAIL]</span>. כמעט הכול נשמר רק במכשיר שלך, ולכן בדרך כלל אין אצלנו מידע עליך, חוץ מהדירוג בזירה תחת מספר אקראי (נמחק 12 חודשים אחרי המשחק המדורג האחרון, או מיד ב'מחק את כל הנתונים שלי') ופרטי ההזמנות ש-Google מציגה לנו.</li>
+          <li><b>למחוק הכול:</b> <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק קודם את הדירוג שלך בזירה מהשרת של המשחק (סעיף 3), ואז את כל מה שהמשחק שומר במכשיר (סעיף 2), כולל המספר האקראי לאונליין, רשימת החסומים והגרסה החדשה שהורדה (באפליקציה מהאתר; היא יורדת שוב לבד). בגרסת Google&nbsp;Play זה מאפס גם את הבחירה שלך בפרסומות ואת התשובה שלך בטופס ההסכמה של Google, והמשחק ישאל שוב בפעם הבאה שתבחר לצפות. מה שכבר נשלח ל-Google בזמן פרסומת נמצא אצל Google (סעיף 4א). אפשר גם: הגדרות אנדרואיד ← אפליקציות ← מגיני הכוכבים ← אחסון ← ניקוי האחסון, או הסרת האפליקציה. בדפדפן: מחיקת הנתונים של האתר. גיבוי בחשבון Google נמחק מהגדרות הגיבוי בטלפון או מ-Google Drive. רכישות דרך Google&nbsp;Play נשארות מקושרות לחשבון Google שלך, ואפשר לשחזר אותן, חוץ מיהלומים שקנית: הם נשמרים רק במכשיר, ולכן נמחקים, ו-Google&nbsp;Play לא יכולה לשחזר אותם (סעיף 4).</li>
+          <li><b>אין חובה למסור מידע:</b> המשחק לא מבקש ממך מידע אישי. משחק אונליין, רכישות וצפייה בפרסומות הם לבחירתך, וכיבוי בדיקת העדכונים רק עוצר את העדכונים האוטומטיים.</li>
+          <li><b>הזכויות שלך לפי החוק:</b> לפי חוק הגנת הפרטיות יש לך זכות לעיין במידע שמוחזק עליך ולבקש לתקן אותו. לפי ה-GDPR באיחוד האירופי ובבריטניה יש גם זכות למחוק אותו, להגביל את השימוש בו או להתנגד לו, ולקבל אותו בקובץ. כתוב ל-&#8288;<span data-legal="email">[CONTACT EMAIL]</span>. כמעט הכול נשמר רק במכשיר שלך, ולכן בדרך כלל אין אצלנו מידע עליך, חוץ מהדירוג בזירה תחת מספר אקראי (נמחק 12 חודשים אחרי המשחק המדורג האחרון, או מיד ב'מחק את כל הנתונים שלי') ופרטי ההזמנות ש-Google מציגה לנו. מהפרסומות אנחנו מקבלים מ-Google רק דוחות מצטברים, כמו כמה פרסומות הוצגו וכמה הן הכניסו, בלי מידע על שחקן מסוים.</li>
           <li><b>תלונות:</b> אפשר להגיש תלונה לרשות להגנת הפרטיות, או לרשות להגנת המידע במדינה שבה אתה גר.</li>
         </ul>
       </section>
@@ -197,15 +219,15 @@
         <a href="./licenses.html" data-keep-lang>Licenses</a>
       </nav>
       <h1>Privacy Policy</h1>
-      <p class="meta">Orbit Defenders (מגיני הכוכבים) · Last updated: <time data-legal="updated">2026-11-21</time></p>
+      <p class="meta">Orbit Defenders (מגיני הכוכבים) · Last updated: <time data-legal="updated">2026-11-22</time></p>
 
       <section aria-labelledby="en-summary">
         <h2 id="en-summary">The short version</h2>
         <ul class="summary">
-          <li>No account, no ads, no analytics, no crash reporting, no cookies and no tracking.</li>
+          <li>No account, no analytics and no crash reporting, and the game itself uses no cookies. Ads exist only in the Google Play version, at the sponsor planet, and only when you choose to watch one. Until you tap "Watch the ad", no ad code runs, and ads are general, not personalized, unless you choose otherwise (section 4a).</li>
           <li>Your progress, saved battles, diamonds, collection, settings and the "My purchases" list are kept only on your device. We can't see them.</li>
           <li>Games against the computer, in every mode, are played entirely on your device. Nothing about them is sent anywhere.</li>
-          <li>Online play is optional: with a friend through a 6-character code, or in the Arena against players from the internet. Only what the game needs is sent: a random number your phone makes up (no name, account or email), the game's version, your game commands, a name picked from a fixed list and, in the Arena, your rating. There is no chat and no free text. The server runs on Cloudflare and keeps its data in the European Union (section 3).</li>
+          <li>Online play is optional: with a friend through a 6-character code, or in the Arena against players from the internet. Only what the game needs is sent: a random number your phone makes up (no name, account or email), the game's version, your game commands, a name picked from a fixed list, whether you bought the Supporter pack and, in the Arena, your rating. There is no chat and no free text. The server runs on Cloudflare and keeps its data in the European Union (section 3).</li>
           <li>Real-money purchases exist only in the Google Play version, and they are optional. Google Play takes the payment, and your payment details never reach us (section 4). Our website and the app downloaded from it have no purchases.</li>
           <li>The game's trailer loads from YouTube only after you tap it (section 5).</li>
           <li>You can erase everything at any time (section 10).</li>
@@ -231,13 +253,15 @@
               <tr><td>Settings: language, sound, music and effects volumes, graphics quality, "Reduce shaking", the menu style</td><td><code>pd-lang</code>, <code>pd-sound</code>, <code>pd-vol-…</code>, <code>pd-gfx</code>, <code>pd-calm</code>, <code>pd-menu</code></td><td>To remember your choices</td></tr>
               <tr><td>Which tips, guides and lessons you've seen, and the settings of the free game and the simulator</td><td><code>pd-tut</code>, <code>pd-guide-…</code>, <code>pd-lesson-…</code>, <code>pd-custom</code>, <code>pd-sim</code> and similar</td><td>So tips aren't repeated and your setups are kept</td></tr>
               <tr><td>Only if you played online: your phone's random number, the name you picked from the list, the settings of your last room and of the Arena, the last rating you saw, that you read the notice before online play and before the Arena, and the players you blocked (only their short tags)</td><td><code>pd-net-id</code>, <code>pd-online-name</code>, <code>pd-online-set</code>, <code>pd-arena-set</code>, <code>pd-arena-me</code>, <code>pd-arena-notice</code>, <code>pd-net-blocks</code></td><td>To play online (section 3)</td></tr>
-              <tr><td>Only in the Google Play version, after a purchase: which items you bought, with Google's order number and the purchase token, and the "My purchases" list (item, date, price and order number)</td><td>The store's <code>pd-</code> entries</td><td>To deliver what you bought, not twice, restore purchases and show them to you (section 4)</td></tr>
+              <tr><td>Only in the Google Play version, after a purchase: which items you bought, with Google's order number and the purchase token, how many diamonds you bought on this device and how many of them are not spent yet, and the "My purchases" list (item, date, price and order number, and for a diamond pack also its state)</td><td>The store's <code>pd-</code> entries; the count of diamonds you bought in <code>pd-prog</code></td><td>To deliver what you bought, not twice, restore purchases, handle refunds and show them to you (section 4)</td></tr>
+              <tr><td>Only in the Google Play version, if you bought the Supporter pack: that the pack is yours, the golden frames switch, and whether the thank-you scene and the statue in the amusement district were already shown</td><td><code>pd-fan</code>, <code>pd-fan-gold</code>, <code>pd-fan-thanks</code>, <code>pd-fan-seen</code></td><td>To show what the pack gives you, and the thank-you scene and the statue's first appearance only once (sections 3 and 4)</td></tr>
+              <tr><td>Only in the Google Play version: your choice between general and personalized ads, when the last ad ended and how many ads you watched to the end today. In the EEA, the UK and Switzerland also your answer in Google's consent form, which Google's SDK keeps on the device</td><td><code>pd-ads-pers</code>; the time and the count in <code>pd-prog</code>; the form's answer: in the storage of Google's SDK</td><td>To remember your choice and keep the limits: one ad every 5 minutes, up to 5 a day (section 4a)</td></tr>
               <tr><td>Only in the app downloaded from our website: the "Automatic check" switch, the time and result of the last update check, and the newer version of the game it downloaded</td><td><code>pd-updater</code>, IndexedDB <code>pd-updates</code></td><td>To install updates (section 6)</td></tr>
             </tbody>
           </table>
         </div>
         <p>Everything in this table stays on your device until you delete it in one of the ways in section 10.</p>
-        <p>We don't use cookies, advertising IDs, fingerprinting, analytics or crash-reporting tools. The game's 3D engine (three.js) and its font (Rubik) are inside the game. The game connects to the internet only for what sections 3 to 6 describe.</p>
+        <p>We don't use cookies, fingerprinting, analytics or crash-reporting tools. Android's advertising ID is read only by Google's ads SDK, only in the Google Play version and only after you choose to watch an ad (section 4a). The game's 3D engine (three.js) and its font (Rubik) are inside the game. The game connects to the internet only for what sections 3 to 6 describe.</p>
       </section>
 
       <section aria-labelledby="en-online">
@@ -249,11 +273,12 @@
           <li>the game's version, so both phones play the same version, and the game settings that were chosen (for example the map and the number of planets);</li>
           <li>your game commands (what you built, upgraded or sent, about twice a second), and check numbers that confirm both phones see the same game;</li>
           <li>the name you picked from a fixed list (a title and a nickname), and the quick signals you pick from a fixed list of 6;</li>
+          <li>whether you bought the Supporter pack: one mark, once per game, beside the name you picked. Nothing else about purchases is sent;</li>
           <li>in the Arena: the list of players you blocked, as short tags. A tag is a one-way code made from a player's random number; the number can't be recovered from it.</li>
         </ul>
         <p>There is no chat, no free text, no typed names and no location.</p>
         <p><b>The Arena's rating.</b> The server keeps a rating for each random number: the rating number, wins, losses, the number of rated games, and the last day a rated game was played. Only Arena games are rated. Games with a friend are not.</p>
-        <p><b>What other players see.</b> A friend in a private room sees the name you picked from the list, your side's symbol, your signals and the game itself. In the Arena your opponent sees the same, and also your rating (the rating number, wins, losses and games). No player ever gets your random number or your IP address. So that your opponent can block you, their phone gets your short tag.</p>
+        <p><b>What other players see.</b> A friend in a private room sees the name you picked from the list, your side's symbol, your signals, whether you bought the Supporter pack (then your name shows on their screen in gold, with a star) and the game itself. In the Arena your opponent sees the same, and also your rating (the rating number, wins, losses and games). No player ever gets your random number or your IP address. So that your opponent can block you, their phone gets your short tag.</p>
         <p><b>Blocking.</b> During an Arena game or after it, one tap blocks your opponent: you won't see their signals, and the Arena won't pair you again. Your block list is kept only on your phone. It is sent with every Arena search and stays on the server only while that search's connection is open. The blocked player is not told.</p>
         <p><b>Who processes it, and where.</b> The game's server runs on Cloudflare Workers and Durable Objects of <bdi>Cloudflare, Inc.</bdi>, which processes the data for us as a service provider. The rooms, the queue and the Arena run and keep their data only in the European Union. The connection itself comes in through the Cloudflare server nearest to you, which may be outside the EU, and Cloudflare logs each room's internal identifier outside the EU too, for billing and debugging. Like every internet service, Cloudflare processes your IP address to carry the connection and keep it secure. Our server's code doesn't read or store IP addresses. Cloudflare may keep a technical log of the requests to the server for us for up to 3 days (for example the time and the address requested, which includes the random number), which we use only to find and fix problems.</p>
         <p><b>How long.</b></p>
@@ -269,11 +294,27 @@
 
       <section aria-labelledby="en-pay">
         <h2 id="en-pay">4. Purchases (Google Play version only)</h2>
-        <p><b>What can be bought.</b> In the Google Play version you can choose to buy packs for real money: the Supporter pack, the Diamond booster x2, the black hole's levels 6 to 30, all the pets, all the skins, "Everything", and attractions of the amusement district. What each pack gives is written in the store and in the Terms of use and sale. Diamonds are never sold for money: you earn them only by playing. Treasure chests are free.</p>
+        <p><b>What can be bought.</b> In the Google Play version you can choose to buy packs for real money: diamond packs, the Starter pack, the Supporter pack, the Diamond booster x2, the black hole's levels 6 to 30, all the pets, all the skins, "Everything", and attractions of the amusement district. What each pack gives is written in the store and in the Terms of use and sale. Diamonds can also be earned by playing and, in the Google Play version, by an ad you choose to watch (section 4a). Treasure chests are free.</p>
         <p><b>Payment.</b> Purchases use Google Play's billing system, and Google processes the payment under its own terms and privacy policy. Your card or bank details never reach us. The Google Play version includes Google's billing library, which also sends Google technical data on how billing works: whether an action succeeded or failed, and problems connecting to the service.</p>
-        <p><b>What the game receives and keeps.</b> From Google Play the game receives only the product bought, the order number and the purchase token. It keeps them on your device to deliver what you bought, not deliver it twice, restore purchases and remove an item if the purchase was refunded. After every purchase a "Purchase complete" card is shown, and the "My purchases" list in Settings is kept on this device only and is deleted when you delete the game's data (section 10). None of this is sent to our servers.</p>
+        <p><b>What the game receives and keeps.</b> From Google Play the game receives only the product bought, the order number and the purchase token. It keeps them on your device to deliver what you bought, not deliver it twice, restore purchases and remove an item, or diamonds not spent yet, if the purchase was refunded. After every purchase a "Purchase complete" card is shown, and the "My purchases" list in Settings is kept on this device only and is deleted when you delete the game's data (section 10). None of this is sent to our servers.</p>
+        <p><b>Diamond packs.</b> A diamond pack is a consumable: you can buy it again and again. The diamonds you bought are kept only on this device, in the game's data, and Google Play can't restore them: not on another phone and not after the data is deleted (section 10). Here too nothing new is sent to us: the purchase, and the message to Google that the pack was used so it can be bought again, go through Google Play's billing library.</p>
         <p><b>What Google shows us.</b> In Play Console we see order details (such as the order number, the product, the price and tax, and the order's status), and an order can be looked up there by its number or by the buyer's email address. We use this only to handle cancellations, refunds and support requests. For users in the EU and UK, the legal basis is performing the purchase you asked for (GDPR article 6(1)(b)).</p>
         <p>Our website and the app downloaded from it have no purchases: the packs there are marked "coming soon". Cancellations, refunds and the seller's details: see the <a href="./terms.html#en-pay">Terms of use and sale</a>.</p>
+      </section>
+
+      <section aria-labelledby="en-ads">
+        <h2 id="en-ads">4a. Ads at the sponsor planet (Google Play version only)</h2>
+        <p>The Google Play version has one place for ads: the sponsor planet on the galaxy map. Tapping it first explains that this is an ad, what you get, that you can close it at any time and that Google AdMob shows it. Only if you choose "Watch the ad" does the game start Google's ads SDK (Google Mobile Ads SDK 25.5.0) and Google's consent form SDK (User Messaging Platform SDK 4.0.0), and load one ad. Before that, no ad code runs and nothing is sent to Google. If you watch an ad to the end, we (not Google) give you 20 diamonds (40 with the Diamond booster x2), for up to 5 ads a day and at least 5 minutes apart. Our website and the app downloaded from it have no ads.</p>
+        <ul>
+          <li><b>What is sent to Google, and why:</b> when you choose to watch, Google's SDK automatically collects the following and shares it with Google, for advertising, analytics and fraud prevention: the device's IP address, which may be used to estimate its general location; device and account identifiers (Android's advertising ID, the app set ID and, if any, identifiers related to accounts signed in on the device); your interactions, such as app launch, taps and video views; and diagnostic information on how the app and the SDK perform, such as app launch time, hang rate and energy use. All of this is encrypted in transit (TLS).</li>
+          <li><b>General or personalized ads:</b> the first time you choose to watch, the game asks which ads to show. The default is general ads, not personalized. You can choose personalized ads, and change your choice at any time in Settings.</li>
+          <li><b>In the EEA, the UK and Switzerland:</b> Google's consent form is shown before the first ad, and you can open it again in Settings to change your answer or withdraw your consent. The legal basis for personalized ads, and for Google's SDK storing or reading information on your device for ads, is your consent in this form (GDPR article 6(1)(a)). Loading the ad you chose to watch and giving its diamonds rest on providing the service you requested (GDPR article 6(1)(b)).</li>
+          <li><b>Your advertising ID:</b> you can reset or delete it at any time: Android Settings → Privacy → Ads, then Reset advertising ID or Delete advertising ID (on some phones: Settings → Google → All services → Ads; the names vary by phone).</li>
+          <li><b>What we get:</b> from Google we get only aggregated reports, such as how many ads were shown and what they earned. We don't get the identifiers, the IP address or anything about a single player.</li>
+          <li><b>What stays on your device:</b> your choice, when the last ad ended and how many ads you watched to the end today (section 2). <b>Settings → Delete all my data</b> erases them and resets your choice and your answer in Google's consent form, and the game asks again the next time you choose to watch.</li>
+          <li><b>Transfers abroad:</b> Google may process the data in the United States and other countries, under its privacy policy (<a href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">policies.google.com/privacy</a>). What Google does with data from apps like this game is explained on its page "<a href="https://policies.google.com/technologies/partner-sites" rel="noopener noreferrer" target="_blank">How Google uses information from sites or apps that use our services</a>". What was already sent to Google is held by Google and handled under its policy.</li>
+          <li><b>Content:</b> only ads suitable for all ages (Google's G rating). An ad never pops up by itself or shows during a level, and you can close it at any time (then without diamonds).</li>
+        </ul>
       </section>
 
       <section aria-labelledby="en-video">
@@ -297,25 +338,26 @@
       <section aria-labelledby="en-share">
         <h2 id="en-share">8. Who receives data</h2>
         <ul>
-          <li><b>We don't sell or rent personal data,</b> and we don't share it for advertising. The game contains no third-party code that collects data (no ads, analytics or crash reporting), except Google's billing library in the Google Play version, which reports to Google on how billing works (section 4).</li>
+          <li><b>We don't sell or rent personal data.</b> The game has no analytics and no crash reporting. The Google Play version has Google components that collect data: the billing library, which reports to Google on how billing works (section 4), and Google AdMob, which receives data only when you choose to watch an ad (section 4a).</li>
           <li><b>Service providers:</b> Cloudflare (the online-play server, section 3); Google (distribution and updates of the Google Play version, billing for purchases, Android's backup if it's on, and YouTube if you choose to watch the trailer); GitHub (hosting our website and the updates of the app from our website). Each processes data under its own terms.</li>
+          <li><b>Google as the ads provider:</b> for ads, Google acts under its own terms and policies, not only on our behalf. It uses the data for advertising, analytics and fraud prevention (section 4a).</li>
           <li><b>Other players:</b> only what section 3 describes, and only when you play online.</li>
           <li><b>When the law requires it:</b> for example, a valid order from a competent authority.</li>
-          <li><b>Transfers abroad:</b> the online-play data is kept in the European Union, and Cloudflare may process technical data in other countries under its data processing terms, which rely on the EU's standard contractual clauses and the EU-U.S. Data Privacy Framework. Google and GitHub may process technical data in the United States and other countries, under their own terms.</li>
+          <li><b>Transfers abroad:</b> the online-play data is kept in the European Union, and Cloudflare may process technical data in other countries under its data processing terms, which rely on the EU's standard contractual clauses and the EU-U.S. Data Privacy Framework. Google and GitHub may process technical data in the United States and other countries, under their own terms. This includes the data sent to Google when you watch an ad (section 4a).</li>
         </ul>
       </section>
 
       <section aria-labelledby="en-kids">
         <h2 id="en-kids">9. Children</h2>
-        <p>The game is meant for ages 13 and up. It doesn't ask for a name, email address, age, phone number or location. Your online name is picked from a fixed list, so no real name can be typed in, and there is no chat. In the Arena you play against people you don't know, but they see only the name from the list, the symbol, your rating and the game, and you can block a player with one tap. Anyone under 18 needs a parent's permission for a real-money purchase (<a href="./terms.html#en-minors">Terms of use and sale</a>). A parent or guardian with a question about a child's use of the game, or who wants a child's data deleted, can contact us at the address in section 1.</p>
+        <p>The game is meant for ages 13 and up. It doesn't ask for a name, email address, age, phone number or location. Your online name is picked from a fixed list, so no real name can be typed in, and there is no chat. In the Arena you play against people you don't know, but they see only the name from the list (in gold with a star, if you bought the Supporter pack), the symbol, your rating and the game, and you can block a player with one tap. Ads at the sponsor planet are limited to content suitable for all ages (Google's G rating). Anyone under 18 needs a parent's permission for a real-money purchase (<a href="./terms.html#en-minors">Terms of use and sale</a>). A parent or guardian with a question about a child's use of the game, or who wants a child's data deleted, can contact us at the address in section 1.</p>
       </section>
 
       <section aria-labelledby="en-rights">
         <h2 id="en-rights">10. Your choices and rights</h2>
         <ul>
-          <li><b>Delete everything:</b> <b>Settings → Delete all my data</b> first deletes your Arena rating from the game's server (section 3), then erases everything the game keeps on your device (section 2), the random number for online play, your block list and the downloaded newer version (in the app from our website; it downloads again by itself) included. You can also use Android Settings → Apps → Orbit Defenders → Storage → Clear storage, or uninstall the app. In a browser, clear the site's data. A backup in your Google account is deleted from your phone's backup settings or from Google Drive. Purchases made through Google Play stay linked to your Google account and can be restored.</li>
-          <li><b>Nothing is required from you:</b> the game doesn't ask you for personal data. Online play and purchases are optional, and turning off the update check only stops automatic updates.</li>
-          <li><b>Your rights under the law:</b> under Israel's Privacy Protection Law you have the right to see the personal data held about you and to ask to correct it. Under the EU/UK GDPR you can also have it deleted, restrict or object to its use, and receive it in a file. Write to <span data-legal="email">[CONTACT EMAIL]</span>. Almost everything is kept only on your device, so we usually hold nothing about you, apart from the Arena's rating under a random number (deleted 12 months after its last rated game, or at once with Delete all my data) and the order details Google shows us.</li>
+          <li><b>Delete everything:</b> <b>Settings → Delete all my data</b> first deletes your Arena rating from the game's server (section 3), then erases everything the game keeps on your device (section 2), the random number for online play, your block list and the downloaded newer version (in the app from our website; it downloads again by itself) included. In the Google Play version it also resets your ads choice and your answer in Google's consent form, and the game asks again the next time you choose to watch. What was already sent to Google during an ad is held by Google (section 4a). You can also use Android Settings → Apps → Orbit Defenders → Storage → Clear storage, or uninstall the app. In a browser, clear the site's data. A backup in your Google account is deleted from your phone's backup settings or from Google Drive. Purchases made through Google Play stay linked to your Google account and can be restored, except diamonds you bought: they are kept only on your device, so they are erased, and Google Play can't restore them (section 4).</li>
+          <li><b>Nothing is required from you:</b> the game doesn't ask you for personal data. Online play, purchases and watching ads are optional, and turning off the update check only stops automatic updates.</li>
+          <li><b>Your rights under the law:</b> under Israel's Privacy Protection Law you have the right to see the personal data held about you and to ask to correct it. Under the EU/UK GDPR you can also have it deleted, restrict or object to its use, and receive it in a file. Write to <span data-legal="email">[CONTACT EMAIL]</span>. Almost everything is kept only on your device, so we usually hold nothing about you, apart from the Arena's rating under a random number (deleted 12 months after its last rated game, or at once with Delete all my data) and the order details Google shows us. From ads we get only aggregated reports from Google, such as how many ads were shown and what they earned, with nothing about any single player.</li>
           <li><b>Complaints:</b> you may complain to the Israeli Privacy Protection Authority, or to the data protection authority where you live.</li>
         </ul>
       </section>

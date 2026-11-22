@@ -4,8 +4,16 @@
   Ages' licenses.html. Made on Nov 21, 2026 from the files themselves: node_modules/three/LICENSE (three 0.187.0,
   the only package bundled into game/js/game.js; package.json lists it and esbuild, a build tool that isn't shipped) and
   game/assets/fonts/OFL-Rubik.txt (the Rubik font that scripts/embed-fonts.mjs puts into game/css/style.css; the download
-  and invite pages carry the same font). Make it again after a dependency changes, and add the Google Play Billing
-  Library's exact version when the Play build includes it.
+  and invite pages carry the same font). The Google Play section made again on Nov 22, 2026 from
+  app/android-native/play-libs.json (resolved 2026-11-22: billing 9.1.0, play-services-ads 25.5.0 and
+  user-messaging-platform 4.0.0 with their runtime libraries, 72 in all: 14 of Google's under the Android Software
+  Development Kit License, 56 under Apache-2.0, checker-qual under MIT, jsr305 under Apache-2.0 with BSD and CC BY 2.5
+  notices), each license checked against the
+  library's POM (Guava's three through guava-parent). The new texts: checker-qual's MIT from META-INF/LICENSE.txt in
+  checker-qual-3.12.0.jar; jsr305's BSD from Google's own "JSR 305" notice in billing-9.1.0.aar (third_party_licenses.txt;
+  the JSR-305 project's license is "bsd" in the Google Code archive); the CC BY 2.5 legal code from
+  creativecommons.org/licenses/by/2.5/legalcode (four files of jsr305, javax.annotation.concurrent, carry Brian Goetz's
+  CC BY 2.5 notice). Make it again after a dependency changes.
 -->
 <html lang="he" dir="rtl" data-default-lang="he">
 <head>
@@ -44,9 +52,9 @@
         <a href="./licenses.html" aria-current="page" data-keep-lang>רישיונות</a>
       </nav>
       <h1>רישיונות</h1>
-      <p class="meta">מגיני הכוכבים (Orbit Defenders) · עודכן לאחרונה: <time data-legal="updated">2026-11-21</time></p>
+      <p class="meta">מגיני הכוכבים (Orbit Defenders) · עודכן לאחרונה: <time data-legal="updated">2026-11-22</time></p>
       <p>מגיני הכוכבים בנוי בעזרת הרכיבים של צד שלישי שבהמשך, ואנחנו מודים ליוצרים שלהם. כל רכיב משמש לפי הרישיון שלו. פתח פריט כדי לקרוא את הודעת זכויות היוצרים ואת נוסח הרישיון המלא.</p>
-      <p>כל השאר הוא מקורי: הקוד של המשחק, הדגמים התלת-ממדיים, התמונות, האייקונים, הלוגו, המוזיקה והצלילים נוצרו בקוד של המשחק עצמו, והטריילר צולם מתוך המשחק. הם שייכים ל-&#8288;<span data-legal="developer">[DEVELOPER NAME]</span>. אפליקציית האנדרואיד מהאתר משתמשת רק ברכיבים המובנים של אנדרואיד. גרסת Google&nbsp;Play כוללת גם את ספריית החיוב של Google&nbsp;Play ואת הספריות שהיא צריכה, וכולן בדף הזה. שרת המשחק אונליין מריץ את הקוד שלנו בלבד ולא מתקין שום רכיב במכשיר שלך.</p>
+      <p>כל השאר הוא מקורי: הקוד של המשחק, הדגמים התלת-ממדיים, התמונות, האייקונים, הלוגו, המוזיקה והצלילים נוצרו בקוד של המשחק עצמו, והטריילר צולם מתוך המשחק. הם שייכים ל-&#8288;<span data-legal="developer">[DEVELOPER NAME]</span>. אפליקציית האנדרואיד מהאתר משתמשת רק ברכיבים המובנים של אנדרואיד. גרסת Google&nbsp;Play כוללת גם את ספריית החיוב של Google&nbsp;Play, את ספריית הפרסומות של Google (לפרסומות בכוכב החסות) ואת הספריות שהן צריכות, וכולן בדף הזה. שרת המשחק אונליין מריץ את הקוד שלנו בלבד ולא מתקין שום רכיב במכשיר שלך.</p>
       <p class="note">נוסחי הרישיונות הם מסמכים משפטיים ומופיעים באנגלית המקורית.</p>
     </article>
 
@@ -61,9 +69,9 @@
         <a href="./licenses.html" aria-current="page" data-keep-lang>Licenses</a>
       </nav>
       <h1>Licenses</h1>
-      <p class="meta">Orbit Defenders (מגיני הכוכבים) · Last updated: <time data-legal="updated">2026-11-21</time></p>
+      <p class="meta">Orbit Defenders (מגיני הכוכבים) · Last updated: <time data-legal="updated">2026-11-22</time></p>
       <p>Orbit Defenders is built with the third-party components below. We thank their authors. Each component is used under its own license; open an item to read the copyright notice and the full license text.</p>
-      <p>Everything else is original: the game's code, 3D models, pictures, icons, logo, music and sounds are made by the game's own code, and the trailer is recorded from the game. They belong to <span data-legal="developer">[DEVELOPER NAME]</span>. The Android app from the site uses only Android's built-in components. The Google Play version also includes Google Play's billing library and the libraries it needs, all listed on this page. The online-play server runs only our own code and installs nothing on your device.</p>
+      <p>Everything else is original: the game's code, 3D models, pictures, icons, logo, music and sounds are made by the game's own code, and the trailer is recorded from the game. They belong to <span data-legal="developer">[DEVELOPER NAME]</span>. The Android app from the site uses only Android's built-in components. The Google Play version also includes Google Play's billing library, Google's ads SDK (for the ads at the sponsor planet) and the libraries they need, all listed on this page. The online-play server runs only our own code and installs nothing on your device.</p>
       <p class="note">License texts are legal documents and appear in their original English.</p>
     </article>
 
@@ -200,20 +208,31 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre>
         <p>© Google LLC. Not open-source software: Google distributes it under the Android Software Development Kit License Agreement. It comes only with the Google Play version, which uses it for purchases through Google Play.</p>
         <p>License: <a href="https://developer.android.com/studio/terms" rel="noopener noreferrer" target="_blank">https://developer.android.com/studio/terms</a></p>
       </div></details>
-      <details class="lic"><summary>Google Play services <small>(5 libraries)</small> <small>· Google</small> <small>· for the Billing Library</small></summary><div class="body">
-        <p>© Google LLC. Not open-source software: Google distributes them under the Android Software Development Kit License Agreement. The Google Play Billing Library needs them, so they come only with the Google Play version: play-services-base 18.5.0, play-services-basement 18.9.0, play-services-tasks 18.2.0, play-services-location 19.0.0 and play-services-places-placereport 17.0.0.</p>
+      <details class="lic"><summary>Google Mobile Ads SDK <small>25.5.0</small> <small>(3 libraries)</small> <small>· Google</small> <small>· for the rewarded ads</small></summary><div class="body">
+        <p>© Google LLC. Not open-source software: Google distributes it under the Android Software Development Kit License Agreement. It comes only with the Google Play version, which uses it for the rewarded ads at the sponsor planet, only after you choose to watch an ad: play-services-ads 25.5.0 and play-services-ads-api 25.5.0, and the Google Play library they need, hsdp 2.0.1 (com.google.android.play).</p>
         <p>License: <a href="https://developer.android.com/studio/terms" rel="noopener noreferrer" target="_blank">https://developer.android.com/studio/terms</a></p>
       </div></details>
-      <details class="lic"><summary>AndroidX, Kotlin and other open-source libraries <small>(40 libraries)</small> <small>· Apache-2.0</small> <small>· for the Billing Library</small></summary><div class="body">
-        <p>The Google Play Billing Library and Google Play services need these open-source libraries, so they come only with the Google Play version. Each is used under the Apache License 2.0, below.</p>
+      <details class="lic"><summary>User Messaging Platform SDK <small>4.0.0</small> <small>· Google</small> <small>· for the ads' consent form</small></summary><div class="body">
+        <p>© Google LLC. Not open-source software: Google distributes it under the Android Software Development Kit License Agreement. It comes only with the Google Play version, which uses it for the rewarded ads at the sponsor planet, only after you choose to watch an ad: it shows Google's consent form for ads in the EEA, the UK and Switzerland (user-messaging-platform 4.0.0).</p>
+        <p>License: <a href="https://developer.android.com/studio/terms" rel="noopener noreferrer" target="_blank">https://developer.android.com/studio/terms</a></p>
+      </div></details>
+      <details class="lic"><summary>Google Play services <small>(9 libraries)</small> <small>· Google</small> <small>· for the Billing Library and the ads SDK</small></summary><div class="body">
+        <p>© Google LLC. Not open-source software: Google distributes them under the Android Software Development Kit License Agreement. The Google Play Billing Library and Google's ads SDKs need them, so they come only with the Google Play version: play-services-base 18.5.0, play-services-basement 18.9.0, play-services-tasks 18.2.0, play-services-location 19.0.0, play-services-places-placereport 17.0.0, play-services-appset 16.0.1, play-services-ads-identifier 18.0.0, play-services-measurement-sdk-api 20.1.2 and play-services-measurement-base 20.1.2.</p>
+        <p>License: <a href="https://developer.android.com/studio/terms" rel="noopener noreferrer" target="_blank">https://developer.android.com/studio/terms</a></p>
+      </div></details>
+      <details class="lic"><summary>AndroidX, Kotlin and other open-source libraries <small>(56 libraries)</small> <small>· Apache-2.0</small> <small>· for the Billing Library and the ads SDK</small></summary><div class="body">
+        <p>Google's libraries above need these open-source libraries, so they come only with the Google Play version. Each is used under the Apache License 2.0, below.</p>
         <ul>
-          <li>AndroidX (Android Jetpack), © The Android Open Source Project: activity 1.2.3, annotation 1.8.1, annotation-experimental 1.4.1, arch core-common 2.2.0 and core-runtime 2.2.0, collection 1.4.2, concurrent-futures 1.1.0, core 1.15.0, core-ktx 1.15.0, customview 1.0.0, fragment 1.1.0, interpolator 1.0.0, lifecycle 2.6.2 (common, runtime, viewmodel, viewmodel-savedstate, livedata, livedata-core), loader 1.0.0, profileinstaller 1.3.0, savedstate 1.2.1, startup-runtime 1.1.1, tracing 1.2.0, versionedparcelable 1.1.1 and viewpager 1.0.0. Source: <a href="https://developer.android.com/jetpack/androidx" rel="noopener noreferrer" target="_blank">https://developer.android.com/jetpack/androidx</a></li>
+          <li>AndroidX (Android Jetpack), © The Android Open Source Project: activity 1.2.3, annotation-jvm 1.8.1, annotation-experimental 1.4.1, appcompat-resources 1.4.1, arch core-common 2.2.0 and core-runtime 2.2.0, browser 1.8.0, collection-jvm 1.4.2, concurrent-futures 1.1.0, core 1.15.0, core-ktx 1.15.0, customview 1.0.0, fragment 1.1.0, interpolator 1.0.0, lifecycle-common 2.6.2, lifecycle-livedata 2.6.2, lifecycle-livedata-core 2.6.2, lifecycle-runtime 2.6.2, lifecycle-service 2.6.2, lifecycle-viewmodel 2.6.2, lifecycle-viewmodel-savedstate 2.6.2, loader 1.0.0, profileinstaller 1.3.0, savedstate 1.2.1, startup-runtime 1.1.1, tracing 1.2.0, vectordrawable 1.1.0, vectordrawable-animated 1.1.0, versionedparcelable 1.1.1, viewpager 1.0.0 and webkit 1.12.1. Source: <a href="https://developer.android.com/jetpack/androidx" rel="noopener noreferrer" target="_blank">https://developer.android.com/jetpack/androidx</a></li>
+          <li>AndroidX Room, SQLite, WorkManager, DataStore and Privacy Sandbox (Android Jetpack), © The Android Open Source Project: room-runtime 2.2.5, room-common 2.2.5, sqlite 2.1.0, sqlite-framework 2.1.0, work-runtime 2.7.0, datastore 1.0.0, datastore-core 1.0.0, ads-adservices 1.0.0-beta05 and ads-adservices-java 1.0.0-beta05. Source: <a href="https://developer.android.com/jetpack/androidx" rel="noopener noreferrer" target="_blank">https://developer.android.com/jetpack/androidx</a></li>
           <li>Google Android DataTransport (transport-api 3.0.0, transport-runtime 3.1.8, transport-backend-cct 3.1.8) and Firebase encoders (firebase-encoders 17.0.0, firebase-encoders-json 18.0.0, firebase-encoders-proto 16.0.0), © Google LLC. Source: <a href="https://github.com/firebase/firebase-android-sdk" rel="noopener noreferrer" target="_blank">https://github.com/firebase/firebase-android-sdk</a></li>
-          <li>Kotlin standard library 1.8.22 (kotlin-stdlib, kotlin-stdlib-common, kotlin-stdlib-jdk7, kotlin-stdlib-jdk8), © JetBrains s.r.o. and Kotlin Programming Language contributors. Source: <a href="https://github.com/JetBrains/kotlin" rel="noopener noreferrer" target="_blank">https://github.com/JetBrains/kotlin</a></li>
-          <li>kotlinx.coroutines 1.6.4 (kotlinx-coroutines-core-jvm, kotlinx-coroutines-android), © JetBrains s.r.o. and contributors. Source: <a href="https://github.com/Kotlin/kotlinx.coroutines" rel="noopener noreferrer" target="_blank">https://github.com/Kotlin/kotlinx.coroutines</a></li>
-          <li>JetBrains Java Annotations 13.0, © JetBrains s.r.o. Source: <a href="https://github.com/JetBrains/java-annotations" rel="noopener noreferrer" target="_blank">https://github.com/JetBrains/java-annotations</a></li>
+          <li>Kotlin standard library (kotlin-stdlib 2.1.0), © JetBrains s.r.o. and Kotlin Programming Language contributors. Source: <a href="https://github.com/JetBrains/kotlin" rel="noopener noreferrer" target="_blank">https://github.com/JetBrains/kotlin</a></li>
+          <li>kotlinx.coroutines (kotlinx-coroutines-core-jvm 1.8.0, kotlinx-coroutines-android 1.8.0), © JetBrains s.r.o. and contributors. Source: <a href="https://github.com/Kotlin/kotlinx.coroutines" rel="noopener noreferrer" target="_blank">https://github.com/Kotlin/kotlinx.coroutines</a></li>
+          <li>JetBrains Java Annotations (annotations 23.0.0), © JetBrains s.r.o. Source: <a href="https://github.com/JetBrains/java-annotations" rel="noopener noreferrer" target="_blank">https://github.com/JetBrains/java-annotations</a></li>
           <li>javax.inject 1 (JSR-330), © The JSR-330 Expert Group. Source: <a href="https://github.com/javax-inject/javax-inject" rel="noopener noreferrer" target="_blank">https://github.com/javax-inject/javax-inject</a></li>
-          <li>Guava ListenableFuture 1.0, © The Guava Authors. Source: <a href="https://github.com/google/guava" rel="noopener noreferrer" target="_blank">https://github.com/google/guava</a></li>
+          <li>Guava (guava 31.1-android, failureaccess 1.0.1 and listenablefuture 9999.0-empty-to-avoid-conflict-with-guava, an empty package), © The Guava Authors. Source: <a href="https://github.com/google/guava" rel="noopener noreferrer" target="_blank">https://github.com/google/guava</a></li>
+          <li>Error Prone annotations (error_prone_annotations 2.11.0), © The Error Prone Authors. Source: <a href="https://github.com/google/error-prone" rel="noopener noreferrer" target="_blank">https://github.com/google/error-prone</a></li>
+          <li>J2ObjC annotations (j2objc-annotations 1.3), © Google Inc. Source: <a href="https://github.com/google/j2objc" rel="noopener noreferrer" target="_blank">https://github.com/google/j2objc</a></li>
         </ul>
         <pre class="license">                                 Apache License
                            Version 2.0, January 2004
@@ -391,6 +410,323 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre>
       of your accepting any such warranty or additional liability.
 
    END OF TERMS AND CONDITIONS</pre>
+      </div></details>
+      <details class="lic"><summary>Checker Framework qualifiers <small>checker-qual 3.12.0</small> <small>· MIT</small> <small>· for the ads SDK</small></summary><div class="body">
+        <p>Copyright 2004-present by the Checker Framework developers. Guava needs it, and the Google Mobile Ads SDK needs Guava, so it comes only with the Google Play version.</p>
+        <p>Source: <a href="https://checkerframework.org/" rel="noopener noreferrer" target="_blank">https://checkerframework.org/</a></p>
+        <pre class="license">Checker Framework qualifiers
+Copyright 2004-present by the Checker Framework developers
+
+MIT License:
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.</pre>
+      </div></details>
+      <details class="lic"><summary>JSR 305 annotations <small>jsr305 3.0.2</small> <small>· Apache-2.0, BSD-3-Clause and CC-BY-2.5</small> <small>· for the ads SDK</small></summary><div class="body">
+        <p>© 2007-2009 the JSR305 expert group; four of its files are © 2005 Brian Goetz. Guava needs it, and the Google Mobile Ads SDK needs Guava, so it comes only with the Google Play version.</p>
+        <p>Its Maven package names the Apache License 2.0 (its text is in the AndroidX, Kotlin and other open-source libraries item above). The JSR-305 project published the code under the BSD license, and four of its files (javax.annotation.concurrent: GuardedBy, Immutable, NotThreadSafe and ThreadSafe) carry Brian Goetz's notice under the Creative Commons Attribution License 2.5. Both texts are below.</p>
+        <p>Source: <a href="https://code.google.com/archive/p/jsr-305" rel="noopener noreferrer" target="_blank">https://code.google.com/archive/p/jsr-305</a></p>
+        <pre class="license">Copyright (c) 2007-2009, JSR305 expert group
+All rights reserved.
+
+http://www.opensource.org/licenses/bsd-license.php
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the name of the JSR305 expert group nor the names of its
+      contributors may be used to endorse or promote products derived from
+      this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.</pre>
+        <pre class="license">Copyright (c) 2005 Brian Goetz
+Released under the Creative Commons Attribution License
+  (http://creativecommons.org/licenses/by/2.5)
+Official home: http://www.jcip.net
+
+Attribution 2.5 Generic
+
+CREATIVE COMMONS CORPORATION IS NOT A LAW FIRM AND DOES NOT PROVIDE
+LEGAL SERVICES. DISTRIBUTION OF THIS LICENSE DOES NOT CREATE AN
+ATTORNEY-CLIENT RELATIONSHIP. CREATIVE COMMONS PROVIDES THIS INFORMATION
+ON AN "AS-IS" BASIS. CREATIVE COMMONS MAKES NO WARRANTIES REGARDING THE
+INFORMATION PROVIDED, AND DISCLAIMS LIABILITY FOR DAMAGES RESULTING FROM
+ITS USE.
+
+License
+
+THE WORK (AS DEFINED BELOW) IS PROVIDED UNDER THE TERMS OF THIS CREATIVE
+COMMONS PUBLIC LICENSE ("CCPL" OR "LICENSE"). THE WORK IS PROTECTED BY
+COPYRIGHT AND/OR OTHER APPLICABLE LAW. ANY USE OF THE WORK OTHER THAN AS
+AUTHORIZED UNDER THIS LICENSE OR COPYRIGHT LAW IS PROHIBITED.
+
+BY EXERCISING ANY RIGHTS TO THE WORK PROVIDED HERE, YOU ACCEPT AND AGREE
+TO BE BOUND BY THE TERMS OF THIS LICENSE. THE LICENSOR GRANTS YOU THE
+RIGHTS CONTAINED HERE IN CONSIDERATION OF YOUR ACCEPTANCE OF SUCH TERMS
+AND CONDITIONS.
+
+1. Definitions
+
+   a. "Collective Work" means a work, such as a periodical issue,
+      anthology or encyclopedia, in which the Work in its entirety in
+      unmodified form, along with a number of other contributions,
+      constituting separate and independent works in themselves, are
+      assembled into a collective whole. A work that constitutes a
+      Collective Work will not be considered a Derivative Work (as
+      defined below) for the purposes of this License.
+
+   b. "Derivative Work" means a work based upon the Work or upon the
+      Work and other pre-existing works, such as a translation, musical
+      arrangement, dramatization, fictionalization, motion picture
+      version, sound recording, art reproduction, abridgment,
+      condensation, or any other form in which the Work may be recast,
+      transformed, or adapted, except that a work that constitutes a
+      Collective Work will not be considered a Derivative Work for the
+      purpose of this License. For the avoidance of doubt, where the
+      Work is a musical composition or sound recording, the
+      synchronization of the Work in timed-relation with a moving image
+      ("synching") will be considered a Derivative Work for the purpose
+      of this License.
+
+   c. "Licensor" means the individual or entity that offers the Work
+      under the terms of this License.
+
+   d. "Original Author" means the individual or entity who created the
+      Work.
+
+   e. "Work" means the copyrightable work of authorship offered under
+      the terms of this License.
+
+   f. "You" means an individual or entity exercising rights under this
+      License who has not previously violated the terms of this License
+      with respect to the Work, or who has received express permission
+      from the Licensor to exercise rights under this License despite a
+      previous violation.
+
+2. Fair Use Rights. Nothing in this license is intended to reduce,
+limit, or restrict any rights arising from fair use, first sale or other
+limitations on the exclusive rights of the copyright owner under
+copyright law or other applicable laws.
+
+3. License Grant. Subject to the terms and conditions of this License,
+Licensor hereby grants You a worldwide, royalty-free, non-exclusive,
+perpetual (for the duration of the applicable copyright) license to
+exercise the rights in the Work as stated below:
+
+   a. to reproduce the Work, to incorporate the Work into one or more
+      Collective Works, and to reproduce the Work as incorporated in the
+      Collective Works;
+
+   b. to create and reproduce Derivative Works;
+
+   c. to distribute copies or phonorecords of, display publicly, perform
+      publicly, and perform publicly by means of a digital audio
+      transmission the Work including as incorporated in Collective
+      Works;
+
+   d. to distribute copies or phonorecords of, display publicly, perform
+      publicly, and perform publicly by means of a digital audio
+      transmission Derivative Works.
+
+   e. For the avoidance of doubt, where the work is a musical
+      composition:
+
+      i. Performance Royalties Under Blanket Licenses. Licensor waives
+         the exclusive right to collect, whether individually or via a
+         performance rights society (e.g. ASCAP, BMI, SESAC), royalties
+         for the public performance or public digital performance (e.g.
+         webcast) of the Work.
+
+      ii. Mechanical Rights and Statutory Royalties. Licensor waives the
+          exclusive right to collect, whether individually or via a
+          music rights agency or designated agent (e.g. Harry Fox
+          Agency), royalties for any phonorecord You create from the
+          Work ("cover version") and distribute, subject to the
+          compulsory license created by 17 USC Section 115 of the US
+          Copyright Act (or the equivalent in other jurisdictions).
+
+   f. Webcasting Rights and Statutory Royalties. For the avoidance of
+      doubt, where the Work is a sound recording, Licensor waives the
+      exclusive right to collect, whether individually or via a
+      performance-rights society (e.g. SoundExchange), royalties for the
+      public digital performance (e.g. webcast) of the Work, subject to
+      the compulsory license created by 17 USC Section 114 of the US
+      Copyright Act (or the equivalent in other jurisdictions).
+
+The above rights may be exercised in all media and formats whether now
+known or hereafter devised. The above rights include the right to make
+such modifications as are technically necessary to exercise the rights
+in other media and formats. All rights not expressly granted by Licensor
+are hereby reserved.
+
+4. Restrictions. The license granted in Section 3 above is expressly
+made subject to and limited by the following restrictions:
+
+   a. You may distribute, publicly display, publicly perform, or
+      publicly digitally perform the Work only under the terms of this
+      License, and You must include a copy of, or the Uniform Resource
+      Identifier for, this License with every copy or phonorecord of the
+      Work You distribute, publicly display, publicly perform, or
+      publicly digitally perform. You may not offer or impose any terms
+      on the Work that alter or restrict the terms of this License or
+      the recipients' exercise of the rights granted hereunder. You may
+      not sublicense the Work. You must keep intact all notices that
+      refer to this License and to the disclaimer of warranties. You may
+      not distribute, publicly display, publicly perform, or publicly
+      digitally perform the Work with any technological measures that
+      control access or use of the Work in a manner inconsistent with
+      the terms of this License Agreement. The above applies to the Work
+      as incorporated in a Collective Work, but this does not require
+      the Collective Work apart from the Work itself to be made subject
+      to the terms of this License. If You create a Collective Work,
+      upon notice from any Licensor You must, to the extent practicable,
+      remove from the Collective Work any credit as required by clause
+      4(b), as requested. If You create a Derivative Work, upon notice
+      from any Licensor You must, to the extent practicable, remove from
+      the Derivative Work any credit as required by clause 4(b), as
+      requested.
+
+   b. If you distribute, publicly display, publicly perform, or publicly
+      digitally perform the Work or any Derivative Works or Collective
+      Works, You must keep intact all copyright notices for the Work and
+      provide, reasonable to the medium or means You are utilizing: (i)
+      the name of the Original Author (or pseudonym, if applicable) if
+      supplied, and/or (ii) if the Original Author and/or Licensor
+      designate another party or parties (e.g. a sponsor institute,
+      publishing entity, journal) for attribution in Licensor's
+      copyright notice, terms of service or by other reasonable means,
+      the name of such party or parties; the title of the Work if
+      supplied; to the extent reasonably practicable, the Uniform
+      Resource Identifier, if any, that Licensor specifies to be
+      associated with the Work, unless such URI does not refer to the
+      copyright notice or licensing information for the Work; and in the
+      case of a Derivative Work, a credit identifying the use of the
+      Work in the Derivative Work (e.g., "French translation of the Work
+      by Original Author," or "Screenplay based on original Work by
+      Original Author"). Such credit may be implemented in any
+      reasonable manner; provided, however, that in the case of a
+      Derivative Work or Collective Work, at a minimum such credit will
+      appear where any other comparable authorship credit appears and in
+      a manner at least as prominent as such other comparable authorship
+      credit.
+
+5. Representations, Warranties and Disclaimer
+
+UNLESS OTHERWISE MUTUALLY AGREED TO BY THE PARTIES IN WRITING, LICENSOR
+OFFERS THE WORK AS-IS AND MAKES NO REPRESENTATIONS OR WARRANTIES OF ANY
+KIND CONCERNING THE WORK, EXPRESS, IMPLIED, STATUTORY OR OTHERWISE,
+INCLUDING, WITHOUT LIMITATION, WARRANTIES OF TITLE, MERCHANTIBILITY,
+FITNESS FOR A PARTICULAR PURPOSE, NONINFRINGEMENT, OR THE ABSENCE OF
+LATENT OR OTHER DEFECTS, ACCURACY, OR THE PRESENCE OF ABSENCE OF ERRORS,
+WHETHER OR NOT DISCOVERABLE. SOME JURISDICTIONS DO NOT ALLOW THE
+EXCLUSION OF IMPLIED WARRANTIES, SO SUCH EXCLUSION MAY NOT APPLY TO YOU.
+
+6. Limitation on Liability. EXCEPT TO THE EXTENT REQUIRED BY APPLICABLE
+LAW, IN NO EVENT WILL LICENSOR BE LIABLE TO YOU ON ANY LEGAL THEORY FOR
+ANY SPECIAL, INCIDENTAL, CONSEQUENTIAL, PUNITIVE OR EXEMPLARY DAMAGES
+ARISING OUT OF THIS LICENSE OR THE USE OF THE WORK, EVEN IF LICENSOR HAS
+BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+7. Termination
+
+   a. This License and the rights granted hereunder will terminate
+      automatically upon any breach by You of the terms of this License.
+      Individuals or entities who have received Derivative Works or
+      Collective Works from You under this License, however, will not
+      have their licenses terminated provided such individuals or
+      entities remain in full compliance with those licenses. Sections
+      1, 2, 5, 6, 7, and 8 will survive any termination of this License.
+
+   b. Subject to the above terms and conditions, the license granted
+      here is perpetual (for the duration of the applicable copyright in
+      the Work). Notwithstanding the above, Licensor reserves the right
+      to release the Work under different license terms or to stop
+      distributing the Work at any time; provided, however that any such
+      election will not serve to withdraw this License (or any other
+      license that has been, or is required to be, granted under the
+      terms of this License), and this License will continue in full
+      force and effect unless terminated as stated above.
+
+8. Miscellaneous
+
+   a. Each time You distribute or publicly digitally perform the Work or
+      a Collective Work, the Licensor offers to the recipient a license
+      to the Work on the same terms and conditions as the license
+      granted to You under this License.
+
+   b. Each time You distribute or publicly digitally perform a
+      Derivative Work, Licensor offers to the recipient a license to the
+      original Work on the same terms and conditions as the license
+      granted to You under this License.
+
+   c. If any provision of this License is invalid or unenforceable under
+      applicable law, it shall not affect the validity or enforceability
+      of the remainder of the terms of this License, and without further
+      action by the parties to this agreement, such provision shall be
+      reformed to the minimum extent necessary to make such provision
+      valid and enforceable.
+
+   d. No term or provision of this License shall be deemed waived and no
+      breach consented to unless such waiver or consent shall be in
+      writing and signed by the party to be charged with such waiver or
+      consent.
+
+   e. This License constitutes the entire agreement between the parties
+      with respect to the Work licensed here. There are no
+      understandings, agreements or representations with respect to the
+      Work not specified here. Licensor shall not be bound by any
+      additional provisions that may appear in any communication from
+      You. This License may not be modified without the mutual written
+      agreement of the Licensor and You.
+
+Creative Commons is not a party to this License, and makes no warranty
+whatsoever in connection with the Work. Creative Commons will not be
+liable to You or any party on any legal theory for any damages
+whatsoever, including without limitation any general, special,
+incidental or consequential damages arising in connection to this
+license. Notwithstanding the foregoing two (2) sentences, if Creative
+Commons has expressly identified itself as the Licensor hereunder, it
+shall have all rights and obligations of Licensor.
+
+Except for the limited purpose of indicating to the public that the Work
+is licensed under the CCPL, neither party will use the trademark
+"Creative Commons" or any related trademark or logo of Creative Commons
+without the prior written consent of Creative Commons. Any permitted use
+will be in compliance with Creative Commons' then-current trademark
+usage guidelines, as may be published on its website or otherwise made
+available upon request from time to time.
+
+Creative Commons may be contacted at https://creativecommons.org/.</pre>
       </div></details>
     </section>
 
