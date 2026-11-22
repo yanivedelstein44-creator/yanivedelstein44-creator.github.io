@@ -218,14 +218,21 @@
 (function () {
   'use strict';
   var SITE = 'https://yanivedelstein44-creator.github.io/planet-defenders/';   // the download page
+  // An invite from the Google Play build (online_game.js joinLink adds &from=play) never leads to the site's APK: an app
+  // from Play does not send people to installs outside Play (the Developer Distribution Agreement 4.5). Its download
+  // button and Chrome's fallback go to Google Play instead: during the closed test the testers' page (join.html: it
+  // joins the test and installs from Play); after the launch, the game's page on Play (the main session, Nov 22)
+  var PLAY_GET = SITE + 'join.html';
   var CODE = /^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{6}$/;                          // the game's room codes
   var WORDS = {
     he: { title: 'מגיני הכוכבים – הזמנה לשחק', name: 'מגיני הכוכבים', kick: 'הזמנה למשחק אונליין', head: 'חבר מזמין אותך לשחק',
       code: 'קוד החדר', open: 'פתח את המשחק', dl: 'אין לך עדיין את המשחק? הורד אותו', dlBad: 'הורד את המשחק',
+      dlPlay: 'אין לך עדיין את המשחק? הוא ב-Google Play', dlBadPlay: 'המשחק ב-Google Play',
       note: 'הקלד את הקוד במשחק:', m1: 'שחק עם חבר', m2: 'הצטרף', android: 'המשחק הוא לטלפון אנדרואיד: פתח את הקישור הזה בטלפון.',
       badT: 'הקישור הזה לא עובד', badS: 'אין בו קוד חדר תקין. בקש מהחבר לשלוח אותו שוב.', lang: 'English', aria: 'קוד החדר: ' },
     en: { title: 'Orbit Defenders – Play with a friend', name: 'Orbit Defenders', kick: 'Online invite', head: 'A friend invites you to play',
       code: 'Room code', open: 'Open the game', dl: 'No game yet? Download it', dlBad: 'Download the game',
+      dlPlay: 'No game yet? It is on Google Play', dlBadPlay: 'The game on Google Play',
       note: 'Type the code in the game:', m1: 'Play with a friend', m2: 'Join', android: 'The game is for Android phones: open this link on your phone.',
       badT: 'This link doesn’t work', badS: 'It has no valid room code. Ask your friend to send it again.', lang: 'עברית', aria: 'Room code: ' }
   };
@@ -249,6 +256,9 @@
 
   var root = document.documentElement, main = $('pd'), tiles = $('tiles'), langBtn = $('lang');
   main.className = code ? 'ok' : 'bad';
+  var fromPlay = param(location.search, 'from') === 'play', GET = fromPlay ? PLAY_GET : SITE;
+  $('dl').href = GET;
+  $('dlw').setAttribute('data-t', (code ? 'dl' : 'dlBad') + (fromPlay ? 'Play' : ''));
   if (code) {
     for (var i = 0; i < 6; i++) {
       var b = document.createElement('b');
@@ -258,12 +268,10 @@
     }
     // Chrome's intent link: the app's own scheme (planetdefenders://join/?c=CODE), with no package, so the site's APK
     // (com.yaniv.planetdefenders) and the Google Play app (com.yaniv.orbitdefenders) both answer it; without either, the
-    // download page (the main session, Nov 22)
+    // download page, or Google Play for an invite from the Play build (the main session, Nov 22)
     $('open').href = 'intent://join/?c=' + code + '#Intent;scheme=planetdefenders'
-      + ';S.browser_fallback_url=' + encodeURIComponent(SITE) + ';end';
+      + ';S.browser_fallback_url=' + encodeURIComponent(GET) + ';end';
     if (!/Android/i.test(navigator.userAgent)) $('hint').hidden = false;
-  } else {
-    $('dlw').setAttribute('data-t', 'dlBad');
   }
 
   function apply() {
