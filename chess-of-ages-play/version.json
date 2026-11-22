@@ -1,12 +1,12 @@
 {
   "name": "Chess of Ages: Island Realms",
-  "version": "1.6.4",
-  "build": "1.6.4-1794852752941",
-  "buildTime": 1794852752941,
-  "date": "2026-11-16T18:12:32.941Z",
+  "version": "1.6.5",
+  "build": "1.6.5-1795361080323",
+  "buildTime": 1795361080323,
+  "date": "2026-11-22T15:24:40.323Z",
   "minNative": "1.1.1",
-  "bundle": "update/bundle-1.6.4-1794852752941.zip",
-  "checksum": "9b9b9163120c75c9ea2ec7eacf85985ea111abf95befb669fd881c63922a7105",
+  "bundle": "update/bundle-1.6.5-1795361080323.zip",
+  "checksum": "6e8db8ec0586ed8862f7e881497798a71a83376b7f2da272f66b1ae0cd51cf88",
   "apk": "",
-  "notes": "Until the official launch, the dolphin's bonus ads are Google test ads (marked Test Ad); you still get the 20 gems"
+  "notes": "The game now opens in your phone's language: Hebrew on a Hebrew phone, English on any other. A language you pick yourself still wins"
 }
