@@ -51,6 +51,22 @@ details.lic > summary { cursor: pointer; padding: 12px 14px; min-height: 44px; f
 details.lic > summary small { color: var(--muted); font-weight: 400; }
 details.lic .body { padding: 0 14px 12px; }
 pre.license { white-space: pre-wrap; overflow-wrap: anywhere; font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #e4e9f7; background: #0b1124; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 8px 0 0; max-height: 360px; overflow: auto; direction: ltr; text-align: left; }
+/* join.html (join the Google Play closed test, like Chess of Ages' test.html): numbered steps with big buttons, and
+   the trailer's first frame as a link to YouTube (a picture of our own: nothing of YouTube loads on the page) */
+ol.steps { list-style: none; counter-reset: step; padding: 0; margin: 16px 0; display: grid; gap: 12px; }
+ol.steps > li { counter-increment: step; position: relative; margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; padding-inline-start: 62px; }
+ol.steps > li::before { content: counter(step); position: absolute; inset-inline-start: 16px; top: 16px; width: 32px; height: 32px; border-radius: 50%; background: var(--orange); color: #1d1206; font-weight: 800; display: grid; place-items: center; }
+ol.steps .step-title { font-size: 18px; margin: 2px 0 4px; padding: 0; border: 0; color: var(--blue-2); }
+ol.steps p { margin: 0 0 10px; }
+a.step-btn { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 20px; border-radius: 999px; background: var(--orange); color: #1d1206; font-weight: 800; text-decoration: none; }
+a.step-btn:hover { background: #ffc98a; }
+figure.trailer { margin: 18px 0 22px; }
+a.trailer-link { position: relative; display: block; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 6px 22px rgba(0, 0, 0, .35); }
+a.trailer-link img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: var(--card); }
+a.trailer-link .play { position: absolute; inset: 0; margin: auto; width: 76px; height: 76px; border-radius: 50%; background: rgba(7, 11, 25, .74); box-shadow: 0 0 0 3px var(--blue-2), 0 6px 18px rgba(0, 0, 0, .5); transition: transform .15s; }
+a.trailer-link .play::before { content: ''; position: absolute; top: 50%; left: 55%; transform: translate(-50%, -50%); border-style: solid; border-width: 15px 0 15px 25px; border-color: transparent transparent transparent var(--blue-2); }
+a.trailer-link:hover .play { transform: scale(1.08); }
+figure.trailer figcaption { margin-top: 8px; font-size: .92em; color: var(--muted); text-align: center; }
 .embedded .back, .embedded nav.pages { display: none; }
 html.one-lang hr.split { display: none; }
 [hidden] { display: none !important; }
