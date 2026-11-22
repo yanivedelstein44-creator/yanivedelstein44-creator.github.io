@@ -49,7 +49,8 @@
         <h2 id="he-summary">בקצרה</h2>
         <ul class="summary">
           <li>המשחק בעברית ובאנגלית, כל שפה בכיוון הקריאה שלה.</li>
-          <li>אפשר להוריד את איכות הגרפיקה, להפחית את רעידות המסך ולכוון בנפרד את עוצמת המוזיקה והאפקטים.</li>
+          <li>אפשר להוריד את איכות הגרפיקה, להפחית תנועה (רעידות מסך ואנימציות) ולכוון בנפרד את עוצמת המוזיקה והאפקטים.</li>
+          <li>בתפריטים לכל כפתור יש שם ש-TalkBack מקריא בשפת המשחק, והטקסט גדל עם גודל הגופן של הטלפון.</li>
           <li>הודעות, התראות ותוצאות מוצגות גם כטקסט, כך שאפשר לשחק בלי צליל.</li>
           <li>הקרב התלת-ממדי דורש ראייה: קוראי מסך כמו TalkBack עוד לא יכולים לקרוא אותו.</li>
           <li>נתקלת בקושי? כתוב ל-&#8288;<span data-legal="email">[CONTACT EMAIL]</span>.</li>
@@ -68,11 +69,13 @@
         <ul>
           <li><b>שפה:</b> עברית ואנגלית, כל אחת בכיוון הקריאה הנכון (מימין לשמאל בעברית). אפשר להחליף בהגדרות בכל רגע.</li>
           <li><b>גרפיקה:</b> שלוש רמות איכות (גבוהה, בינונית, נמוכה) בהגדרות, לטלפונים חלשים ולתמונה רגועה יותר.</li>
-          <li><b>תנועה:</b> "הפחת רעידות" בהגדרות מכבה את רעידות המסך בפיצוצים ובפגיעות. חלק מהאנימציות הדקורטיביות בתפריטים נעצרות כשהטלפון מבקש להפחית תנועה.</li>
+          <li><b>תנועה:</b> "הפחת תנועה" בהגדרות מכבה את רעידות המסך בפיצוצים ובפגיעות, ועוצר את האנימציות של התפריטים והכפתורים. כשהטלפון מבקש להפחית תנועה ("הסרת אנימציות" בהגדרות הנגישות של אנדרואיד), הוא פועל מעצמו עד שתבחר אחרת.</li>
           <li><b>צליל:</b> אפשר לכבות את הצליל, ולמוזיקה ולאפקטים יש מחווני עוצמה נפרדים. הודעות, התראות ותוצאות מופיעות גם כטקסט על המסך.</li>
-          <li><b>מגע:</b> רוב הכפתורים בגובה של כ-48dp (הגודל שאנדרואיד ממליץ עליו ליעדי מגע). אפשר לבנות בנגיעה או בגרירה.</li>
+          <li><b>מגע:</b> כל כפתור ופקד במסכי המשחק בגודל של 48dp לפחות (הגודל שאנדרואיד ממליץ עליו ליעדי מגע). אפשר לבנות בנגיעה או בגרירה.</li>
           <li><b>בקצב שלך:</b> במשחק נגד המחשב אפשר לעצור בכל רגע ולשמור את הקרב כדי להמשיך אחר כך.</li>
-          <li><b>טקסט:</b> הטקסט מוצג על לוחות אטומים או שקופים למחצה, לניגודיות מעל העולם התלת-ממדי.</li>
+          <li><b>טקסט:</b> הטקסט מוצג על לוחות אטומים או שקופים למחצה, לניגודיות מעל העולם התלת-ממדי, בניגודיות של 4.5:1 לפחות (3:1 לטקסט גדול). בתפריטים הטקסט גדל עם גודל הגופן של הטלפון (הגדרות &larr; תצוגה &larr; גודל גופן), עד פי 2, והחלון נגלל כשצריך.</li>
+          <li><b>קורא מסך ומקלדת:</b> בתפריטים, בחלונות ובכפתורים של הקרב, לכל כפתור ופקד יש שם ש-TalkBack מקריא בשפת המשחק, ובחירה (למשל השפה או רמת הגרפיקה) מוכרזת כנבחרת. כשחלון פתוח, מה שמאחוריו מוסתר מ-TalkBack. בתפריטים אפשר לעבור בין הכפתורים במקלדת או במתג, עם מסגרת פוקוס גלויה.</li>
+          <li><b>לא רק בצבע:</b> בתפריטים, בחירה מסומנת גם במסגרת עבה, ופרק נעול מסומן במנעול.</li>
           <li><b>משחק אונליין:</b> בלי צ׳אט ובלי הקלדה: שם מרשימה ואותות מהירים מרשימה קבועה, בנגיעה.</li>
         </ul>
         <h3 id="he-done-site">באתר</h3>
@@ -85,14 +88,15 @@
       <section aria-labelledby="he-limits">
         <h2 id="he-limits">3. מגבלות ידועות</h2>
         <ul>
-          <li><b>קוראי מסך:</b> שדה הקרב, הכוכבים, היחידות והמבנים מצוירים בתלת-ממד על canvas, וקוראי מסך כמו TalkBack לא יכולים לקרוא אותם. כרגע אי אפשר לשחק במשחק עם קורא מסך, ולחלק מהכפתורים בתפריטים עוד אין שם שקורא מסך מקריא.</li>
+          <li><b>קוראי מסך:</b> שדה הקרב, הכוכבים, היחידות והמבנים מצוירים בתלת-ממד על canvas, וקוראי מסך כמו TalkBack לא יכולים לקרוא אותם. את הקרב עצמו אי אפשר לשחק עם קורא מסך.</li>
           <li><b>ראייה וצבע:</b> הקרב דורש ראייה. בשדה הקרב ובמפה הקטנה, של מי כל מבנה מסומן בעיקר בצבע (הצד שלך כחול, והאויב העיקרי אדום).</li>
-          <li><b>גודל טקסט:</b> הטקסט במשחק לא גדל לפי הגדרת גודל הגופן של אנדרואיד; המבנה שלו בנוי לטלפון לרוחב.</li>
+          <li><b>גודל טקסט:</b> רק הטקסט בתפריטים גדל עם גודל הגופן של הטלפון. הטקסט בכפתורים ובמספרים שמעל שדה הקרב נשאר בגודל שלו, כדי לא להסתיר את הקרב. הגדלה בשתי אצבעות כבויה, כי שתי אצבעות מזיזות את המצלמה.</li>
+          <li><b>תנועה:</b> "הפחת תנועה" לא עוצר את התנועה האיטית של המצלמה בעולם התלת-ממדי שמאחורי התפריטים.</li>
           <li><b>כיוון מסך:</b> המשחק מוצג לרוחב בלבד.</li>
           <li><b>זמן אמת:</b> הקרבות ממשיכים לזוז. במשחק נגד המחשב אפשר לעצור; משחק אונליין רץ בזמן אמת ואי אפשר לעצור אותו.</li>
-          <li><b>שליטה:</b> המשחק בנוי למגע. עדיין אין שליטה מלאה במקלדת או במתג (<span lang="en" dir="ltr">switch access</span>).</li>
+          <li><b>שליטה:</b> המשחק בנוי למגע. בתפריטים אפשר לעבור בין הכפתורים במקלדת או במתג (<span lang="en" dir="ltr">switch access</span>), אבל את הקרב עצמו (בנייה, גרירה והמצלמה) משחקים רק במגע.</li>
           <li><b>הטריילר:</b> סרטון בלי קריינות: מוזיקה וכותרות על המסך. הוא מתנגן בנגן של יוטיוב, והנגישות של הנגן היא של יוטיוב.</li>
-          <li><b>בדיקות:</b> המשחק נבדק במשחק בטלפונים ובבדיקות פריסה אוטומטיות בשתי השפות. בדפים המשפטיים נבדקו המבנה והניגודיות. עוד לא בדקנו את המשחק ואת הדפים עם טכנולוגיות מסייעות. נשמח לשמוע מה לא עובד לך.</li>
+          <li><b>בדיקות:</b> כל מסך במשחק (73 מסכים, בעברית ובאנגלית, בשני גדלים של טלפון לרוחב) נבדק אוטומטית ב-<span lang="en" dir="ltr">axe-core</span> לפי <span lang="en" dir="ltr">WCAG 2.2</span> ברמה AA, ובבדיקות שלנו: ניגודיות על הפיקסלים של המסך עצמו, יעדי מגע של 48dp, טקסט בגודל פי 2, המתג להפחתת תנועה וסדר הפוקוס. המשחק נבדק גם במשחק בטלפונים. בדפים המשפטיים נבדקו המבנה והניגודיות. עוד לא בדקנו את המשחק עם TalkBack בטלפון אמיתי, ולא עם אנשים עם מוגבלות. נשמח לשמוע מה לא עובד לך.</li>
         </ul>
       </section>
 
@@ -127,7 +131,8 @@
         <h2 id="en-summary">The short version</h2>
         <ul class="summary">
           <li>The game is in Hebrew and English, each in its own reading direction.</li>
-          <li>You can lower the graphics, reduce the screen shaking, and set music and effects volumes separately.</li>
+          <li>You can lower the graphics, reduce motion (screen shaking and animations), and set music and effects volumes separately.</li>
+          <li>In the menus every button has a name TalkBack reads in the game's language, and the text grows with your phone's font size.</li>
           <li>Messages, alerts and results are also shown as text, so the game can be played without sound.</li>
           <li>The 3D battle needs sight: screen readers such as TalkBack can't read it yet.</li>
           <li>Found a barrier? Write to <span data-legal="email">[CONTACT EMAIL]</span>.</li>
@@ -146,11 +151,13 @@
         <ul>
           <li><b>Language:</b> Hebrew and English, with the right reading direction for each (right to left for Hebrew). You can switch in Settings at any time.</li>
           <li><b>Graphics:</b> three quality levels (high, medium, low) in Settings, for weaker phones and for a calmer picture.</li>
-          <li><b>Motion:</b> "Reduce shaking" in Settings turns off the screen shake of explosions and hits. Some decorative menu animations stop when your phone asks for reduced motion.</li>
+          <li><b>Motion:</b> "Reduce motion" in Settings turns off the screen shake of explosions and hits, and stops the animations of the menus and buttons. When your phone asks for reduced motion (Android's "Remove animations"), it is on by itself until you choose otherwise.</li>
           <li><b>Sound:</b> sound can be turned off, and music and effects have separate volume sliders. Messages, alerts and results also appear as text on the screen.</li>
-          <li><b>Touch:</b> most buttons are about 48 dp tall (the size Android recommends for touch targets). You can build by tapping or by dragging.</li>
+          <li><b>Touch:</b> every button and control on the game's screens is at least 48 dp (the size Android recommends for touch targets). You can build by tapping or by dragging.</li>
           <li><b>Your own pace:</b> in games against the computer you can pause at any time and save the battle to continue later.</li>
-          <li><b>Text:</b> text sits on solid or semi-transparent panels, for contrast over the 3D world.</li>
+          <li><b>Text:</b> text sits on solid or semi-transparent panels, for contrast over the 3D world, at a contrast of at least 4.5:1 (3:1 for large text). In the menus, text grows with your phone's font size (Settings &gt; Display &gt; Font size) up to twice its size, and the window scrolls when it needs to.</li>
+          <li><b>Screen readers and keyboards:</b> in the menus, the windows and the battle's buttons, every button and control has a name TalkBack reads in the game's language, and a choice (such as the language or the graphics level) is announced as selected. While a window is open, what is behind it is hidden from TalkBack. In the menus you can move between the buttons with a keyboard or switch access, with a visible focus ring.</li>
+          <li><b>Not by colour alone:</b> in the menus, a choice is also marked by a thick frame, and a locked chapter by a padlock.</li>
           <li><b>Online play:</b> no chat and no typing: a name from a list and quick signals from a fixed list, by tapping.</li>
         </ul>
         <h3 id="en-done-site">On the website</h3>
@@ -163,14 +170,15 @@
       <section aria-labelledby="en-limits">
         <h2 id="en-limits">3. Known limitations</h2>
         <ul>
-          <li><b>Screen readers:</b> the battlefield, the planets, the units and the buildings are drawn in 3D on a canvas, which screen readers such as TalkBack can't read. The game can't be played with a screen reader today, and some menu buttons don't yet have a name a screen reader can announce.</li>
+          <li><b>Screen readers:</b> the battlefield, the planets, the units and the buildings are drawn in 3D on a canvas, which screen readers such as TalkBack can't read. The battle itself can't be played with a screen reader.</li>
           <li><b>Sight and colour:</b> the battle needs sight. On the battlefield and the minimap, whose building is whose is shown mainly by colour (your side is blue, the main enemy red).</li>
-          <li><b>Text size:</b> the game's text doesn't grow with Android's font-size setting; its layout is made for a phone in landscape.</li>
+          <li><b>Text size:</b> only the menus' text grows with your phone's font size. The text of the buttons and numbers over the battlefield keeps its size, so it doesn't hide the battle. Pinch zoom is off, because two fingers move the camera.</li>
+          <li><b>Motion:</b> "Reduce motion" doesn't stop the slow camera moves of the 3D world behind the menus.</li>
           <li><b>Orientation:</b> the game is shown in landscape only.</li>
           <li><b>Real time:</b> battles keep moving. Games against the computer can be paused; an online game runs in real time and can't be paused.</li>
-          <li><b>Input:</b> the game is made for touch. There is no full keyboard or switch-access control yet.</li>
+          <li><b>Input:</b> the game is made for touch. In the menus you can move between the buttons with a keyboard or switch access, but the battle itself (building, dragging and the camera) is played by touch only.</li>
           <li><b>The trailer:</b> a video without narration: music and on-screen titles. It plays in YouTube's player, whose accessibility is YouTube's.</li>
-          <li><b>Testing:</b> the game was checked by playing it on phones and with automated layout checks in both languages. The legal pages were checked for structure and contrast. Nothing has been tested with assistive technologies yet. Please tell us what doesn't work for you.</li>
+          <li><b>Testing:</b> every screen of the game (73 screens, in Hebrew and English, at two landscape phone sizes) was checked automatically with axe-core against WCAG 2.2 level AA, and with our own checks: contrast on the screen's own pixels, 48 dp touch targets, text at twice its size, the reduce-motion switch and the focus order. The game was also checked by playing it on phones. The legal pages were checked for structure and contrast. We haven't yet tested the game with TalkBack on a real phone, or with people with disabilities. Please tell us what doesn't work for you.</li>
         </ul>
       </section>
 
