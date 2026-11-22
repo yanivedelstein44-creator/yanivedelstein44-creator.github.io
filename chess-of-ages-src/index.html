@@ -33,9 +33,10 @@
     <link rel="icon" type="image/png" href="./icons/icon-192.png" />
     <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
     <script>
-      // שפה לפני הציור הראשון: אנגלית לכולם, עברית רק אם השחקן בחר בה (כפתור השפה או ההגדרות)
+      // שפה לפני הציור הראשון: לפי שפת הטלפון (עברית → עברית, כל שפה אחרת → אנגלית),
+      // ובחירה מפורשת של השחקן (כפתור השפה או ההגדרות) גוברת. אותו כלל כמו deviceLang ב-src/ui/i18n.js
       (function () {
-        var lang = 'en';
+        var lang = /^(he|iw)\b/i.test(navigator.language || '') ? 'he' : 'en';
         try { var s = JSON.parse(localStorage.getItem('chess_ages_progress') || 'null'); if (s && s.settings && s.settings.lang) lang = s.settings.lang; } catch (e) { /* storage blocked */ }
         var d = document.documentElement; d.lang = lang; d.dir = lang === 'he' ? 'rtl' : 'ltr';
         if (lang === 'he') { var m = document.querySelector('link[rel="manifest"]'); if (m) m.href = './manifest.he.json'; }

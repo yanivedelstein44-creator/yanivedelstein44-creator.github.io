@@ -2,6 +2,7 @@
  * שמירה מקומית בטוחה (localStorage עטוף ב-try/catch — עובד גם כשהאחסון חסום).
  */
 import { withPresetName } from './PlayerName.js';
+import { deviceLang } from '../ui/i18n.js';
 
 export function readJSON(key, fallback) {
   let raw = null;
@@ -107,8 +108,8 @@ export class ProgressStore {
     this.data = saved ? { ...def, ...saved, settings: { ...def.settings, ...(saved.settings || {}) }, profile: { ...def.profile, ...(saved.profile || {}) } } : def;
     if (!Array.isArray(this.data.eraProgress) || this.data.eraProgress.length !== 10) this.data.eraProgress = def.eraProgress;
     // שם התצוגה — רק מהרשימה הקבועה (core/PlayerName.js): שחקן חדש מקבל "מלך NNN" / "King NNN",
-    // ושם חופשי מגרסה קודמת הופך לשם ברירת המחדל. השם מוצג בשפה השמורה.
-    this.data.profile = withPresetName(this.data.profile, this.data.settings.lang === 'he' ? 'he' : 'en');
+    // ושם חופשי מגרסה קודמת הופך לשם ברירת המחדל. השם מוצג בשפת הממשק: הבחירה השמורה, ואם אין — שפת הטלפון.
+    this.data.profile = withPresetName(this.data.profile, (this.data.settings.lang || deviceLang()) === 'he' ? 'he' : 'en');
     this.listeners = new Set();
     this.save();
   }

@@ -35,7 +35,7 @@ import { eraMaterials } from '../scene/Materials.js';
 import { detectSeason, buildSeason } from '../scene/SeasonalEvents.js';
 import { SoundEngine } from '../audio/SoundEngine.js';
 import { UI, h } from '../ui/UI.js';
-import { t, tn, setLang, PET_EN, islandName, islandLabel, shortName } from '../ui/i18n.js';
+import { t, tn, setLang, getLang, deviceLang, PET_EN, islandName, islandLabel, shortName } from '../ui/i18n.js';
 import * as M from '../ui/Modals.js';
 import { buildMapUi } from '../ui/MapPanel.js';
 import * as CloudWipe from '../ui/CloudWipe.js';
@@ -73,7 +73,8 @@ export class GameApp {
     this.economy = new Economy();
     this.progression = new Progression(this.store, this.economy);
     this.achievements = new Achievements(this.store, this.economy);
-    setLang(this.store.get('settings').lang || 'en'); // ברירת מחדל: אנגלית; עברית בהגדרות
+    // שפת הממשק: בחירה מפורשת של השחקן, ואם אין — שפת הטלפון (עברית → עברית, כל שפה אחרת → אנגלית)
+    setLang(this.store.get('settings').lang || deviceLang());
     const s = this.store.get('settings');
     this.sound = new SoundEngine({ sfx: s.sfx, ambience: s.ambience });
     this.root = document.getElementById('app');
@@ -339,7 +340,7 @@ export class GameApp {
 
   /** כפתור השפה בסרגל העליון: אנגלית ↔ עברית, נשמר כבחירה מפורשת של השחקן */
   toggleLanguage(where = 'hud') {
-    const next = (this.store.get('settings').lang || 'en') === 'he' ? 'en' : 'he';
+    const next = getLang() === 'he' ? 'en' : 'he'; // מהשפה המוצגת עכשיו (גם כשהיא באה משפת הטלפון)
     this.store.setSetting('lang', next);
     if (where === 'map' && this.map) this.map.focusLang = true;
     this.setLanguage(next);
