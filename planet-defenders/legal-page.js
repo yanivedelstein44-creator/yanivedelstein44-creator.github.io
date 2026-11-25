@@ -84,3 +84,22 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+// join.html: Facebook's, Instagram's, Messenger's and TikTok's own browsers are not signed in to Google, so the testers'
+// group can't be joined there. The banner (.iab) asks to open the page in Chrome; on Android its button does it through
+// an intent link (the user, Nov 25, 19:53)
+(function () {
+  function iab() {
+    var ua = navigator.userAgent || '';
+    if (!/FBAN|FBAV|FB_IAB|FBIOS|Instagram|Messenger|musical_ly|TikTok|Bytedance/i.test(ua)) return;
+    var android = /Android/i.test(ua);
+    var href = 'intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end';
+    document.querySelectorAll('.iab').forEach(function (b) {
+      b.hidden = false;
+      var a = b.querySelector('.iab-open');
+      if (a) { if (android) a.href = href; else a.hidden = true; }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iab);
+  else iab();
+})();

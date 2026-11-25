@@ -76,3 +76,12 @@ html.one-lang hr.split { display: none; }
   th, td { padding: 8px 7px; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* join.html: opened inside Facebook's, Instagram's, Messenger's or TikTok's own browser, which is not signed in to Google
+   (so the testers' group can't be joined there), a banner asks to open the page in Chrome (legal-page.js shows it;
+   the user, Nov 25, 19:53) */
+.iab { display: grid; gap: 8px; margin: 0 0 16px; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--orange);
+  background: var(--ph-bg); color: var(--ph-text); }
+.iab[hidden], .iab [hidden] { display: none; }
+.iab b { color: #fff; }
+.iab .step-btn { justify-self: start; }
