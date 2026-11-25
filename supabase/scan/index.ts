@@ -1,4 +1,4 @@
-// היומן שלנו – "מתמונה ליומן": reads a photo or screenshot of a schedule and returns calendar items.
+// איזון הבית / HomeIzun – "מתמונה ליומן": reads a photo or screenshot of a schedule and returns calendar items.
 // Provider: Google Gemini API on the free tier (no billing account linked → $0, rate-limited per model).
 //   Secret GEMINI_API_KEY (required). Optional: SCAN_MODELS (comma list, tried in order when one is busy or
 //   out of its free daily quota), SCAN_THINKING (low|medium|high, default low), SCAN_DAILY_LIMIT (per calendar, default 40).
@@ -320,6 +320,9 @@ async function scanClaude(img: string, mt: string, text: string) {
   throw new ScanError('failed');
 }
 
+// the app can run in English: then every text Gemini writes for the user is in English
+const langLine = (en: boolean) => en ? '\nLanguage: the app is in English. Write every title, summary, reply, car name and description in English (keep the names of people and places as written).' : '';
+
 Deno.serve(async req => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   const t0 = Date.now();
@@ -337,6 +340,7 @@ Deno.serve(async req => {
     if ((count || 0) >= LIMIT) return json({ error: 'limit', limit: LIMIT }, 429);
 
     const b = await req.json().catch(() => ({}));
+    const en = b.lang === 'en' || me.lang === 'en';
     const request = clean(b.text, 500);
     if (request && !b.image) {
       if (PROVIDER === 'claude') return json({ error: 'failed' }, 501);
@@ -349,7 +353,7 @@ Deno.serve(async req => {
       const partner0 = (mems0 || []).find((m: any) => m.user_id !== uid) || null;
       const text0 = assistInstructions(today0, me, partner0, ((kq0 && kq0.data) || []).map((k: any) => k.name), evs, request);
       called = true;
-      const r0 = await scanGemini('', 'image/jpeg', text0, t0, true);
+      const r0 = await scanGemini('', 'image/jpeg', text0 + langLine(en), t0, true);
       const changes = sanitizeChanges(r0.out && r0.out.changes, new Set(evs.map((e: any) => e.id)));
       await db.from('scan_log').insert({ household_id: me.household_id, user_id: uid, model: r0.model, input_tokens: r0.usage.input, output_tokens: r0.usage.output, items: changes.length, ok: true });
       return json({ reply: clean(r0.out && r0.out.reply, 300), changes, model: r0.model, usage: r0.usage });
@@ -362,7 +366,7 @@ Deno.serve(async req => {
     if (car) {
       if (PROVIDER === 'claude') return json({ error: 'failed' }, 501);
       called = true;
-      const rc = await scanGemini(img, mt, `Today is ${today}. Read this car document and fill the JSON structure. doc_type: license (רישיון רכב: its "תוקף הרישיון עד" date is the next test date), test (אישור טסט: the date the new test is valid until is the next test date), insurance (policy end date; insurance company name), service (garage or tire-shop invoice: the work, date, odometer, total), other. A license-fee (אגרת רישוי) receipt gives license_date. Dates as YYYY-MM-DD; in Israeli documents dates are written day/month/year.`, t0, 'car');
+      const rc = await scanGemini(img, mt, `Today is ${today}. Read this car document and fill the JSON structure. doc_type: license (רישיון רכב: its "תוקף הרישיון עד" date is the next test date), test (אישור טסט: the date the new test is valid until is the next test date), insurance (policy end date; insurance company name), service (garage or tire-shop invoice: the work, date, odometer, total), other. A license-fee (אגרת רישוי) receipt gives license_date. Dates as YYYY-MM-DD; in Israeli documents dates are written day/month/year.` + langLine(en), t0, 'car');
       const doc = sanitizeCar(rc.out, today);
       await db.from('scan_log').insert({ household_id: me.household_id, user_id: uid, model: rc.model, input_tokens: rc.usage.input, output_tokens: rc.usage.output, items: Object.keys(doc).length, ok: true });
       return json({ summary: clean(rc.out && rc.out.summary, 160), doc, model: rc.model, usage: rc.usage });
@@ -379,7 +383,7 @@ Deno.serve(async req => {
     const text = instructions(today, me, partner, kids, clean(b.note, 300));
 
     called = true;
-    const r = PROVIDER === 'claude' ? await scanClaude(img, mt, text) : await scanGemini(img, mt, text, t0);
+    const r = PROVIDER === 'claude' ? await scanClaude(img, mt, text + langLine(en)) : await scanGemini(img, mt, text + langLine(en), t0);
     const items = sanitize(r.out && r.out.items);
     const people = items.length ? [] : names(r.out && r.out.people, 40);
     await db.from('scan_log').insert({ household_id: me.household_id, user_id: uid, model: r.model, input_tokens: r.usage.input, output_tokens: r.usage.output, items: items.length, ok: true });

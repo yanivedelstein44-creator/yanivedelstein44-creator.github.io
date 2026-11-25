@@ -1,4 +1,4 @@
-// Edge Function "push" for היומן שלנו
+// Edge Function "push" for איזון הבית / HomeIzun (every message in the recipient's language: members.lang)
 //  - type 'change': called by a DB trigger (pg_net) after a household member changes the calendar -> notify the others
 //  - type 'tick'  : called every minute by pg_cron -> due reminders, morning digest, weekly digest (Saturday night)
 //  - type 'test'  : called by the app with the user's JWT -> test notification to the caller's devices
@@ -193,7 +193,9 @@ const db = createClient(SB_URL, serviceKey(), { auth: { persistSession: false, a
 const VAPID = { publicKey: Deno.env.get('VAPID_PUBLIC_KEY'), privateKey: Deno.env.get('VAPID_PRIVATE_KEY'), subject: Deno.env.get('VAPID_SUBJECT') || 'https://hayoman-shelanu.pages.dev' };
 const HOOK = Deno.env.get('HOOK_SECRET') || '';
 const TZ = 'Asia/Jerusalem';
-const HE_D = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
+const HE_D = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'], EN_D = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const isEn = m => !!m && m.lang === 'en';
+const APP = { he: 'איזון הבית', en: 'HomeIzun' };
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
 const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...cors, 'Content-Type': 'application/json' } });
 
@@ -214,8 +216,17 @@ function localToUtcMs(date, min) {
   utc = wall - off2 * 60000;
   return utc;
 }
-const relDay = (d, t) => d === t ? 'היום' : d === addDays(t, 1) ? 'מחר' : d === addDays(t, -1) ? 'אתמול' : `${HE_D[dowOf(d)]} ${+d.slice(8)}.${+d.slice(5, 7)}`;
-const dShort = d => `${+d.slice(8)}.${+d.slice(5, 7)}`;
+const relDay = (d, t, en = false) => en
+  ? (d === t ? 'Today' : d === addDays(t, 1) ? 'Tomorrow' : d === addDays(t, -1) ? 'Yesterday' : `${EN_D[dowOf(d)]} ${+d.slice(5, 7)}/${+d.slice(8)}`)
+  : (d === t ? 'היום' : d === addDays(t, 1) ? 'מחר' : d === addDays(t, -1) ? 'אתמול' : `${HE_D[dowOf(d)]} ${+d.slice(8)}.${+d.slice(5, 7)}`);
+const dShort = (d, en = false) => en ? `${+d.slice(5, 7)}/${+d.slice(8)}` : `${+d.slice(8)}.${+d.slice(5, 7)}`;
+const dowName = (d, en = false) => (en ? EN_D : HE_D)[dowOf(d)];
+// one push per language when the same message goes to several people
+async function sendByLang(members, make, opts) {
+  let sent = 0;
+  for (const en of [false, true]) { const ids = members.filter(m => isEn(m) === en).map(m => m.user_id); if (ids.length) sent += (await sendToUsers(ids, make(en), opts)).sent; }
+  return { sent };
+}
 
 // ---------- sending ----------
 async function sendToUsers(userIds, msg, opts) {
@@ -238,34 +249,36 @@ async function sendToUsers(userIds, msg, opts) {
 
 // ---------- change notifications ----------
 const KIND1 = { shift: 'משמרת', task: 'משימה', event: 'אירוע' }, KINDN = { shift: 'משמרות', task: 'משימות', event: 'אירועים' };
+const KIND1_EN = { shift: 'a shift', task: 'a task', event: 'an event' }, KINDN_EN = { shift: 'shifts', task: 'tasks', event: 'events' };
 function composeChange(actor, items, mems, today, to, note) {
-  const name = actor ? actor.display_name : 'מישהו', f = actor && actor.gender === 'f';
-  const V = { insert: f ? 'הוסיפה' : 'הוסיף', update: f ? 'עדכנה' : 'עדכן', delete: f ? 'מחקה' : 'מחק', done: f ? 'סיימה' : 'סיים' };
-  const when = it => it.ev_date ? relDay(it.ev_date, today) + (it.ev_time ? ' · ' + String(it.ev_time).slice(0, 5) : '') : '';
-  const whose = it => !it.owner_id ? (mems.length > 1 ? ' (שלנו)' : '') : it.owner_id === to.user_id ? ' (שלך)' : (actor && it.owner_id === actor.user_id) ? '' : ` (של ${(mems.find(m => m.user_id === it.owner_id) || {}).display_name || ''})`;
+  const en = isEn(to), name = actor ? actor.display_name : (en ? 'Someone' : 'מישהו'), f = actor && actor.gender === 'f';
+  const V = en ? { insert: 'added', update: 'updated', delete: 'deleted', done: 'finished' } : { insert: f ? 'הוסיפה' : 'הוסיף', update: f ? 'עדכנה' : 'עדכן', delete: f ? 'מחקה' : 'מחק', done: f ? 'סיימה' : 'סיים' };
+  const when = it => it.ev_date ? relDay(it.ev_date, today, en) + (it.ev_time ? ' · ' + String(it.ev_time).slice(0, 5) : '') : '';
+  const other = id => (mems.find(m => m.user_id === id) || {}).display_name || '';
+  const whose = it => !it.owner_id ? (mems.length > 1 ? (en ? ' (ours)' : ' (שלנו)') : '') : it.owner_id === to.user_id ? (en ? ' (yours)' : ' (שלך)') : (actor && it.owner_id === actor.user_id) ? '' : (en ? ` (${other(it.owner_id)}'s)` : ` (של ${other(it.owner_id)})`);
   const urlOf = it => it.kind === 'task' ? '/?tasks=1' : it.action !== 'delete' && it.ev_date ? `/?d=${it.ev_date}` : '/?feed=1';
   if (items.length === 1) {
     const it = items[0];
     return {
-      title: `${name} ${V[it.action] || V.update} ${KIND1[it.kind] || 'אירוע'}`,
+      title: `${name} ${V[it.action] || V.update} ${en ? (KIND1_EN[it.kind] || 'an event') : (KIND1[it.kind] || 'אירוע')}`,
       body: [[`${it.title || ''}${it.kids ? ' · ' + it.kids : ''}${whose(it)}`, when(it), it.recur ? '🔁' : ''].filter(Boolean).join(' · '), note].filter(Boolean).join('\n'),
       url: urlOf(it), tag: 'chg-' + (it.event_id || Date.now())
     };
   }
   const acts = [...new Set(items.map(i => i.action))], kinds = [...new Set(items.map(i => i.kind))], n = items.length;
   const title = acts.length === 1 && kinds.length === 1
-    ? `${name} ${V[acts[0]] || V.update} ${n} ${KINDN[kinds[0]] || 'פריטים'}`
-    : `${name} ${f ? 'עדכנה' : 'עדכן'} ${n} פריטים ביומן`;
-  const lines = items.slice(0, 5).map(it => `${it.action === 'delete' ? '✖ ' : it.action === 'done' ? '✓ ' : ''}${it.title || ''}${it.kids ? ' · ' + it.kids : ''}${whose(it)}${it.ev_date ? ' · ' + relDay(it.ev_date, today) : ''}`);
-  if (n > 5) lines.push(`ועוד ${n - 5}…`);
+    ? `${name} ${V[acts[0]] || V.update} ${n} ${en ? (KINDN_EN[kinds[0]] || 'items') : (KINDN[kinds[0]] || 'פריטים')}`
+    : en ? `${name} updated ${n} items on the calendar` : `${name} ${f ? 'עדכנה' : 'עדכן'} ${n} פריטים ביומן`;
+  const lines = items.slice(0, 5).map(it => `${it.action === 'delete' ? '✖ ' : it.action === 'done' ? '✓ ' : ''}${it.title || ''}${it.kids ? ' · ' + it.kids : ''}${whose(it)}${it.ev_date ? ' · ' + relDay(it.ev_date, today, en) : ''}`);
+  if (n > 5) lines.push(en ? `and ${n - 5} more…` : `ועוד ${n - 5}…`);
   if (note) lines.push(note);
   return { title, body: lines.join('\n'), url: kinds.length === 1 && kinds[0] === 'task' ? '/?tasks=1' : '/?feed=1', tag: 'chg-batch-' + Date.now() };
 }
 // "both of you are busy at the same time" created by this change (2-person calendars)
 async function bothBusyNote(hh, items, mems, today) {
-  if (mems.length !== 2) return '';
+  if (mems.length !== 2) return [];
   const ch = items.filter(i => i.action !== 'delete' && i.kind !== 'task' && i.ev_date && i.owner_id && i.ev_time && !i.recur);
-  if (!ch.length) return '';
+  if (!ch.length) return [];
   const ids = new Set(ch.map(i => i.event_id)), dates = [...new Set(ch.map(i => i.ev_date))].sort();
   const { data: evs } = await db.from('events').select('*').eq('household_id', hh).or(`end_date.gte.${addDays(dates[0], -2)},recur.not.is.null`).lte('start_date', addDays(dates[dates.length - 1], 2));
   const hits = [];
@@ -277,21 +290,24 @@ async function bothBusyNote(hh, items, mems, today) {
       for (const [a, b] of bothBusy(occ, dd, mems.map(m => m.user_id))) if (mine.some(([x, y]) => x < b && a < y) && !hits.some(h => h[0] === dd && h[1] === a)) hits.push([dd, a, b]);
     }
   }
-  if (!hits.length) return '';
-  if (hits.length === 1) return `⚠️ שניכם עסוקים במקביל ${relDay(hits[0][0], today)} ${fmtT(hits[0][1])}-${fmtT(hits[0][2])}`;
-  return `⚠️ ${hits.length} פעמים ששניכם עסוקים במקביל`;
+  return hits;
+}
+function noteTxt(hits, today, en) {
+  if (!hits || !hits.length) return '';
+  if (hits.length === 1) return en ? `⚠️ You're both busy at the same time ${relDay(hits[0][0], today, true)} ${fmtT(hits[0][1])}-${fmtT(hits[0][2])}` : `⚠️ שניכם עסוקים במקביל ${relDay(hits[0][0], today)} ${fmtT(hits[0][1])}-${fmtT(hits[0][2])}`;
+  return en ? `⚠️ You're both busy at the same time ${hits.length} times` : `⚠️ ${hits.length} פעמים ששניכם עסוקים במקביל`;
 }
 async function handleChange(b) {
   const items = b.items || [];
   if (!items.length) return { sent: 0 };
-  const { data: mems } = await db.from('members').select('user_id, display_name, gender, notify_changes').eq('household_id', b.household_id);
+  const { data: mems } = await db.from('members').select('user_id, display_name, gender, notify_changes, lang').eq('household_id', b.household_id);
   const all = mems || [], actor = all.find(m => m.user_id === b.actor_id), today = localAt(Date.now()).date;
   const targets = all.filter(m => m.user_id !== b.actor_id && m.notify_changes);
   if (!targets.length) return { sent: 0 };
-  let note = '';
-  try { note = await bothBusyNote(b.household_id, items, all, today); } catch (e) { console.log('note error', String(e)); }
+  let hits = [];
+  try { hits = await bothBusyNote(b.household_id, items, all, today); } catch (e) { console.log('note error', String(e)); }
   let sent = 0;
-  for (const t of targets) sent += (await sendToUsers([t.user_id], composeChange(actor, items, all, today, t, note), { ttl: 86400 })).sent;
+  for (const t of targets) sent += (await sendToUsers([t.user_id], composeChange(actor, items, all, today, t, noteTxt(hits, today, isEn(t))), { ttl: 86400 })).sent;
   return { sent };
 }
 
@@ -305,16 +321,16 @@ const kidsTxt = (ev, KM) => (ev.kid_ids || []).map(id => KM.get(id)).filter(Bool
 
 // ---------- reminders ----------
 const WINDOW = 10; // minutes of tolerance for a missed tick
-function reminderMsg(x, today) {
+function reminderMsg(x, today, en = false) {
   const ev = x.ev, s = ev.all_day ? 9 * 60 : (tmin(ev.start_time) || 0);
   let rel;
-  if (ev.all_day) rel = relDay(x.d, today);
-  else if (x.off === 0) rel = 'עכשיו';
-  else if (x.off < 60) rel = `בעוד ${x.off} דקות`;
-  else if (x.off === 60) rel = 'בעוד שעה';
-  else if (x.off === 120) rel = 'בעוד שעתיים';
-  else if (x.off < 1440 && x.d === today) rel = `בעוד ${Math.round(x.off / 60)} שעות`;
-  else rel = relDay(x.d, today);
+  if (ev.all_day) rel = relDay(x.d, today, en);
+  else if (x.off === 0) rel = en ? 'Now' : 'עכשיו';
+  else if (x.off < 60) rel = en ? `In ${x.off} minutes` : `בעוד ${x.off} דקות`;
+  else if (x.off === 60) rel = en ? 'In an hour' : 'בעוד שעה';
+  else if (x.off === 120) rel = en ? 'In 2 hours' : 'בעוד שעתיים';
+  else if (x.off < 1440 && x.d === today) rel = en ? `In ${Math.round(x.off / 60)} hours` : `בעוד ${Math.round(x.off / 60)} שעות`;
+  else rel = relDay(x.d, today, en);
   const parts = [rel];
   if (!ev.all_day) parts.push(fmtT(s) + (ev.end_time ? '-' + String(ev.end_time).slice(0, 5) : ''));
   if (x.kids) parts.push(x.kids);
@@ -352,8 +368,8 @@ async function doReminders(now, mems) {
     x.kids = kidsTxt(x.ev, KM);
     const hh = mems.filter(m => m.household_id === x.ev.household_id && m.notify_reminders);
     const rt = x.alr ? x.ev.remind_to : null, who = rt === 'both' ? null : (rt || x.ev.owner_id);
-    const targets = (who ? hh.filter(m => m.user_id === who) : hh).map(m => m.user_id);
-    const r = await sendToUsers(targets, reminderMsg(x, today), { ttl: Math.max(600, Math.min(x.off * 60, 6 * 3600)), urgency: 'high' });
+    const targets = who ? hh.filter(m => m.user_id === who) : hh;
+    const r = await sendByLang(targets, en => reminderMsg(x, today, en), { ttl: Math.max(600, Math.min(x.off * 60, 6 * 3600)), urgency: 'high' });
     sent += r.sent;
   }
   return sent;
@@ -373,10 +389,10 @@ async function doTaskReminders(now, mems) {
   for (const t of tks) {
     if (!fresh.has(t.id + '|' + new Date(t.remind_at).getTime())) continue;
     const hh = mems.filter(m => m.household_id === t.household_id && m.notify_reminders);
-    const targets = (t.remind_to ? hh.filter(m => m.user_id === t.remind_to) : hh).map(m => m.user_id);
+    const targets = t.remind_to ? hh.filter(m => m.user_id === t.remind_to) : hh;
     const by = mems.find(m => m.user_id === t.created_by);
     const style = ['strong', 'normal', 'quiet'].includes(t.remind_style) ? t.remind_style : 'strong';
-    const r = await sendToUsers(targets, { title: `⏰ ${t.title}`, body: `תזכורת למשימה${by ? ` · מ${by.display_name}` : ''}`, url: '/?tasks=1', tag: `task-${t.id}`, style, sticky: style === 'strong' }, { ttl: 3600, urgency: 'high' });
+    const r = await sendByLang(targets, en => ({ title: `⏰ ${t.title}`, body: en ? `Task reminder${by ? ` · from ${by.display_name}` : ''}` : `תזכורת למשימה${by ? ` · מ${by.display_name}` : ''}`, url: '/?tasks=1', tag: `task-${t.id}`, style, sticky: style === 'strong' }), { ttl: 3600, urgency: 'high' });
     sent += r.sent;
   }
   return sent;
@@ -393,6 +409,7 @@ async function hhEvents(hh, from) {
 }
 function onDay(occ, d) { const D0 = dn(d) * 1440; return occ.filter(o => o.A < D0 + 1440 && o.B > D0 && (o.allDay || o.date === d || o.A >= D0 - 6 * 60)); }
 async function digest(m, kind, L, mems) {
+  const en = isEn(m);
   const { data: ins } = await db.from('digest_log').upsert({ user_id: m.user_id, kind, day: L.date }, { onConflict: 'user_id,kind,day', ignoreDuplicates: true }).select();
   if (!ins || !ins.length) return 0;
   const evs = await hhEvents(m.household_id, L.date);
@@ -411,10 +428,10 @@ async function digest(m, kind, L, mems) {
     const others = hhm.filter(x => x.user_id !== m.user_id).map(x => [x.display_name, occ.filter(o => o.ev.owner_id === x.user_id).map(o => fmt(o))]).filter(a => a[1].length);
     if (!mine.length && !shared.length && !others.length) return 0;
     const lines = [];
-    if (mine.length) lines.push('שלך: ' + mine.join(' · '));
-    if (shared.length) lines.push('משותף: ' + shared.join(' · '));
+    if (mine.length) lines.push((en ? 'Yours: ' : 'שלך: ') + mine.join(' · '));
+    if (shared.length) lines.push((en ? 'Shared: ' : 'משותף: ') + shared.join(' · '));
     for (const [n, a] of others) lines.push(`${n}: ${a.join(' · ')}`);
-    const r = await sendToUsers([m.user_id], { title: `☀️ ${L.min < 12 * 60 ? 'בוקר טוב' : 'היום'} ${m.display_name} · ${HE_D[dowOf(L.date)]} ${dShort(L.date)}`, body: lines.join('\n'), url: `/?d=${L.date}`, tag: 'daily-' + L.date }, { ttl: 4 * 3600 });
+    const r = await sendToUsers([m.user_id], { title: en ? `☀️ ${L.min < 12 * 60 ? 'Good morning' : 'Today'}, ${m.display_name} · ${dowName(L.date, true)} ${dShort(L.date, true)}` : `☀️ ${L.min < 12 * 60 ? 'בוקר טוב' : 'היום'} ${m.display_name} · ${HE_D[dowOf(L.date)]} ${dShort(L.date)}`, body: lines.join('\n'), url: `/?d=${L.date}`, tag: 'daily-' + L.date }, { ttl: 4 * 3600 });
     return r.sent;
   }
   const from = addDays(L.date, 1), to = addDays(L.date, 7);
@@ -423,20 +440,20 @@ async function digest(m, kind, L, mems) {
   for (let d = from; d <= to; d = addDays(d, 1)) {
     const items = onDay(occ, d).filter(o => o.allDay || o.date === d);
     if (!items.length) continue;
-    lines.push(`${HE_D[dowOf(d)]} ${dShort(d)}: ${items.slice(0, 4).map(o => fmt(o, true)).join(' · ')}${items.length > 4 ? ` +${items.length - 4}` : ''}`);
+    lines.push(`${dowName(d, en)} ${dShort(d, en)}: ${items.slice(0, 4).map(o => fmt(o, true)).join(' · ')}${items.length > 4 ? ` +${items.length - 4}` : ''}`);
   }
   if (hhm.length >= 2) {
     const fr = [];
     for (let d = from; d <= to && fr.length < 3; d = addDays(d, 1)) {
       const w = freeSlots(dayBusy(occ, d, () => true), 7 * 60, 23 * 60, 90).filter(([a, b]) => b > 17 * 60 || dowOf(d) >= 5);
-      if (w.length) { const best = w.sort((x, y) => (y[1] - y[0]) - (x[1] - x[0]))[0]; fr.push(`${HE_D[dowOf(d)]} ${fmtT(best[0])}-${fmtT(best[1])}`); }
+      if (w.length) { const best = w.sort((x, y) => (y[1] - y[0]) - (x[1] - x[0]))[0]; fr.push(`${dowName(d, en)} ${fmtT(best[0])}-${fmtT(best[1])}`); }
     }
-    if (fr.length) lines.push('💛 פנויים יחד: ' + fr.join(' · '));
+    if (fr.length) lines.push((en ? '💛 Free together: ' : '💛 פנויים יחד: ') + fr.join(' · '));
   }
   const { data: tks } = await db.from('tasks').select('title').eq('household_id', m.household_id).eq('done', false).order('created_at').limit(30);
-  if (tks && tks.length) lines.push(`📝 משימות פתוחות (${tks.length}): ${tks.slice(0, 3).map(t => t.title).join(' · ')}${tks.length > 3 ? ' …' : ''}`);
+  if (tks && tks.length) lines.push(`${en ? '📝 Open tasks' : '📝 משימות פתוחות'} (${tks.length}): ${tks.slice(0, 3).map(t => t.title).join(' · ')}${tks.length > 3 ? ' …' : ''}`);
   if (!lines.length) return 0;
-  const r = await sendToUsers([m.user_id], { title: `📅 השבוע ביומן (${dShort(from)}-${dShort(to)})`, body: lines.join('\n'), url: `/?d=${from}`, tag: 'weekly-' + from }, { ttl: 12 * 3600 });
+  const r = await sendToUsers([m.user_id], { title: en ? `📅 Your week (${dShort(from, true)}-${dShort(to, true)})` : `📅 השבוע ביומן (${dShort(from)}-${dShort(to)})`, body: lines.join('\n'), url: `/?d=${from}`, tag: 'weekly-' + from }, { ttl: 12 * 3600 });
   return r.sent;
 }
 async function handleTick() {
@@ -464,7 +481,9 @@ async function handleTest(req) {
   const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
   const { data, error } = await db.auth.getUser(token);
   if (error || !data || !data.user) return { error: 'unauthorized', sent: 0 };
-  return await sendToUsers([data.user.id], { title: 'היומן שלנו ✓', body: 'ההתראות עובדות במכשיר הזה', url: '/', tag: 'test' }, { ttl: 600, urgency: 'high' });
+  const { data: me } = await db.from('members').select('lang').eq('user_id', data.user.id).maybeSingle();
+  const en = isEn(me);
+  return await sendToUsers([data.user.id], { title: (en ? APP.en : APP.he) + ' ✓', body: en ? 'Notifications work on this device' : 'ההתראות עובדות במכשיר הזה', url: '/', tag: 'test' }, { ttl: 600, urgency: 'high' });
 }
 
 Deno.serve(async req => {

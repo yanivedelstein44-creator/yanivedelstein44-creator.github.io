@@ -785,3 +785,6 @@ create trigger trg_shop_touch before update on public.shop_items for each row ex
 do $$ begin
   begin alter publication supabase_realtime add table public.shop_items; exception when duplicate_object then null; end;
 end $$;
+
+-- the language each person sees the app in (notifications and AI texts follow it)
+alter table public.members add column if not exists lang text check (lang is null or lang in ('he', 'en'));

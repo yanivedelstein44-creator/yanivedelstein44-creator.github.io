@@ -1,16 +1,16 @@
 {
  "id": "/",
- "name": "היומן שלנו",
- "short_name": "היומן שלנו",
- "description": "יומן משותף לזוג: פגישות, משמרות ותזכורות בסנכרון חי",
+ "name": "איזון הבית",
+ "short_name": "איזון הבית",
+ "description": "יומן, קניות ובית משותף לזוג: פגישות, משמרות ותזכורות בסנכרון חי",
  "lang": "he",
  "dir": "rtl",
  "start_url": "/?source=pwa",
  "scope": "/",
  "display": "standalone",
  "orientation": "portrait",
- "background_color": "#f8eee6",
- "theme_color": "#b3582f",
+ "background_color": "#f5f2ea",
+ "theme_color": "#14213d",
  "categories": [
   "productivity",
   "lifestyle"

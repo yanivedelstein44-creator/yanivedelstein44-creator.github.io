@@ -1,0 +1,79 @@
+{
+ "id": "/",
+ "name": "HomeIzun",
+ "short_name": "HomeIzun",
+ "description": "A shared home for couples: calendar, shifts, reminders and a shopping list, synced live",
+ "lang": "en",
+ "dir": "ltr",
+ "start_url": "/?source=pwa",
+ "scope": "/",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#f5f2ea",
+ "theme_color": "#14213d",
+ "categories": [
+  "productivity",
+  "lifestyle"
+ ],
+ "icons": [
+  {
+   "src": "/icons/hy-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "/icons/hy-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "/icons/hy-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  },
+  {
+   "src": "/icons/hy-mono-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "monochrome"
+  }
+ ],
+ "shortcuts": [
+  {
+   "name": "Shopping list",
+   "short_name": "Shopping",
+   "url": "/?shop=1",
+   "icons": [
+    {
+     "src": "/icons/hy-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Quick add",
+   "short_name": "Add",
+   "url": "/?new=1",
+   "icons": [
+    {
+     "src": "/icons/hy-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Tasks",
+   "short_name": "Tasks",
+   "url": "/?tasks=1",
+   "icons": [
+    {
+     "src": "/icons/hy-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  }
+ ]
+}

@@ -1,9 +1,9 @@
-// היומן שלנו – service worker
+// איזון הבית / HomeIzun – service worker
 // Bump VERSION on every release: installed apps (browser, home screen, APK) pick up the new version automatically.
-const VERSION = '1.13.0';
+const VERSION = '1.14.0';
 const CACHE = 'hayoman-' + VERSION;
 const SB_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js';
-const SHELL = ['/', '/manifest.webmanifest', '/icons/hy-192.png', '/icons/hy-512.png', '/icons/hy-badge-96.png', '/icons/hy-48.png'];
+const SHELL = ['/', '/manifest.webmanifest', '/manifest-en.webmanifest', '/icons/hy-192.png', '/icons/hy-512.png', '/icons/hy-badge-96.png', '/icons/hy-48.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
@@ -57,7 +57,7 @@ self.addEventListener('push', e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (_) { d = { body: e.data ? e.data.text() : '' }; }
   e.waitUntil((async () => {
-    await self.registration.showNotification(d.title || 'היומן שלנו', {
+    await self.registration.showNotification(d.title || 'איזון הבית', {
       body: d.body || '', tag: d.tag || undefined, renotify: !!d.tag, dir: 'rtl', lang: 'he',
       icon: '/icons/hy-192.png', badge: '/icons/hy-badge-96.png', data: { url: d.url || '/' },
       requireInteraction: !!d.sticky || d.style === 'strong',
