@@ -109,6 +109,42 @@ const CAR_SCHEMA = {
   },
   required: ['summary', 'doc_type', 'plate', 'name', 'km', 'test_date', 'license_date', 'ins_date', 'ins_name', 'service_date', 'service_title', 'service_km', 'service_cost', 'confidence']
 };
+// fridge / freezer / pantry photo → what to put on the shopping list
+const SHOP_CATS = ['produce', 'dairy', 'meat', 'bakery', 'pantry', 'frozen', 'snacks', 'drinks', 'cleaning', 'pharm', 'baby', 'pets', 'other'];
+const FRIDGE_SCHEMA = {
+  type: 'object',
+  properties: {
+    summary: { type: 'string', description: 'One short Hebrew sentence about what the photo shows.' },
+    have: { type: 'array', items: { type: 'string' }, description: 'Foods and products clearly visible, as short Hebrew shopping-list names.' },
+    suggest: {
+      type: 'array',
+      description: 'What to buy, the most needed first. At most 15.',
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Short Hebrew product name as people write it on a shopping list, e.g. "חלב", "ביצים", "עגבניות". No brands unless the brand is the product.' },
+          reason: { type: 'string', enum: ['empty', 'low', 'missing'], description: 'empty: its container or shelf spot is visibly empty; low: little is left; missing: an everyday basic that is clearly absent from a shelf that is in view.' },
+          category: { type: 'string', enum: SHOP_CATS, description: 'Supermarket department.' }
+        },
+        required: ['name', 'reason', 'category']
+      }
+    }
+  },
+  required: ['summary', 'have', 'suggest']
+};
+const FRIDGE_SYSTEM = 'You look at photos of a home fridge, freezer or pantry for a Hebrew family shopping-list app and suggest what to buy. Only suggest what the photo supports: products that are visibly empty or almost finished, and everyday basics that are clearly absent from a shelf that is in view. Do not suggest what is still plentiful. Never invent brands. Keep names short, the way people write a shopping list. Write Hebrew text in Hebrew.';
+function sanitizeFridge(o: any, onList: Set<string>) {
+  const norm = (x: string) => String(x || '').replace(/[֑-ׇ"'׳״]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const seen = new Set<string>(), out: any[] = [];
+  for (const it of Array.isArray(o && o.suggest) ? o.suggest : []) {
+    const name = clean(it && it.name, 60), k = norm(name);
+    if (!name || seen.has(k) || onList.has(k)) continue;
+    seen.add(k);
+    out.push({ name, reason: ['empty', 'low', 'missing'].includes(it.reason) ? it.reason : 'missing', category: SHOP_CATS.includes(it.category) ? it.category : 'other' });
+    if (out.length >= 15) break;
+  }
+  return { suggest: out, have: (Array.isArray(o && o.have) ? o.have : []).map((x: any) => clean(x, 40)).filter(Boolean).slice(0, 30) };
+}
 const CAR_SYSTEM = 'You read photos and PDFs of Israeli car documents (vehicle license רישיון רכב, test certificate אישור טסט, compulsory/comprehensive insurance policy, license fee receipt, garage invoice) for a Hebrew family calendar app, and report the facts in the requested JSON structure. Never invent values: leave a field empty (or 0) when the document does not state it. Write Hebrew text in Hebrew.';
 const ASSIST_SYSTEM = 'You help a couple manage their shared Hebrew family calendar. Turn the request into a list of changes (add, update, delete) in the requested JSON structure. The person reviews and approves every change before it is applied. Write titles, places and the reply in Hebrew. Never invent event ids.';
 const SYSTEM = 'You read photos and screenshots of schedules for a Hebrew family calendar app and report the calendar items in the requested JSON structure. Never invent items; when the image has no schedule, return an empty list. Write titles, places and the summary in Hebrew.';
@@ -229,7 +265,7 @@ function sanitizeChanges(list: unknown, ids: Set<string>) {
 type Opts = { media: boolean; thinking: boolean; schema: boolean };
 function geminiBody(img: string, mt: string, text: string, o: Opts, kind: boolean | string = false) {
   const k = kind === true ? 'assist' : kind || 'scan';
-  const SC = k === 'assist' ? ASSIST_SCHEMA : k === 'car' ? CAR_SCHEMA : SCHEMA, SY = k === 'assist' ? ASSIST_SYSTEM : k === 'car' ? CAR_SYSTEM : SYSTEM;
+  const SC = k === 'assist' ? ASSIST_SCHEMA : k === 'car' ? CAR_SCHEMA : k === 'fridge' ? FRIDGE_SCHEMA : SCHEMA, SY = k === 'assist' ? ASSIST_SYSTEM : k === 'car' ? CAR_SYSTEM : k === 'fridge' ? FRIDGE_SYSTEM : SYSTEM;
   const image: any = img ? { inlineData: { mimeType: mt, data: img } } : null;
   if (image && o.media) image.mediaResolution = { level: 'media_resolution_high' }; // small print in rosters needs the sharper view
   const gc: any = { responseMimeType: 'application/json', maxOutputTokens: 16384 };
@@ -359,10 +395,20 @@ Deno.serve(async req => {
       return json({ reply: clean(r0.out && r0.out.reply, 300), changes, model: r0.model, usage: r0.usage });
     }
     const img = typeof b.image === 'string' ? b.image.replace(/^data:[^,]+,/, '') : '';
-    const car = b.mode === 'car';
+    const car = b.mode === 'car', fridge = b.mode === 'fridge';
     const mt = ['image/jpeg', 'image/png', 'image/webp'].concat(car ? ['application/pdf'] : []).includes(b.mediaType) ? b.mediaType : 'image/jpeg';
     if (!img || img.length > 8_000_000) return json({ error: 'image' }, 413);
     const today = ymd(b.today) || new Date().toISOString().slice(0, 10);
+    if (fridge) {
+      if (PROVIDER === 'claude') return json({ error: 'failed' }, 501);
+      const norm0 = (x: string) => String(x || '').replace(/[֑-ׇ"'׳״]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+      const list = (Array.isArray(b.list) ? b.list : []).map((x: any) => clean(x, 60)).filter(Boolean).slice(0, 80);
+      called = true;
+      const rf = await scanGemini(img, mt, `Today is ${today}. Look at this photo and fill the JSON structure: what is in view, and what this household should buy.${list.length ? ` Already on their shopping list (do not suggest these): ${list.join(', ')}.` : ''}` + (en ? '\nLanguage: write the summary and every product name in English.' : ''), t0, 'fridge');
+      const fr = sanitizeFridge(rf.out, new Set(list.map(norm0)));
+      await db.from('scan_log').insert({ household_id: me.household_id, user_id: uid, model: rf.model, input_tokens: rf.usage.input, output_tokens: rf.usage.output, items: fr.suggest.length, ok: true });
+      return json({ summary: clean(rf.out && rf.out.summary, 160), have: fr.have, suggest: fr.suggest, model: rf.model, usage: rf.usage });
+    }
     if (car) {
       if (PROVIDER === 'claude') return json({ error: 'failed' }, 501);
       called = true;

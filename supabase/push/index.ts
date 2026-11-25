@@ -463,6 +463,7 @@ async function handleTick() {
   if (error) throw error;
   out.reminders = await doReminders(now, mems || []);
   try { out.tasks = await doTaskReminders(now, mems || []); } catch (e) { console.log('task reminders error', String(e)); out.tasks = 0; }
+  try { out.shop = await doShop(now, mems || []); } catch (e) { console.log('shop error', String(e)); out.shop = 0; }
   for (const m of mems || []) {
     if (m.notify_daily && L.min >= m.daily_hour * 60 && L.min < m.daily_hour * 60 + 15) out.daily += await digest(m, 'daily', L, mems);
     if (m.notify_weekly && dowOf(L.date) === 6 && L.min >= 21 * 60 && L.min < 21 * 60 + 15) out.weekly += await digest(m, 'weekly', L, mems);
@@ -474,6 +475,48 @@ async function handleTick() {
   }
   evCache.clear();
   return out;
+}
+
+// ---------- shopping list: one push per person, about a minute after they stop changing the list ----------
+// The shop_activity trigger logs "added" (insert) and "bought" rows with kind 'shop'. A row that waits here
+// is dropped by the trigger if its item is deleted first, so a quick add-and-remove sends nothing.
+const SHOP_QUIET_MS = 45_000, SHOP_STALE_MS = 6 * 3600_000;
+async function doShop(now, mems) {
+  const { data: rows, error } = await db.from('activity').select('id, household_id, actor_id, action, title, created_at').eq('kind', 'shop').eq('notified', false).order('id').limit(1000);
+  if (error) throw error;
+  if (!rows || !rows.length) return 0;
+  const groups = new Map();
+  for (const r of rows) { const k = r.household_id + '|' + r.actor_id; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); }
+  let sent = 0;
+  for (const [k, g] of groups) {
+    if (now - Date.parse(g[g.length - 1].created_at) < SHOP_QUIET_MS) continue; // still adding: the next tick takes it
+    await db.from('activity').update({ notified: true }).in('id', g.map(r => r.id));
+    const fresh = g.filter(r => now - Date.parse(r.created_at) < SHOP_STALE_MS);
+    if (!fresh.length) continue;
+    const [hh, actorId] = k.split('|');
+    const all = mems.filter(m => m.household_id === hh), actor = all.find(m => m.user_id === actorId);
+    for (const t of all.filter(m => m.user_id !== actorId && m.notify_changes)) sent += (await sendToUsers([t.user_id], composeShop(actor, fresh, t), { ttl: 43200 })).sent;
+  }
+  return sent;
+}
+function composeShop(actor, items, to) {
+  const en = isEn(to), f = !!actor && actor.gender === 'f', name = actor ? actor.display_name : (en ? 'Someone' : 'מישהו');
+  const uniq = a => [...new Set(a.map(i => String(i.title || '').trim()).filter(Boolean))];
+  const add = uniq(items.filter(i => i.action === 'insert')), got = uniq(items.filter(i => i.action === 'bought'));
+  const list = a => a.slice(0, 6).join(' · ') + (a.length > 6 ? (en ? ` and ${a.length - 6} more` : ` ועוד ${a.length - 6}`) : '');
+  const many = n => en ? `${n} items` : `${n} פריטים`;
+  let title, body = '';
+  if (add.length && !got.length) {
+    title = en ? `${name} added ${add.length === 1 ? add[0] : many(add.length)} to the shopping list` : `${name} ${f ? 'הוסיפה' : 'הוסיף'} ${add.length === 1 ? add[0] : many(add.length)} לרשימת הקניות`;
+    if (add.length > 1) body = list(add);
+  } else if (got.length && !add.length) {
+    title = en ? `${name} bought ${got.length === 1 ? got[0] : many(got.length)}` : `${name} ${f ? 'קנתה' : 'קנה'} ${got.length === 1 ? got[0] : many(got.length)}`;
+    if (got.length > 1) body = list(got);
+  } else {
+    title = en ? `${name} updated the shopping list` : `${name} ${f ? 'עדכנה' : 'עדכן'} את רשימת הקניות`;
+    body = [(en ? 'Added: ' : 'נוספו: ') + list(add), (en ? 'Bought: ' : 'נקנו: ') + list(got)].join('\n');
+  }
+  return { title: '🛒 ' + title, body, url: '/?shop=1', tag: 'shop-' + (actor ? actor.user_id : 'x') };
 }
 
 // ---------- test ----------
