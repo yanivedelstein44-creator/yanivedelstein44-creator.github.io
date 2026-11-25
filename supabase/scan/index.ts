@@ -110,7 +110,7 @@ const CAR_SCHEMA = {
   required: ['summary', 'doc_type', 'plate', 'name', 'km', 'test_date', 'license_date', 'ins_date', 'ins_name', 'service_date', 'service_title', 'service_km', 'service_cost', 'confidence']
 };
 // fridge / freezer / pantry photo → what to put on the shopping list
-const SHOP_CATS = ['produce', 'dairy', 'meat', 'bakery', 'pantry', 'frozen', 'snacks', 'drinks', 'cleaning', 'pharm', 'baby', 'pets', 'other'];
+const SHOP_CATS = ['produce', 'dairy', 'meat', 'bakery', 'pantry', 'frozen', 'snacks', 'drinks', 'cleaning', 'pharm', 'baby', 'pets', 'garden', 'other'];
 const FRIDGE_SCHEMA = {
   type: 'object',
   properties: {
@@ -144,6 +144,62 @@ function sanitizeFridge(o: any, onList: Set<string>) {
     if (out.length >= 15) break;
   }
   return { suggest: out, have: (Array.isArray(o && o.have) ? o.have : []).map((x: any) => clean(x, 40)).filter(Boolean).slice(0, 30) };
+}
+// pet vaccination booklet / vet receipt / municipal dog license → dates of vaccines and treatments
+const PET_KEYS = ['rabies', 'license', 'dhpp', 'fvrcp', 'rhd', 'deworm', 'flea', 'vet', 'other'];
+const PET_SCHEMA = {
+  type: 'object',
+  properties: {
+    summary: { type: 'string', description: 'One short Hebrew sentence about the document.' },
+    chip: { type: 'string', description: 'Microchip number if printed, else empty.' },
+    vet_name: { type: 'string', description: 'Clinic or vet name if printed, else empty.' },
+    vet_phone: { type: 'string', description: 'Clinic phone if printed, else empty.' },
+    items: {
+      type: 'array',
+      description: 'Every vaccine or treatment with a date. At most 20.',
+      items: {
+        type: 'object',
+        properties: {
+          key: { type: 'string', enum: PET_KEYS, description: 'rabies = כלבת; license = municipal dog license (רישיון החזקת כלב); dhpp = dog multi-vaccine (משושה / מחומש); fvrcp = cat multi-vaccine (מרובע / משולש); rhd = rabbit RHDV vaccine; deworm = תילוע; flea = flea/tick treatment; vet = check-up; other.' },
+          title: { type: 'string', description: 'Short Hebrew name as written.' },
+          date: { type: 'string', description: 'The date it was given, YYYY-MM-DD, or empty.' },
+          next: { type: 'string', description: 'The next due date if the document states one, YYYY-MM-DD, or empty.' }
+        },
+        required: ['key', 'title', 'date', 'next']
+      }
+    }
+  },
+  required: ['summary', 'chip', 'vet_name', 'vet_phone', 'items']
+};
+const PET_SYSTEM = 'You read photos and PDFs of pet health documents (vaccination booklet pages and stickers, vet receipts, Israeli municipal dog licenses) for a Hebrew family app, and report each vaccine or treatment with its dates in the requested JSON structure. Never invent values: leave a field empty when the document does not state it. Israeli dates are written day/month/year. Write Hebrew text in Hebrew.';
+function sanitizePet(o: any, today: string) {
+  const d = (x: any) => { const v = ymd(x); return v && v >= '2000-01-01' && v <= '2040-12-31' ? v : null; };
+  const items = (Array.isArray(o && o.items) ? o.items : []).map((it: any) => ({ key: PET_KEYS.includes(it && it.key) ? it.key : 'other', title: clean(it && it.title, 60), date: d(it && it.date), next: d(it && it.next) }))
+    .filter((it: any) => (it.date || it.next) && (!it.date || it.date <= today)).slice(0, 20);
+  return { items, chip: clean(o && o.chip, 20).replace(/[^\d]/g, '') || null, vet_name: clean(o && o.vet_name, 40) || null, vet_phone: clean(o && o.vet_phone, 20).replace(/[^\d+\-\s]/g, '').trim() || null };
+}
+// a photo of a plant → what it is and how to care for it (Israel, indoors or balcony)
+const PLANT_SCHEMA = {
+  type: 'object',
+  properties: {
+    name: { type: 'string', description: 'Common Hebrew name of the plant, e.g. "מונסטרה", "פוטוס", "סנסיווריה". Empty if not a plant.' },
+    shape: { type: 'string', enum: ['monstera', 'alocasia', 'cactus', 'snake', 'trail', 'flower', 'succulent'], description: 'Closest drawing: snake = upright sword leaves (sansevieria, zz); trail = trailing vines (pothos, philodendron, herbs); flower = flowering (orchid, peace lily).' },
+    light: { type: 'string', enum: ['sun', 'bright', 'medium', 'shade'], description: 'Best light: sun = direct sun; bright = bright indirect; medium; shade.' },
+    water_summer: { type: 'number', description: 'Water every N days in an Israeli summer indoors.' },
+    water_winter: { type: 'number', description: 'Water every N days in winter.' },
+    soil: { type: 'string', enum: ['house', 'cactus', 'orchid', 'aroid', 'garden'], description: 'Potting mix: house = regular houseplant mix; cactus = fast-draining; orchid = bark; aroid = chunky mix with perlite and bark.' },
+    fert_every: { type: 'number', description: 'Fertilize every N days in the growing season.' },
+    toxic: { type: 'boolean', description: 'True if toxic to cats or dogs.' },
+    tips: { type: 'string', description: 'Up to two short Hebrew sentences of care tips for this plant.' },
+    confidence: { type: 'number', description: '0..1 how sure the identification is.' }
+  },
+  required: ['name', 'shape', 'light', 'water_summer', 'water_winter', 'soil', 'fert_every', 'toxic', 'tips', 'confidence']
+};
+const PLANT_SYSTEM = 'You identify houseplants and garden plants from photos for a Hebrew family app in Israel and give practical care defaults in the requested JSON structure. If the photo does not show a plant, return an empty name. Be realistic for Israeli homes (hot dry summers, mild winters). Write Hebrew text in Hebrew.';
+function sanitizePlant(o: any) {
+  const n = (x: any, lo: number, hi: number) => { const v = Math.round(Number(x)); return Number.isFinite(v) && v >= lo && v <= hi ? v : null; };
+  const pick = (x: any, a: string[]) => a.includes(x) ? x : null;
+  return { name: clean(o && o.name, 60), shape: pick(o && o.shape, ['monstera', 'alocasia', 'cactus', 'snake', 'trail', 'flower', 'succulent']), light: pick(o && o.light, ['sun', 'bright', 'medium', 'shade']), water_summer: n(o && o.water_summer, 1, 60), water_winter: n(o && o.water_winter, 1, 90), soil: pick(o && o.soil, ['house', 'cactus', 'orchid', 'aroid', 'garden']), fert_every: n(o && o.fert_every, 7, 180), toxic: typeof (o && o.toxic) === 'boolean' ? o.toxic : null, tips: clean(o && o.tips, 300), confidence: Math.max(0, Math.min(1, Number(o && o.confidence) || 0)) };
 }
 const CAR_SYSTEM = 'You read photos and PDFs of Israeli car documents (vehicle license רישיון רכב, test certificate אישור טסט, compulsory/comprehensive insurance policy, license fee receipt, garage invoice) for a Hebrew family calendar app, and report the facts in the requested JSON structure. Never invent values: leave a field empty (or 0) when the document does not state it. Write Hebrew text in Hebrew.';
 const ASSIST_SYSTEM = 'You help a couple manage their shared Hebrew family calendar. Turn the request into a list of changes (add, update, delete) in the requested JSON structure. The person reviews and approves every change before it is applied. Write titles, places and the reply in Hebrew. Never invent event ids.';
@@ -265,7 +321,8 @@ function sanitizeChanges(list: unknown, ids: Set<string>) {
 type Opts = { media: boolean; thinking: boolean; schema: boolean };
 function geminiBody(img: string, mt: string, text: string, o: Opts, kind: boolean | string = false) {
   const k = kind === true ? 'assist' : kind || 'scan';
-  const SC = k === 'assist' ? ASSIST_SCHEMA : k === 'car' ? CAR_SCHEMA : k === 'fridge' ? FRIDGE_SCHEMA : SCHEMA, SY = k === 'assist' ? ASSIST_SYSTEM : k === 'car' ? CAR_SYSTEM : k === 'fridge' ? FRIDGE_SYSTEM : SYSTEM;
+  const SC = k === 'assist' ? ASSIST_SCHEMA : k === 'car' ? CAR_SCHEMA : k === 'fridge' ? FRIDGE_SCHEMA : k === 'pet' ? PET_SCHEMA : k === 'plant' ? PLANT_SCHEMA : SCHEMA;
+  const SY = k === 'assist' ? ASSIST_SYSTEM : k === 'car' ? CAR_SYSTEM : k === 'fridge' ? FRIDGE_SYSTEM : k === 'pet' ? PET_SYSTEM : k === 'plant' ? PLANT_SYSTEM : SYSTEM;
   const image: any = img ? { inlineData: { mimeType: mt, data: img } } : null;
   if (image && o.media) image.mediaResolution = { level: 'media_resolution_high' }; // small print in rosters needs the sharper view
   const gc: any = { responseMimeType: 'application/json', maxOutputTokens: 16384 };
@@ -395,8 +452,8 @@ Deno.serve(async req => {
       return json({ reply: clean(r0.out && r0.out.reply, 300), changes, model: r0.model, usage: r0.usage });
     }
     const img = typeof b.image === 'string' ? b.image.replace(/^data:[^,]+,/, '') : '';
-    const car = b.mode === 'car', fridge = b.mode === 'fridge';
-    const mt = ['image/jpeg', 'image/png', 'image/webp'].concat(car ? ['application/pdf'] : []).includes(b.mediaType) ? b.mediaType : 'image/jpeg';
+    const car = b.mode === 'car', fridge = b.mode === 'fridge', pet = b.mode === 'pet', plant = b.mode === 'plant';
+    const mt = ['image/jpeg', 'image/png', 'image/webp'].concat(car || pet ? ['application/pdf'] : []).includes(b.mediaType) ? b.mediaType : 'image/jpeg';
     if (!img || img.length > 8_000_000) return json({ error: 'image' }, 413);
     const today = ymd(b.today) || new Date().toISOString().slice(0, 10);
     if (fridge) {
@@ -408,6 +465,23 @@ Deno.serve(async req => {
       const fr = sanitizeFridge(rf.out, new Set(list.map(norm0)));
       await db.from('scan_log').insert({ household_id: me.household_id, user_id: uid, model: rf.model, input_tokens: rf.usage.input, output_tokens: rf.usage.output, items: fr.suggest.length, ok: true });
       return json({ summary: clean(rf.out && rf.out.summary, 160), have: fr.have, suggest: fr.suggest, model: rf.model, usage: rf.usage });
+    }
+    if (pet) {
+      if (PROVIDER === 'claude') return json({ error: 'failed' }, 501);
+      called = true;
+      const kind = clean(b.kind, 10), nm = clean(b.name, 40);
+      const rp = await scanGemini(img, mt, `Today is ${today}. Read this pet health document${kind ? ` (the animal is a ${kind}${nm ? ` named ${nm}` : ''})` : ''} and fill the JSON structure: every vaccine or treatment with the date given and the next due date when written. Dates as YYYY-MM-DD; Israeli documents write day/month/year.` + langLine(en), t0, 'pet');
+      const doc = sanitizePet(rp.out, today);
+      await db.from('scan_log').insert({ household_id: me.household_id, user_id: uid, model: rp.model, input_tokens: rp.usage.input, output_tokens: rp.usage.output, items: doc.items.length, ok: true });
+      return json({ summary: clean(rp.out && rp.out.summary, 160), ...doc, model: rp.model, usage: rp.usage });
+    }
+    if (plant) {
+      if (PROVIDER === 'claude') return json({ error: 'failed' }, 501);
+      called = true;
+      const rl = await scanGemini(img, mt, `Today is ${today}. Identify the plant in this photo and fill the JSON structure with care defaults for an Israeli home.` + langLine(en), t0, 'plant');
+      const doc = sanitizePlant(rl.out);
+      await db.from('scan_log').insert({ household_id: me.household_id, user_id: uid, model: rl.model, input_tokens: rl.usage.input, output_tokens: rl.usage.output, items: doc.name ? 1 : 0, ok: true });
+      return json({ ...doc, model: rl.model, usage: rl.usage });
     }
     if (car) {
       if (PROVIDER === 'claude') return json({ error: 'failed' }, 501);
