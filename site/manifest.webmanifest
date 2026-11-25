@@ -43,6 +43,17 @@
  ],
  "shortcuts": [
   {
+   "name": "רשימת קניות",
+   "short_name": "קניות",
+   "url": "/?shop=1",
+   "icons": [
+    {
+     "src": "/icons/hy-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
    "name": "הוספה מהירה",
    "short_name": "הוספה",
    "url": "/?new=1",
