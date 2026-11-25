@@ -5,6 +5,10 @@
   limitations, how to report a barrier and the contact details, and the date of the review. Israeli Standard 5568
   (WCAG 2.0) at level AA, under the Equal Rights for Persons with Disabilities (Service Accessibility Adjustments)
   Regulations, 2013. Contact details come from legal-config.js. Facts checked in the code on Nov 21, 2026.
+  Checked again on Nov 25, 2026 ([legal-112]): tests/a11y_pass.py at 1280x800 in Hebrew and English (75 screens each),
+  the windows of the move to Google Play (FEATURES.movedToPlay, off until the launch) with axe-core and a11y_pass.py's
+  own checks at 832x384, 915x412 and 1280x800 (.duoforge/logs/legal-112-a11y/move_axe.py, not in git), and the phones'
+  pass of Nov 24 (docs/qa-final.md decision 22): what they found is in section 3 until it is fixed.
 -->
 <html lang="he" dir="rtl" data-default-lang="he">
 <head>
@@ -43,7 +47,7 @@
         <a href="./licenses.html" data-keep-lang>רישיונות</a>
       </nav>
       <h1>הצהרת נגישות</h1>
-      <p class="meta">מגיני הכוכבים (Orbit Defenders) · עודכן לאחרונה: <time data-legal="updated">2026-11-21</time></p>
+      <p class="meta">מגיני הכוכבים (Orbit Defenders) · עודכן לאחרונה: <time data-legal="updated">2026-11-25</time></p>
 
       <section aria-labelledby="he-summary">
         <h2 id="he-summary">בקצרה</h2>
@@ -71,12 +75,14 @@
           <li><b>גרפיקה:</b> שלוש רמות איכות (גבוהה, בינונית, נמוכה) בהגדרות, לטלפונים חלשים ולתמונה רגועה יותר.</li>
           <li><b>תנועה:</b> "הפחת תנועה" בהגדרות מכבה את רעידות המסך בפיצוצים ובפגיעות, ועוצר את האנימציות של התפריטים והכפתורים. כשהטלפון מבקש להפחית תנועה ("הסרת אנימציות" בהגדרות הנגישות של אנדרואיד), הוא פועל מעצמו עד שתבחר אחרת.</li>
           <li><b>צליל:</b> אפשר לכבות את הצליל, ולמוזיקה ולאפקטים יש מחווני עוצמה נפרדים. הודעות, התראות ותוצאות מופיעות גם כטקסט על המסך.</li>
-          <li><b>מגע:</b> כל כפתור ופקד במסכי המשחק בגודל של 48dp לפחות (הגודל שאנדרואיד ממליץ עליו ליעדי מגע). אפשר לבנות בנגיעה או בגרירה.</li>
+          <li><b>מגע:</b> כל כפתור ופקד במסכי המשחק בגודל של 48dp לפחות (הגודל שאנדרואיד ממליץ עליו ליעדי מגע), חוץ מכמה כפתורים בסימולטור הקרבות בטלפון (ראה סעיף 3). אפשר לבנות בנגיעה או בגרירה.</li>
           <li><b>בקצב שלך:</b> במשחק נגד המחשב אפשר לעצור בכל רגע ולשמור את הקרב כדי להמשיך אחר כך.</li>
-          <li><b>טקסט:</b> הטקסט מוצג על לוחות אטומים או שקופים למחצה, לניגודיות מעל העולם התלת-ממדי, בניגודיות של 4.5:1 לפחות (3:1 לטקסט גדול). בתפריטים הטקסט גדל עם גודל הגופן של הטלפון (הגדרות &larr; תצוגה &larr; גודל גופן), עד פי 2, והחלון נגלל כשצריך.</li>
+          <li><b>טקסט:</b> הטקסט מוצג על לוחות אטומים או שקופים למחצה, לניגודיות מעל העולם התלת-ממדי, בניגודיות של 4.5:1 לפחות (3:1 לטקסט גדול). בתפריטים הטקסט גדל עם גודל הגופן של הטלפון (הגדרות &larr; תצוגה &larr; גודל גופן), עד פי 2, והחלון נגלל כשצריך. יש כמה יוצאים מן הכלל, והם מפורטים בסעיף 3.</li>
           <li><b>קורא מסך ומקלדת:</b> בתפריטים, בחלונות ובכפתורים של הקרב, לכל כפתור ופקד יש שם ש-TalkBack מקריא בשפת המשחק, ובחירה (למשל השפה או רמת הגרפיקה) מוכרזת כנבחרת. כשחלון פתוח, מה שמאחוריו מוסתר מ-TalkBack. בתפריטים אפשר לעבור בין הכפתורים במקלדת או במתג, עם מסגרת פוקוס גלויה.</li>
           <li><b>לא רק בצבע:</b> בתפריטים, בחירה מסומנת גם במסגרת עבה, ופרק נעול מסומן במנעול.</li>
           <li><b>משחק אונליין:</b> בלי צ׳אט ובלי הקלדה: שם מרשימה ואותות מהירים מרשימה קבועה, בנגיעה.</li>
+          <li><b>טאבלט:</b> במסך גדול, כמו של טאבלט, הכפתורים, החלונות והטקסט גדלים יחד עם המסך, עד פי 2, כדי שיהיה נוח לקרוא ולגעת.</li>
+          <li><b>חלונות חדשים:</b> חלונות הסיום של משחק אונליין ושל מתקפת הקרע, והחלונות להעברת ההתקדמות לגרסת Google&nbsp;Play, בנויים לפי אותם כללים: כפתורים של 48dp לפחות, שם לכל כפתור ש-TalkBack מקריא, וטקסט שגדל עם גודל הגופן של הטלפון. את קוד ההתקדמות לא צריך להקליד: יש כפתורים להעתקה, לשיתוף ולהדבקה. את הכרטיס שמציג את המפקד היריב בתחילת שלב, את מופע הניצחון ואת טקס הדרגה החדשה אפשר לקצר בנגיעה.</li>
         </ul>
         <h3 id="he-done-site">באתר</h3>
         <ul>
@@ -91,12 +97,18 @@
           <li><b>קוראי מסך:</b> שדה הקרב, הכוכבים, היחידות והמבנים מצוירים בתלת-ממד על canvas, וקוראי מסך כמו TalkBack לא יכולים לקרוא אותם. את הקרב עצמו אי אפשר לשחק עם קורא מסך.</li>
           <li><b>ראייה וצבע:</b> הקרב דורש ראייה. בשדה הקרב ובמפה הקטנה, של מי כל מבנה מסומן בעיקר בצבע (הצד שלך כחול, והאויב העיקרי אדום).</li>
           <li><b>גודל טקסט:</b> רק הטקסט בתפריטים גדל עם גודל הגופן של הטלפון. הטקסט בכפתורים ובמספרים שמעל שדה הקרב נשאר בגודל שלו, כדי לא להסתיר את הקרב. הגדלה בשתי אצבעות כבויה, כי שתי אצבעות מזיזות את המצלמה.</li>
-          <li><b>תנועה:</b> "הפחת תנועה" לא עוצר את התנועה האיטית של המצלמה בעולם התלת-ממדי שמאחורי התפריטים.</li>
+          <li><b>תנועה:</b> "הפחת תנועה" לא עוצר את התנועה האיטית של המצלמה בעולם התלת-ממדי שמאחורי התפריטים, וגם לא את מעוף המצלמה והזיקוקים במופע הניצחון (נגיעה מדלגת עליו).</li>
           <li><b>כיוון מסך:</b> המשחק מוצג לרוחב בלבד.</li>
           <li><b>זמן אמת:</b> הקרבות ממשיכים לזוז. במשחק נגד המחשב אפשר לעצור; משחק אונליין רץ בזמן אמת ואי אפשר לעצור אותו.</li>
           <li><b>שליטה:</b> המשחק בנוי למגע. בתפריטים אפשר לעבור בין הכפתורים במקלדת או במתג (<span lang="en" dir="ltr">switch access</span>), אבל את הקרב עצמו (בנייה, גרירה והמצלמה) משחקים רק במגע.</li>
           <li><b>הטריילר:</b> סרטון בלי קריינות: מוזיקה וכותרות על המסך. הוא מתנגן בנגן של יוטיוב, והנגישות של הנגן היא של יוטיוב.</li>
-          <li><b>בדיקות:</b> כל מסך במשחק (73 מסכים, בעברית ובאנגלית, בשני גדלים של טלפון לרוחב) נבדק אוטומטית ב-<span lang="en" dir="ltr">axe-core</span> לפי <span lang="en" dir="ltr">WCAG 2.2</span> ברמה AA, ובבדיקות שלנו: ניגודיות על הפיקסלים של המסך עצמו, יעדי מגע של 48dp, טקסט בגודל פי 2, המתג להפחתת תנועה וסדר הפוקוס. המשחק נבדק גם במשחק בטלפונים. בדפים המשפטיים נבדקו המבנה והניגודיות. עוד לא בדקנו את המשחק עם TalkBack בטלפון אמיתי, ולא עם אנשים עם מוגבלות. נשמח לשמוע מה לא עובד לך.</li>
+          <li><b>בקשת הדירוג:</b> גרסת Google&nbsp;Play עשויה לבקש ממך פעם אחת לדרג את המשחק. חלון הדירוג הוא של Google&nbsp;Play ולא שלנו, והנגישות שלו באחריות Google.</li>
+          <li><b>סימולטור הקרבות:</b> בחלון "הצבת כוחות", חלק מהכפתורים (למשל הכפתורים לבחירת מה להציב) קצת קטנים מ-48dp בטלפון, המספרים על הלשוניות וחלק מהשמות על הכפתורים מוצגים בניגודיות נמוכה, ו-TalkBack מקריא את הלשוניות בשמות ששונים מעט ממה שכתוב עליהן. כשהטקסט גדול פי 2, חלק מהמספרים והתוויות במסך ההכנה של הסימולטור נחתכים מעט.</li>
+          <li><b>מתקפת הקרע:</b> השמות והמחירים על קלפי היחידות בקרב כתובים על גבי התמונה של הקלף, ובחלק מהמקומות הניגודיות שלהם נמוכה, עד פחות מ-2:1.</li>
+          <li><b>קולנוע הגלקסיה:</b> TalkBack מקריא את שם הסרט בכל כרטיס, אבל לא את השורה הקצרה שכתובה מתחת לשם.</li>
+          <li><b>טקסט גדול:</b> כשהטקסט גדול פי 2, הניקוד הכולל בחלון הניצחון נחתך מעט, ובטאבלט טבלת הניקוד שבו נדחסת ומילים נשברות בה באמצע. בטאבלט גם שורת המפקד בחלון ההפסד יוצאת בחלקה מהמסך, ובטלפון קטן הכותרת במפה של החור השחור עולה על הכותרת שלידה.</li>
+          <li><b>ניגודיות:</b> הניגודיות קצת מתחת ל-4.5:1 באחד מכפתורי המספרים במסך הזירה, בכפתור "חזרה" במסך הקוד של העברת ההתקדמות ובכפתור "העברת התקדמות מהאתר" בהגדרות של גרסת Google&nbsp;Play בטאבלט. בשלבי ההדרכה, המחיר על הקלף שההדרכה מצביעה עליו נחלש לרגע כשהקלף זוהר.</li>
+          <li><b>בדיקות:</b> 75 מסכים במשחק, בעברית ובאנגלית, בשני גדלים של טלפון לרוחב ובגודל של טאבלט, נבדקו אוטומטית ב-<span lang="en" dir="ltr">axe-core</span> לפי <span lang="en" dir="ltr">WCAG 2.2</span> ברמה AA, ובבדיקות שלנו: ניגודיות על הפיקסלים של המסך עצמו, יעדי מגע של 48dp, טקסט בגודל פי 2, המתג להפחתת תנועה וסדר הפוקוס. כך נבדקו גם החלונות להעברת ההתקדמות. הכרטיס שמציג את המפקד היריב בתחילת שלב וטקס הדרגה החדשה עוד לא נבדקו כך. המשחק נבדק גם במשחק בטלפונים. בדפים המשפטיים נבדקו המבנה והניגודיות. עוד לא בדקנו את המשחק עם TalkBack בטלפון אמיתי, ולא עם אנשים עם מוגבלות. נשמח לשמוע מה לא עובד לך.</li>
         </ul>
       </section>
 
@@ -108,7 +120,7 @@
 
       <section aria-labelledby="he-date">
         <h2 id="he-date">5. מועד הבדיקה</h2>
-        <p>בדיקת הנגישות האחרונה: <time datetime="2026-11-21">21 בנובמבר 2026</time>. אנחנו בודקים את הנגישות בכל עדכון גדול.</p>
+        <p>בדיקת הנגישות האחרונה: <time datetime="2026-11-25">25 בנובמבר 2026</time>. היא כללה טלפונים וטאבלטים, בעברית ובאנגלית, וגם את המסכים החדשים: חלונות הסיום של משחק אונליין ושל מתקפת הקרע, חלון הניצחון והחלונות להעברת ההתקדמות. אנחנו בודקים את הנגישות בכל עדכון גדול.</p>
       </section>
 
       <a class="back" href="./">→ מגיני הכוכבים</a>
@@ -125,7 +137,7 @@
         <a href="./licenses.html" data-keep-lang>Licenses</a>
       </nav>
       <h1>Accessibility Statement</h1>
-      <p class="meta">Orbit Defenders (מגיני הכוכבים) · Last updated: <time data-legal="updated">2026-11-21</time></p>
+      <p class="meta">Orbit Defenders (מגיני הכוכבים) · Last updated: <time data-legal="updated">2026-11-25</time></p>
 
       <section aria-labelledby="en-summary">
         <h2 id="en-summary">The short version</h2>
@@ -153,12 +165,14 @@
           <li><b>Graphics:</b> three quality levels (high, medium, low) in Settings, for weaker phones and for a calmer picture.</li>
           <li><b>Motion:</b> "Reduce motion" in Settings turns off the screen shake of explosions and hits, and stops the animations of the menus and buttons. When your phone asks for reduced motion (Android's "Remove animations"), it is on by itself until you choose otherwise.</li>
           <li><b>Sound:</b> sound can be turned off, and music and effects have separate volume sliders. Messages, alerts and results also appear as text on the screen.</li>
-          <li><b>Touch:</b> every button and control on the game's screens is at least 48 dp (the size Android recommends for touch targets). You can build by tapping or by dragging.</li>
+          <li><b>Touch:</b> every button and control on the game's screens is at least 48 dp (the size Android recommends for touch targets), apart from a few buttons in the Battle Simulator on phones (see section 3). You can build by tapping or by dragging.</li>
           <li><b>Your own pace:</b> in games against the computer you can pause at any time and save the battle to continue later.</li>
-          <li><b>Text:</b> text sits on solid or semi-transparent panels, for contrast over the 3D world, at a contrast of at least 4.5:1 (3:1 for large text). In the menus, text grows with your phone's font size (Settings &gt; Display &gt; Font size) up to twice its size, and the window scrolls when it needs to.</li>
+          <li><b>Text:</b> text sits on solid or semi-transparent panels, for contrast over the 3D world, at a contrast of at least 4.5:1 (3:1 for large text). In the menus, text grows with your phone's font size (Settings &gt; Display &gt; Font size) up to twice its size, and the window scrolls when it needs to. There are a few exceptions, listed in section 3.</li>
           <li><b>Screen readers and keyboards:</b> in the menus, the windows and the battle's buttons, every button and control has a name TalkBack reads in the game's language, and a choice (such as the language or the graphics level) is announced as selected. While a window is open, what is behind it is hidden from TalkBack. In the menus you can move between the buttons with a keyboard or switch access, with a visible focus ring.</li>
           <li><b>Not by colour alone:</b> in the menus, a choice is also marked by a thick frame, and a locked chapter by a padlock.</li>
           <li><b>Online play:</b> no chat and no typing: a name from a list and quick signals from a fixed list, by tapping.</li>
+          <li><b>Tablets:</b> on a big screen, such as a tablet's, the buttons, windows and text grow with the screen, up to twice their size, so they're comfortable to read and tap.</li>
+          <li><b>New windows:</b> the end screens of online games and of Rift Assault, and the windows for moving your progress to the Google Play version, follow the same rules: buttons of at least 48 dp, a name TalkBack reads for every button, and text that grows with your phone's font size. You never have to type the progress code: there are buttons to copy, share and paste it. The card that shows the enemy commander at the start of a level, the victory show and the new-rank ceremony can be cut short with a tap.</li>
         </ul>
         <h3 id="en-done-site">On the website</h3>
         <ul>
@@ -173,12 +187,18 @@
           <li><b>Screen readers:</b> the battlefield, the planets, the units and the buildings are drawn in 3D on a canvas, which screen readers such as TalkBack can't read. The battle itself can't be played with a screen reader.</li>
           <li><b>Sight and colour:</b> the battle needs sight. On the battlefield and the minimap, whose building is whose is shown mainly by colour (your side is blue, the main enemy red).</li>
           <li><b>Text size:</b> only the menus' text grows with your phone's font size. The text of the buttons and numbers over the battlefield keeps its size, so it doesn't hide the battle. Pinch zoom is off, because two fingers move the camera.</li>
-          <li><b>Motion:</b> "Reduce motion" doesn't stop the slow camera moves of the 3D world behind the menus.</li>
+          <li><b>Motion:</b> "Reduce motion" doesn't stop the slow camera moves of the 3D world behind the menus, or the camera flight and fireworks of the victory show (a tap skips it).</li>
           <li><b>Orientation:</b> the game is shown in landscape only.</li>
           <li><b>Real time:</b> battles keep moving. Games against the computer can be paused; an online game runs in real time and can't be paused.</li>
           <li><b>Input:</b> the game is made for touch. In the menus you can move between the buttons with a keyboard or switch access, but the battle itself (building, dragging and the camera) is played by touch only.</li>
           <li><b>The trailer:</b> a video without narration: music and on-screen titles. It plays in YouTube's player, whose accessibility is YouTube's.</li>
-          <li><b>Testing:</b> every screen of the game (73 screens, in Hebrew and English, at two landscape phone sizes) was checked automatically with axe-core against WCAG 2.2 level AA, and with our own checks: contrast on the screen's own pixels, 48 dp touch targets, text at twice its size, the reduce-motion switch and the focus order. The game was also checked by playing it on phones. The legal pages were checked for structure and contrast. We haven't yet tested the game with TalkBack on a real phone, or with people with disabilities. Please tell us what doesn't work for you.</li>
+          <li><b>The rating request:</b> the Google Play version may ask you once to rate the game. The rating card is Google Play's own window, not ours, and its accessibility is Google's.</li>
+          <li><b>The Battle Simulator:</b> in its "Place forces" window, some buttons (such as the ones for choosing what to place) are a little smaller than 48 dp on phones. The numbers on its tabs and some names on its buttons have low contrast, and the names TalkBack reads for the tabs differ slightly from what the tabs show. With text at twice its size, some numbers and labels on the simulator's setup screen are slightly cut off.</li>
+          <li><b>Rift Assault:</b> the names and costs on the unit cards in battle sit over each card's picture, and in places their contrast drops below 2:1.</li>
+          <li><b>The Galaxy Cinema:</b> TalkBack reads the film's name on each card, but not the short line written under it.</li>
+          <li><b>Large text:</b> with text at twice its size, the total score in the victory window is slightly cut off, and on a tablet its score table gets squeezed and words break in the middle. On a tablet, the commander's line in the defeat window also runs partly off the screen, and on a small phone the title on the black hole's map overlaps the one next to it.</li>
+          <li><b>Contrast:</b> the contrast is slightly under 4.5:1 in a few places: one of the number buttons on the Arena screen, the "Back" button on the progress code screen, and the "Move my progress from the site" button in the Google Play version's Settings on a tablet. In the lessons, the price on the card the lesson points to fades for a moment while the card glows.</li>
+          <li><b>Testing:</b> we checked 75 screens of the game automatically, in Hebrew and English, at two landscape phone sizes and one tablet size. We used axe-core against WCAG 2.2 level AA, and our own checks: contrast on the screen's own pixels, 48 dp touch targets, text at twice its size, the reduce-motion switch and the focus order. The windows for moving your progress were checked the same way. The card that shows the enemy commander at the start of a level and the new-rank ceremony haven't been checked this way yet. The game was also checked by playing it on phones. The legal pages were checked for structure and contrast. We haven't yet tested the game with TalkBack on a real phone, or with people with disabilities. Please tell us what doesn't work for you.</li>
         </ul>
       </section>
 
@@ -190,7 +210,7 @@
 
       <section aria-labelledby="en-date">
         <h2 id="en-date">5. Review date</h2>
-        <p>Last accessibility review: <time datetime="2026-11-21">November 21, 2026</time>. We review accessibility with every major update.</p>
+        <p>Last accessibility review: <time datetime="2026-11-25">November 25, 2026</time>. It covered phones and tablets, in Hebrew and English, and the new screens: the end screens of online games and of Rift Assault, the victory window and the windows for moving your progress. We review accessibility with every major update.</p>
       </section>
 
       <a class="back" href="./">← Orbit Defenders</a>

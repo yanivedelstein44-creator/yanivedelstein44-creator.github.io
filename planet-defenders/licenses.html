@@ -14,6 +14,13 @@
   the JSR-305 project's license is "bsd" in the Google Code archive); the CC BY 2.5 legal code from
   creativecommons.org/licenses/by/2.5/legalcode (four files of jsr305, javax.annotation.concurrent, carry Brian Goetz's
   CC BY 2.5 notice). Make it again after a dependency changes.
+  Made again on Nov 25, 2026 ([play-review]) from the lock resolved 2026-11-24 with com.google.android.play:review 2.0.2
+  as its fourth root: 74 in all, the same 72 and two new ones, review 2.0.2 and core-common 2.0.4, both under the Play
+  Core Software Development Kit Terms of Service (their POMs: developer.android.com/guide/playcore/license).
+  Checked again on Nov 25, 2026 ([legal-112]): the review entry against play-libs.json (review 2.0.2 and core-common
+  2.0.4, roots and licenses as written); the intro now names the review library too. Nothing else new since 1.1.1
+  (a191cdce): package.json gained only test scripts, package-lock.json is the same, game/ changed only in its code,
+  style.css and index.html (no new font, model or asset file), and three is still the only package in game.js.
 -->
 <html lang="he" dir="rtl" data-default-lang="he">
 <head>
@@ -52,9 +59,9 @@
         <a href="./licenses.html" aria-current="page" data-keep-lang>רישיונות</a>
       </nav>
       <h1>רישיונות</h1>
-      <p class="meta">מגיני הכוכבים (Orbit Defenders) · עודכן לאחרונה: <time data-legal="updated">2026-11-22</time></p>
+      <p class="meta">מגיני הכוכבים (Orbit Defenders) · עודכן לאחרונה: <time data-legal="updated">2026-11-25</time></p>
       <p>מגיני הכוכבים בנוי בעזרת הרכיבים של צד שלישי שבהמשך, ואנחנו מודים ליוצרים שלהם. כל רכיב משמש לפי הרישיון שלו. פתח פריט כדי לקרוא את הודעת זכויות היוצרים ואת נוסח הרישיון המלא.</p>
-      <p>כל השאר הוא מקורי: הקוד של המשחק, הדגמים התלת-ממדיים, התמונות, האייקונים, הלוגו, המוזיקה והצלילים נוצרו בקוד של המשחק עצמו, והטריילר צולם מתוך המשחק. הם שייכים ל-&#8288;<span data-legal="developer">[DEVELOPER NAME]</span>. אפליקציית האנדרואיד מהאתר משתמשת רק ברכיבים המובנים של אנדרואיד. גרסת Google&nbsp;Play כוללת גם את ספריית החיוב של Google&nbsp;Play, את ספריית הפרסומות של Google (לפרסומות בכוכב החסות) ואת הספריות שהן צריכות, וכולן בדף הזה. שרת המשחק אונליין מריץ את הקוד שלנו בלבד ולא מתקין שום רכיב במכשיר שלך.</p>
+      <p>כל השאר הוא מקורי: הקוד של המשחק הוא שלנו, והדגמים התלת-ממדיים, התמונות, האייקונים, הלוגו, המוזיקה והצלילים נוצרו בקוד הזה. הטריילר צולם מתוך המשחק. כל אלה שייכים ל-&#8288;<span data-legal="developer">[DEVELOPER NAME]</span>. אפליקציית האנדרואיד מהאתר משתמשת רק ברכיבים המובנים של אנדרואיד. גרסת Google&nbsp;Play כוללת גם את ספריית החיוב של Google&nbsp;Play, את ספריית הפרסומות של Google (לפרסומות בכוכב החסות), את ספריית הדירוג של Google&nbsp;Play (לחלון הדירוג) ואת הספריות שהן צריכות, וכולן בדף הזה. שרת המשחק אונליין מריץ את הקוד שלנו בלבד ולא מתקין שום רכיב במכשיר שלך.</p>
       <p class="note">נוסחי הרישיונות הם מסמכים משפטיים ומופיעים באנגלית המקורית.</p>
     </article>
 
@@ -69,9 +76,9 @@
         <a href="./licenses.html" aria-current="page" data-keep-lang>Licenses</a>
       </nav>
       <h1>Licenses</h1>
-      <p class="meta">Orbit Defenders (מגיני הכוכבים) · Last updated: <time data-legal="updated">2026-11-22</time></p>
+      <p class="meta">Orbit Defenders (מגיני הכוכבים) · Last updated: <time data-legal="updated">2026-11-25</time></p>
       <p>Orbit Defenders is built with the third-party components below. We thank their authors. Each component is used under its own license; open an item to read the copyright notice and the full license text.</p>
-      <p>Everything else is original: the game's code, 3D models, pictures, icons, logo, music and sounds are made by the game's own code, and the trailer is recorded from the game. They belong to <span data-legal="developer">[DEVELOPER NAME]</span>. The Android app from the site uses only Android's built-in components. The Google Play version also includes Google Play's billing library, Google's ads SDK (for the ads at the sponsor planet) and the libraries they need, all listed on this page. The online-play server runs only our own code and installs nothing on your device.</p>
+      <p>Everything else is original: the game's code is our own, and its 3D models, pictures, icons, logo, music and sounds are made by that code. The trailer is recorded from the game. All of it belongs to <span data-legal="developer">[DEVELOPER NAME]</span>. The Android app from the site uses only Android's built-in components. The Google Play version also includes Google Play's billing library, Google's ads SDK (for the ads at the sponsor planet), Google Play's in-app review library (for the rating card) and the libraries they need, all listed on this page. The online-play server runs only our own code and installs nothing on your device.</p>
       <p class="note">License texts are legal documents and appear in their original English.</p>
     </article>
 
@@ -215,6 +222,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre>
       <details class="lic"><summary>User Messaging Platform SDK <small>4.0.0</small> <small>· Google</small> <small>· for the ads' consent form</small></summary><div class="body">
         <p>© Google LLC. Not open-source software: Google distributes it under the Android Software Development Kit License Agreement. It comes only with the Google Play version, which uses it for the rewarded ads at the sponsor planet, only after you choose to watch an ad: it shows Google's consent form for ads in the EEA, the UK and Switzerland (user-messaging-platform 4.0.0).</p>
         <p>License: <a href="https://developer.android.com/studio/terms" rel="noopener noreferrer" target="_blank">https://developer.android.com/studio/terms</a></p>
+      </div></details>
+      <details class="lic"><summary>Play In-App Review Library <small>2.0.2</small> <small>(2 libraries)</small> <small>· Google</small> <small>· for the rating card</small></summary><div class="body">
+        <p>© Google LLC. Not open-source software: Google distributes it under the Play Core Software Development Kit Terms of Service. It comes only with the Google Play version, which uses it to show Google Play's own rating card (the game asks for a rating at most once per install): review 2.0.2 and the Google Play library it needs, core-common 2.0.4 (com.google.android.play).</p>
+        <p>License: <a href="https://developer.android.com/guide/playcore/license" rel="noopener noreferrer" target="_blank">https://developer.android.com/guide/playcore/license</a></p>
       </div></details>
       <details class="lic"><summary>Google Play services <small>(9 libraries)</small> <small>· Google</small> <small>· for the Billing Library and the ads SDK</small></summary><div class="body">
         <p>© Google LLC. Not open-source software: Google distributes them under the Android Software Development Kit License Agreement. The Google Play Billing Library and Google's ads SDKs need them, so they come only with the Google Play version: play-services-base 18.5.0, play-services-basement 18.9.0, play-services-tasks 18.2.0, play-services-location 19.0.0, play-services-places-placereport 17.0.0, play-services-appset 16.0.1, play-services-ads-identifier 18.0.0, play-services-measurement-sdk-api 20.1.2 and play-services-measurement-base 20.1.2.</p>

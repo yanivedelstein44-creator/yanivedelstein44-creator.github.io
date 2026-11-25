@@ -8,7 +8,8 @@
   Play Billing in the Play build only. Ads (section 4a): Google AdMob in the Play build only, after the tap on "Watch the
   ad" (game/src/ads.js, ads_ui.js). The trailer (section 5): YouTube's player from youtube-nocookie.com, after a tap.
   Facts checked against the code on Nov 21, 2026 (the 1.1.1 changes: diamond packs, the starter and supporter packs and
-  the ads, on Nov 22, 2026); what the code did not have yet is listed in google-play/COMPLIANCE.md.
+  the ads, on Nov 22, 2026; the progress code and the rating request ([legal-112]) on Nov 25, 2026); what the code did
+  not have yet is listed in google-play/COMPLIANCE.md.
 -->
 <html lang="he" dir="rtl" data-default-lang="he">
 <head>
@@ -47,7 +48,7 @@
         <a href="./licenses.html" data-keep-lang>רישיונות</a>
       </nav>
       <h1>מדיניות פרטיות</h1>
-      <p class="meta">מגיני הכוכבים (Orbit Defenders) · עודכן לאחרונה: <time data-legal="updated">2026-11-22</time></p>
+      <p class="meta">מגיני הכוכבים (Orbit Defenders) · עודכן לאחרונה: <time data-legal="updated">2026-11-25</time></p>
 
       <section aria-labelledby="he-summary">
         <h2 id="he-summary">בקצרה</h2>
@@ -55,8 +56,10 @@
           <li>אין חשבון, אין כלי ניתוח (אנליטיקה) ואין דיווח קריסות, והמשחק עצמו לא משתמש בעוגיות. פרסומות יש רק בגרסת Google&nbsp;Play, בכוכב החסות, ורק כשבוחרים לצפות. עד הנגיעה ב"צפה בפרסומת" שום קוד פרסום לא פועל, והפרסומות כלליות, לא מותאמות אישית, אלא אם בחרת אחרת (סעיף 4א).</li>
           <li>ההתקדמות, הקרבות השמורים, היהלומים, האוסף, ההגדרות והרשימה "הרכישות שלי" נשמרים רק במכשיר שלך. אנחנו לא רואים אותם.</li>
           <li>משחק נגד המחשב, בכל מצבי המשחק, מתנהל כולו במכשיר. שום דבר ממנו לא נשלח.</li>
+          <li>כשהמשחק מציע לעבור לגרסת Google&nbsp;Play, הוא מכין במכשיר שלך קוד התקדמות. יש בו רק ההתקדמות וההגדרות שלך במשחק, והמשחק לא שולח אותו לשום מקום (סעיף 2א).</li>
           <li>משחק אונליין הוא לבחירתך: עם חבר בקוד של 6 תווים, או בזירה מול שחקנים מהאינטרנט. נשלח רק מה שהמשחק צריך: מספר אקראי של הטלפון (בלי שם, חשבון או מייל), גרסת המשחק, הפקודות שלך במשחק, שם שבוחרים מרשימה קבועה, האם קנית את חבילת התומכים, ובזירה גם הדירוג. אין צ׳אט ואין טקסט חופשי. השרת פועל ב-Cloudflare, והמידע שלו נשמר באיחוד האירופי (סעיף 3).</li>
           <li>רכישות בכסף אמיתי יש רק בגרסת Google&nbsp;Play, והן לבחירתך. Google&nbsp;Play גובה את התשלום, ופרטי התשלום שלך לא מגיעים אלינו (סעיף 4). באתר שלנו ובאפליקציה שמורידים ממנו אין רכישות.</li>
+          <li>בגרסת Google&nbsp;Play, אחרי ניצחון בשלב של המערכה, המשחק עשוי לבקש מ-Google&nbsp;Play להציג פעם אחת את חלון הדירוג שלה. המשחק לא רואה איך דירגת או מה כתבת, ולא נותן שום דבר תמורת דירוג (סעיף 4ב).</li>
           <li>הטריילר של המשחק נטען מיוטיוב רק אחרי שנוגעים בו (סעיף 5).</li>
           <li>אפשר למחוק הכול בכל רגע (סעיף 10).</li>
         </ul>
@@ -76,20 +79,45 @@
             <caption>המידע שהמשחק שומר במכשיר</caption>
             <thead><tr><th scope="col">מה</th><th scope="col">איך זה נשמר</th><th scope="col">למה</th></tr></thead>
             <tbody>
-              <tr><td>ההתקדמות: שלבים שניצחת, מדליות, ניקוד וכוכבים, הישגים, ניסיון ודרגה, הסמל שלך, היהלומים ומה שאספת (סקינים, חיות מחמד, מתקני רובע השעשועים), וההתקדמות במצבי המשחק האחרים</td><td><code>pd-prog</code> ורשומות <code>pd-</code> נוספות</td><td>כדי לשמור את ההתקדמות בין משחק למשחק</td></tr>
+              <tr><td>ההתקדמות: שלבים שניצחת, מדליות, ניקוד וכוכבים, הישגים, ניסיון ודרגה, הסמל שלך, היהלומים ומה שאספת (סקינים, חיות מחמד, מתקני פארק הכוכב), וההתקדמות במצבי המשחק האחרים</td><td><code>pd-prog</code> ורשומות <code>pd-</code> נוספות</td><td>כדי לשמור את ההתקדמות בין משחק למשחק</td></tr>
               <tr><td>קרבות שמורים</td><td><code>pd-save</code>, <code>pd-slot-…</code></td><td>כדי שאפשר יהיה להמשיך קרב אחר כך</td></tr>
               <tr><td>הגדרות: שפה, צלילים, עוצמת המוזיקה והאפקטים, איכות הגרפיקה, "הפחת רעידות", סגנון התפריט</td><td><code>pd-lang</code>, <code>pd-sound</code>, <code>pd-vol-…</code>, <code>pd-gfx</code>, <code>pd-calm</code>, <code>pd-menu</code></td><td>כדי לזכור את הבחירות שלך</td></tr>
               <tr><td>אילו טיפים, הדרכות ושיעורים כבר ראית, וההגדרות של המשחק החופשי ושל הסימולטור</td><td><code>pd-tut</code>, <code>pd-guide-…</code>, <code>pd-lesson-…</code>, <code>pd-custom</code>, <code>pd-sim</code> ודומיהן</td><td>כדי שטיפים לא יחזרו ושההגדרות שלך יישמרו</td></tr>
+              <tr><td>רק כשהמעבר לגרסת Google&nbsp;Play מוצע: באתר ובאפליקציה שמורידים ממנו, האם החלון שמודיע על המעבר כבר הוצג; בגרסת Google&nbsp;Play, אחרי העברה, סימן שההתקדמות הועברה, עם התאריך, והאם ההודעה על כך כבר הוצגה</td><td><code>pd-moved-seen</code>, <code>pd-moved-in</code>, <code>pd-moved-toast</code></td><td>כדי להציג את החלון ואת ההודעה רק פעם אחת, ולהעביר התקדמות רק פעם אחת בכל התקנה (סעיף 2א)</td></tr>
               <tr><td>רק אם שיחקת אונליין: המספר האקראי של הטלפון, השם שבחרת מהרשימה, הגדרות החדר האחרון ושל הזירה, הדירוג האחרון שראית, שקראת את ההודעה שלפני משחק אונליין ושלפני הזירה, והשחקנים שחסמת (רק התגים המקוצרים שלהם)</td><td><code>pd-net-id</code>, <code>pd-online-name</code>, <code>pd-online-set</code>, <code>pd-arena-set</code>, <code>pd-arena-me</code>, <code>pd-arena-notice</code>, <code>pd-net-blocks</code></td><td>כדי לשחק אונליין (סעיף 3)</td></tr>
               <tr><td>רק בגרסת Google&nbsp;Play, אחרי רכישה: אילו פריטים קנית, עם מספר ההזמנה של Google ואסימון הרכישה (<span lang="en" dir="ltr">purchase token</span>), כמה יהלומים קנית במכשיר הזה וכמה מהם עוד לא הוצאו, והרשימה "הרכישות שלי" (פריט, תאריך, מחיר ומספר הזמנה, ובחבילת יהלומים גם המצב שלה)</td><td>רשומות <code>pd-</code> של החנות; ספירת היהלומים שקנית ב-<code>pd-prog</code></td><td>כדי למסור את מה שקנית, לא למסור פעמיים, לשחזר רכישות, לטפל בהחזרים ולהראות לך אותן (סעיף 4)</td></tr>
-              <tr><td>רק בגרסת Google&nbsp;Play, אם קנית את חבילת התומכים: שהחבילה שלך, המתג של מסגרות הזהב, והאם כבר הוצגו מסך התודה והפסל ברובע השעשועים</td><td><code>pd-fan</code>, <code>pd-fan-gold</code>, <code>pd-fan-thanks</code>, <code>pd-fan-seen</code></td><td>כדי להציג את מה שהחבילה נותנת, ואת מסך התודה ואת הופעת הפסל רק פעם אחת (סעיפים 3 ו-4)</td></tr>
+              <tr><td>רק בגרסת Google&nbsp;Play, אם קנית את חבילת התומכים: שהחבילה שלך, המתג של מסגרות הזהב, והאם כבר הוצגו מסך התודה והפסל בפארק הכוכב</td><td><code>pd-fan</code>, <code>pd-fan-gold</code>, <code>pd-fan-thanks</code>, <code>pd-fan-seen</code></td><td>כדי להציג את מה שהחבילה נותנת, ואת מסך התודה ואת הופעת הפסל רק פעם אחת (סעיפים 3 ו-4)</td></tr>
               <tr><td>רק בגרסת Google&nbsp;Play: הבחירה שלך בין פרסומות כלליות למותאמות אישית, מתי נגמרה הפרסומת האחרונה וכמה פרסומות ראית עד הסוף היום. באזור הכלכלי האירופי, בבריטניה ובשווייץ גם התשובה שלך בטופס ההסכמה של Google, שה-SDK של Google שומר במכשיר</td><td><code>pd-ads-pers</code>; הזמן והספירה ב-<code>pd-prog</code>; התשובה בטופס: באחסון של ה-SDK של Google</td><td>כדי לזכור את הבחירה שלך ולשמור על המגבלה: פרסומת אחת ל-5 דקות, עד 5 ביום (סעיף 4א)</td></tr>
+              <tr><td>רק בגרסת Google&nbsp;Play, בשביל בקשת הדירוג: היום הראשון ששיחקת, האם המשחק כבר ביקש מ-Google&nbsp;Play להציג את חלון הדירוג שלה, וכמה בקשות נכשלו</td><td><code>pd-review</code></td><td>כדי שהמשחק לא יבקש ביום הראשון, ושהחלון יופיע לכל היותר פעם אחת (סעיף 4ב)</td></tr>
               <tr><td>רק באפליקציה שמורידים מהאתר: המתג "בדיקה אוטומטית", מועד הבדיקה האחרונה ותוצאתה, והגרסה החדשה של המשחק שהורדה</td><td><code>pd-updater</code>, IndexedDB <code>pd-updates</code></td><td>כדי להתקין עדכונים (סעיף 6)</td></tr>
             </tbody>
           </table>
         </div>
         <p>כל מה שבטבלה נשאר במכשיר עד שמוחקים אותו באחת הדרכים שבסעיף 10.</p>
         <p>אנחנו לא משתמשים בעוגיות, בטביעת אצבע דיגיטלית, באנליטיקה או בכלי דיווח קריסות. את מזהה הפרסום של אנדרואיד קורא רק ה-SDK של Google לפרסומות, רק בגרסת Google&nbsp;Play ורק אחרי שבחרת לצפות בפרסומת (סעיף 4א). מנוע התלת-ממד (three.js) והגופן (Rubik) נמצאים בתוך המשחק. המשחק מתחבר לאינטרנט רק בשביל מה שמתואר בסעיפים 3 עד 6.</p>
+      </section>
+
+      <section aria-labelledby="he-move">
+        <h2 id="he-move">2א. קוד ההתקדמות (מעבר לגרסת Google&nbsp;Play)</h2>
+        <!-- [legal-112] Checked against the code on Nov 25, 2026. The code and what it holds: game/src/move_code.js (the data
+          list from :109, snapshot() :258; never carried: :132; the once-per-install mark MOVE_KEY 'pd-moved-in' :51).
+          Copy and Share: game/src/move_site.js (copyText :228, shareCode :266; the window shown once: 'pd-moved-seen').
+          Paste, the check on the phone and the one toast: game/src/move_play.js (paste() :417, check() :435,
+          'pd-moved-toast'). None of the three files sends anything (no fetch, XMLHttpRequest, WebSocket or sendBeacon).
+          Delete all my data removes every pd- key (game/src/wipe_ui.js:260). Behind FEATURES.movedToPlay
+          (game/src/defs.js:180), off until the launch: this text is true with it off or on. -->
+        <p>כשהמשחק באתר שלנו, או באפליקציה שמורידים ממנו, מציע לעבור לגרסת Google&nbsp;Play, הוא מכין במכשיר שלך קוד התקדמות, שבעזרתו ההתקדמות שלך עוברת לשם. הקוד הוא שורה של אותיות באנגלית וספרות, שמתחילה ב-<code>PD1-</code>.</p>
+        <p><b>מה יש בקוד.</b> רק ההתקדמות וההגדרות שלך במשחק:</p>
+        <ul>
+          <li>המערכה: השלב שהגעת אליו, מדליות וניקוד, הבוסים שניצחת ותיבות האוצר שמצאת;</li>
+          <li>ניסיון, דרגה וסמל, הישגים וההתקדמות שלך לקראתם;</li>
+          <li>חיות המחמד והסקינים שלך, מתקני פארק הכוכב שקנית ביהלומים, והיהלומים שהרווחת במשחק;</li>
+          <li>התוצאות בהגנה אינסופית, בחור השחור ובמתקפת הקרע, שלבי ההדרכה שעברת והטיפים שכבר ראית, שם כוכב הבית, וההגדרות והשפה.</li>
+        </ul>
+        <p>אין בקוד פרטים עליך: לא שם, לא מייל ולא מזהה של המכשיר. אין בו גם תאריכים, רכישות או שום דבר מהמשחק אונליין. הטקסט היחיד שהקלדת ושנכנס לקוד הוא השם שנתת לכוכב הבית.</p>
+        <p><b>לאן הקוד הולך.</b> המשחק לא שולח את הקוד לשום מקום, ושום שרת לא משתתף בהעברה. לכן אנחנו לא רואים אותו, ולא יכולים לשחזר קוד שאבד. כל עוד ההתקדמות שמורה במקום שבו נוצר הקוד, אפשר למצוא אותו שם שוב בהגדרות. "העתק" מעתיק את הקוד ללוח. "שתף" פותח את תפריט השיתוף של המכשיר, והאפליקציה שתבחר שם (למשל מייל או צ׳אט) מקבלת את הקוד ומטפלת בו לפי מדיניות הפרטיות שלה.</p>
+        <p><b>בגרסת Google&nbsp;Play.</b> את הקוד מדביקים ב<b>הגדרות ← העברת התקדמות מהאתר</b>. "הדבק" קורא את הלוח רק כשנוגעים בכפתור, והקוד נבדק בטלפון עצמו. גם כאן שום דבר לא נשלח. אחרי ההעברה הטלפון שומר סימן קטן שההתקדמות הועברה, עם התאריך (סעיף 2), ולכן אפשר להעביר התקדמות רק פעם אחת בכל התקנה. <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק גם את הסימן הזה, יחד עם כל שאר הנתונים של המשחק בטלפון (סעיף 10).</p>
+        <p>מה עובר לגרסת Google&nbsp;Play ומה המגבלות של ההעברה: ב<a href="./terms.html#he-move">תנאי השימוש והמכירה</a>.</p>
       </section>
 
       <section aria-labelledby="he-online">
@@ -122,7 +150,7 @@
 
       <section aria-labelledby="he-pay">
         <h2 id="he-pay">4. רכישות (רק בגרסת Google&nbsp;Play)</h2>
-        <p><b>מה אפשר לקנות.</b> בגרסת Google&nbsp;Play אפשר לקנות, לבחירתך, חבילות בכסף אמיתי: חבילות יהלומים, חבילת מתחילים, חבילת תומכים, מכפיל יהלומים x2, שלבי החור השחור 6 עד 30, כל החיות, כל הסקינים, "הכול", ומתקנים של רובע השעשועים. מה כל חבילה נותנת כתוב בחנות, ובתנאי השימוש והמכירה. יהלומים אפשר גם להרוויח במשחק, ובגרסת Google&nbsp;Play גם בפרסומת שבוחרים לצפות בה (סעיף 4א). תיבות האוצר חינמיות.</p>
+        <p><b>מה אפשר לקנות.</b> בגרסת Google&nbsp;Play אפשר לקנות, לבחירתך, חבילות בכסף אמיתי: חבילות יהלומים, חבילת מתחילים, חבילת תומכים, מכפיל יהלומים x2, שלבי החור השחור 6 עד 30, כל החיות, כל הסקינים, "הכול", ומתקנים של פארק הכוכב. מה כל חבילה נותנת כתוב בחנות, ובתנאי השימוש והמכירה. יהלומים אפשר גם להרוויח במשחק, ובגרסת Google&nbsp;Play גם בפרסומת שבוחרים לצפות בה (סעיף 4א). תיבות האוצר חינמיות.</p>
         <p><b>תשלום.</b> הרכישות נעשות במערכת החיוב של Google&nbsp;Play, ו-Google מעבדת את התשלום לפי התנאים ומדיניות הפרטיות שלה. פרטי כרטיס האשראי או החשבון שלך לא מגיעים אלינו. בגרסת Google&nbsp;Play נמצאת ספריית החיוב של Google, והיא שולחת ל-Google גם נתונים טכניים על פעולת החיוב: אם פעולה הצליחה או נכשלה, ובעיות חיבור לשירות.</p>
         <p><b>מה המשחק מקבל ושומר.</b> מ-Google&nbsp;Play המשחק מקבל רק את המוצר שנקנה, את מספר ההזמנה ואת אסימון הרכישה. הוא שומר אותם במכשיר כדי למסור את מה שקנית, לא למסור פעמיים, לשחזר רכישות ולהסיר פריט, או יהלומים שעוד לא הוצאו, אם הרכישה הוחזרה. אחרי כל רכישה מוצג כרטיס "הרכישה הושלמה", והרשימה "הרכישות שלי" בהגדרות נשמרת רק במכשיר הזה ונמחקת כשמוחקים את הנתונים של המשחק (סעיף 10). שום דבר מזה לא נשלח לשרתים שלנו.</p>
         <p><b>חבילות יהלומים.</b> חבילת יהלומים היא מוצר מתכלה: אפשר לקנות אותה שוב ושוב. היהלומים שקנית נשמרים רק במכשיר הזה, בנתוני המשחק, ו-Google&nbsp;Play לא יכולה לשחזר אותם: לא בטלפון אחר ולא אחרי מחיקת הנתונים (סעיף 10). גם כאן שום דבר חדש לא נשלח אלינו: הקנייה, וההודעה ל-Google שהחבילה נוצלה כדי שאפשר יהיה לקנות אותה שוב, עוברות דרך ספריית החיוב של Google&nbsp;Play.</p>
@@ -142,6 +170,30 @@
           <li><b>מה נשמר במכשיר:</b> הבחירה שלך, מתי נגמרה הפרסומת האחרונה וכמה פרסומות ראית עד הסוף היום (סעיף 2). <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק אותם ומאפס את הבחירה ואת התשובה בטופס ההסכמה של Google, והמשחק ישאל שוב בפעם הבאה שתבחר לצפות.</li>
           <li><b>העברה לחו"ל:</b> Google עשויה לעבד את המידע בארצות הברית ובמדינות אחרות, לפי מדיניות הפרטיות שלה (<a href="https://policies.google.com/privacy?hl=iw" rel="noopener noreferrer" target="_blank">policies.google.com/privacy</a>). מה Google עושה במידע מאפליקציות כמו המשחק מוסבר בדף שלה "<a href="https://policies.google.com/technologies/partner-sites?hl=iw" rel="noopener noreferrer" target="_blank">האופן שבו Google משתמשת במידע מאפליקציות ומאתרים שמשתמשים בשירותים שלנו</a>". מה שכבר נשלח ל-Google נמצא אצלה ומטופל לפי המדיניות שלה.</li>
           <li><b>תוכן:</b> רק פרסומות שמתאימות לכל הגילים (דירוג G של Google). פרסומת לא קופצת לבד ולא מופיעה באמצע שלב, ואפשר לסגור אותה בכל רגע (אז בלי יהלומים).</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="he-review">
+        <h2 id="he-review">4ב. בקשת דירוג (רק בגרסת Google&nbsp;Play)</h2>
+        <!-- [legal-112] Checked against the code on Nov 25, 2026. game/src/review_play.js: when (reviewDue() :73): the end
+          window of a won campaign level, from level RV_MIN_LEVEL = 5 (:48), from the second day of play; never in the
+          other modes, after a loss, after a Google Play purchase in the same app run or over a rank's ceremony. At most
+          once per install (a failed ask is tried again at a later win, at most 3 failures). The record RV_KEY 'pd-review'
+          (:47) = { v, d0, asked, asking, fails }, removed by Delete all my data (game/src/wipe_ui.js:260). The bridge:
+          app/android-native/play/src/com/yaniv/planetdefenders/PlayReview.java (VERSION 2.0.2 :56, pinned in
+          app/android-native/play-libs.json; licenses.html calls it Play In-App Review Library). Google's side, read on
+          Nov 25, 2026: https://developer.android.com/guide/playcore/in-app-review (its Data safety table),
+          https://support.google.com/googleplay/answer/4346705 (a review is public and linked to the Google account; edit,
+          delete) and https://support.google.com/googleplay/android-developer/answer/9845334 (a test version's feedback is
+          private). Behind FEATURES.playReview (game/src/review_play.js:41), off until the launch: this text is true with
+          it off or on. -->
+        <p>בגרסת Google&nbsp;Play, אחרי ניצחון בשלב של המערכה, המשחק עשוי לבקש מ-Google&nbsp;Play להציג את חלון הדירוג שלה. הבקשה עוברת דרך ספריית הדירוג של Google (<span lang="en" dir="ltr">Play In-App Review Library 2.0.2</span>). החלון יכול להופיע לכל היותר פעם אחת בכל התקנה, ו-Google&nbsp;Play מחליטה אם להציג אותו. לפני החלון המשחק לא מציג שום שאלה או כפתור משלו, והוא לא נותן שום דבר תמורת דירוג. באתר שלנו ובאפליקציה שמורידים ממנו אין בקשת דירוג.</p>
+        <ul>
+          <li><b>המשחק לא יודע איך דירגת:</b> הוא לא רואה את הכוכבים או את מה שכתבת, לא יודע אם דירגת בכלל, ולא שולח שום דבר בעצמו.</li>
+          <li><b>לאן הדירוג הולך:</b> הכוכבים שנתת ומה שבחרת לכתוב עוברים ל-Google&nbsp;Play, תחת חשבון Google שלך ולפי מדיניות הפרטיות של Google (<a href="https://policies.google.com/privacy?hl=iw" rel="noopener noreferrer" target="_blank">policies.google.com/privacy</a>). ב-Google&nbsp;Play הם מתפרסמים כביקורת ציבורית שמקושרת לחשבון Google שלך. בגרסת בדיקה של המשחק הם לא מתפרסמים, ומגיעים רק אלינו, באופן פרטי, דרך Google&nbsp;Play.</li>
+          <li><b>מה אנחנו רואים:</b> כמו בכל ביקורת ב-Google&nbsp;Play, אנחנו יכולים לקרוא את הביקורת שלך ולהגיב עליה שם.</li>
+          <li><b>עריכה ומחיקה:</b> אפשר לערוך את הביקורת או למחוק אותה ב-Google&nbsp;Play, בדף של המשחק.</li>
+          <li><b>מה נשמר במכשיר:</b> רשומה קטנה עם היום הראשון ששיחקת והאם המשחק כבר ביקש דירוג (סעיף 2), כדי שלא יבקש ביום הראשון ושהחלון יופיע רק פעם אחת. <b>הגדרות ← מחק את כל הנתונים שלי</b> מוחק אותה, ואז המשחק עשוי לבקש שוב פעם אחת, כמו בהתקנה חדשה.</li>
         </ul>
       </section>
 
@@ -166,10 +218,11 @@
       <section aria-labelledby="he-share">
         <h2 id="he-share">8. מי מקבל מידע</h2>
         <ul>
-          <li><b>אנחנו לא מוכרים ולא משכירים מידע אישי.</b> אין במשחק אנליטיקה ואין דיווח קריסות. בגרסת Google&nbsp;Play יש רכיבים של Google שאוספים מידע: ספריית החיוב, שמדווחת ל-Google על פעולת החיוב (סעיף 4), ו-Google AdMob, שמקבלת מידע רק כשבחרת לצפות בפרסומת (סעיף 4א).</li>
+          <li><b>אנחנו לא מוכרים ולא משכירים מידע אישי.</b> אין במשחק אנליטיקה ואין דיווח קריסות. בגרסת Google&nbsp;Play יש רכיבים של Google שאוספים מידע: ספריית החיוב, שמדווחת ל-Google על פעולת החיוב (סעיף 4), Google AdMob, שמקבלת מידע רק כשבחרת לצפות בפרסומת (סעיף 4א), וספריית הדירוג של Google, שדרכה Google&nbsp;Play מקבלת רק את הכוכבים ואת מה שכתבת בחלון הדירוג שלה, אם דירגת (סעיף 4ב).</li>
           <li><b>ספקי שירות:</b> Cloudflare (השרת של המשחק אונליין, סעיף 3); Google (ההפצה והעדכונים של גרסת Google&nbsp;Play, החיוב ברכישות, הגיבוי של אנדרואיד אם הוא פועל, ויוטיוב אם בחרת לצפות בטריילר); GitHub (אחסון האתר והעדכונים של האפליקציה מהאתר). כל אחד מהם מעבד מידע לפי התנאים שלו.</li>
           <li><b>Google כספקית הפרסומות:</b> בפרסומות Google פועלת לפי התנאים והמדיניות שלה, ולא רק בשבילנו. היא משתמשת במידע לפרסום, לניתוח (אנליטיקה) ולמניעת הונאה (סעיף 4א).</li>
           <li><b>שחקנים אחרים:</b> רק מה שמתואר בסעיף 3, ורק כשמשחקים אונליין.</li>
+          <li><b>האפליקציה שאתה משתף דרכה:</b> מקבלת את קוד ההתקדמות רק אם שיתפת אותו, ומטפלת בו לפי מדיניות הפרטיות שלה (סעיף 2א).</li>
           <li><b>כשהחוק מחייב:</b> למשל צו תקף של רשות מוסמכת.</li>
           <li><b>העברה לחו"ל:</b> המידע של המשחק אונליין נשמר באיחוד האירופי, ו-Cloudflare עשויה לעבד מידע טכני גם במדינות אחרות לפי תנאי עיבוד הנתונים שלה, שנשענים על הסעיפים החוזיים התקניים של האיחוד האירופי ועל מסגרת פרטיות הנתונים בין האיחוד לארצות הברית (<span lang="en" dir="ltr">EU-U.S. Data Privacy Framework</span>). Google ו-GitHub עשויות לעבד מידע טכני בארצות הברית ובמדינות אחרות, לפי התנאים שלהן. זה כולל את המידע שנשלח ל-Google בזמן פרסומת (סעיף 4א).</li>
         </ul>
@@ -219,7 +272,7 @@
         <a href="./licenses.html" data-keep-lang>Licenses</a>
       </nav>
       <h1>Privacy Policy</h1>
-      <p class="meta">Orbit Defenders (מגיני הכוכבים) · Last updated: <time data-legal="updated">2026-11-22</time></p>
+      <p class="meta">Orbit Defenders (מגיני הכוכבים) · Last updated: <time data-legal="updated">2026-11-25</time></p>
 
       <section aria-labelledby="en-summary">
         <h2 id="en-summary">The short version</h2>
@@ -227,8 +280,10 @@
           <li>No account, no analytics and no crash reporting, and the game itself uses no cookies. Ads exist only in the Google Play version, at the sponsor planet, and only when you choose to watch one. Until you tap "Watch the ad", no ad code runs, and ads are general, not personalized, unless you choose otherwise (section 4a).</li>
           <li>Your progress, saved battles, diamonds, collection, settings and the "My purchases" list are kept only on your device. We can't see them.</li>
           <li>Games against the computer, in every mode, are played entirely on your device. Nothing about them is sent anywhere.</li>
+          <li>When the game offers to move you to the Google Play version, it makes a progress code on your device. The code holds only your game progress and settings, and the game never sends it anywhere (section 2a).</li>
           <li>Online play is optional: with a friend through a 6-character code, or in the Arena against players from the internet. Only what the game needs is sent: a random number your phone makes up (no name, account or email), the game's version, your game commands, a name picked from a fixed list, whether you bought the Supporter pack and, in the Arena, your rating. There is no chat and no free text. The server runs on Cloudflare and keeps its data in the European Union (section 3).</li>
           <li>Real-money purchases exist only in the Google Play version, and they are optional. Google Play takes the payment, and your payment details never reach us (section 4). Our website and the app downloaded from it have no purchases.</li>
+          <li>In the Google Play version, after you win a campaign level, the game may ask Google Play, once, to show its rating card. The game never sees how you rated or what you wrote, and gives nothing for a rating (section 4b).</li>
           <li>The game's trailer loads from YouTube only after you tap it (section 5).</li>
           <li>You can erase everything at any time (section 10).</li>
         </ul>
@@ -248,20 +303,39 @@
             <caption>Data the game keeps on your device</caption>
             <thead><tr><th scope="col">What</th><th scope="col">Stored as</th><th scope="col">Why</th></tr></thead>
             <tbody>
-              <tr><td>Your progress: levels won, medals, scores and stars, achievements, experience and rank, your emblem, your diamonds and what you collected (skins, pets, attractions of the amusement district), and your progress in the other modes</td><td><code>pd-prog</code> and other <code>pd-</code> entries</td><td>To keep your progress between games</td></tr>
+              <tr><td>Your progress: levels won, medals, scores and stars, achievements, experience and rank, your emblem, your diamonds and what you collected (skins, pets, attractions of Planet Park), and your progress in the other modes</td><td><code>pd-prog</code> and other <code>pd-</code> entries</td><td>To keep your progress between games</td></tr>
               <tr><td>Saved battles</td><td><code>pd-save</code>, <code>pd-slot-…</code></td><td>So you can continue a battle later</td></tr>
               <tr><td>Settings: language, sound, music and effects volumes, graphics quality, "Reduce shaking", the menu style</td><td><code>pd-lang</code>, <code>pd-sound</code>, <code>pd-vol-…</code>, <code>pd-gfx</code>, <code>pd-calm</code>, <code>pd-menu</code></td><td>To remember your choices</td></tr>
               <tr><td>Which tips, guides and lessons you've seen, and the settings of the free game and the simulator</td><td><code>pd-tut</code>, <code>pd-guide-…</code>, <code>pd-lesson-…</code>, <code>pd-custom</code>, <code>pd-sim</code> and similar</td><td>So tips aren't repeated and your setups are kept</td></tr>
+              <tr><td>Only when the move to the Google Play version is offered: on our website and in the app downloaded from it, that the window about the move was already shown; in the Google Play version, after a move, a record of the move and its date, and that the message saying your progress arrived was shown</td><td><code>pd-moved-seen</code>, <code>pd-moved-in</code>, <code>pd-moved-toast</code></td><td>To show the window and the message only once, and to allow only one move per install (section 2a)</td></tr>
               <tr><td>Only if you played online: your phone's random number, the name you picked from the list, the settings of your last room and of the Arena, the last rating you saw, that you read the notice before online play and before the Arena, and the players you blocked (only their short tags)</td><td><code>pd-net-id</code>, <code>pd-online-name</code>, <code>pd-online-set</code>, <code>pd-arena-set</code>, <code>pd-arena-me</code>, <code>pd-arena-notice</code>, <code>pd-net-blocks</code></td><td>To play online (section 3)</td></tr>
               <tr><td>Only in the Google Play version, after a purchase: which items you bought, with Google's order number and the purchase token, how many diamonds you bought on this device and how many of them are not spent yet, and the "My purchases" list (item, date, price and order number, and for a diamond pack also its state)</td><td>The store's <code>pd-</code> entries; the count of diamonds you bought in <code>pd-prog</code></td><td>To deliver what you bought, not twice, restore purchases, handle refunds and show them to you (section 4)</td></tr>
-              <tr><td>Only in the Google Play version, if you bought the Supporter pack: that the pack is yours, the golden frames switch, and whether the thank-you scene and the statue in the amusement district were already shown</td><td><code>pd-fan</code>, <code>pd-fan-gold</code>, <code>pd-fan-thanks</code>, <code>pd-fan-seen</code></td><td>To show what the pack gives you, and the thank-you scene and the statue's first appearance only once (sections 3 and 4)</td></tr>
+              <tr><td>Only in the Google Play version, if you bought the Supporter pack: that the pack is yours, the golden frames switch, and whether the thank-you scene and the statue in Planet Park were already shown</td><td><code>pd-fan</code>, <code>pd-fan-gold</code>, <code>pd-fan-thanks</code>, <code>pd-fan-seen</code></td><td>To show what the pack gives you, and the thank-you scene and the statue's first appearance only once (sections 3 and 4)</td></tr>
               <tr><td>Only in the Google Play version: your choice between general and personalized ads, when the last ad ended and how many ads you watched to the end today. In the EEA, the UK and Switzerland also your answer in Google's consent form, which Google's SDK keeps on the device</td><td><code>pd-ads-pers</code>; the time and the count in <code>pd-prog</code>; the form's answer: in the storage of Google's SDK</td><td>To remember your choice and keep the limits: one ad every 5 minutes, up to 5 a day (section 4a)</td></tr>
+              <tr><td>Only in the Google Play version, for the rating request: your first day of play, whether the game already asked Google Play to show its rating card, and how many requests failed</td><td><code>pd-review</code></td><td>So the game doesn't ask on your first day, and the card appears at most once (section 4b)</td></tr>
               <tr><td>Only in the app downloaded from our website: the "Automatic check" switch, the time and result of the last update check, and the newer version of the game it downloaded</td><td><code>pd-updater</code>, IndexedDB <code>pd-updates</code></td><td>To install updates (section 6)</td></tr>
             </tbody>
           </table>
         </div>
         <p>Everything in this table stays on your device until you delete it in one of the ways in section 10.</p>
         <p>We don't use cookies, fingerprinting, analytics or crash-reporting tools. Android's advertising ID is read only by Google's ads SDK, only in the Google Play version and only after you choose to watch an ad (section 4a). The game's 3D engine (three.js) and its font (Rubik) are inside the game. The game connects to the internet only for what sections 3 to 6 describe.</p>
+      </section>
+
+      <section aria-labelledby="en-move">
+        <h2 id="en-move">2a. The progress code (moving to the Google Play version)</h2>
+        <!-- [legal-112] The sources are in the comment of the Hebrew section he-move. -->
+        <p>When the game on our website, or the app downloaded from it, offers to move you to the Google Play version, it creates a progress code on your device to carry your progress over. The code is a line of letters and digits that starts with <code>PD1-</code>.</p>
+        <p><b>What the code holds.</b> Only your progress and settings in the game:</p>
+        <ul>
+          <li>the campaign: the level you reached, medals and scores, the bosses you beat and the treasure chests you found;</li>
+          <li>experience, rank and emblem, achievements and your progress toward them;</li>
+          <li>your pets and skins, the Planet Park attractions you bought with diamonds, and the diamonds you earned by playing;</li>
+          <li>your results in Pure Tower Defense, the black hole and Rift Assault, the lessons and tips you've seen, your home planet's name, and your settings and language.</li>
+        </ul>
+        <p>The code holds nothing about you personally: no name, email or device identifier. It has no dates, no purchases and nothing from online play either. The only text you typed that goes into it is the name you gave your home planet.</p>
+        <p><b>Where it goes.</b> The game never sends the code anywhere, and no server takes part in the move. So we never see the code, and we can't restore a lost one. While your progress is still saved where the code was made, you can find the code there again in Settings. "Copy" puts the code on your clipboard. "Share" opens your device's share menu, and the app you pick there (an email or chat app, for example) receives the code and handles it under its own privacy policy.</p>
+        <p><b>In the Google Play version.</b> You paste the code in <b>Settings → Move my progress from the site</b>. "Paste" reads the clipboard only when you tap it, and the code is checked on the phone itself. Here too nothing is sent. After the move, the phone keeps a small record of the move and its date (section 2), so progress can move into each install only once. <b>Settings → Delete all my data</b> deletes this record too, along with all the game's other data on the phone (section 10).</p>
+        <p>What moves to the Google Play version, and the limits of the move: see the <a href="./terms.html#en-move">Terms of use and sale</a>.</p>
       </section>
 
       <section aria-labelledby="en-online">
@@ -294,7 +368,7 @@
 
       <section aria-labelledby="en-pay">
         <h2 id="en-pay">4. Purchases (Google Play version only)</h2>
-        <p><b>What can be bought.</b> In the Google Play version you can choose to buy packs for real money: diamond packs, the Starter pack, the Supporter pack, the Diamond booster x2, the black hole's levels 6 to 30, all the pets, all the skins, "Everything", and attractions of the amusement district. What each pack gives is written in the store and in the Terms of use and sale. Diamonds can also be earned by playing and, in the Google Play version, by an ad you choose to watch (section 4a). Treasure chests are free.</p>
+        <p><b>What can be bought.</b> In the Google Play version you can choose to buy packs for real money: diamond packs, the Starter pack, the Supporter pack, the Diamond booster x2, the black hole's levels 6 to 30, all the pets, all the skins, "Everything", and attractions of Planet Park. What each pack gives is written in the store and in the Terms of use and sale. Diamonds can also be earned by playing and, in the Google Play version, by an ad you choose to watch (section 4a). Treasure chests are free.</p>
         <p><b>Payment.</b> Purchases use Google Play's billing system, and Google processes the payment under its own terms and privacy policy. Your card or bank details never reach us. The Google Play version includes Google's billing library, which also sends Google technical data on how billing works: whether an action succeeded or failed, and problems connecting to the service.</p>
         <p><b>What the game receives and keeps.</b> From Google Play the game receives only the product bought, the order number and the purchase token. It keeps them on your device to deliver what you bought, not deliver it twice, restore purchases and remove an item, or diamonds not spent yet, if the purchase was refunded. After every purchase a "Purchase complete" card is shown, and the "My purchases" list in Settings is kept on this device only and is deleted when you delete the game's data (section 10). None of this is sent to our servers.</p>
         <p><b>Diamond packs.</b> A diamond pack is a consumable: you can buy it again and again. The diamonds you bought are kept only on this device, in the game's data, and Google Play can't restore them: not on another phone and not after the data is deleted (section 10). Here too nothing new is sent to us: the purchase, and the message to Google that the pack was used so it can be bought again, go through Google Play's billing library.</p>
@@ -314,6 +388,19 @@
           <li><b>What stays on your device:</b> your choice, when the last ad ended and how many ads you watched to the end today (section 2). <b>Settings → Delete all my data</b> erases them and resets your choice and your answer in Google's consent form, and the game asks again the next time you choose to watch.</li>
           <li><b>Transfers abroad:</b> Google may process the data in the United States and other countries, under its privacy policy (<a href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">policies.google.com/privacy</a>). What Google does with data from apps like this game is explained on its page "<a href="https://policies.google.com/technologies/partner-sites" rel="noopener noreferrer" target="_blank">How Google uses information from sites or apps that use our services</a>". What was already sent to Google is held by Google and handled under its policy.</li>
           <li><b>Content:</b> only ads suitable for all ages (Google's G rating). An ad never pops up by itself or shows during a level, and you can close it at any time (then without diamonds).</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="en-review">
+        <h2 id="en-review">4b. The rating request (Google Play version only)</h2>
+        <!-- [legal-112] The sources are in the comment of the Hebrew section he-review. -->
+        <p>In the Google Play version, after you win a campaign level, the game may ask Google Play to show its own rating card. The request goes through Google's Play In-App Review Library 2.0.2. The card can appear at most once per install, and Google Play decides whether to show it. Before the card, the game shows no question or button of its own, and it gives you nothing for a rating. Our website and the app downloaded from it never ask for a rating.</p>
+        <ul>
+          <li><b>The game doesn't know how you rated:</b> it doesn't see your stars or what you write, doesn't learn whether you rated at all, and sends nothing itself.</li>
+          <li><b>Where your rating goes:</b> your stars and anything you choose to write go to Google Play, under your Google account and Google's privacy policy (<a href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">policies.google.com/privacy</a>). On Google Play they become a public review linked to your Google account. In a test version of the game they aren't published: they reach only us, privately, through Google Play.</li>
+          <li><b>What we see:</b> as with any review on Google Play, we can read yours and reply to it there.</li>
+          <li><b>Editing or deleting it:</b> you can edit or delete your review on Google Play, on the game's page.</li>
+          <li><b>What stays on your device:</b> a small record of your first day of play and whether the game already asked (section 2), so it doesn't ask on your first day and the card appears only once. <b>Settings → Delete all my data</b> erases it, and then the game may ask once more, as on a new install.</li>
         </ul>
       </section>
 
@@ -338,10 +425,11 @@
       <section aria-labelledby="en-share">
         <h2 id="en-share">8. Who receives data</h2>
         <ul>
-          <li><b>We don't sell or rent personal data.</b> The game has no analytics and no crash reporting. The Google Play version has Google components that collect data: the billing library, which reports to Google on how billing works (section 4), and Google AdMob, which receives data only when you choose to watch an ad (section 4a).</li>
+          <li><b>We don't sell or rent personal data.</b> The game has no analytics and no crash reporting. The Google Play version has Google components that collect data: the billing library, which reports to Google on how billing works (section 4); Google AdMob, which receives data only when you choose to watch an ad (section 4a); and Google's Play In-App Review Library, through which Google Play gets only your stars and anything you write in its rating card, if you rate (section 4b).</li>
           <li><b>Service providers:</b> Cloudflare (the online-play server, section 3); Google (distribution and updates of the Google Play version, billing for purchases, Android's backup if it's on, and YouTube if you choose to watch the trailer); GitHub (hosting our website and the updates of the app from our website). Each processes data under its own terms.</li>
           <li><b>Google as the ads provider:</b> for ads, Google acts under its own terms and policies, not only on our behalf. It uses the data for advertising, analytics and fraud prevention (section 4a).</li>
           <li><b>Other players:</b> only what section 3 describes, and only when you play online.</li>
+          <li><b>The app you share through:</b> gets the progress code only if you share it, and handles it under its own privacy policy (section 2a).</li>
           <li><b>When the law requires it:</b> for example, a valid order from a competent authority.</li>
           <li><b>Transfers abroad:</b> the online-play data is kept in the European Union, and Cloudflare may process technical data in other countries under its data processing terms, which rely on the EU's standard contractual clauses and the EU-U.S. Data Privacy Framework. Google and GitHub may process technical data in the United States and other countries, under their own terms. This includes the data sent to Google when you watch an ad (section 4a).</li>
         </ul>
