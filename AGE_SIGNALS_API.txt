@@ -1,0 +1,256 @@
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public class com.google.android.play.agesignals.AgeSharingConsentWrapperActivity extends android.app.Activity {
+  public com.google.android.play.agesignals.AgeSharingConsentWrapperActivity();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public abstract class com.google.android.play.agesignals.AgeSignalsAccessRequest {
+  public abstract android.app.Activity activity();
+  public static com.google.android.play.agesignals.AgeSignalsAccessRequest$Builder builder();
+  public com.google.android.play.agesignals.AgeSignalsAccessRequest();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public abstract class com.google.android.play.agesignals.AgeSignalsAccessResult {
+  public static com.google.android.play.agesignals.AgeSignalsAccessResult$Builder builder();
+  public abstract java.lang.Integer ageSignalsStatus();
+  public com.google.android.play.agesignals.AgeSignalsAccessResult();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public class com.google.android.play.agesignals.AgeSignalsException extends com.google.android.gms.common.api.ApiException {
+  public int getErrorCode();
+  public com.google.android.play.agesignals.AgeSignalsException(int);
+  public com.google.android.play.agesignals.AgeSignalsException(com.google.android.gms.common.api.Status);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.AgeSignalsManager {
+  public abstract com.google.android.gms.tasks.Task<com.google.android.play.agesignals.AgeSignalsResult> checkAgeSignals(com.google.android.play.agesignals.AgeSignalsRequest);
+  public abstract com.google.android.gms.tasks.Task<com.google.android.play.agesignals.ApplicableAgeFeaturesResult> getApplicableAgeFeatures(com.google.android.play.agesignals.ApplicableAgeFeaturesRequest);
+  public abstract com.google.android.gms.tasks.Task<com.google.android.play.agesignals.AgeSignalsAccessResult> requestAgeSignalsAccess(com.google.android.play.agesignals.AgeSignalsAccessRequest);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public class com.google.android.play.agesignals.AgeSignalsManagerFactory {
+  public static com.google.android.play.agesignals.AgeSignalsManager create(android.content.Context);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public class com.google.android.play.agesignals.AgeSignalsRequest {
+  public static com.google.android.play.agesignals.AgeSignalsRequest$Builder builder();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public abstract class com.google.android.play.agesignals.AgeSignalsResult {
+  public static com.google.android.play.agesignals.AgeSignalsResult$Builder builder();
+  public abstract java.lang.Integer ageLower();
+  public abstract java.lang.Integer ageRangeSource();
+  public abstract java.lang.Integer ageUpper();
+  public abstract java.lang.Integer significantChangeStatus();
+  public abstract java.lang.String installId();
+  public abstract java.util.Date significantChangeApprovalDate();
+  public com.google.android.play.agesignals.AgeSignalsResult();
+  public static com.google.android.play.agesignals.AgeSignalsResult zza(android.os.Bundle);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public abstract class com.google.android.play.agesignals.ApplicableAgeFeaturesRequest {
+  public static com.google.android.play.agesignals.ApplicableAgeFeaturesRequest$Builder builder();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public abstract class com.google.android.play.agesignals.ApplicableAgeFeaturesResult {
+  public static com.google.android.play.agesignals.ApplicableAgeFeaturesResult$Builder builder();
+  public abstract java.util.Set<java.lang.Integer> features();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.model.AgeRangeSource extends java.lang.annotation.Annotation {
+  public static final int UNSPECIFIED;
+  public static final int TIER_A;
+  public static final int TIER_B;
+  public static final int TIER_C;
+  public static final int TIER_D;
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.model.AgeSignalsErrorCode extends java.lang.annotation.Annotation {
+  public static final int NO_ERROR;
+  public static final int API_NOT_AVAILABLE;
+  public static final int PLAY_STORE_NOT_FOUND;
+  public static final int NETWORK_ERROR;
+  public static final int PLAY_SERVICES_NOT_FOUND;
+  public static final int CANNOT_BIND_TO_SERVICE;
+  public static final int PLAY_STORE_VERSION_OUTDATED;
+  public static final int PLAY_SERVICES_VERSION_OUTDATED;
+  public static final int CLIENT_TRANSIENT_ERROR;
+  public static final int APP_NOT_OWNED;
+  public static final int SDK_VERSION_OUTDATED;
+  public static final int DEVICE_NOT_SUPPORTED;
+  public static final int INTERNAL_ERROR;
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.model.AgeSignalsStatus extends java.lang.annotation.Annotation {
+  public static final int UNSPECIFIED;
+  public static final int SHARED;
+  public static final int NOT_SHARED;
+  public static final int VERIFICATION_REQUIRED;
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.model.AgeSignalsVerificationStatus extends java.lang.annotation.Annotation {
+  public static final int VERIFIED;
+  public static final int SUPERVISED;
+  public static final int SUPERVISED_APPROVAL_PENDING;
+  public static final int SUPERVISED_APPROVAL_DENIED;
+  public static final int UNKNOWN;
+  public static final int DECLARED;
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.model.ApplicableAgeFeature extends java.lang.annotation.Annotation {
+  public static final int MANDATORY_SHARING;
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.model.SignificantChangeStatus extends java.lang.annotation.Annotation {
+  public static final int UNSPECIFIED;
+  public static final int APPROVED;
+  public static final int PENDING;
+  public static final int DECLINED;
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public class com.google.android.play.agesignals.testing.FakeAgeSignalsManager implements com.google.android.play.agesignals.AgeSignalsManager {
+  public com.google.android.gms.tasks.Task<com.google.android.play.agesignals.AgeSignalsResult> checkAgeSignals(com.google.android.play.agesignals.AgeSignalsRequest);
+  public com.google.android.gms.tasks.Task<com.google.android.play.agesignals.ApplicableAgeFeaturesResult> getApplicableAgeFeatures(com.google.android.play.agesignals.ApplicableAgeFeaturesRequest);
+  public com.google.android.gms.tasks.Task<com.google.android.play.agesignals.AgeSignalsAccessResult> requestAgeSignalsAccess(com.google.android.play.agesignals.AgeSignalsAccessRequest);
+  public com.google.android.play.agesignals.testing.FakeAgeSignalsManager();
+  public void setNextAgeSignalsAccessResult(com.google.android.play.agesignals.AgeSignalsAccessResult);
+  public void setNextAgeSignalsException(com.google.android.play.agesignals.AgeSignalsException);
+  public void setNextAgeSignalsResult(com.google.android.play.agesignals.AgeSignalsResult);
+  public void setNextApplicableAgeFeaturesException(com.google.android.play.agesignals.AgeSignalsException);
+  public void setNextApplicableAgeFeaturesResult(com.google.android.play.agesignals.ApplicableAgeFeaturesResult);
+  public void setNextRequestAgeSignalsAccessException(com.google.android.play.agesignals.AgeSignalsException);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zza {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzaa extends com.google.android.play.agesignals.ApplicableAgeFeaturesResult {
+  public final int hashCode();
+  public final java.lang.String toString();
+  public final java.util.Set<java.lang.Integer> features();
+  public final boolean equals(java.lang.Object);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzb implements com.google.android.play.agesignals.AgeSignalsManager {
+  public final com.google.android.gms.tasks.Task<com.google.android.play.agesignals.AgeSignalsResult> checkAgeSignals(com.google.android.play.agesignals.AgeSignalsRequest);
+  public final com.google.android.gms.tasks.Task<com.google.android.play.agesignals.ApplicableAgeFeaturesResult> getApplicableAgeFeatures(com.google.android.play.agesignals.ApplicableAgeFeaturesRequest);
+  public final com.google.android.gms.tasks.Task<com.google.android.play.agesignals.AgeSignalsAccessResult> requestAgeSignalsAccess(com.google.android.play.agesignals.AgeSignalsAccessRequest);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzc {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzd {
+  public com.google.android.play.agesignals.zzd();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zze extends com.google.android.gms.internal.playcore_age_signals.zzn {
+  public final void zza(java.lang.Exception);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzf extends com.google.android.gms.internal.playcore_age_signals.zzn {
+  public final void zza(java.lang.Exception);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzg extends com.google.android.gms.internal.playcore_age_signals.zzn {
+  public final void zza(java.lang.Exception);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzh extends android.os.ResultReceiver {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzi extends com.google.android.gms.internal.playcore_age_signals.zzd {
+  public final void zzb(android.os.Bundle);
+  public final void zzc(android.os.Bundle);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzj extends com.google.android.gms.internal.playcore_age_signals.zzi {
+  public final void zzb(android.os.Bundle);
+  public final void zzc(android.os.Bundle);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzk extends com.google.android.gms.internal.playcore_age_signals.zzk {
+  public final void zzb(android.os.Bundle);
+  public final void zzc(android.os.Bundle);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzl {
+  public final com.google.android.gms.tasks.Task zzc(com.google.android.play.agesignals.AgeSignalsRequest);
+  public final com.google.android.gms.tasks.Task zzd(com.google.android.play.agesignals.ApplicableAgeFeaturesRequest);
+  public final com.google.android.gms.tasks.Task zze(com.google.android.play.agesignals.AgeSignalsAccessRequest);
+  public com.google.android.play.agesignals.zzl(android.content.Context);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzm extends com.google.android.play.agesignals.AgeSignalsAccessRequest$Builder {
+  public final com.google.android.play.agesignals.AgeSignalsAccessRequest$Builder setActivity(android.app.Activity);
+  public final com.google.android.play.agesignals.AgeSignalsAccessRequest build();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzn {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzo extends com.google.android.play.agesignals.AgeSignalsAccessRequest {
+  public final int hashCode();
+  public final android.app.Activity activity();
+  public final java.lang.String toString();
+  public final boolean equals(java.lang.Object);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzp extends com.google.android.play.agesignals.AgeSignalsAccessResult$Builder {
+  public final com.google.android.play.agesignals.AgeSignalsAccessResult$Builder setAgeSignalsStatus(java.lang.Integer);
+  public final com.google.android.play.agesignals.AgeSignalsAccessResult build();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzq {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzr extends com.google.android.play.agesignals.AgeSignalsAccessResult {
+  public final int hashCode();
+  public final java.lang.Integer ageSignalsStatus();
+  public final java.lang.String toString();
+  public final boolean equals(java.lang.Object);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzs extends com.google.android.play.agesignals.AgeSignalsResult$Builder {
+  public final com.google.android.play.agesignals.AgeSignalsResult$Builder setAgeLower(java.lang.Integer);
+  public final com.google.android.play.agesignals.AgeSignalsResult$Builder setAgeRangeSource(java.lang.Integer);
+  public final com.google.android.play.agesignals.AgeSignalsResult$Builder setAgeUpper(java.lang.Integer);
+  public final com.google.android.play.agesignals.AgeSignalsResult$Builder setInstallId(java.lang.String);
+  public final com.google.android.play.agesignals.AgeSignalsResult$Builder setSignificantChangeApprovalDate(java.util.Date);
+  public final com.google.android.play.agesignals.AgeSignalsResult$Builder setSignificantChangeStatus(java.lang.Integer);
+  public final com.google.android.play.agesignals.AgeSignalsResult build();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzt {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzu extends com.google.android.play.agesignals.AgeSignalsResult {
+  public final int hashCode();
+  public final java.lang.Integer ageLower();
+  public final java.lang.Integer ageRangeSource();
+  public final java.lang.Integer ageUpper();
+  public final java.lang.Integer significantChangeStatus();
+  public final java.lang.String installId();
+  public final java.lang.String toString();
+  public final java.util.Date significantChangeApprovalDate();
+  public final boolean equals(java.lang.Object);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzv extends com.google.android.play.agesignals.ApplicableAgeFeaturesRequest$Builder {
+  public final com.google.android.play.agesignals.ApplicableAgeFeaturesRequest build();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzw {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzx extends com.google.android.play.agesignals.ApplicableAgeFeaturesRequest {
+  public final int hashCode();
+  public final java.lang.String toString();
+  public final boolean equals(java.lang.Object);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzy extends com.google.android.play.agesignals.ApplicableAgeFeaturesResult$Builder {
+  public final com.google.android.play.agesignals.ApplicableAgeFeaturesResult$Builder setFeatures(java.util.Set<java.lang.Integer>);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzz {
+}

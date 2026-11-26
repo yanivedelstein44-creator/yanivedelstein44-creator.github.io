@@ -1,0 +1,712 @@
+/home/runner/work/yanivedelstein44-creator.github.io/yanivedelstein44-creator.github.io/chess-of-ages-play/update/bundle-1.6.6-1795686122541.zip: OK
+
+added 110 packages in 7s
+✔ Adding native android project in android in 38.00ms
+✔ add in 38.77ms
+✔ Copying web assets from www to android/app/src/main/assets/public in 10.27ms
+✔ Creating capacitor.config.json in android/app/src/main/assets in 424.44μs
+✔ copy android in 18.61ms
+✔ Updating Android plugins in 1.08ms
+[info] Found 5 Capacitor plugins for android:
+       @capacitor/app@8.1.2
+       @capacitor/haptics@8.0.2
+       @capgo/capacitor-updater@8.54.2
+       @capgo/native-purchases@8.9.11
+       @capacitor-community/admob@8.3.2
+✔ update android in 29.31ms
+✔ Syncing Gradle in 186.62μs
+[success] android platform added!
+Follow the Developer Workflow guide to get building:
+https://capacitorjs.com/docs/basics/workflow
+✔ Copying web assets from www to android/app/src/main/assets/public in 12.59ms
+✔ Creating capacitor.config.json in android/app/src/main/assets in 629.99μs
+✔ copy android in 21.93ms
+✔ Updating Android plugins in 1.12ms
+[info] Found 5 Capacitor plugins for android:
+       @capacitor/app@8.1.2
+       @capacitor/haptics@8.0.2
+       @capgo/capacitor-updater@8.54.2
+       @capgo/native-purchases@8.9.11
+       @capacitor-community/admob@8.3.2
+✔ update android in 36.12ms
+[info] Sync finished in 0.132s
+age-signals ב-Google Maven: 0.0.1-beta01 0.0.1-beta02 0.0.1 0.0.2 0.0.3 0.0.4 0.0.6 
+Downloading https://services.gradle.org/distributions/gradle-8.14.3-all.zip
+.....................10%.....................20%......................30%.....................40%......................50%.....................60%.....................70%......................80%.....................90%......................100%
+
+Welcome to Gradle 8.14.3!
+
+Here are the highlights of this release:
+ - Java 24 support
+ - GraalVM Native Image toolchain selection
+ - Enhancements to test reporting
+ - Build Authoring improvements
+
+For more details see https://docs.gradle.org/8.14.3/release-notes.html
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: Using flatDir should be avoided because it doesn't support any meta-data formats.
+
+> Configure project :capacitor-cordova-android-plugins
+WARNING: Using flatDir should be avoided because it doesn't support any meta-data formats.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :capacitor-android:preBuild UP-TO-DATE
+> Task :capacitor-android:preReleaseBuild UP-TO-DATE
+> Task :capacitor-android:processReleaseNavigationResources
+> Task :capacitor-app:preBuild UP-TO-DATE
+> Task :capacitor-app:preReleaseBuild UP-TO-DATE
+> Task :capacitor-app:processReleaseNavigationResources
+> Task :capacitor-community-admob:preBuild UP-TO-DATE
+> Task :capacitor-community-admob:preReleaseBuild UP-TO-DATE
+> Task :capacitor-community-admob:processReleaseNavigationResources
+> Task :capacitor-cordova-android-plugins:preBuild UP-TO-DATE
+> Task :capacitor-cordova-android-plugins:preReleaseBuild UP-TO-DATE
+> Task :capacitor-cordova-android-plugins:processReleaseNavigationResources
+> Task :capacitor-haptics:preBuild UP-TO-DATE
+> Task :capacitor-haptics:preReleaseBuild UP-TO-DATE
+> Task :capacitor-haptics:processReleaseNavigationResources
+> Task :capgo-capacitor-updater:preBuild UP-TO-DATE
+> Task :capgo-capacitor-updater:preReleaseBuild UP-TO-DATE
+> Task :capgo-capacitor-updater:processReleaseNavigationResources
+> Task :capgo-native-purchases:preBuild UP-TO-DATE
+> Task :capgo-native-purchases:preReleaseBuild UP-TO-DATE
+> Task :capgo-native-purchases:processReleaseNavigationResources
+> Task :app:processReleaseNavigationResources
+> Task :app:generateReleaseResValues
+> Task :capacitor-android:generateReleaseResValues
+> Task :app:compileReleaseNavigationResources
+> Task :capacitor-android:generateReleaseResources
+> Task :capacitor-android:packageReleaseResources
+> Task :capacitor-app:generateReleaseResValues
+> Task :capacitor-app:generateReleaseResources
+> Task :capacitor-app:packageReleaseResources
+> Task :capacitor-community-admob:generateReleaseResValues
+> Task :capacitor-community-admob:generateReleaseResources
+> Task :capacitor-community-admob:packageReleaseResources
+> Task :capacitor-cordova-android-plugins:generateReleaseResValues
+> Task :capacitor-cordova-android-plugins:generateReleaseResources
+> Task :capacitor-cordova-android-plugins:packageReleaseResources
+> Task :capacitor-haptics:generateReleaseResValues
+> Task :capacitor-haptics:generateReleaseResources
+> Task :capacitor-haptics:packageReleaseResources
+> Task :capgo-capacitor-updater:generateReleaseResValues
+> Task :capgo-capacitor-updater:generateReleaseResources
+> Task :capgo-capacitor-updater:packageReleaseResources
+> Task :capgo-native-purchases:generateReleaseResValues
+> Task :capgo-native-purchases:generateReleaseResources
+> Task :capgo-native-purchases:packageReleaseResources
+> Task :app:mapReleaseSourceSetPaths
+> Task :app:generateReleaseResources
+> Task :app:createReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksRelease
+> Task :capacitor-android:extractDeepLinksRelease
+> Task :capacitor-app:extractDeepLinksRelease
+> Task :capacitor-android:processReleaseManifest
+> Task :capacitor-community-admob:extractDeepLinksRelease
+> Task :capacitor-cordova-android-plugins:extractDeepLinksRelease
+> Task :capacitor-community-admob:processReleaseManifest
+> Task :capacitor-haptics:extractDeepLinksRelease
+> Task :capacitor-cordova-android-plugins:processReleaseManifest
+> Task :capgo-capacitor-updater:extractDeepLinksRelease
+> Task :capgo-capacitor-updater:processReleaseManifest
+> Task :capgo-native-purchases:extractDeepLinksRelease
+> Task :capgo-native-purchases:processReleaseManifest
+> Task :capacitor-app:processReleaseManifest
+> Task :capacitor-haptics:processReleaseManifest
+> Task :capacitor-android:writeReleaseAarMetadata
+> Task :capacitor-app:writeReleaseAarMetadata
+
+> Task :app:processReleaseMainManifest
+/home/runner/work/yanivedelstein44-creator.github.io/yanivedelstein44-creator.github.io/chess-of-ages-app/android/app/src/main/AndroidManifest.xml:45:5-103 Warning:
+	uses-permission#android.permission.REQUEST_INSTALL_PACKAGES was tagged at AndroidManifest.xml:45 to remove other declarations but no other declaration present
+
+> Task :app:processReleaseManifest
+> Task :app:processApplicationManifestReleaseForBundle
+> Task :capacitor-community-admob:writeReleaseAarMetadata
+> Task :capacitor-haptics:writeReleaseAarMetadata
+> Task :capacitor-cordova-android-plugins:writeReleaseAarMetadata
+> Task :app:packageReleaseResources
+> Task :capgo-capacitor-updater:writeReleaseAarMetadata
+> Task :app:parseReleaseLocalResources
+> Task :capgo-native-purchases:writeReleaseAarMetadata
+> Task :capacitor-android:compileReleaseLibraryResources
+> Task :app:processReleaseManifestForPackage
+> Task :app:checkReleaseAarMetadata
+> Task :capacitor-android:parseReleaseLocalResources
+> Task :capacitor-app:compileReleaseLibraryResources
+> Task :capacitor-android:generateReleaseRFile
+> Task :capacitor-app:parseReleaseLocalResources
+> Task :capacitor-community-admob:compileReleaseLibraryResources
+> Task :capacitor-community-admob:parseReleaseLocalResources
+> Task :capacitor-app:generateReleaseRFile
+> Task :capacitor-community-admob:generateReleaseRFile
+> Task :capacitor-cordova-android-plugins:compileReleaseLibraryResources
+> Task :capacitor-haptics:compileReleaseLibraryResources
+> Task :capacitor-haptics:parseReleaseLocalResources
+> Task :capacitor-cordova-android-plugins:parseReleaseLocalResources
+> Task :capgo-capacitor-updater:compileReleaseLibraryResources
+> Task :capacitor-cordova-android-plugins:generateReleaseRFile
+> Task :capacitor-haptics:generateReleaseRFile
+> Task :capgo-capacitor-updater:parseReleaseLocalResources
+> Task :capgo-native-purchases:parseReleaseLocalResources
+> Task :capgo-native-purchases:compileReleaseLibraryResources
+> Task :capgo-native-purchases:generateReleaseRFile
+> Task :capgo-capacitor-updater:generateReleaseRFile
+> Task :app:extractReleaseVersionControlInfo
+> Task :capacitor-android:javaPreCompileRelease
+> Task :capacitor-app:javaPreCompileRelease
+> Task :capacitor-haptics:javaPreCompileRelease
+> Task :app:mergeReleaseResources
+
+> Task :capacitor-android:compileReleaseJavaWithJavac
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :capgo-capacitor-updater:javaPreCompileRelease
+> Task :capgo-native-purchases:generateReleaseBuildConfig
+> Task :capacitor-community-admob:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :capgo-native-purchases:javaPreCompileRelease
+> Task :capacitor-community-admob:javaPreCompileRelease
+> Task :capacitor-cordova-android-plugins:javaPreCompileRelease
+> Task :capacitor-android:bundleLibCompileToJarRelease
+> Task :capacitor-cordova-android-plugins:compileReleaseJavaWithJavac NO-SOURCE
+> Task :capacitor-android:bundleLibRuntimeToDirRelease
+> Task :capacitor-app:compileReleaseJavaWithJavac
+> Task :capacitor-app:bundleLibRuntimeToDirRelease
+> Task :app:processReleaseResources
+> Task :capacitor-haptics:compileReleaseJavaWithJavac
+> Task :capacitor-haptics:bundleLibRuntimeToDirRelease
+> Task :app:bundleReleaseResources
+
+> Task :capgo-capacitor-updater:compileReleaseJavaWithJavac
+Note: /home/runner/work/yanivedelstein44-creator.github.io/yanivedelstein44-creator.github.io/chess-of-ages-app/node_modules/@capgo/capacitor-updater/android/src/main/java/ee/forgr/capacitor_updater/CapacitorUpdaterPlugin.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :capgo-capacitor-updater:bundleLibRuntimeToDirRelease
+> Task :capgo-native-purchases:compileReleaseJavaWithJavac
+> Task :capgo-native-purchases:bundleLibRuntimeToDirRelease
+> Task :capacitor-cordova-android-plugins:bundleLibRuntimeToDirRelease
+> Task :app:javaPreCompileRelease
+> Task :capacitor-app:bundleLibCompileToJarRelease
+> Task :capacitor-cordova-android-plugins:bundleLibCompileToJarRelease
+> Task :app:checkReleaseDuplicateClasses
+> Task :capacitor-haptics:bundleLibCompileToJarRelease
+> Task :capgo-capacitor-updater:bundleLibCompileToJarRelease
+> Task :capgo-native-purchases:bundleLibCompileToJarRelease
+> Task :app:desugarReleaseFileDependencies
+> Task :app:mergeReleaseStartupProfile
+> Task :capacitor-community-admob:compileReleaseKotlin
+w: file:///home/runner/work/yanivedelstein44-creator.github.io/yanivedelstein44-creator.github.io/chess-of-ages-app/node_modules/@capacitor-community/admob/android/src/main/java/com/getcapacitor/community/admob/banner/BannerAdSizeEnum.kt:15:25 'static field SMART_BANNER: AdSize' is deprecated. Deprecated in Java.
+
+> Task :app:mergeExtDexRelease
+
+> Task :capacitor-community-admob:compileReleaseJavaWithJavac
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :capacitor-community-admob:bundleLibCompileToJarRelease
+> Task :app:mergeReleaseShaders
+> Task :capacitor-community-admob:bundleLibRuntimeToDirRelease
+> Task :app:compileReleaseJavaWithJavac
+> Task :app:dexBuilderRelease
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :capacitor-android:mergeReleaseShaders
+> Task :capacitor-android:compileReleaseShaders NO-SOURCE
+> Task :capacitor-android:generateReleaseAssets UP-TO-DATE
+> Task :capacitor-android:mergeReleaseAssets
+> Task :capacitor-app:mergeReleaseShaders
+> Task :capacitor-app:compileReleaseShaders NO-SOURCE
+> Task :capacitor-app:generateReleaseAssets UP-TO-DATE
+> Task :capacitor-app:mergeReleaseAssets
+> Task :capacitor-community-admob:mergeReleaseShaders
+> Task :capacitor-community-admob:compileReleaseShaders NO-SOURCE
+> Task :capacitor-community-admob:generateReleaseAssets UP-TO-DATE
+> Task :capacitor-community-admob:mergeReleaseAssets
+> Task :capacitor-cordova-android-plugins:mergeReleaseShaders
+> Task :capacitor-cordova-android-plugins:compileReleaseShaders NO-SOURCE
+> Task :capacitor-cordova-android-plugins:generateReleaseAssets UP-TO-DATE
+> Task :capacitor-cordova-android-plugins:mergeReleaseAssets
+> Task :capacitor-haptics:mergeReleaseShaders
+> Task :capacitor-haptics:compileReleaseShaders NO-SOURCE
+> Task :capacitor-haptics:generateReleaseAssets UP-TO-DATE
+> Task :capacitor-haptics:mergeReleaseAssets
+> Task :capgo-capacitor-updater:mergeReleaseShaders
+> Task :capgo-capacitor-updater:compileReleaseShaders NO-SOURCE
+> Task :capgo-capacitor-updater:generateReleaseAssets UP-TO-DATE
+> Task :capgo-capacitor-updater:mergeReleaseAssets
+> Task :capgo-native-purchases:mergeReleaseShaders
+> Task :capgo-native-purchases:compileReleaseShaders NO-SOURCE
+> Task :capgo-native-purchases:generateReleaseAssets UP-TO-DATE
+> Task :capgo-native-purchases:mergeReleaseAssets
+> Task :app:mergeReleaseAssets
+> Task :capacitor-app:bundleLibRuntimeToJarRelease
+> Task :capacitor-haptics:bundleLibRuntimeToJarRelease
+> Task :capgo-capacitor-updater:bundleLibRuntimeToJarRelease
+> Task :capgo-native-purchases:bundleLibRuntimeToJarRelease
+> Task :capacitor-community-admob:bundleLibRuntimeToJarRelease
+> Task :capacitor-android:bundleLibRuntimeToJarRelease
+> Task :capacitor-cordova-android-plugins:bundleLibRuntimeToJarRelease
+> Task :app:processReleaseJavaRes NO-SOURCE
+> Task :capacitor-android:processReleaseJavaRes NO-SOURCE
+> Task :capacitor-app:processReleaseJavaRes NO-SOURCE
+> Task :capacitor-community-admob:processReleaseJavaRes
+> Task :capacitor-cordova-android-plugins:processReleaseJavaRes NO-SOURCE
+> Task :capacitor-haptics:processReleaseJavaRes NO-SOURCE
+> Task :capgo-capacitor-updater:processReleaseJavaRes NO-SOURCE
+> Task :capgo-native-purchases:processReleaseJavaRes NO-SOURCE
+> Task :app:mergeReleaseJniLibFolders
+> Task :capacitor-android:mergeReleaseJniLibFolders
+> Task :capacitor-android:mergeReleaseNativeLibs NO-SOURCE
+> Task :capacitor-android:copyReleaseJniLibsProjectOnly
+> Task :capacitor-app:mergeReleaseJniLibFolders
+> Task :capacitor-app:mergeReleaseNativeLibs NO-SOURCE
+> Task :capacitor-app:copyReleaseJniLibsProjectOnly
+> Task :capacitor-community-admob:mergeReleaseJniLibFolders
+> Task :capacitor-community-admob:mergeReleaseNativeLibs NO-SOURCE
+> Task :capacitor-community-admob:copyReleaseJniLibsProjectOnly
+> Task :capacitor-cordova-android-plugins:mergeReleaseJniLibFolders
+> Task :capacitor-cordova-android-plugins:mergeReleaseNativeLibs NO-SOURCE
+> Task :capacitor-cordova-android-plugins:copyReleaseJniLibsProjectOnly
+> Task :capacitor-haptics:mergeReleaseJniLibFolders
+> Task :capacitor-haptics:mergeReleaseNativeLibs NO-SOURCE
+> Task :capacitor-haptics:copyReleaseJniLibsProjectOnly
+> Task :capgo-capacitor-updater:mergeReleaseJniLibFolders
+> Task :capgo-capacitor-updater:mergeReleaseNativeLibs NO-SOURCE
+> Task :capgo-capacitor-updater:copyReleaseJniLibsProjectOnly
+> Task :capgo-native-purchases:mergeReleaseJniLibFolders
+> Task :capgo-native-purchases:mergeReleaseNativeLibs NO-SOURCE
+> Task :capgo-native-purchases:copyReleaseJniLibsProjectOnly
+> Task :app:mergeReleaseNativeLibs
+> Task :app:mergeReleaseGlobalSynthetics
+> Task :app:writeReleaseAppMetadata
+> Task :capacitor-android:prepareReleaseArtProfile
+> Task :capacitor-app:prepareReleaseArtProfile
+> Task :capacitor-community-admob:prepareReleaseArtProfile
+> Task :capacitor-cordova-android-plugins:prepareReleaseArtProfile
+> Task :capacitor-haptics:prepareReleaseArtProfile
+> Task :capgo-capacitor-updater:prepareReleaseArtProfile
+> Task :capgo-native-purchases:prepareReleaseArtProfile
+
+> Task :app:stripReleaseDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libnative_ui_png.so. Run with --info option to learn more.
+
+> Task :app:mergeReleaseArtProfile
+> Task :app:collectReleaseDependencies
+> Task :app:configureReleaseDependencies
+> Task :app:extractReleaseNativeSymbolTables
+> Task :app:extractProguardFiles
+> Task :capacitor-android:createFullJarRelease
+> Task :capacitor-android:extractProguardFiles
+> Task :app:mergeReleaseJavaResource
+> Task :capacitor-android:generateReleaseLintModel
+> Task :capacitor-android:prepareLintJarForPublish
+> Task :capacitor-app:createFullJarRelease
+> Task :capacitor-app:extractProguardFiles
+> Task :capacitor-app:generateReleaseLintModel
+> Task :capacitor-app:prepareLintJarForPublish
+> Task :capacitor-community-admob:createFullJarRelease
+> Task :capacitor-community-admob:extractProguardFiles
+> Task :app:mergeDexRelease
+> Task :capacitor-community-admob:generateReleaseLintModel
+> Task :app:buildReleasePreBundle
+> Task :capacitor-community-admob:prepareLintJarForPublish
+> Task :capacitor-cordova-android-plugins:createFullJarRelease
+> Task :capacitor-cordova-android-plugins:extractProguardFiles
+> Task :app:compileReleaseArtProfile
+> Task :capacitor-cordova-android-plugins:generateReleaseLintModel
+> Task :capacitor-cordova-android-plugins:prepareLintJarForPublish
+> Task :capacitor-haptics:createFullJarRelease
+> Task :capacitor-haptics:extractProguardFiles
+> Task :capacitor-haptics:generateReleaseLintModel
+> Task :capacitor-haptics:prepareLintJarForPublish
+> Task :capgo-capacitor-updater:createFullJarRelease
+> Task :capgo-capacitor-updater:extractProguardFiles
+> Task :capgo-capacitor-updater:generateReleaseLintModel
+> Task :capgo-capacitor-updater:prepareLintJarForPublish
+> Task :capgo-native-purchases:createFullJarRelease
+> Task :capgo-native-purchases:extractProguardFiles
+> Task :capgo-native-purchases:generateReleaseLintModel
+> Task :capgo-native-purchases:prepareLintJarForPublish
+> Task :capacitor-app:checkReleaseAarMetadata
+> Task :app:generateReleaseLintVitalReportModel
+> Task :capacitor-app:stripReleaseDebugSymbols NO-SOURCE
+> Task :capacitor-app:extractDeepLinksForAarRelease
+> Task :capacitor-app:copyReleaseJniLibsProjectAndLocalJars
+> Task :capacitor-app:extractReleaseAnnotations
+> Task :capacitor-app:mergeReleaseGeneratedProguardFiles
+> Task :capacitor-app:mergeReleaseConsumerProguardFiles
+> Task :capacitor-app:mergeReleaseJavaResource
+> Task :capacitor-haptics:checkReleaseAarMetadata
+> Task :capacitor-app:syncReleaseLibJars
+> Task :capacitor-app:bundleReleaseLocalLintAar
+> Task :capacitor-haptics:stripReleaseDebugSymbols NO-SOURCE
+> Task :capacitor-haptics:copyReleaseJniLibsProjectAndLocalJars
+> Task :capacitor-haptics:extractDeepLinksForAarRelease
+> Task :capacitor-haptics:extractReleaseAnnotations
+> Task :capacitor-haptics:mergeReleaseGeneratedProguardFiles
+> Task :capacitor-haptics:mergeReleaseConsumerProguardFiles
+> Task :capacitor-haptics:mergeReleaseJavaResource
+> Task :capgo-capacitor-updater:checkReleaseAarMetadata
+> Task :capacitor-haptics:syncReleaseLibJars
+> Task :capacitor-haptics:bundleReleaseLocalLintAar
+> Task :capgo-capacitor-updater:stripReleaseDebugSymbols NO-SOURCE
+> Task :capgo-capacitor-updater:copyReleaseJniLibsProjectAndLocalJars
+> Task :capgo-capacitor-updater:extractDeepLinksForAarRelease
+> Task :capgo-capacitor-updater:extractReleaseAnnotations
+> Task :capgo-capacitor-updater:mergeReleaseGeneratedProguardFiles
+> Task :capgo-capacitor-updater:mergeReleaseConsumerProguardFiles
+> Task :capgo-capacitor-updater:mergeReleaseJavaResource
+> Task :capgo-native-purchases:checkReleaseAarMetadata
+> Task :capgo-capacitor-updater:syncReleaseLibJars
+> Task :capgo-capacitor-updater:bundleReleaseLocalLintAar
+> Task :capgo-native-purchases:stripReleaseDebugSymbols NO-SOURCE
+> Task :capgo-native-purchases:extractDeepLinksForAarRelease
+> Task :capgo-native-purchases:copyReleaseJniLibsProjectAndLocalJars
+> Task :capgo-native-purchases:extractReleaseAnnotations
+> Task :capgo-native-purchases:mergeReleaseGeneratedProguardFiles
+> Task :capgo-native-purchases:mergeReleaseConsumerProguardFiles
+> Task :capgo-native-purchases:mergeReleaseJavaResource
+> Task :capacitor-community-admob:checkReleaseAarMetadata
+> Task :capgo-native-purchases:syncReleaseLibJars
+> Task :capgo-native-purchases:bundleReleaseLocalLintAar
+> Task :capacitor-community-admob:stripReleaseDebugSymbols NO-SOURCE
+> Task :capacitor-community-admob:copyReleaseJniLibsProjectAndLocalJars
+> Task :capacitor-community-admob:extractDeepLinksForAarRelease
+> Task :capacitor-community-admob:extractReleaseAnnotations
+> Task :capacitor-community-admob:mergeReleaseGeneratedProguardFiles
+> Task :capacitor-community-admob:mergeReleaseConsumerProguardFiles
+> Task :capacitor-community-admob:mergeReleaseJavaResource
+> Task :capacitor-android:checkReleaseAarMetadata
+> Task :capacitor-community-admob:syncReleaseLibJars
+> Task :capacitor-community-admob:bundleReleaseLocalLintAar
+> Task :capacitor-android:stripReleaseDebugSymbols NO-SOURCE
+> Task :capacitor-android:copyReleaseJniLibsProjectAndLocalJars
+> Task :capacitor-android:extractDeepLinksForAarRelease
+> Task :capacitor-android:extractReleaseAnnotations
+> Task :capacitor-android:mergeReleaseGeneratedProguardFiles
+> Task :capacitor-android:mergeReleaseConsumerProguardFiles
+> Task :capacitor-android:mergeReleaseJavaResource
+> Task :capacitor-cordova-android-plugins:checkReleaseAarMetadata
+> Task :capacitor-android:syncReleaseLibJars
+> Task :capacitor-android:bundleReleaseLocalLintAar
+> Task :capacitor-cordova-android-plugins:stripReleaseDebugSymbols NO-SOURCE
+> Task :capacitor-cordova-android-plugins:copyReleaseJniLibsProjectAndLocalJars
+> Task :capacitor-cordova-android-plugins:extractDeepLinksForAarRelease
+> Task :capacitor-cordova-android-plugins:extractReleaseAnnotations
+> Task :capacitor-cordova-android-plugins:mergeReleaseGeneratedProguardFiles
+> Task :capacitor-cordova-android-plugins:mergeReleaseConsumerProguardFiles
+> Task :capacitor-cordova-android-plugins:mergeReleaseJavaResource
+> Task :capacitor-cordova-android-plugins:syncReleaseLibJars
+> Task :capacitor-cordova-android-plugins:bundleReleaseLocalLintAar
+> Task :capacitor-android:writeReleaseLintModelMetadata
+> Task :capacitor-app:writeReleaseLintModelMetadata
+> Task :capacitor-community-admob:writeReleaseLintModelMetadata
+> Task :capacitor-cordova-android-plugins:writeReleaseLintModelMetadata
+> Task :capacitor-haptics:writeReleaseLintModelMetadata
+> Task :capgo-capacitor-updater:writeReleaseLintModelMetadata
+> Task :capgo-native-purchases:writeReleaseLintModelMetadata
+> Task :capacitor-android:generateReleaseLintVitalModel
+> Task :capacitor-app:generateReleaseLintVitalModel
+> Task :capacitor-community-admob:generateReleaseLintVitalModel
+> Task :capacitor-cordova-android-plugins:generateReleaseLintVitalModel
+> Task :capacitor-haptics:generateReleaseLintVitalModel
+> Task :capgo-capacitor-updater:generateReleaseLintVitalModel
+> Task :capgo-native-purchases:generateReleaseLintVitalModel
+> Task :app:parseReleaseIntegrityConfig
+> Task :capacitor-app:lintVitalAnalyzeRelease
+> Task :capacitor-android:lintVitalAnalyzeRelease
+> Task :capacitor-cordova-android-plugins:lintVitalAnalyzeRelease
+> Task :capacitor-haptics:lintVitalAnalyzeRelease
+> Task :capgo-capacitor-updater:lintVitalAnalyzeRelease
+> Task :capgo-native-purchases:lintVitalAnalyzeRelease
+> Task :capacitor-community-admob:lintVitalAnalyzeRelease
+> Task :app:lintVitalAnalyzeRelease
+> Task :app:lintVitalReportRelease
+> Task :app:lintVitalRelease
+> Task :app:packageReleaseBundle
+> Task :app:signReleaseBundle
+> Task :app:produceReleaseBundleIdeListingFile
+> Task :app:createReleaseBundleListingFileRedirect
+> Task :app:bundleRelease
+
+[Incubating] Problems report is available at: file:///home/runner/work/yanivedelstein44-creator.github.io/yanivedelstein44-creator.github.io/chess-of-ages-app/android/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 3m 4s
+304 actionable tasks: 304 executed
+== Play Age Signals 0.0.6 API ==
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public class com.google.android.play.agesignals.AgeSharingConsentWrapperActivity extends android.app.Activity {
+  public com.google.android.play.agesignals.AgeSharingConsentWrapperActivity();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public abstract class com.google.android.play.agesignals.AgeSignalsAccessRequest {
+  public abstract android.app.Activity activity();
+  public static com.google.android.play.agesignals.AgeSignalsAccessRequest$Builder builder();
+  public com.google.android.play.agesignals.AgeSignalsAccessRequest();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public abstract class com.google.android.play.agesignals.AgeSignalsAccessResult {
+  public static com.google.android.play.agesignals.AgeSignalsAccessResult$Builder builder();
+  public abstract java.lang.Integer ageSignalsStatus();
+  public com.google.android.play.agesignals.AgeSignalsAccessResult();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public class com.google.android.play.agesignals.AgeSignalsException extends com.google.android.gms.common.api.ApiException {
+  public int getErrorCode();
+  public com.google.android.play.agesignals.AgeSignalsException(int);
+  public com.google.android.play.agesignals.AgeSignalsException(com.google.android.gms.common.api.Status);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.AgeSignalsManager {
+  public abstract com.google.android.gms.tasks.Task<com.google.android.play.agesignals.AgeSignalsResult> checkAgeSignals(com.google.android.play.agesignals.AgeSignalsRequest);
+  public abstract com.google.android.gms.tasks.Task<com.google.android.play.agesignals.ApplicableAgeFeaturesResult> getApplicableAgeFeatures(com.google.android.play.agesignals.ApplicableAgeFeaturesRequest);
+  public abstract com.google.android.gms.tasks.Task<com.google.android.play.agesignals.AgeSignalsAccessResult> requestAgeSignalsAccess(com.google.android.play.agesignals.AgeSignalsAccessRequest);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public class com.google.android.play.agesignals.AgeSignalsManagerFactory {
+  public static com.google.android.play.agesignals.AgeSignalsManager create(android.content.Context);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public class com.google.android.play.agesignals.AgeSignalsRequest {
+  public static com.google.android.play.agesignals.AgeSignalsRequest$Builder builder();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public abstract class com.google.android.play.agesignals.AgeSignalsResult {
+  public static com.google.android.play.agesignals.AgeSignalsResult$Builder builder();
+  public abstract java.lang.Integer ageLower();
+  public abstract java.lang.Integer ageRangeSource();
+  public abstract java.lang.Integer ageUpper();
+  public abstract java.lang.Integer significantChangeStatus();
+  public abstract java.lang.String installId();
+  public abstract java.util.Date significantChangeApprovalDate();
+  public com.google.android.play.agesignals.AgeSignalsResult();
+  public static com.google.android.play.agesignals.AgeSignalsResult zza(android.os.Bundle);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public abstract class com.google.android.play.agesignals.ApplicableAgeFeaturesRequest {
+  public static com.google.android.play.agesignals.ApplicableAgeFeaturesRequest$Builder builder();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public abstract class com.google.android.play.agesignals.ApplicableAgeFeaturesResult {
+  public static com.google.android.play.agesignals.ApplicableAgeFeaturesResult$Builder builder();
+  public abstract java.util.Set<java.lang.Integer> features();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.model.AgeRangeSource extends java.lang.annotation.Annotation {
+  public static final int UNSPECIFIED;
+  public static final int TIER_A;
+  public static final int TIER_B;
+  public static final int TIER_C;
+  public static final int TIER_D;
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.model.AgeSignalsErrorCode extends java.lang.annotation.Annotation {
+  public static final int NO_ERROR;
+  public static final int API_NOT_AVAILABLE;
+  public static final int PLAY_STORE_NOT_FOUND;
+  public static final int NETWORK_ERROR;
+  public static final int PLAY_SERVICES_NOT_FOUND;
+  public static final int CANNOT_BIND_TO_SERVICE;
+  public static final int PLAY_STORE_VERSION_OUTDATED;
+  public static final int PLAY_SERVICES_VERSION_OUTDATED;
+  public static final int CLIENT_TRANSIENT_ERROR;
+  public static final int APP_NOT_OWNED;
+  public static final int SDK_VERSION_OUTDATED;
+  public static final int DEVICE_NOT_SUPPORTED;
+  public static final int INTERNAL_ERROR;
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.model.AgeSignalsStatus extends java.lang.annotation.Annotation {
+  public static final int UNSPECIFIED;
+  public static final int SHARED;
+  public static final int NOT_SHARED;
+  public static final int VERIFICATION_REQUIRED;
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.model.AgeSignalsVerificationStatus extends java.lang.annotation.Annotation {
+  public static final int VERIFIED;
+  public static final int SUPERVISED;
+  public static final int SUPERVISED_APPROVAL_PENDING;
+  public static final int SUPERVISED_APPROVAL_DENIED;
+  public static final int UNKNOWN;
+  public static final int DECLARED;
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.model.ApplicableAgeFeature extends java.lang.annotation.Annotation {
+  public static final int MANDATORY_SHARING;
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public interface com.google.android.play.agesignals.model.SignificantChangeStatus extends java.lang.annotation.Annotation {
+  public static final int UNSPECIFIED;
+  public static final int APPROVED;
+  public static final int PENDING;
+  public static final int DECLINED;
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public class com.google.android.play.agesignals.testing.FakeAgeSignalsManager implements com.google.android.play.agesignals.AgeSignalsManager {
+  public com.google.android.gms.tasks.Task<com.google.android.play.agesignals.AgeSignalsResult> checkAgeSignals(com.google.android.play.agesignals.AgeSignalsRequest);
+  public com.google.android.gms.tasks.Task<com.google.android.play.agesignals.ApplicableAgeFeaturesResult> getApplicableAgeFeatures(com.google.android.play.agesignals.ApplicableAgeFeaturesRequest);
+  public com.google.android.gms.tasks.Task<com.google.android.play.agesignals.AgeSignalsAccessResult> requestAgeSignalsAccess(com.google.android.play.agesignals.AgeSignalsAccessRequest);
+  public com.google.android.play.agesignals.testing.FakeAgeSignalsManager();
+  public void setNextAgeSignalsAccessResult(com.google.android.play.agesignals.AgeSignalsAccessResult);
+  public void setNextAgeSignalsException(com.google.android.play.agesignals.AgeSignalsException);
+  public void setNextAgeSignalsResult(com.google.android.play.agesignals.AgeSignalsResult);
+  public void setNextApplicableAgeFeaturesException(com.google.android.play.agesignals.AgeSignalsException);
+  public void setNextApplicableAgeFeaturesResult(com.google.android.play.agesignals.ApplicableAgeFeaturesResult);
+  public void setNextRequestAgeSignalsAccessException(com.google.android.play.agesignals.AgeSignalsException);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zza {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzaa extends com.google.android.play.agesignals.ApplicableAgeFeaturesResult {
+  public final int hashCode();
+  public final java.lang.String toString();
+  public final java.util.Set<java.lang.Integer> features();
+  public final boolean equals(java.lang.Object);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzb implements com.google.android.play.agesignals.AgeSignalsManager {
+  public final com.google.android.gms.tasks.Task<com.google.android.play.agesignals.AgeSignalsResult> checkAgeSignals(com.google.android.play.agesignals.AgeSignalsRequest);
+  public final com.google.android.gms.tasks.Task<com.google.android.play.agesignals.ApplicableAgeFeaturesResult> getApplicableAgeFeatures(com.google.android.play.agesignals.ApplicableAgeFeaturesRequest);
+  public final com.google.android.gms.tasks.Task<com.google.android.play.agesignals.AgeSignalsAccessResult> requestAgeSignalsAccess(com.google.android.play.agesignals.AgeSignalsAccessRequest);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzc {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzd {
+  public com.google.android.play.agesignals.zzd();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zze extends com.google.android.gms.internal.playcore_age_signals.zzn {
+  public final void zza(java.lang.Exception);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzf extends com.google.android.gms.internal.playcore_age_signals.zzn {
+  public final void zza(java.lang.Exception);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzg extends com.google.android.gms.internal.playcore_age_signals.zzn {
+  public final void zza(java.lang.Exception);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzh extends android.os.ResultReceiver {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzi extends com.google.android.gms.internal.playcore_age_signals.zzd {
+  public final void zzb(android.os.Bundle);
+  public final void zzc(android.os.Bundle);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzj extends com.google.android.gms.internal.playcore_age_signals.zzi {
+  public final void zzb(android.os.Bundle);
+  public final void zzc(android.os.Bundle);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzk extends com.google.android.gms.internal.playcore_age_signals.zzk {
+  public final void zzb(android.os.Bundle);
+  public final void zzc(android.os.Bundle);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzl {
+  public final com.google.android.gms.tasks.Task zzc(com.google.android.play.agesignals.AgeSignalsRequest);
+  public final com.google.android.gms.tasks.Task zzd(com.google.android.play.agesignals.ApplicableAgeFeaturesRequest);
+  public final com.google.android.gms.tasks.Task zze(com.google.android.play.agesignals.AgeSignalsAccessRequest);
+  public com.google.android.play.agesignals.zzl(android.content.Context);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzm extends com.google.android.play.agesignals.AgeSignalsAccessRequest$Builder {
+  public final com.google.android.play.agesignals.AgeSignalsAccessRequest$Builder setActivity(android.app.Activity);
+  public final com.google.android.play.agesignals.AgeSignalsAccessRequest build();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzn {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzo extends com.google.android.play.agesignals.AgeSignalsAccessRequest {
+  public final int hashCode();
+  public final android.app.Activity activity();
+  public final java.lang.String toString();
+  public final boolean equals(java.lang.Object);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzp extends com.google.android.play.agesignals.AgeSignalsAccessResult$Builder {
+  public final com.google.android.play.agesignals.AgeSignalsAccessResult$Builder setAgeSignalsStatus(java.lang.Integer);
+  public final com.google.android.play.agesignals.AgeSignalsAccessResult build();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzq {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzr extends com.google.android.play.agesignals.AgeSignalsAccessResult {
+  public final int hashCode();
+  public final java.lang.Integer ageSignalsStatus();
+  public final java.lang.String toString();
+  public final boolean equals(java.lang.Object);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzs extends com.google.android.play.agesignals.AgeSignalsResult$Builder {
+  public final com.google.android.play.agesignals.AgeSignalsResult$Builder setAgeLower(java.lang.Integer);
+  public final com.google.android.play.agesignals.AgeSignalsResult$Builder setAgeRangeSource(java.lang.Integer);
+  public final com.google.android.play.agesignals.AgeSignalsResult$Builder setAgeUpper(java.lang.Integer);
+  public final com.google.android.play.agesignals.AgeSignalsResult$Builder setInstallId(java.lang.String);
+  public final com.google.android.play.agesignals.AgeSignalsResult$Builder setSignificantChangeApprovalDate(java.util.Date);
+  public final com.google.android.play.agesignals.AgeSignalsResult$Builder setSignificantChangeStatus(java.lang.Integer);
+  public final com.google.android.play.agesignals.AgeSignalsResult build();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzt {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzu extends com.google.android.play.agesignals.AgeSignalsResult {
+  public final int hashCode();
+  public final java.lang.Integer ageLower();
+  public final java.lang.Integer ageRangeSource();
+  public final java.lang.Integer ageUpper();
+  public final java.lang.Integer significantChangeStatus();
+  public final java.lang.String installId();
+  public final java.lang.String toString();
+  public final java.util.Date significantChangeApprovalDate();
+  public final boolean equals(java.lang.Object);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzv extends com.google.android.play.agesignals.ApplicableAgeFeaturesRequest$Builder {
+  public final com.google.android.play.agesignals.ApplicableAgeFeaturesRequest build();
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzw {
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzx extends com.google.android.play.agesignals.ApplicableAgeFeaturesRequest {
+  public final int hashCode();
+  public final java.lang.String toString();
+  public final boolean equals(java.lang.Object);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+final class com.google.android.play.agesignals.zzy extends com.google.android.play.agesignals.ApplicableAgeFeaturesResult$Builder {
+  public final com.google.android.play.agesignals.ApplicableAgeFeaturesResult$Builder setFeatures(java.util.Set<java.lang.Integer>);
+}
+Compiled from "com.google.android.play:age-signals@@0.0.6"
+public final class com.google.android.play.agesignals.zzz {
+}
+total 15184
+drwxr-xr-x 2 runner runner     4096 Nov 26 09:46 .
+drwxr-xr-x 8 runner runner     4096 Nov 26 09:42 ..
+-rw-r--r-- 1 runner runner      505 Nov 26 09:42 .capacitor.config.site.json
+-rw-r--r-- 1 runner runner      425 Nov 26 09:42 .package.site.json
+-rw-r--r-- 1 runner runner    15996 Nov 26 09:46 AGE_SIGNALS_API.txt
+-rw-r--r-- 1 runner runner      743 Nov 26 09:46 INFO.txt
+-rw-r--r-- 1 runner runner 15508767 Nov 26 09:46 chess-of-ages-play-unsigned.aab
