@@ -11,11 +11,34 @@
   amount is a draft for the user's approval ([legal-111], marked below).
   The game links to #he-pay / #en-pay (before a purchase) and #he-refunds / #en-refunds (the "Purchase complete" card).
   Nov 25, 2026 ([legal-112]): moving progress to the Google Play version (4א/4a) and the purchase notice quoted as the game says it now.
+  Nov 25, 2026 ([portal-store]): the portal's lines for 1.2.0 (FEATURES.portal) wait in §5 as comments marked
+  "[portal-store] 1.2.0", in both languages: the portal in the products list (after both holes, before the Time Door)
+  and everything's line with the portal but not the Time Door; the portal of the diamond-levels drafts comes with 1.2.0.
+  Nov 25, 2026 ([door-store]): the Time Door's lines for 1.2.0 (FEATURES.door) wait in §5 as comments marked "[door-store]",
+  in both languages: the Time Door in the products list, everything's new line, and the door in the diamond-levels drafts.
   Nov 25, 2026 ([white-store]): the white hole's lines for 1.1.3 (FEATURES.whiteHole) wait in §5 as comments marked
   "[white-store] 1.1.3", in both languages: the white hole and both holes in the products list, everything's new line,
   and the refund lines' new words (what another product you bought also gives stays: the refunded purchases in the
   list and the one-time refund). The page shows none of them until the main session takes them out of their comments
   with 1.1.3 (google-play/PRODUCTS.md rows 4, 33 and 34).
+  Nov 25, 2026 ([diamond-levels]): the single levels for diamonds for 1.1.3 (FEATURES.gemLevels) wait as comments marked
+  "[diamond-levels] 1.1.3 draft", in both languages: what diamonds buy in 4 (a single paid level of the black hole or the
+  white hole, the next in line, on its card, its price shown there before you buy), what never moves in 4א/4a (levels
+  opened with diamonds: move_code.js does not carry pd-prog's lvls), the products in 5 (their levels one at a time for
+  diamonds, the diamonds back when the pack is bought later) and the refunds (a refunded pack locks them again; the
+  diamonds given back stay). The page shows none of them until the main session takes them out of their comments with
+  1.1.3; the portal joins them with 1.2.0 (each comment says how) (google-play/PRODUCTS.md, the rules and the differences).
+  Nov 25, 2026 ([move-white-b]): move_code.js now carries the white hole's progress (pd-white), and the portal's
+  (pd-portal) and the Time Door's (pd-door) when the site has them, by the black hole's rule; their packs (pd-*-owned)
+  never move. "What moves" in 4א/4a waits as two comments marked "[move-white-b]", in both languages: the 1.1.3 line
+  (the white hole) and the 1.2.0 line (with the portal and the Time Door). The page shows neither until the main
+  session takes it out of its comment with that release.
+  Nov 26, 2026 ([legal-113]): for the 1.1.3 release (Nov 27; FEATURES.whiteHole and FEATURES.gemLevels on), every
+  "[white-store] 1.1.3", "[diamond-levels] 1.1.3 draft" and "[move-white-b] 1.1.3 draft" line is now live text, in both
+  languages, in place of the line it replaced; the date is Nov 27 (legal-config.js). The portal's and the Time Door's
+  lines (1.2.0) stay comments; where a 1.1.3 draft also said how the portal joins it, that note stays as a short
+  "[diamond-levels] 1.2.0" comment beside the live line. Checked against google-play/PRODUCTS.md: the 34 products sold
+  from 1.1.3 (rows 1-34) are in "what you can buy", and pack_portal and pack_door (rows 35-36) are not.
 -->
 <html lang="he" dir="rtl" data-default-lang="he">
 <head>
@@ -54,7 +77,7 @@
         <a href="./licenses.html" data-keep-lang>רישיונות</a>
       </nav>
       <h1>תנאי שימוש ומכירה</h1>
-      <p class="meta">מגיני הכוכבים (Orbit Defenders) · עודכן לאחרונה: <time data-legal="updated">2026-11-25</time></p>
+      <p class="meta">מגיני הכוכבים (Orbit Defenders) · עודכן לאחרונה: <time data-legal="updated">2026-11-27</time></p>
       <p>התנאים האלה חלים על מגיני הכוכבים ("המשחק") באתר שלנו, באפליקציית האנדרואיד שמורידים מהאתר ובגרסת Google&nbsp;Play, וגם על הרכישות בגרסת Google&nbsp;Play. כשאתה משחק אתה מסכים להם. אם אינך מסכים, אנא אל תשתמש במשחק.</p>
 
       <section aria-labelledby="he-who">
@@ -77,7 +100,8 @@
         <ul>
           <li>יהלומים, סקינים, חיות, מתקני פארק הכוכב ושאר הפריטים הווירטואליים קיימים רק בתוך המשחק. אין להם ערך כספי, אי אפשר להמיר אותם לכסף ואי אפשר להעביר או למכור אותם לאחרים. קנייה או זכייה בפריט נותנת לך רישיון להשתמש בו במשחק.</li>
           <li>מרוויחים יהלומים במשחק (ניצחונות, כוכבים, בוסים, הישגים, המתנה היומית ותיבות האוצר), ובגרסת Google&nbsp;Play גם בפרסומת שבחרת לצפות בה בכוכב החסות (למטה). בגרסת Google&nbsp;Play אפשר גם לקנות יהלומים בכסף: בחבילות היהלומים ובחבילת המתחילים (סעיף 5). מכפיל היהלומים x2 מכפיל רק יהלומים שמרוויחים, אף פעם לא יהלומים שנקנו.</li>
-          <li>ביהלומים קונים רק פריטים קבועים, שרואים לפני הקנייה, בחנויות של כוכב החנות: סקינים, חיות החנות ומתקנים. שום דבר אקראי לא נמכר, לא בכסף ולא ביהלומים.</li>
+          <li>ביהלומים קונים רק פריטים קבועים, שרואים לפני הקנייה: בחנויות של כוכב החנות סקינים, חיות החנות ומתקנים, ובמפה שלב בודד בתשלום בחור השחור או עולם בודד בתשלום בחור הלבן, בכרטיס שלו. כך פותחים רק את השלב או העולם הבא בתור, אחרי שניצחת בזה שלפניו, אחד בכל פעם, והמחיר שלו ביהלומים מוצג בכרטיס לפני הקנייה. שום דבר אקראי לא נמכר, לא בכסף ולא ביהלומים.</li>
+          <!-- [diamond-levels] 1.2.0 (FEATURES.portal, FEATURES.door): in the line above, the portal joins as "או כוכב בודד בתשלום בפורטל" (and "השלב או העולם" becomes "השלב, העולם או הכוכב"), and the Time Door as "או שלב בודד בתשלום בדלת הזמן" -->
           <li>תיבות האוצר חינמיות: מקבלים אותן בשלבים, והן לא נמכרות בכסף או ביהלומים.</li>
           <li>ההתקדמות והפריטים נשמרים במכשיר שלך. אם תמחק את נתוני המשחק, תנקה את נתוני האתר או תסיר את האפליקציה, מה שנשמר רק במכשיר יימחק ולא נוכל לשחזר אותו. רכישות חד-פעמיות דרך Google&nbsp;Play נשארות מקושרות לחשבון Google שלך, והמשחק משחזר אותן כשנכנסים עם אותו חשבון.</li>
           <li><b>יהלומים שנקנו בכסף</b>, בחבילות היהלומים או בחבילת המתחילים, נשמרים רק בטלפון שבו נקנו, בנתוני המשחק: "מחק את כל הנתונים שלי", ניקוי האחסון של האפליקציה או הסרתה מוחקים גם אותם, ו-&#8288;Google&nbsp;Play לא יכולה לשחזר אותם, לא בטלפון אחר ולא אחרי מחיקה. המשחק אומר את זה בשורה אחת לפני הקנייה. שחזור של חבילת המתחילים, בטלפון חדש או אחרי מחיקת הנתונים, מחזיר רק את הדרקון דרקי, לא את היהלומים. כמו כל היהלומים, אי אפשר להמיר אותם לכסף או להעביר אותם לשחקן אחר.</li>
@@ -90,8 +114,10 @@
         <h2 id="he-move">4א. העברת ההתקדמות לגרסת Google&nbsp;Play</h2>
         <p>כשהמשחק מציע לעבור לגרסת Google&nbsp;Play, קוד התקדמות מעביר לשם את ההתקדמות שלך מהמשחק באתר שלנו, או מהאפליקציה שמורידים ממנו. המשחק באתר יוצר את הקוד במכשיר שלך, ובגרסת Google&nbsp;Play מזינים אותו בהגדרות ← העברת התקדמות מהאתר. לפני שאתה מאשר, האפליקציה מראה מה עובר ומה נשאר באתר. מה שמור בקוד מוסבר ב<a href="./privacy.html#he-move">מדיניות הפרטיות</a>.</p>
         <ul>
-          <li><b>מה עובר:</b> ההתקדמות במערכה (השלבים, המדליות והשיאים, הבוסים שניצחת ותיבות האוצר שמצאת), הניסיון והדרגה, ההישגים, חיות המחמד, הסקינים ומתקני פארק הכוכב, שם כוכב הבית, התוצאות בחור השחור, במתקפת הקרע ובהגנה אינסופית, ההגדרות והשפה, והיהלומים שהרווחת במשחק. חיות, סקינים, מתקנים ויהלומים עוברים עד תקרת השווי שבהמשך.</li>
-          <li><b>מה לא עובר אף פעם:</b> רכישות (האתר לא מוכר דבר), חבילת התומכים, יהלומים שנקנו בכסף, כל מה ששייך למשחק אונליין ושלב שיצאת ממנו באמצע.</li>
+          <li><b>מה עובר:</b> ההתקדמות במערכה (השלבים, המדליות והשיאים, הבוסים שניצחת ותיבות האוצר שמצאת), הניסיון והדרגה, ההישגים, חיות המחמד, הסקינים ומתקני פארק הכוכב, שם כוכב הבית, התוצאות בחור השחור, בחור הלבן, במתקפת הקרע ובהגנה אינסופית, ההגדרות והשפה, והיהלומים שהרווחת במשחק. חיות, סקינים, מתקנים ויהלומים עוברים עד תקרת השווי שבהמשך.</li>
+          <!-- [move-white-b] 1.2.0 draft (FEATURES.portal and FEATURES.door): this line in place of the 1.1.3 one: <li><b>מה עובר:</b> ההתקדמות במערכה (השלבים, המדליות והשיאים, הבוסים שניצחת ותיבות האוצר שמצאת), הניסיון והדרגה, ההישגים, חיות המחמד, הסקינים ומתקני פארק הכוכב, שם כוכב הבית, התוצאות בחור השחור, בחור הלבן, בפורטל, בדלת הזמן, במתקפת הקרע ובהגנה אינסופית, ההגדרות והשפה, והיהלומים שהרווחת במשחק. חיות, סקינים, מתקנים ויהלומים עוברים עד תקרת השווי שבהמשך.</li> -->
+          <!-- [diamond-levels] the move code does not carry levels bought with diamonds (pd-prog lvls); the main session decides whether it should (the report's open 1): change both languages if it does -->
+          <li><b>מה לא עובר אף פעם:</b> רכישות (האתר לא מוכר דבר), חבילת התומכים, יהלומים שנקנו בכסף, שלבים ועולמות שפתחת ביהלומים, כל מה ששייך למשחק אונליין ושלב שיצאת ממנו באמצע.</li>
           <li><b>ההתקדמות מתאחדת:</b> מה שמגיע מהאתר מצטרף למה שיש בגרסת Google&nbsp;Play, ושום דבר שכבר יש לך שם לא הולך לאיבוד. מכל ספירה ומכל שיא נשאר הטוב מבין השניים, והיהלומים שעוברים מתווספים ליהלומים שלך. ההגדרות והשפה מהאתר מחליפות את אלה של האפליקציה. אם באפליקציה כבר יש התקדמות, היא שואלת אותך לפני האיחוד.</li>
           <li><b>תקרת השווי:</b> בגרסת Google&nbsp;Play יהלומים ומה שקונים בהם נמכרים גם בכסף, ולכן לשווי הכולל של מה שעובר יש תקרה של <!-- MOVE_CAP in game/src/move_code.js:50 (a proposal: 4,500 or 3,500; the main session decides; change both languages if it changes) -->4,500 יהלומים. חיות, סקינים ומתקנים נספרים לפי המחיר שלהם ביהלומים בחנות, וכל יהלום שהרווחת נספר כיהלום אחד. מה שמקבלים בחינם לא נספר: כחלי (חיית המחמד שיש לכל שחקן), חיות הבוסים שקיבלת כשניצחת בוס ומתקנים שתיבות האוצר בנו. גם מה שכבר יש באפליקציה לא נספר.</li>
           <li><b>הסדר:</b> קודם החיה שיוצאת איתך לשלבים והסקין שהצבא שלך לובש, אחריהם הסקינים, החיות והמתקנים לפי הסדר שלהם בחנות, ובסוף היהלומים. כל פריט עובר אם עוד יש מקום למחיר שלו מתחת לתקרה, והיהלומים ממלאים את המקום שנשאר. מה שלא נכנס נשאר באתר, והאפליקציה מראה אותו ברשימה "נשאר באתר" לפני שאתה מאשר.</li>
@@ -111,8 +137,7 @@
           <li><b>המסירה</b> מיידית: הפריט נפתח במשחק ברגע ש-&#8288;Google&nbsp;Play מאשרת את התשלום. בחלק מאמצעי התשלום האישור מגיע מאוחר יותר: הפריט מתווסף לבד כשהתשלום מושלם, ואם הוא לא מושלם לא נגבה כסף.</li>
           <li><b>אחרי הרכישה</b> מוצג כרטיס "הרכישה הושלמה": המוצר, המחיר, מספר ההזמנה של Google, שם המפתח והמייל שלו, וקישור לתנאי הביטול וההחזר. הרשימה "הרכישות שלי" בהגדרות שומרת את הפרטים האלה במכשיר. הקבלה הרשמית היא זו ש-Google שולחת אליך במייל.</li>
           <li><b>שחזור:</b> הרכישות החד-פעמיות מקושרות לחשבון Google שבו קנית. אחרי התקנה מחדש או מחיקת הנתונים, המשחק משחזר אותן כשנכנסים עם אותו חשבון. יהלומים שנקנו בכסף לא משוחזרים, ומחבילת המתחילים חוזר רק הדרקון דרקי (סעיף 4).</li>
-          <li><b>רכישה שהוחזרה או בוטלה:</b> אם רכישה הוחזרה, בוטלה או שהחיוב בוטל דרך Google&nbsp;Play, הפריט מוסר מהמשחק. ביהלומים שנקנו, המשחק מוריד רק את מה שנשאר מהם, אף פעם לא מתחת לאפס (למטה, "ביטול והחזר").</li>
-          <!-- [white-store] 1.1.3 (FEATURES.whiteHole): this line in place of the one above (a pack you own may hold another's content: both holes, everything): <li><b>רכישה שהוחזרה או בוטלה:</b> אם רכישה הוחזרה, בוטלה או שהחיוב בוטל דרך Google&nbsp;Play, הפריט מוסר מהמשחק (אבל לא מה שגם מוצר אחר שקנית נותן). ביהלומים שנקנו, המשחק מוריד רק את מה שנשאר מהם, אף פעם לא מתחת לאפס (למטה, "ביטול והחזר").</li> -->
+          <li><b>רכישה שהוחזרה או בוטלה:</b> אם רכישה הוחזרה, בוטלה או שהחיוב בוטל דרך Google&nbsp;Play, הפריט מוסר מהמשחק (אבל לא מה שגם מוצר אחר שקנית נותן). ביהלומים שנקנו, המשחק מוריד רק את מה שנשאר מהם, אף פעם לא מתחת לאפס (למטה, "ביטול והחזר").</li>
           <li><b>בעיה ברכישה:</b> אם רכישה לא הגיעה או לא עובדת, כתוב לנו ל-&#8288;<span data-legal="email">[CONTACT EMAIL]</span> ונבדוק אותה יחד עם Google&nbsp;Play: נתקן, או נחזיר את הכסף.</li>
           <li>שום דבר בתנאים האלה לא גורע מזכויות שיש לך לפי דיני הגנת הצרכן ושאי אפשר לוותר עליהן.</li>
         </ul>
@@ -123,15 +148,20 @@
           <li><b>חבילת תומכים:</b> שם זהוב שזוהר (גם באונליין), מסגרות זהב (עם מתג בהגדרות), כוכב תומך ליד הסמל, מסך תודה אחרי הקנייה ופסל זהב בפארק הכוכב. מראה בלבד, בלי שום יתרון בקרב. החזר מסיר את כל החמישה.</li>
           <li><b>מכפיל יהלומים x2:</b> פי 2 יהלומים מכל משחק, לתמיד.</li>
           <li><b>החור השחור של הבוסים:</b> 25 שלבים חדשים מעבר לחור השחור (שלבים 6 עד 30). שלבים 1 עד 5 חינמיים.</li>
-          <!-- [white-store] 1.1.3 (FEATURES.whiteHole): a new line here, after the black hole: <li><b>החור הלבן:</b> 25 עולמות מוזרים מעבר לחור הלבן (עולמות 6 עד 30). עולמות 1 עד 5 חינמיים.</li> -->
-          <!-- [white-store] 1.1.3 (FEATURES.whiteHole): a new line here, after the white hole: <li><b>שני החורים:</b> שלבי החור השחור ועולמות החור הלבן יחד, במחיר נמוך יותר.</li> -->
+          <li><b>החור הלבן:</b> 25 עולמות מוזרים מעבר לחור הלבן (עולמות 6 עד 30). עולמות 1 עד 5 חינמיים.</li>
+          <li><b>שני החורים:</b> שלבי החור השחור ועולמות החור הלבן יחד, במחיר נמוך יותר.</li>
+          <!-- [portal-store] 1.2.0 (FEATURES.portal): a new line here, after both holes (before the Time Door's line of [door-store]): <li><b>הפורטל:</b> 6 כוכבים במצור מעבר לפורטל (כוכבים 5 עד 10). כוכבים 1 עד 4 חינמיים.</li> -->
+          <!-- [door-store] 1.2.0 (FEATURES.door): a new line here, after both holes (and after the portal's line of [portal-store]): <li><b>דלת הזמן:</b> 6 שלבים בעבר הרחוק, מעבר לדלת הזמן (שלבים 5 עד 10). שלבים 1 עד 4 חינמיים.</li> -->
           <li><b>כל החיות:</b> 9 חיות החנות ו-20 החיות של הבוסים.</li>
           <li><b>כל הסקינים:</b> עשרה סקינים לכל הצבא שלך.</li>
-          <li><b>הכול:</b> הסקינים, החיות ושלבי החור השחור יחד, במחיר נמוך יותר.</li>
-          <!-- [white-store] 1.1.3 (FEATURES.whiteHole): this line in place of the one above: <li><b>הכול:</b> הסקינים, החיות, שלבי החור השחור ועולמות החור הלבן יחד, במחיר נמוך יותר.</li> -->
+          <li><b>הכול:</b> הסקינים, החיות, שלבי החור השחור ועולמות החור הלבן יחד, במחיר נמוך יותר.</li>
+          <!-- [portal-store] 1.2.0 (FEATURES.portal): with the portal but not the Time Door, this line in place of the one above (with both, [door-store]'s line below): <li><b>הכול:</b> הסקינים, החיות, שלבי החור השחור, עולמות החור הלבן וכוכבי הפורטל יחד, במחיר נמוך יותר.</li> -->
+          <!-- [door-store] 1.2.0 (FEATURES.door): this line in place of the one above (with the portal of [portal-store]): <li><b>הכול:</b> הסקינים, החיות, שלבי החור השחור, עולמות החור הלבן, כוכבי הפורטל ושלבי דלת הזמן יחד, במחיר נמוך יותר.</li> -->
           <li><b>מתקני פארק הכוכב:</b> כל מתקן לבד, או כל הפארק (20 המתקנים) בבת אחת. את המתקנים החינמיים אפשר לבנות גם בלי לשלם, מתיבות האוצר.</li>
           <li><b>חבילת מתחילים:</b> 1,500 יהלומים והדרקון דרקי, חיית מחמד מהחנות. מי שכבר יש לו את דרקי מקבל במקומו 400 יהלומים נוספים. נקנית פעם אחת, ומופיעה בחנות משלב 5.</li>
         </ul>
+        <!-- [diamond-levels] 1.2.0 (FEATURES.portal): in the paragraph below, "השלבים והעולמות" becomes "השלבים, העולמות והכוכבים", and "של החור השחור והחור הלבן" becomes "של החור השחור, החור הלבן והפורטל" ([door-store] below says how the Time Door joins) -->
+        <p>את השלבים והעולמות שבחבילות של החור השחור והחור הלבן אפשר לפתוח גם ביהלומים, אחד בכל פעם (סעיף 4), וכשקונים אחר כך חבילה שנותנת אותם, המשחק מחזיר את כל היהלומים ששולמו עליהם.</p>
         <p>חבילות היהלומים מתכלות: כל רכישה נותנת את היהלומים שלה פעם אחת, ואפשר לקנות אותן שוב ושוב. ברכישה ממתינה היהלומים מתווספים רק כש-&#8288;Google מאשרת את התשלום. המחירים בישראל (המחיר שמוצג במשחק הוא של Google&nbsp;Play):</p>
         <ul>
           <li><b>קומץ יהלומים:</b> 600 יהלומים ב-9.90&nbsp;₪.</li>
@@ -144,8 +174,10 @@
         <h3 id="he-refunds">ביטול והחזר</h3>
         <p>בתוך 14 יום מהרכישה אפשר לבקש לבטל אותה במייל ל-&#8288;<span data-legal="email">[CONTACT EMAIL]</span>, עם מספר ההזמנה של Google (<bdi>GPA…</bdi>) שמופיע בכרטיס "הרכישה הושלמה", בקבלה של Google ובמשחק תחת הגדרות ← הרכישות שלי. נענה לבקשה בתוך 3 ימי עסקים, ואת ההחזר נבצע דרך Google&nbsp;Play בתוך 14 יום מהיום שקיבלנו אותה.</p>
         <ul>
-          <li><b>רכישה חד-פעמית</b> (כל המוצרים חוץ מחבילות היהלומים וחבילת המתחילים): החזר מלא, בלי דמי ביטול, והפריט יוסר מהמשחק.</li>
-          <!-- [white-store] 1.1.3 (FEATURES.whiteHole): this line in place of the one above (a pack you own may hold another's content: both holes, everything): <li><b>רכישה חד-פעמית</b> (כל המוצרים חוץ מחבילות היהלומים וחבילת המתחילים): החזר מלא, בלי דמי ביטול, והפריט יוסר מהמשחק (אבל לא מה שגם מוצר אחר שקנית נותן).</li> -->
+          <li><b>רכישה חד-פעמית</b> (כל המוצרים חוץ מחבילות היהלומים וחבילת המתחילים): החזר מלא, בלי דמי ביטול, והפריט יוסר מהמשחק (אבל לא מה שגם מוצר אחר שקנית נותן).</li>
+          <!-- [diamond-levels] 1.2.0 (FEATURES.portal): in the line below, the portal's pack joins the list in the brackets -->
+          <li><b>חבילת שלבים או עולמות</b> (החור השחור של הבוסים, החור הלבן, שני החורים או הכול): בהחזר, השלבים והעולמות שלה ננעלים שוב, גם אלה שפתחת ביהלומים לפני שקנית אותה (אלא אם מוצר אחר שקנית נותן אותם). היהלומים ששילמת עליהם חזרו אליך כשקנית את החבילה, והם נשארים שלך.</li>
+          <!-- [door-store] 1.2.0 (FEATURES.door): in the two [diamond-levels] drafts of this language (the levels paragraph and the pack of levels), the Time Door joins the black hole, the white hole and the portal: "והפורטל" becomes "הפורטל ודלת הזמן", and "דלת הזמן" joins the packs in the brackets -->
           <li><b>חבילת יהלומים</b> (מתכלה): החזר על היהלומים שלה שעוד לא נוצלו, לפי החלק שלהם במחיר ששילמת (למשל, חצי מהמחיר אם חצי מהיהלומים שלה עוד לא נוצלו), בלי דמי ביטול. כתוב בבקשה כמה מהיהלומים שלה עוד לא נוצלו. כשהמשחק יודע על ההחזר, הוא מוריד את מה שנשאר מהיהלומים של החבילה, אף פעם לא מתחת לאפס.</li>
           <li><b>חבילת המתחילים:</b> <!-- legal-111's draft; the base is what the pack gave (1,500, or 1,900 with Draco already owned): the main session's safe choice, Nov 22, published with 1.1.1; no later decision in docs/next-features.md as of Nov 25 ([legal-112]) -->החזר מלא אם עוד לא נוצל אף אחד מהיהלומים שלה, ואחרת החזר חלקי, לפי החלק של היהלומים שלה שעוד לא נוצלו מתוך מה שהחבילה נתנה לך (1,500, או 1,900 אם כבר היה לך דרקי). כשהמשחק יודע על ההחזר, הדרקון דרקי יוסר מהמשחק (אלא אם מוצר אחר שקנית נותן אותו), ויוסרו היהלומים שלה שעוד לא נוצלו. יהלומים שכבר נוצלו לא יורדים, והיתרה אף פעם לא יורדת מתחת לאפס.</li>
         </ul>
@@ -233,7 +265,7 @@
         <a href="./licenses.html" data-keep-lang>Licenses</a>
       </nav>
       <h1>Terms of Use and Sale</h1>
-      <p class="meta">Orbit Defenders (מגיני הכוכבים) · Last updated: <time data-legal="updated">2026-11-25</time></p>
+      <p class="meta">Orbit Defenders (מגיני הכוכבים) · Last updated: <time data-legal="updated">2026-11-27</time></p>
       <p>These terms apply to Orbit Defenders ("the game") on our website, in the Android app downloaded from our website and in the Google Play version, and to the purchases in the Google Play version. By playing, you agree to them. If you don't agree, please don't use the game.</p>
 
       <section aria-labelledby="en-who">
@@ -256,7 +288,8 @@
         <ul>
           <li>Diamonds, skins, pets, attractions of Planet Park and other virtual items exist only inside the game. They have no monetary value, can't be exchanged for money and can't be transferred or sold to others. Buying or earning one gives you a license to use it in the game.</li>
           <li>You earn diamonds by playing (wins, stars, bosses, achievements, the daily gift and treasure chests) and, in the Google Play version, also by an ad you choose to watch at the sponsor planet (below). In the Google Play version you can also buy diamonds with money: the diamond packs and the starter pack (section 5). The diamond booster x2 doubles only the diamonds you earn, never bought ones.</li>
-          <li>Diamonds buy only fixed items, which you see before you buy, in the shops of the store planet: skins, store pets and attractions. Nothing random is sold, not for money and not for diamonds.</li>
+          <li>Diamonds buy only fixed items, which you see before you buy: skins, store pets and attractions in the shops of the store planet, and, on the map, a single paid level of the black hole or a single paid world of the white hole, on its card. Only the next level or world in line opens this way, once you have won the one before it, one at a time, and its price in diamonds is shown on the card before you buy. Nothing random is sold, not for money and not for diamonds.</li>
+          <!-- [diamond-levels] 1.2.0 (FEATURES.portal, FEATURES.door): in the line above, the portal joins as "or a single paid planet of the portal" (and "level or world" becomes "level, world or planet"), and the Time Door as "or a single paid level of the Time Door" -->
           <li>Treasure chests are free: you get them in the levels, and they are never sold for money or for diamonds.</li>
           <li>Your progress and items are saved on your device. If you delete the game's data, clear the site's data or uninstall the app, what was saved only on the device is lost and we can't recover it. One-time purchases made through Google Play stay linked to your Google account, and the game restores them when you use the same account.</li>
           <li><b>Diamonds bought with money</b>, in the diamond packs or in the starter pack, are kept only on the phone where they were bought, in the game's data: "Delete all my data", clearing the app's storage or uninstalling deletes them too, and Google Play cannot restore them, not on another phone and not after a delete. The game says so in one line before you buy. Restoring the starter pack, on a new phone or after deleting your data, gives back only Draco the dragon, not the diamonds. Like all diamonds, they can't be exchanged for money or given to another player.</li>
@@ -269,8 +302,10 @@
         <h2 id="en-move">4a. Moving your progress to the Google Play version</h2>
         <p>When the game offers the move, a progress code carries your progress from the game on our website, or from the app downloaded from it, to the Google Play version. The game on the site makes the code on your device, and you enter it in the Google Play version under Settings → Move my progress from the site. Before you confirm, the app shows what moves and what stays on the site. What the code holds is explained in the <a href="./privacy.html#en-move">privacy policy</a>.</p>
         <ul>
-          <li><b>What moves:</b> your campaign (levels, medals and best scores, the bosses you beat and the treasure chests you found); experience and rank; achievements; your pets, skins and Planet Park attractions; your home planet's name; your results in the black hole, Rift Assault and Pure Tower Defense; your settings and language; and the diamonds you earned by playing. Pets, skins, attractions and diamonds move up to the cap below.</li>
-          <li><b>What never moves:</b> purchases (the site sells nothing), the supporter pack, diamonds bought with money, a level you left partway through and anything from online play.</li>
+          <li><b>What moves:</b> your campaign (levels, medals and best scores, the bosses you beat and the treasure chests you found); experience and rank; achievements; your pets, skins and Planet Park attractions; your home planet's name; your results in the black hole, the white hole, Rift Assault and Pure Tower Defense; your settings and language; and the diamonds you earned by playing. Pets, skins, attractions and diamonds move up to the cap below.</li>
+          <!-- [move-white-b] 1.2.0 draft (FEATURES.portal and FEATURES.door): this line in place of the 1.1.3 one: <li><b>What moves:</b> your campaign (levels, medals and best scores, the bosses you beat and the treasure chests you found); experience and rank; achievements; your pets, skins and Planet Park attractions; your home planet's name; your results in the black hole, the white hole, the portal, the Time Door, Rift Assault and Pure Tower Defense; your settings and language; and the diamonds you earned by playing. Pets, skins, attractions and diamonds move up to the cap below.</li> -->
+          <!-- [diamond-levels] the move code does not carry levels bought with diamonds (pd-prog lvls); the main session decides whether it should (the report's open 1): change both languages if it does -->
+          <li><b>What never moves:</b> purchases (the site sells nothing), the supporter pack, diamonds bought with money, levels and worlds you opened with diamonds, a level you left partway through and anything from online play.</li>
           <li><b>Your progress is combined:</b> what comes from the site joins what the Google Play version already has, and nothing you already have there is lost. For every count and record you keep the better of the two, and the diamonds that move are added to yours. The site's settings and language replace the app's. If the app already has progress, it asks you before combining them.</li>
           <li><b>The cap:</b> in the Google Play version, diamonds and what they buy are also sold for money, so the total value that moves is capped at <!-- MOVE_CAP in game/src/move_code.js:50 (a proposal: 4,500 or 3,500; the main session decides; change both languages if it changes) -->4,500 diamonds. Pets, skins and attractions count at their price in diamonds in the store, and each diamond you earned counts as one. Free things don't count: Bluey (the pet every player has), the bosses' pets you won by beating a boss and the attractions the treasure chests built. Nothing the app already has counts either.</li>
           <li><b>The order:</b> first the pet that goes with you to the levels and the skin your army wears, then skins, pets and attractions in the store's order, and last the diamonds. Each item moves if there is still room for its price under the cap, and the diamonds fill the room that is left. What doesn't fit stays on the site, and the app lists it under "Stays on the site" before you confirm.</li>
@@ -290,8 +325,7 @@
           <li><b>Delivery</b> is immediate: the item opens in the game as soon as Google Play confirms the payment. With some payment methods the confirmation comes later: the item is added by itself once the payment is completed, and nothing is charged if it isn't.</li>
           <li><b>After the purchase</b> a "Purchase complete" card shows the product, the price, Google's order number, the developer's name and email, and a link to the cancellation and refund terms. The "My purchases" list in Settings keeps these details on your device. The official receipt is the one Google emails you.</li>
           <li><b>Restoring:</b> one-time purchases are linked to the Google account you bought them with. After reinstalling the game or deleting its data, the game restores them when you use the same account. Diamonds bought with money are not restored, and from the starter pack only Draco the dragon comes back (section 4).</li>
-          <li><b>Refunded or cancelled purchases:</b> if a purchase is refunded, cancelled or charged back through Google Play, the item is removed from the game. For bought diamonds, the game takes back only what is left of them, never below zero (below, "Cancellation and refunds").</li>
-          <!-- [white-store] 1.1.3 (FEATURES.whiteHole): this line in place of the one above (a pack you own may hold another's content: both holes, everything): <li><b>Refunded or cancelled purchases:</b> if a purchase is refunded, cancelled or charged back through Google Play, the item is removed from the game (but not what another product you bought also gives you). For bought diamonds, the game takes back only what is left of them, never below zero (below, "Cancellation and refunds").</li> -->
+          <li><b>Refunded or cancelled purchases:</b> if a purchase is refunded, cancelled or charged back through Google Play, the item is removed from the game (but not what another product you bought also gives you). For bought diamonds, the game takes back only what is left of them, never below zero (below, "Cancellation and refunds").</li>
           <li><b>Problems with a purchase:</b> if a purchase didn't arrive or doesn't work, write to us at <span data-legal="email">[CONTACT EMAIL]</span> and we'll check it together with Google Play: we'll fix it, or refund you.</li>
           <li>Nothing in these terms limits rights you have under consumer protection law that can't be waived.</li>
         </ul>
@@ -302,15 +336,20 @@
           <li><b>Supporter pack:</b> a glowing golden name (online too), golden frames (with a switch in the settings), a supporter star by your emblem, a thank-you scene after you buy and a golden statue in Planet Park. Looks only, with no advantage in battle. A refund removes all five.</li>
           <li><b>Diamond booster x2:</b> twice the diamonds from every game, forever.</li>
           <li><b>The bosses' black hole:</b> 25 new levels beyond the black hole (levels 6 to 30). Levels 1 to 5 are free.</li>
-          <!-- [white-store] 1.1.3 (FEATURES.whiteHole): a new line here, after the black hole: <li><b>The White Hole:</b> 25 strange worlds beyond the white hole (worlds 6 to 30). Worlds 1 to 5 are free.</li> -->
-          <!-- [white-store] 1.1.3 (FEATURES.whiteHole): a new line here, after the white hole: <li><b>Both Holes:</b> the black hole's levels and the white hole's worlds together, for less.</li> -->
+          <li><b>The White Hole:</b> 25 strange worlds beyond the white hole (worlds 6 to 30). Worlds 1 to 5 are free.</li>
+          <li><b>Both Holes:</b> the black hole's levels and the white hole's worlds together, for less.</li>
+          <!-- [portal-store] 1.2.0 (FEATURES.portal): a new line here, after both holes (before the Time Door's line of [door-store]): <li><b>The Portal:</b> 6 planets under siege beyond the portal (planets 5 to 10). Planets 1 to 4 are free.</li> -->
+          <!-- [door-store] 1.2.0 (FEATURES.door): a new line here, after both holes (and after the portal's line of [portal-store]): <li><b>The Time Door:</b> 6 levels in the distant past, beyond the Time Door (levels 5 to 10). Levels 1 to 4 are free.</li> -->
           <li><b>All the pets:</b> the 9 store pets and all 20 bosses' pets.</li>
           <li><b>All the skins:</b> ten skins for your whole army.</li>
-          <li><b>Everything:</b> the skins, the pets and the black hole's levels together, for less.</li>
-          <!-- [white-store] 1.1.3 (FEATURES.whiteHole): this line in place of the one above: <li><b>Everything:</b> the skins, the pets, the black hole's levels and the white hole's worlds together, for less.</li> -->
+          <li><b>Everything:</b> the skins, the pets, the black hole's levels and the white hole's worlds together, for less.</li>
+          <!-- [portal-store] 1.2.0 (FEATURES.portal): with the portal but not the Time Door, this line in place of the one above (with both, [door-store]'s line below): <li><b>Everything:</b> the skins, the pets, the black hole's levels, the white hole's worlds and the portal's planets together, for less.</li> -->
+          <!-- [door-store] 1.2.0 (FEATURES.door): this line in place of the one above (with the portal of [portal-store]): <li><b>Everything:</b> the skins, the pets, the black hole's levels, the white hole's worlds, the portal's planets and the Time Door's levels together, for less.</li> -->
           <li><b>Attractions of Planet Park:</b> each attraction on its own, or the whole park (all 20) at once. The free attractions can also be built without paying, from the treasure chests.</li>
           <li><b>Starter pack:</b> 1,500 diamonds and Draco the dragon, a pet from the store. If you already have Draco, you get 400 more diamonds instead. Bought once; it appears in the store from level 5.</li>
         </ul>
+        <!-- [diamond-levels] 1.2.0 (FEATURES.portal): in the paragraph below, "levels and worlds" becomes "levels, worlds and planets", and "of the black hole and the white hole" becomes "of the black hole, the white hole and the portal" ([door-store] below says how the Time Door joins) -->
+        <p>The levels and worlds in the packs of the black hole and the white hole can also be opened with diamonds, one at a time (section 4), and when you later buy a pack that gives them, the game gives back all the diamonds paid for them.</p>
         <p>The diamond packs are consumable: each purchase gives its diamonds once, and you can buy them again and again. With a pending purchase, the diamonds are added only when Google confirms the payment. Prices in Israel (the price shown in the game is Google Play's):</p>
         <ul>
           <li><b>A handful of diamonds:</b> 600 diamonds for ₪9.90.</li>
@@ -323,8 +362,10 @@
         <h3 id="en-refunds">Cancellation and refunds</h3>
         <p>Within 14 days of a purchase, you can ask to cancel it by emailing <span data-legal="email">[CONTACT EMAIL]</span> with Google's order number (GPA…), which appears on the "Purchase complete" card, on Google's receipt and in the game under Settings → My purchases. We'll answer within 3 business days and issue the refund through Google Play within 14 days of receiving your request.</p>
         <ul>
-          <li><b>A one-time purchase</b> (every product except the diamond packs and the starter pack): a full refund, with no cancellation fee, and the item is removed from the game.</li>
-          <!-- [white-store] 1.1.3 (FEATURES.whiteHole): this line in place of the one above (a pack you own may hold another's content: both holes, everything): <li><b>A one-time purchase</b> (every product except the diamond packs and the starter pack): a full refund, with no cancellation fee, and the item is removed from the game (but not what another product you bought also gives you).</li> -->
+          <li><b>A one-time purchase</b> (every product except the diamond packs and the starter pack): a full refund, with no cancellation fee, and the item is removed from the game (but not what another product you bought also gives you).</li>
+          <!-- [diamond-levels] 1.2.0 (FEATURES.portal): in the line below, the portal's pack joins the list in the brackets -->
+          <li><b>A pack of levels or worlds</b> (The bosses' black hole, The White Hole, Both Holes or Everything): if it is refunded, its levels and worlds lock again, including those you opened with diamonds before you bought it (unless another product you bought gives them). The diamonds you paid for them came back to you when you bought the pack, and they stay yours.</li>
+          <!-- [door-store] 1.2.0 (FEATURES.door): in the two [diamond-levels] drafts of this language (the levels paragraph and the pack of levels), the Time Door joins the black hole, the white hole and the portal: "and the portal" becomes "the portal and the Time Door", and "the Time Door" joins the packs in the brackets -->
           <li><b>A diamond pack</b> (consumable): a refund for its diamonds not spent yet, in proportion to the price you paid (for example, half the price if half its diamonds are not spent yet), with no cancellation fee. In your request, write how many of its diamonds are not spent yet. When the game learns of the refund, it takes back what is left of the pack's diamonds, never below zero.</li>
           <li><b>The starter pack:</b> <!-- legal-111's draft; the base is what the pack gave (1,500, or 1,900 with Draco already owned): the main session's safe choice, Nov 22, published with 1.1.1; no later decision in docs/next-features.md as of Nov 25 ([legal-112]) -->a full refund if none of its diamonds were spent yet, and otherwise a partial refund, in proportion to its diamonds not spent yet out of what the pack gave you (1,500, or 1,900 if you already had Draco). When the game learns of the refund, Draco the dragon is taken out of the game (unless another product you bought gives it), and its diamonds not spent yet are taken back. Diamonds already spent are not taken back, and the balance never goes below zero.</li>
         </ul>
