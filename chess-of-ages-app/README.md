@@ -16,6 +16,7 @@
 | עדכוני OTA | `chess-of-ages/version.json` | `chess-of-ages-play/version.json` |
 | עדכון נייטיב | הורדת APK מהאתר | רק דרך Google Play |
 | קניות בכסף | קופת בדיקה | רק Google Play Billing (עד החיבור: "בקרוב") |
+| בדיקת גיל לפי חוק | אין | Play Age Signals: `native/AgeSignalsPlugin.java` (מעטיפה 1004) |
 
 - **קידום גרסה ל-Play:** אחרי `scripts/publish-site.sh` ובדיקה בטלפון — `scripts/publish-play.sh`. הוא בונה את אותה גרסה עם `VITE_STORE=play` ומעתיק ל-`chess-of-ages-play/` רק את `version.json` ואת החבילה. שחקני Play מקבלים אותה כעדכון OTA.
 - **AAB חדש** (העלאה ראשונה ושינויים נייטיב): הפעלה ידנית של `.github/workflows/chess-of-ages-aab.yml` (הקובץ `chess-of-ages-aab.yml` כאן), שמריץ את `build-aab.sh` על החבילה שבערוץ Play ודוחף AAB לא חתום לענף `chess-of-ages-aab`. חתימה מקומית במפתח ההעלאה: `sign-aab.sh` (המפתח נוצר פעם אחת ב-`make-upload-key.sh`, מחוץ לריפו). את ה-AAB החתום מעלים ל-Play Console.

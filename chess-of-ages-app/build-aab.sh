@@ -13,6 +13,8 @@
 #  • פרסומות מתגמלות (הדולפין באי המרכזי): התוסף @capacitor-community/admob (Google Mobile Ads SDK + UMP) נוסף רק כאן,
 #    עם מזהה האפליקציה של AdMob במניפסט (ADMOB_APP_ID). ההרשאה com.google.android.gms.permission.AD_ID מגיעה במיזוג
 #    מהספרייה — והבנייה נכשלת אם היא או המזהה חסרים. ה-APK מהאתר נשאר בלי פרסומות.
+#  • בדיקת גיל לפי חוק (Texas SB 2420 וחוקים דומים): Play Age Signals API (com.google.android.play:age-signals) עם תוסף
+#    מקומי native/AgeSignalsPlugin.java, שנרשם ב-MainActivity. צד ה-JavaScript: src/core/AgeGate.js. בלי הרשאות חדשות.
 #
 # חתימה: ה-AAB נחתם אחר כך במפתח ההעלאה (upload key) בעזרת sign-aab.sh, מחוץ לריפו.
 # את מה שמגיע למשתמשים חותמת Google (Play App Signing, מפתח שנוצר אצל Google).
@@ -25,6 +27,8 @@ UA_MARK="CoAStore/play"
 PURCHASES_VERSION="8.9.11"   # @capgo/native-purchases — Play Billing Library 9.x (חובה לאפליקציות חדשות ב-Play)
 ADMOB_VERSION="8.3.2"        # @capacitor-community/admob — Google Mobile Ads SDK 25.x + User Messaging Platform (UMP)
 ADMOB_APP_ID="${ADMOB_APP_ID:-ca-app-pub-7781980348428898~7022902368}"   # AdMob → Apps → Chess of Ages: Island Realms → App ID
+AGE_SIGNALS_VERSION="${AGE_SIGNALS_VERSION:-0.0.6}"   # Play Age Signals — 0.0.6 (נובמבר 2026): getApplicableAgeFeatures + requestAgeSignalsAccess
+[ -f native/AgeSignalsPlugin.java ] || { echo "חסר native/AgeSignalsPlugin.java"; exit 1; }
 
 [ -f "$PLAY_DIR/version.json" ] || { echo "לא נמצא $PLAY_DIR/version.json — קודם מקדמים גרסה ל-Play (scripts/publish-play.sh)"; exit 1; }
 rm -rf www out android && mkdir -p www out
@@ -85,9 +89,56 @@ VCODE="${PLAY_VERSION_CODE:-$((1000 + ${GITHUB_RUN_NUMBER:-1}))}"
 sed -i -E "s/versionCode [0-9]+/versionCode ${VCODE}/; s/versionName \"[^\"]*\"/versionName \"${VER}\"/" android/app/build.gradle
 
 npx cap sync android
+
+# Play Age Signals: הספרייה של Google, התוסף המקומי, ורישום התוסף ב-MainActivity (תוסף מקומי לא נרשם לבד כמו תוספי npm)
+META="$(curl -fsSL --max-time 20 https://dl.google.com/android/maven2/com/google/android/play/age-signals/maven-metadata.xml 2>/dev/null || true)"
+if [ -n "$META" ]; then
+  echo "age-signals ב-Google Maven: $(echo "$META" | grep -oE '<version>[^<]+</version>' | sed -E 's#</?version>##g' | tr '\n' ' ')"
+  echo "$META" | grep -q "<version>${AGE_SIGNALS_VERSION}</version>" || { echo "שגיאה: age-signals ${AGE_SIGNALS_VERSION} לא קיימת ב-Google Maven"; exit 1; }
+fi
+MAIN_JAVA="$(find android/app/src/main/java -name MainActivity.java | head -1)"
+[ -n "$MAIN_JAVA" ] || { echo "שגיאה: לא נמצא MainActivity.java (התבנית של Capacitor השתנתה?)"; exit 1; }
+grep -q "^package ${PLAY_ID};" "$MAIN_JAVA" || { echo "שגיאה: MainActivity לא בחבילה ${PLAY_ID}"; exit 1; }
+cp native/AgeSignalsPlugin.java "$(dirname "$MAIN_JAVA")/AgeSignalsPlugin.java"
+cat > "$MAIN_JAVA" <<EOF
+package ${PLAY_ID};
+
+import android.os.Bundle;
+import com.getcapacitor.BridgeActivity;
+
+public class MainActivity extends BridgeActivity {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        // תוסף מקומי (לא מ-npm): נרשם לפני super.onCreate — בדיקת גיל לפי חוק (src/core/AgeGate.js)
+        registerPlugin(AgeSignalsPlugin.class);
+        super.onCreate(savedInstanceState);
+    }
+}
+EOF
+grep -q '^dependencies {' android/app/build.gradle || { echo "שגיאה: לא נמצא בלוק dependencies ב-app/build.gradle"; exit 1; }
+sed -i "0,/^dependencies {/s##dependencies {\n    implementation \"com.google.android.play:age-signals:${AGE_SIGNALS_VERSION}\"#" android/app/build.gradle
+grep -q "com.google.android.play:age-signals:${AGE_SIGNALS_VERSION}" android/app/build.gradle || { echo "שגיאה: התלות age-signals לא נכנסה ל-build.gradle"; exit 1; }
+
 cd android
 chmod +x gradlew
+set +e
 ./gradlew bundleRelease --no-daemon --stacktrace
+GRADLE_RC=$?
+set -e
+# ה-API של age-signals כפי שהוא בספרייה שירדה (לבדיקה, וגם לאבחון אם הקומפילציה נכשלה)
+AS_AAR="$(find "${GRADLE_USER_HOME:-$HOME/.gradle}/caches" -name "age-signals-${AGE_SIGNALS_VERSION}.aar" 2>/dev/null | head -1 || true)"
+if [ -n "$AS_AAR" ]; then
+  rm -rf "$APP/out/.as" && mkdir -p "$APP/out/.as"
+  unzip -q -o "$AS_AAR" classes.jar -d "$APP/out/.as" || true
+  if [ -f "$APP/out/.as/classes.jar" ]; then
+    for c in $(unzip -Z1 "$APP/out/.as/classes.jar" | grep -E '^com/google/android/play/agesignals/[A-Za-z0-9/]+\.class$' | sed 's#\.class$##; s#/#.#g'); do
+      javap -public -cp "$APP/out/.as/classes.jar" "$c" 2>/dev/null || true
+    done > "$APP/out/AGE_SIGNALS_API.txt"
+    rm -rf "$APP/out/.as"
+    echo "== Play Age Signals ${AGE_SIGNALS_VERSION} API ==" && cat "$APP/out/AGE_SIGNALS_API.txt"
+  fi
+fi
+[ "$GRADLE_RC" -eq 0 ] || { echo "שגיאה: הבנייה נכשלה (קוד ${GRADLE_RC})"; exit "$GRADLE_RC"; }
 cp app/build/outputs/bundle/release/app-release.aab "$APP/out/chess-of-ages-play-unsigned.aab"
 
 # 4) בדיקות אחרונות: מזהה, targetSdk, ושאין הרשאת התקנת חבילות בתוצר
@@ -101,8 +152,13 @@ grep -q '"AdMob"\|AdMob' "$APP/android/app/src/main/assets/capacitor.plugins.jso
 grep -q 'com.google.android.gms.ads.APPLICATION_ID' "$MERGED" || { echo "שגיאה: חסר מזהה האפליקציה של AdMob במניפסט"; exit 1; }
 grep -q 'com.google.android.gms.permission.AD_ID' "$MERGED" || { echo "שגיאה: חסרה ההרשאה AD_ID (נדרשת להצהרת Advertising ID ב-Play)"; exit 1; }
 grep -q "${ADMOB_APP_ID}" "$APP/android/app/src/main/res/values/strings.xml" || { echo "שגיאה: מזהה AdMob לא נכתב ל-strings.xml"; exit 1; }  # (כאן אנחנו בתוך android/ — לכן נתיב מלא)
+# בדיקת הגיל נכנסה לקוד: התוסף המקומי והספרייה של Google ב-dex של ה-AAB
+AS_PLUGIN="$(unzip -p "$APP/out/chess-of-ages-play-unsigned.aab" 'base/dex/*.dex' | grep -a -c "L${PLAY_ID//.//}/AgeSignalsPlugin;" || true)"
+[ "${AS_PLUGIN:-0}" -gt 0 ] || { echo "שגיאה: AgeSignalsPlugin לא נמצא בקוד ה-AAB"; exit 1; }
+AS_LIB="$(unzip -p "$APP/out/chess-of-ages-play-unsigned.aab" 'base/dex/*.dex' | grep -a -c 'Lcom/google/android/play/agesignals/' || true)"
+[ "${AS_LIB:-0}" -gt 0 ] || { echo "שגיאה: ספריית Play Age Signals לא נמצאה ב-AAB"; exit 1; }
 TARGET="$(grep -oE 'targetSdkVersion = [0-9]+' variables.gradle | grep -oE '[0-9]+' || true)"
 [ "${TARGET:-0}" -ge 36 ] || { echo "שגיאה: targetSdk ${TARGET} — Google Play דורשת 36 ומעלה"; exit 1; }
-echo "applicationId=${PLAY_ID} versionName=${VER} versionCode=${VCODE} targetSdk=${TARGET} web=$(node -e "process.stdout.write(require(process.argv[1]).build)" "$PLAY_DIR/version.json") billing=@capgo/native-purchases@${PURCHASES_VERSION} admob=@capacitor-community/admob@${ADMOB_VERSION} admobApp=${ADMOB_APP_ID}" > "$APP/out/INFO.txt"
+echo "applicationId=${PLAY_ID} versionName=${VER} versionCode=${VCODE} targetSdk=${TARGET} web=$(node -e "process.stdout.write(require(process.argv[1]).build)" "$PLAY_DIR/version.json") billing=@capgo/native-purchases@${PURCHASES_VERSION} admob=@capacitor-community/admob@${ADMOB_VERSION} admobApp=${ADMOB_APP_ID} agesignals=com.google.android.play:age-signals:${AGE_SIGNALS_VERSION}" > "$APP/out/INFO.txt"
 echo "permissions=${PERMS}" >> "$APP/out/INFO.txt"
 ls -la "$APP/out"

@@ -11,6 +11,7 @@ import { withPresetName } from '../core/PlayerName.js';
 import { Economy } from '../core/Economy.js';
 import { initPlayBilling, ensurePlayBilling } from '../core/PlayBilling.js';
 import { RewardedAds } from '../core/RewardedAds.js';
+import { AgeGate } from '../core/AgeGate.js';
 import { Achievements } from '../core/Achievements.js';
 import { Progression } from '../game/Progression.js';
 import { GameController, PIECE_VALUE, GLYPH } from '../game/GameController.js';
@@ -118,7 +119,8 @@ export class GameApp {
     this.tutorial = new Tutorial(this);
     this.online = new OnlineController(this);
     this.updater = new Updater({
-      isSafe: () => this.isSafe() && !this.ui.modals.length && !this.map.isOpen,
+      // מסך בדיקת הגיל (sticky) לא עוצר עדכון: עדכון יכול להגיע גם למי שממתין לאימות
+      isSafe: () => this.isSafe() && !this.ui.modals.some((m) => !m.sticky) && !this.map.isOpen,
       onAvailable: (info, act) => this.showUpdateAvailable(info, act),
       onUpdating: (v) => this.ui.toast(`${t('update')} ${v ? `(v${v})` : ''}`, { kind: 'gold', duration: 3000, icon: 'refresh' }),
       onDownloading: (info) => this.ui.toast(`${t('downloadingUpdate')}${info?.version ? ` (v${info.version})` : ''}`, { kind: 'gold', duration: 4000, icon: 'download' }),
@@ -211,6 +213,9 @@ export class GameApp {
       .catch(() => false);
     // פרסומות מתגמלות אצל הדולפין: רק בגרסת Play עם התוסף של AdMob (עטיפה 1003 ומעלה); בשאר — הדולפין רק קישוט
     this.rewardAds = new RewardedAds(this);
+    // בדיקת גיל לפי חוק (Texas SB 2420 ודומיו) דרך Google Play: רק בגרסת Play עם התוסף (עטיפה 1004 ומעלה),
+    // ורק כש-Google Play אומרת שהחוק חל על המשתמש. בשאר העולם לא קורה כלום (core/AgeGate.js)
+    this.ageGate = new AgeGate(this);
     this.board.setSkin(this.economy.boardSkin);
     this.grantEarnedSkins(false);
     this.grantEarnedSkyPets(false);

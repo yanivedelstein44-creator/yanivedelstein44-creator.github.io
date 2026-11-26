@@ -345,7 +345,7 @@ export class UI {
    * title: מחרוזת או אלמנט; titleIcon: אייקון לצד הכותרת; actions: [{label, icon, primary, danger, cls, onClick}]
    * @returns {{el:HTMLElement, close:Function}}
    */
-  modal({ title, titleIcon, label, body, actions = [], center = false, full = false, dismissable = true, onClose, className = '', closeButton = true } = {}) {
+  modal({ title, titleIcon, label, body, actions = [], center = false, full = false, dismissable = true, onClose, className = '', closeButton = true, sticky = false } = {}) {
     const prevFocus = document.activeElement;
     const titleId = `m${Math.random().toString(36).slice(2, 8)}`;
     // [a11y] a dialog without a title (confirm boxes) is named by its text; a titled one is described by it
@@ -374,8 +374,9 @@ export class UI {
       else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
     });
     this.root.querySelector('#modal-root').appendChild(back);
+    // sticky: מסך שלא נסגר ב-closeAll (בדיקת הגיל לפי חוק — core/AgeGate.js); נסגר רק בקוד שפתח אותו
     const ctl = {
-      el: dlg, back, dismissable,
+      el: dlg, back, dismissable, sticky,
       close: () => {
         if (ctl.closed) return;
         ctl.closed = true;
@@ -406,6 +407,6 @@ export class UI {
     });
   }
 
-  closeAll() { [...this.modals].forEach((m) => m.close()); }
+  closeAll() { [...this.modals].filter((m) => !m.sticky).forEach((m) => m.close()); }
   get modalOpen() { return this.modals.length > 0; }
 }

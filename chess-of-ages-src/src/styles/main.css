@@ -375,6 +375,12 @@ button:focus-visible, [role='button']:focus-visible, input:focus-visible, select
 .hero-ic.pulse { animation: frPulse 1.6s ease-in-out infinite; }
 @keyframes frPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.8; } }
 @media (prefers-reduced-motion: reduce) { .hero-ic.pulse { animation: none; } }
+/* בדיקת גיל לפי חוק (core/AgeGate.js): מסך חוסם בלי כפתור סגירה */
+.age-gate .hero-ic { filter: drop-shadow(0 0 18px rgba(127, 216, 255, 0.35)); }
+.age-gate .age-note { min-height: 1.5em; margin: 2px 0 !important; color: var(--gold); font-weight: 700; }
+.age-gate .age-note:empty { min-height: 0; }
+.age-gate .age-privacy { display: flex; gap: 6px; align-items: flex-start; justify-content: center; margin-top: 10px !important; text-align: start; }
+.age-gate .age-privacy svg { flex: none; margin-top: 1px; opacity: 0.85; }
 .emote-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 4px; }
 .emote-btn { height: 72px; border-radius: 18px; border: 1.5px solid rgba(255, 255, 255, 0.14); cursor: pointer; display: grid; place-items: center; background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)); box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35); }
 .emote-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35); }
