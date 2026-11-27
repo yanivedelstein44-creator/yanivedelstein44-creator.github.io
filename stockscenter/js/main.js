@@ -96,7 +96,7 @@ function setThemeColor(route) {
   if (!meta) return;
   const css = getComputedStyle(document.documentElement);
   const v = (name) => css.getPropertyValue(name).trim();
-  meta.setAttribute("content", route.name === "home" && !isWide() ? v("--sc-primary") || "#1E4E9C" : v("--sc-bg") || "#EEF2F8");
+  meta.setAttribute("content", route.name === "home" && !isWide() ? v("--sc-primary") || "#24386B" : v("--sc-bg") || "#F5F2EA");
 }
 
 /** Child screens restore their parent's scroll position when the user comes back. */

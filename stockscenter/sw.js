@@ -2,7 +2,7 @@
    Never touches api.github.com (data + token) or ../fixtures (demo data); those go straight to the network.
    Bump VERSION on every publish (tests/shell.test.mjs checks it equals APP_VERSION in version.js, and that SHELL lists
    every module, stylesheet and font the app loads: QA R2-m3). */
-const VERSION = "1.4.2";
+const VERSION = "1.5.0";
 const CACHE = `stockscenter-shell-${VERSION}`;
 
 const SHELL = [
@@ -24,8 +24,6 @@ const SHELL = [
   "./js/screens/buy.js", "./js/screens/combined.js", "./js/screens/history.js", "./js/screens/home.js", "./js/screens/install.js", "./js/screens/markets.js",
   "./js/screens/phone.js", "./js/screens/phoneTab.js", "./js/screens/settings.js", "./js/screens/setup.js",
   "./js/state.js", "./js/universe.js", "./js/watchlist.js",
-  "./fonts/frank-ruhl-libre-hebrew-500-normal.woff2", "./fonts/frank-ruhl-libre-hebrew-700-normal.woff2", "./fonts/frank-ruhl-libre-hebrew-900-normal.woff2",
-  "./fonts/frank-ruhl-libre-latin-500-normal.woff2", "./fonts/frank-ruhl-libre-latin-700-normal.woff2", "./fonts/frank-ruhl-libre-latin-900-normal.woff2",
   "./fonts/rubik-hebrew-400-normal.woff2", "./fonts/rubik-hebrew-500-normal.woff2", "./fonts/rubik-hebrew-600-normal.woff2",
   "./fonts/rubik-hebrew-700-normal.woff2", "./fonts/rubik-hebrew-800-normal.woff2", "./fonts/rubik-latin-400-normal.woff2",
   "./fonts/rubik-latin-500-normal.woff2", "./fonts/rubik-latin-600-normal.woff2", "./fonts/rubik-latin-700-normal.woff2",

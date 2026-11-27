@@ -1,61 +1,102 @@
-/* StocksCenter design tokens — "כחול × עיתון" (blue rounded app × financial newspaper).
-   Chosen by the user on 2026-11-12. Shared by the phone PWA and the desktop window.
-   Light theme only. Contrast: every text token below passes 4.5:1 on --sc-surface and --sc-bg
-   (header tokens pass on --sc-primary). Decorative-only tokens are marked. */
+/* StocksCenter design tokens — "כחול לילה וזהב" (HomeIzun's night blue and gold; design/HOMEIZUN.md, 2026-11-27).
+   Shared by the phone PWA and the desktop window. Two themes: light (default) and dark (follows the system).
+   Contrast: every text token passes 4.5:1 on --sc-surface, --sc-surface-2, --sc-surface-3 and --sc-bg in both themes
+   (header tokens pass on the header gradient). Decorative-only tokens are marked.
+   --sc-primary is the header blue in BOTH themes (the status bar reads it). The brand color for links, actions and
+   selected controls is --sc-brand: night blue in light, gold in dark. Scores and data marks (bars, rings, the slider,
+   score numbers) use --sc-data: night blue in light, a pale moon blue in dark, so gold stays with the actions. */
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
 
   /* Ground and surfaces */
-  --sc-bg: #EEF2F8;            /* page, soft blue paper */
-  --sc-surface: #FFFFFF;       /* cards */
-  --sc-surface-2: #F6F9FE;     /* highlighted row, table head */
-  --sc-surface-3: #EEF3FB;     /* chips, info panels */
-  --sc-line: #DDE4EF;          /* card border, hairlines (decorative) */
-  --sc-line-soft: #EEF2F8;     /* row dividers inside cards (decorative) */
-  --sc-rule: #0F1E36;          /* editorial rule under a masthead (decorative) */
-  --sc-scrim: rgba(15, 30, 54, 0.55);
+  --sc-bg: #F5F2EA;            /* page, warm ivory */
+  --sc-surface: #FFFDF9;       /* cards */
+  --sc-surface-2: #F6F2E8;     /* highlighted row, table head, fields, list rows */
+  --sc-surface-3: #EFE9DC;     /* chips, info panels, tracks */
+  --sc-line: #E6E0D2;          /* control borders, hairlines (decorative) */
+  --sc-line-soft: #EFEADF;     /* row dividers inside cards (decorative) */
+  --sc-hair: rgb(23 34 59 / 0.09); /* card border: text at 9% (decorative) */
+  --sc-rule: #E6E0D2;          /* rule under a desktop page title (decorative) */
+  --sc-scrim: rgb(12 18 34 / 0.46);
+  --sc-scrim-soft: rgb(12 18 34 / 0.3);
 
   /* Ink */
-  --sc-ink: #0F1E36;           /* primary text, big numbers */
-  --sc-ink-2: #33435F;         /* body copy, deck text */
-  --sc-ink-3: #4A5B78;         /* secondary text, labels */
-  --sc-ink-4: #5E6E8A;         /* tertiary text, rank numerals */
+  --sc-ink: #17223B;           /* primary text, big numbers */
+  --sc-ink-2: #3B465F;         /* body copy */
+  --sc-ink-3: #555E72;         /* secondary text, labels */
+  --sc-ink-4: #5F687B;         /* tertiary text, rank numerals */
 
-  /* Brand blue */
-  --sc-primary: #1E4E9C;       /* header panels, primary buttons, strong badges */
-  --sc-primary-strong: #173E80;/* nav pill, round action buttons */
-  --sc-primary-bright: #3B7BE0;/* the floating "סרוק הכל" button */
-  --sc-on-primary: #FFFFFF;
-  --sc-on-primary-2: #EAF1FC;  /* secondary text on blue */
-  --sc-on-primary-3: #C9D8F2;  /* meta text on blue (dateline, kicker) */
-  --sc-primary-tint: #DCE8FF;  /* mid badges, insider chip, icon tiles */
-  --sc-primary-tint-2: #DDE8F8;/* icon tiles */
-  --sc-bar-weak: #8FB0E0;      /* sub-score bars below 60 (decorative) */
-  --sc-nav-icon: #B8CBEA;      /* inactive nav icons on the nav pill */
-  --sc-online: #6EE7B7;        /* status dot on blue */
+  /* Header blue (the same family in both themes) */
+  --sc-primary: #24386B;       /* night blue: header panels, the status bar */
+  --sc-primary-strong: #14213D;/* deep night blue: the gradient's end, the nav pill */
+  --sc-hero-grad: linear-gradient(160deg, #2A4079, #14213D);
+  --sc-hero-line: rgb(240 203 107 / 0.55);   /* the thin gold line under a header */
+  --sc-hero-shadow: 0 12px 28px -16px rgb(23 34 59 / 0.6);
+  --sc-hero-sel-bg: #FFFDF9;   /* selected item on a header */
+  --sc-hero-sel-fg: #14213D;
+  --sc-on-primary: #FFFDF9;
+  --sc-on-primary-2: #E9EEF8;  /* secondary text on blue */
+  --sc-on-primary-3: #C5CEE4;  /* meta text on blue */
+  --sc-nav-bg: linear-gradient(160deg, #24386B, #14213D);
+  --sc-nav-line: transparent;
+  --sc-nav-icon: #AEBAD8;      /* inactive nav icons on the nav pill */
+  --sc-online: #74D09A;        /* status dot on blue */
+
+  /* Brand for text, bars, links and selected controls */
+  --sc-brand: #24386B;
+  --sc-brand-grad: linear-gradient(140deg, #24386B, #14213D);
+  --sc-on-brand: #FFFDF9;
+  --sc-brand-shadow: 0 10px 20px -12px rgb(36 56 107 / 0.95);
+  --sc-primary-bright: #3A56A0;/* focus ring, the indeterminate progress line */
+  --sc-primary-tint: #E4E6EC;  /* mid badges, selected soft chips (brand at 9% on card) */
+  --sc-primary-tint-2: #EBECEF;/* icon tiles */
+  --sc-ring: rgb(36 56 107 / 0.22);          /* the 3px focus ring of a field */
+  --sc-bar-weak: #93A0C2;      /* sub-score bars below 60 (decorative) */
+  --sc-data: #24386B;          /* scores and data marks: score bars, mini bars, the ring, the slider, score numbers */
+
+  /* Gold: the one main action and small highlights */
+  --sc-gold: #F0CB6B;          /* gold on blue */
+  --sc-gold-ink: #7A5712;      /* gold text and icons on light surfaces */
+  --sc-gold-deco: #B9852A;     /* gold bars and marks on light surfaces (decorative) */
+  --sc-gold-grad: linear-gradient(140deg, #F3D27A, #D9AA42 58%, #BD8A2C);
+  --sc-on-gold: #14213D;
+  --sc-gold-shadow: 0 12px 22px -10px rgb(189 138 44 / 0.75), 0 2px 6px rgb(23 34 59 / 0.12);
 
   /* Score tiers (total badge) */
-  --sc-tier-good-bg: #1E4E9C;  --sc-tier-good-fg: #FFFFFF;   /* total ≥ 70 */
-  --sc-tier-mid-bg: #DCE8FF;   --sc-tier-mid-fg: #173E80;    /* 50–69 */
-  --sc-tier-low-bg: #FDE7DB;   --sc-tier-low-fg: #9A3412;    /* < 50 */
+  --sc-tier-good-bg: #24386B;  --sc-tier-good-fg: #FFFDF9;   /* total ≥ 70 */
+  --sc-tier-mid-bg: #E4E6EC;   --sc-tier-mid-fg: #14213D;    /* 50–69 */
+  --sc-tier-low-bg: #FBEAE7;   --sc-tier-low-fg: #A8323F;    /* < 50 */
+  --sc-tier-good-fill: var(--sc-brand-grad);                 /* the badge's fill: a gradient in light, a quiet gold tint in dark */
+  --sc-tier-good-line: transparent;
 
-  /* States */
-  --sc-warn-bg: #FDF1E2;       --sc-warn-fg: #8A4B06;        /* earnings soon, R:R low */
-  --sc-danger-bg: #FDE7DB;     --sc-danger-fg: #9A3412;      /* weak component (gate), errors */
-  --sc-good-bg: #E3F4EC;       --sc-good-fg: #1F7A55;        /* in the buy zone, a supportive market (4.7:1) */
-  --sc-up: #1F7A55;            /* positive change */
-  --sc-down: #B42318;          /* negative change */
-  --sc-weak-dot: #C2410C;      /* a sub-score below 40 (decorative bar) */
+  /* States (text colors are the palette's good / warn / danger mixed toward the text color) */
+  --sc-warn-bg: #FBEEDE;       --sc-warn-fg: #7C4C1C;        /* earnings soon, R:R low */
+  --sc-danger-bg: #FBEAE7;     --sc-danger-fg: #A8323F;      /* weak component (gate), errors */
+  --sc-good-bg: #E6F0E6;       --sc-good-fg: #24694A;        /* in the buy zone, a supportive market */
+  --sc-up: #24694A;            /* positive change */
+  --sc-down: #A8323F;          /* negative change */
+  --sc-weak-dot: #D97706;      /* a sub-score below 40 (decorative bar) */
+
+  /* Depth: soft shadows tinted with the text color */
+  --sc-sh1: 0 1px 2px rgb(23 34 59 / 0.07), 0 10px 24px -14px rgb(23 34 59 / 0.26);
+  --sc-sh2: 0 2px 6px rgb(23 34 59 / 0.09), 0 16px 32px -14px rgb(23 34 59 / 0.34);
+  --sc-sh3: 0 4px 10px rgb(23 34 59 / 0.12), 0 26px 48px -16px rgb(23 34 59 / 0.46);
+  --sc-sh-sheet: 0 -16px 44px -18px rgb(23 34 59 / 0.55);
+  --sc-sh-knob: 0 1px 3px rgb(23 34 59 / 0.3);
+  --sc-knob: #FFFDF9;          /* toggle knob */
+  --sc-switch-off: #C3C4C4;    /* toggle track, off (decorative) */
+  --sc-toast-bg: #17223B;      --sc-toast-fg: #FFFDF9;       --sc-toast-action: #F0CB6B;
+  --sc-shot-bg: #17223B;       /* the dark tile behind a screenshot */
 
   /* Shape */
-  --sc-radius-panel: 32px;     /* bottom corners of the blue header panel */
+  --sc-radius-panel: 26px;     /* bottom corners of the header panel, the desktop sidebar */
   --sc-radius-sheet: 28px;     /* bottom sheet top corners */
-  --sc-radius-card: 22px;
-  --sc-radius-tile: 16px;      /* icon tiles, total badge */
-  --sc-radius-control: 15px;   /* square icon buttons */
+  --sc-radius-card: 20px;
+  --sc-radius-tile: 16px;      /* list rows, icon tiles, inner panels */
+  --sc-radius-control: 14px;   /* buttons, fields, icon buttons */
   --sc-radius-pill: 999px;
 
-  /* Spacing (8-pt grid) */
+  /* Spacing (4-pt steps) */
   --sc-s1: 4px;
   --sc-s2: 8px;
   --sc-s3: 12px;
@@ -63,21 +104,89 @@
   --sc-s5: 24px;
   --sc-s6: 32px;
 
-  /* Type: newspaper serif for headlines and big numbers, rounded sans for the UI */
-  --sc-font-display: "Frank Ruhl Libre", "David", "Times New Roman", serif;
+  /* Type: Rubik everywhere (the display token stays for the big numbers and titles; same family) */
   --sc-font-ui: "Rubik", "Heebo", "Segoe UI", system-ui, sans-serif;
-  --sc-fs-caption: 11px;
+  --sc-font-display: var(--sc-font-ui);
+  --sc-fs-caption: 12px;
   --sc-fs-small: 12px;
   --sc-fs-meta: 13px;
   --sc-fs-body: 15px;
   --sc-fs-lead: 16px;
-  --sc-fs-title: 21px;
-  --sc-fs-headline: 25px;
-  --sc-fs-masthead: 40px;
-  --sc-kicker-tracking: 0.16em;
+  --sc-fs-title: 17px;
+  --sc-fs-headline: 21px;
+  --sc-fs-masthead: 26px;
+  --sc-kicker-tracking: 0.02em;
 
   /* Motion and focus */
-  --sc-dur: 180ms;
-  --sc-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --sc-dur: 140ms;             /* presses, hovers */
+  --sc-dur-sheet: 240ms;       /* sheets, views */
+  --sc-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --sc-focus: 0 0 0 2px var(--sc-surface), 0 0 0 4px var(--sc-primary-bright);
+}
+
+/* Dark theme: a second set of values only. The brand becomes gold with night-blue text. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sc-bg: #0B1120;
+    --sc-surface: #131C31;
+    --sc-surface-2: #1A2540;
+    --sc-surface-3: #1F2B48;
+    --sc-line: #2C3958;
+    --sc-line-soft: #222D49;
+    --sc-hair: rgb(238 241 248 / 0.09);
+    --sc-rule: #26324F;
+    --sc-scrim: rgb(3 6 14 / 0.62);
+    --sc-scrim-soft: rgb(3 6 14 / 0.5);
+
+    --sc-ink: #EEF1F8;
+    --sc-ink-2: #C9D1E2;
+    --sc-ink-3: #A3AEC6;
+    --sc-ink-4: #98A3BC;
+
+    --sc-primary: #1C2C55;
+    --sc-primary-strong: #0F1830;
+    --sc-hero-grad: linear-gradient(160deg, #1C2C55, #0F1830);
+    --sc-hero-shadow: 0 12px 28px -16px rgb(0 0 0 / 0.8);
+    --sc-nav-bg: linear-gradient(160deg, #1F2D52, #141E38);
+    --sc-nav-line: rgb(238 241 248 / 0.1);
+    --sc-nav-icon: #9AA5BD;
+
+    --sc-brand: #F0CB6B;
+    --sc-brand-grad: linear-gradient(140deg, #F0CB6B, #D4A23A);
+    --sc-on-brand: #14213D;
+    --sc-brand-shadow: 0 10px 20px -12px rgb(0 0 0 / 0.8);
+    --sc-primary-bright: #F0CB6B;
+    --sc-primary-tint: #333A45;
+    --sc-primary-tint-2: #2A3242;
+    --sc-ring: rgb(240 203 107 / 0.28);
+    --sc-bar-weak: #56658C;
+    --sc-data: #A9BCEB;
+
+    --sc-gold-ink: #F0CB6B;
+    --sc-gold-deco: #F0CB6B;
+    --sc-gold-shadow: 0 12px 22px -10px rgb(0 0 0 / 0.7), 0 2px 6px rgb(0 0 0 / 0.4);
+
+    --sc-tier-good-bg: #2A4079;  --sc-tier-good-fg: #F5F7FC;   /* night blue, like light mode: gold stays with the actions */
+    --sc-tier-good-fill: linear-gradient(140deg, #31498A, #24386B);
+    --sc-tier-good-line: rgb(169 188 235 / 0.22);
+    --sc-tier-mid-bg: #1F2B48;   --sc-tier-mid-fg: #D5DCEC;
+    --sc-tier-low-bg: #36293D;   --sc-tier-low-fg: #F4919A;
+
+    --sc-warn-bg: #352F31;       --sc-warn-fg: #F2B25A;
+    --sc-danger-bg: #36293D;     --sc-danger-fg: #F4919A;
+    --sc-good-bg: #1F3540;       --sc-good-fg: #7FD6A3;
+    --sc-up: #7FD6A3;
+    --sc-down: #F4919A;
+    --sc-weak-dot: #F0A43A;
+
+    --sc-sh1: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 24px -14px rgb(0 0 0 / 0.6);
+    --sc-sh2: 0 2px 6px rgb(0 0 0 / 0.34), 0 16px 32px -14px rgb(0 0 0 / 0.7);
+    --sc-sh3: 0 4px 10px rgb(0 0 0 / 0.4), 0 26px 48px -16px rgb(0 0 0 / 0.8);
+    --sc-sh-sheet: 0 -16px 44px -18px rgb(0 0 0 / 0.8);
+    --sc-sh-knob: 0 1px 3px rgb(0 0 0 / 0.5);
+    --sc-knob: #EEF1F8;
+    --sc-switch-off: #46526F;
+    --sc-toast-bg: #EEF1F8;      --sc-toast-fg: #14213D;       --sc-toast-action: #24386B;
+    --sc-shot-bg: #070B16;
+  }
 }
