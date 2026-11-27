@@ -21,8 +21,26 @@ export const fmtInt = (n) => (isNum(n) ? sign(n) + NF0.format(Math.abs(n)) : DAS
 export const fmtNum = (n, digits = 1) =>
   isNum(n) ? sign(n) + (digits === 0 ? NF0 : digits === 1 ? NF1 : NF2).format(Math.abs(n)) : DASH;
 
-/** $181.20 */
-export const fmtPrice = (n) => (isNum(n) ? sign(n) + "$" + NF2.format(Math.abs(n)) : DASH);
+const RLI = "⁧"; // right-to-left isolate
+const PDI = "⁩"; // its end
+/**
+ * $1,234.56. `cur` (1.0.12, "התיק שלי"): "ILA" = agorot (Tel Aviv prices on Yahoo), "ILS" = ₪. Agorot read
+ * "1,234.56 אג׳" (the number, then the unit) inside a right-to-left isolate, so they look the same in Hebrew text and in
+ * the left-to-right boxes prices sit in (ltr / bdi dir=ltr): the unit to the left of the number. Without the isolate a
+ * left-to-right box shows the unit to the right of the number, which reads "אג׳ 1,234.56".
+ */
+export const fmtPrice = (n, cur = "USD") => {
+  if (!isNum(n)) return DASH;
+  if (cur === "ILA") return RLI + sign(n) + NF2.format(Math.abs(n)) + "\u00A0אג׳" + PDI; // no-break space: the unit never wraps alone
+  return sign(n) + (cur === "ILS" ? "₪" : "$") + NF2.format(Math.abs(n));
+};
+/** fmtPrice in parts, for a box that styles the unit: {num, unit, rtl}; rtl = the unit follows the number, right to left. */
+export const priceParts = (n, cur = "USD") => {
+  if (!isNum(n)) return { num: DASH, unit: "", rtl: false };
+  const num = sign(n) + NF2.format(Math.abs(n));
+  if (cur === "ILA") return { num, unit: "אג׳", rtl: true };
+  return { num, unit: cur === "ILS" ? "₪" : "$", rtl: false };
+};
 /** $12,450 (whole dollars) */
 export const fmtMoney = (n) => (isNum(n) ? sign(n) + "$" + NF0.format(Math.abs(n)) : DASH);
 

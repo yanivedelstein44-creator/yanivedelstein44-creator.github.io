@@ -378,6 +378,7 @@ body.is-scrolled .topbar { box-shadow: 0 1px 0 var(--sc-line); }
 .plan__pk { font-size: var(--sc-fs-caption); color: var(--sc-ink-3); }
 .plan__pv { font-family: var(--sc-font-display); font-weight: 700; font-size: 18px; line-height: 1.3; text-align: right; font-variant-numeric: tabular-nums; }
 .plan__p--main .plan__pv { font-weight: 800; font-size: 22px; line-height: 1.1; color: var(--sc-brand); }
+.plan__pv .px-unit { font-size: max(12px, 0.55em); font-weight: 500; color: var(--sc-ink-3); } /* "אג׳" */
 .plan__pn { font-size: var(--sc-fs-caption); color: var(--sc-ink-3); line-height: 1.35; }
 .plan__why { font-size: var(--sc-fs-meta); color: var(--sc-ink-2); line-height: 1.55; }
 .plan__grid { margin: 0; }
@@ -497,12 +498,101 @@ body.is-scrolled .topbar { box-shadow: 0 1px 0 var(--sc-line); }
   .buy-main .buy-sec { margin-top: 4px; }
   .buy-main .buy-sec + .buy-sec { margin-top: 14px; }
 }
-.buyteaser { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin: 10px var(--sc-gutter) 0; color: inherit; text-decoration: none; }
-.buyteaser:hover { background: var(--sc-surface-2); }
-.buyteaser__icon { width: 40px; height: 40px; flex: none; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: var(--sc-good-bg); color: var(--sc-good-fg); }
-.buyteaser__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.buyteaser__title { font-weight: 700; font-size: var(--sc-fs-lead); }
-.buyteaser__sub { font-size: var(--sc-fs-small); color: var(--sc-ink-3); }
-.buyteaser__count { min-width: 30px; height: 26px; padding: 0 8px; border-radius: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; background: var(--sc-good-bg); color: var(--sc-good-fg); }
-.buyteaser__go { color: var(--sc-ink-4); flex: none; }
-@media (min-width: 1024px) { .buyteaser { margin: 0 0 14px; } }
+/* home: quick tiles, "מחיר מומלץ" and "התיק שלי" side by side (1.0.12) */
+.qtiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 10px var(--sc-gutter) 0; }
+.qtiles--one { grid-template-columns: minmax(0, 1fr); }
+.qtile { display: flex; align-items: center; gap: 10px; min-width: 0; min-height: 64px; padding: 12px; color: inherit; text-decoration: none; transition: background-color var(--sc-dur) var(--sc-ease), transform var(--sc-dur) var(--sc-ease); }
+.qtile:hover { background: var(--sc-surface-2); }
+.qtile:active { transform: scale(0.975); }
+.qtile__icon { width: 40px; height: 40px; flex: none; border-radius: var(--sc-radius-control); display: inline-flex; align-items: center; justify-content: center; background: var(--sc-primary-tint-2); color: var(--sc-brand); }
+.qtile__icon--good { background: var(--sc-good-bg); color: var(--sc-good-fg); }
+.qtile__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.qtile__title { font-weight: 700; font-size: var(--sc-fs-lead); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qtile__sub { font-size: var(--sc-fs-small); color: var(--sc-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 1024px) { .qtiles { margin: 0 0 14px; gap: 14px; } }
+
+/* ----- "התיק שלי" (#/portfolio, 1.0.12) ----- */
+.pf-phone { display: flex; flex-direction: column; gap: 14px; padding-top: 4px; }
+.pf-upload, .pf-progress, .pf-summary { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.pf-upload { align-items: flex-start; }
+.pf-upload__title, .pf-progress__now { font-size: var(--sc-fs-title); font-weight: 700; line-height: 1.3; }
+.pf-upload__text { font-size: var(--sc-fs-body); line-height: 1.5; color: var(--sc-ink-2); }
+.pf-upload__btn { margin-top: 6px; }
+.pf-upload__note, .pf-progress__note { font-size: var(--sc-fs-small); line-height: 1.45; color: var(--sc-ink-3); }
+.pf-upload__error { display: flex; align-items: flex-start; gap: 6px; align-self: stretch; padding: 8px 10px; border-radius: 12px; background: var(--sc-danger-bg); color: var(--sc-danger-fg); font-size: var(--sc-fs-meta); line-height: 1.45; }
+.pf-upload__error .icon { flex: none; margin-top: 2px; }
+.pf-upload__old { display: flex; align-items: flex-start; gap: 6px; align-self: stretch; padding: 8px 10px; border-radius: 12px; background: var(--sc-warn-bg); color: var(--sc-warn-fg); font-size: var(--sc-fs-meta); line-height: 1.45; }
+.pf-upload__old .icon { flex: none; margin-top: 2px; }
+.pf-upload__old a { color: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.pf-progress__bar { position: relative; height: 6px; border-radius: 3px; overflow: hidden; background: var(--sc-surface-3); }
+/* fills from the inline start by step (--p from the screen), with a soft pulse while the PC works */
+.pf-progress__bar > span { position: absolute; inset: 0; border-radius: inherit; background: var(--sc-data); transform: scaleX(var(--p, 0.17)); transform-origin: right; transition: transform 600ms var(--sc-ease); animation: pf-pulse 1.6s ease-in-out infinite; }
+html[dir="ltr"] .pf-progress__bar > span { transform-origin: left; }
+@keyframes pf-pulse { 50% { opacity: 0.6; } }
+.pf-steps { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.pf-steps__i { display: flex; align-items: center; gap: 8px; font-size: var(--sc-fs-meta); color: var(--sc-ink-3); }
+.pf-steps__i.is-now { color: var(--sc-ink); font-weight: 600; }
+.pf-steps__dot { width: 18px; height: 18px; flex: none; display: inline-grid; place-items: center; border-radius: 50%; border: 1.5px solid var(--sc-line); }
+.pf-steps__i.is-now .pf-steps__dot { border-color: var(--sc-data); }
+.pf-steps__i.is-done .pf-steps__dot { background: var(--sc-data); border-color: transparent; color: var(--sc-surface); }
+.pf-summary { gap: 10px; }
+/* the value is the hero tile across the card; holdings, weighted score and trends share one row of three under it */
+.pf-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pf-stat { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 12px; border-radius: var(--sc-radius-tile); background: var(--sc-surface-2); }
+.pf-stat--hero { grid-column: 1 / -1; padding: 12px 16px; }
+.pf-stat__k { font-size: var(--sc-fs-small); color: var(--sc-ink-3); }
+.pf-stat__v { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: var(--sc-fs-title); font-weight: 700; line-height: 1.25; font-variant-numeric: tabular-nums; }
+.pf-stat--hero .pf-stat__v { font-size: var(--sc-fs-masthead); letter-spacing: -0.01em; }
+.pf-stat__sub { font-size: var(--sc-fs-small); color: var(--sc-ink-3); }
+.pf-trends { display: flex; flex-direction: column; gap: 2px; font-size: var(--sc-fs-body); line-height: 1.3; }
+.pf-trend--up { color: var(--sc-good-fg); }
+.pf-trend--mixed { color: var(--sc-ink-3); }
+.pf-trend--down { color: var(--sc-danger-fg); }
+.pf-summary__facts, .pf-summary__warn { font-size: var(--sc-fs-meta); line-height: 1.5; color: var(--sc-ink-2); }
+.pf-summary__text { font-size: var(--sc-fs-body); line-height: 1.55; color: var(--sc-ink-2); }
+.pf-summary__muted { font-size: var(--sc-fs-meta); color: var(--sc-ink-3); }
+.pf-summary__foot { font-size: var(--sc-fs-small); color: var(--sc-ink-4); }
+.pf-sym { font-weight: 700; }
+.pf-sec { display: flex; flex-direction: column; }
+/* holding row: symbol, name and trend on one line, then weight / gain / lists, then stop and target, then the note */
+.rrow--line .pfrow__hit { align-items: flex-start; gap: 12px; padding: 12px 16px; min-height: 0; }
+.pfrow .rrow__id { gap: 4px; }
+.pfrow .tbadge { width: 40px; height: 40px; border-radius: 12px; font-size: 17px; }
+.pfrow__symline { gap: 8px; }
+.pfrow .rrow__sym { flex: none; font-size: var(--sc-fs-title); line-height: 1.3; }
+.pfrow__name { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--sc-fs-meta); color: var(--sc-ink-3); }
+.pfrow__symline .tag { flex: none; margin-inline-start: auto; }
+.pfrow__nums { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; font-size: var(--sc-fs-small); color: var(--sc-ink-3); }
+.pfrow__nums b { color: var(--sc-ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pfrow__w b { font-size: var(--sc-fs-meta); }
+.pfrow__g b { font-size: var(--sc-fs-body); }
+.pfrow__nums b.is-up { color: var(--sc-up); }
+.pfrow__nums b.is-down { color: var(--sc-down); }
+.pfrow__risk { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 16px; }
+.pfrow__pair { display: inline-flex; align-items: baseline; gap: 4px; min-width: 112px; }
+.pfrow__k { font-size: var(--sc-fs-small); color: var(--sc-ink-3); }
+.pfrow__px { font-size: var(--sc-fs-meta); font-weight: 600; color: var(--sc-ink); }
+.pfrow__unit { font-size: var(--sc-fs-small); font-weight: 400; color: var(--sc-ink-3); }
+.pfrow__note {
+  margin: -8px 0 0; padding: 0 16px 12px; font-size: var(--sc-fs-meta); line-height: 1.4; color: var(--sc-ink-3); cursor: pointer;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
+.pfother { list-style: none; margin: 0; padding: 2px 0; }
+.pfother__i { display: flex; align-items: baseline; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--sc-line-soft); font-size: var(--sc-fs-meta); }
+.pfother__i:first-child { border-top: 0; }
+.pfother__n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.pfother__why { color: var(--sc-ink-3); }
+.pfother__w { font-weight: 600; color: var(--sc-ink-2); font-variant-numeric: tabular-nums; }
+@media (min-width: 1024px) {
+  .pf-main { display: flex; flex-direction: column; gap: 16px; }
+  .cat-side .pf-upload, .cat-side .pf-progress { margin-bottom: 14px; }
+}
+/* a wide main column: the four stats in one row, and each holding as [badge, the stock] | [the note] */
+@container catmain (min-width: 640px) {
+  .pf-stats { grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); }
+  .pf-stat--hero { grid-column: auto; }
+  .pfrow { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: center; }
+  .pfrow__hit .tbadge { order: -1; }
+  .pfrow__note { margin: 0; padding: 12px 16px; padding-inline-start: 0; -webkit-line-clamp: 3; }
+}
+@media (prefers-reduced-motion: reduce) { .pf-progress__bar > span { animation: none; transition: none; } }

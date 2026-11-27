@@ -1,4 +1,4 @@
-// Hash router: #/home #/cat/<id> #/combined #/buy #/markets #/history #/history/<date> #/history/<date>/combined #/history/<date>/<id> #/settings #/setup #/phone #/install
+// Hash router: #/home #/cat/<id> #/combined #/buy #/portfolio #/markets #/history #/history/<date> #/history/<date>/combined #/history/<date>/<id> #/settings #/setup #/phone #/install
 /** The 10 category ids of SPEC §2; anything else in a route goes home. */
 export const CATEGORY_IDS = ["momentum", "fundamental", "pullback", "volume_breakout", "oversold", "analyst", "low_vol", "rel_strength", "earnings_next", "earnings_recent"];
 const isDate = (x) => /^\d{4}-\d{2}-\d{2}$/.test(x || "");
@@ -24,6 +24,7 @@ export function parseHash(hash) {
   else if (a === "combined" && parts.length === 1) r = { name: "combined" };
   else if (a === "markets" && parts.length === 1) r = { name: "markets" };
   else if (a === "buy" && parts.length === 1) r = { name: "buy" };
+  else if (a === "portfolio" && parts.length === 1) r = { name: "portfolio" }; // 1.0.12 "התיק שלי"
   else if (a === "settings" && parts.length === 1) r = { name: "settings" };
   else if (a === "setup" && parts.length === 1) r = { name: "setup" };
   else if (a === "phone" && parts.length === 1) r = { name: "phone" };

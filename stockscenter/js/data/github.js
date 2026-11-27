@@ -252,6 +252,32 @@ export class GitHubAdapter {
     return this.readJson(`history/${date}/combined.json`);
   }
 
+  /** 1.0.12 "התיק שלי": the newest analysis, or null before the first one (404). */
+  async getPortfolio() {
+    try {
+      return await this.readJson("latest/portfolio.json");
+    } catch (e) {
+      if (e instanceof AdapterError && e.code === "notfound") return null;
+      throw e;
+    }
+  }
+
+  /**
+   * 1.0.12: send a portfolio screenshot {b64, mime} to the PC: the image goes to commands/portfolio/<id>.<ext> on the
+   * `commands` branch, then the command points at it. The PC reads it with Claude and deletes it (SPEC §6.14).
+   */
+  async submitPortfolio(image) {
+    const id = this.uuid();
+    const ext = image.mime === "image/png" ? "png" : image.mime === "image/webp" ? "webp" : "jpg";
+    const path = `commands/portfolio/${id}.${ext}`;
+    const put = await this._send(
+      this.buildRequest(path, { ref: null, accept: "json", method: "PUT", body: { message: "portfolio screenshot", content: image.b64, branch: "commands" } })
+    );
+    if (!put.ok) throw mapHttpError(put.status);
+    const cmd = { schema: 1, id, action: "portfolio", image: path, requested_at: new Date(this.now()).toISOString(), source: "pwa" };
+    return this._writeCommand(cmd, "portfolio request");
+  }
+
   /** Revoke every cached image object URL (called when a new scan lands, and on disconnect). */
   dropImages() {
     this.imageCache.forEach((u) => URL.revokeObjectURL?.(u));

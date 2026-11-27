@@ -37,16 +37,16 @@ export function riskChips(stock) {
   if (hasPlan(stock)) {
     const e = stock.entry;
     return [
-      h("span", { class: "tag tag--plain" }, "קנייה ", ltr(fmtPrice(e.entry), "tag__v")),
-      h("span", { class: "tag tag--plain" }, "סטופ ", ltr(fmtPrice(e.stop), "tag__v")),
-      h("span", { class: "tag tag--plain" + (isNum(e.rr1) && e.rr1 < 2 ? " is-warn" : "") }, "טייק פרופיט ", ltr(fmtPrice(e.tp1), "tag__v")),
+      h("span", { class: "tag tag--plain" }, "קנייה ", ltr(fmtPrice(e.entry, stock.currency), "tag__v")),
+      h("span", { class: "tag tag--plain" }, "סטופ ", ltr(fmtPrice(e.stop, stock.currency), "tag__v")),
+      h("span", { class: "tag tag--plain" + (isNum(e.rr1) && e.rr1 < 2 ? " is-warn" : "") }, "טייק פרופיט ", ltr(fmtPrice(e.tp1, stock.currency), "tag__v")),
     ];
   }
   if (!hasRisk(stock)) return [h("span", { class: "tag tag--plain" }, "אין נתוני סיכון")];
   const r = stock.risk;
   const out = [];
-  if (isNum(r.stop)) out.push(h("span", { class: "tag tag--plain" }, "סטופ ", ltr(fmtPrice(r.stop), "tag__v")));
-  if (isNum(r.target)) out.push(h("span", { class: "tag tag--plain" }, "טייק פרופיט ", ltr(fmtPrice(r.target), "tag__v")));
+  if (isNum(r.stop)) out.push(h("span", { class: "tag tag--plain" }, "סטופ ", ltr(fmtPrice(r.stop, stock.currency), "tag__v")));
+  if (isNum(r.target)) out.push(h("span", { class: "tag tag--plain" }, "טייק פרופיט ", ltr(fmtPrice(r.target, stock.currency), "tag__v")));
   if (isNum(r.rr)) out.push(h("span", { class: "tag tag--plain" + (r.rr < 2 ? " is-warn" : "") }, "R:R ", ltr(r.rr.toFixed(2), "tag__v")));
   return out;
 }

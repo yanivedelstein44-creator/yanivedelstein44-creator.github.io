@@ -2,7 +2,7 @@
    Never touches api.github.com (data + token) or ../fixtures (demo data); those go straight to the network.
    Bump VERSION on every publish (tests/shell.test.mjs checks it equals APP_VERSION in version.js, and that SHELL lists
    every module, stylesheet and font the app loads: QA R2-m3). */
-const VERSION = "1.5.0";
+const VERSION = "1.6.0";
 const CACHE = `stockscenter-shell-${VERSION}`;
 
 const SHELL = [
@@ -18,10 +18,10 @@ const SHELL = [
   "./js/components/sidebar.js", "./js/components/slider.js", "./js/components/sortChips.js",
   "./js/components/states.js", "./js/components/statusPill.js", "./js/components/stockSheet.js",
   "./js/components/toast.js", "./js/data/github.js", "./js/data/links.js",
-  "./js/data/install.js", "./js/data/local.js", "./js/dom.js", "./js/format.js",
+  "./js/data/install.js", "./js/data/local.js", "./js/dom.js", "./js/format.js", "./js/imageShrink.js",
   "./js/buy.js", "./js/installPrompt.js", "./js/main.js", "./js/markets.js", "./js/plan.js", "./js/pwa.js", "./js/risk.js",
   "./js/router.js", "./js/scoring/total.js", "./js/screens/category.js",
-  "./js/screens/buy.js", "./js/screens/combined.js", "./js/screens/history.js", "./js/screens/home.js", "./js/screens/install.js", "./js/screens/markets.js",
+  "./js/screens/buy.js", "./js/screens/portfolio.js", "./js/screens/combined.js", "./js/screens/history.js", "./js/screens/home.js", "./js/screens/install.js", "./js/screens/markets.js",
   "./js/screens/phone.js", "./js/screens/phoneTab.js", "./js/screens/settings.js", "./js/screens/setup.js",
   "./js/state.js", "./js/universe.js", "./js/watchlist.js",
   "./fonts/rubik-hebrew-400-normal.woff2", "./fonts/rubik-hebrew-500-normal.woff2", "./fonts/rubik-hebrew-600-normal.woff2",

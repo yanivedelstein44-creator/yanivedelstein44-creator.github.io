@@ -97,6 +97,15 @@ export class LocalAdapter {
     const r = await callBridge("requestScan", ids && ids.length ? ids : ["all"]);
     return { ok: true, ...(r && typeof r === "object" ? r : {}) };
   }
+  /** 1.0.12 "התיק שלי": latest/portfolio.json (an empty document before the first analysis). */
+  getPortfolio() {
+    return callBridge("getPortfolio");
+  }
+  /** A screenshot {b64, mime} from the window; the program queues it. Progress: status.portfolio. */
+  async submitPortfolio(image) {
+    const r = await callBridge("analyzePortfolio", image.b64, image.mime);
+    return { ok: true, ...(r && typeof r === "object" ? r : {}) };
+  }
   /** Inside the program window the program itself checks (the same as "בדוק עדכונים"). */
   async requestUpdate() {
     const r = await callBridge("checkForUpdates");

@@ -1,5 +1,5 @@
 // Shared app state, settings persistence, status polling and scan requests.
-import { clock, nyToday } from "./format.js";
+import { clock, nyToday, versionAtLeast } from "./format.js";
 import { callBridge } from "./data/local.js";
 import { normalizeWatch, readWatch, writeWatch, toggleWatch as toggledList, isWatched, watchPrefsPatch } from "./watchlist.js";
 
@@ -55,6 +55,7 @@ export const app = {
   offline: false, // the phone has no connection (online/offline events, network failures)
   error: null, // {message_he, needsSettings}
   pendingScan: null, // {ids, id, at, baseline}
+  pendingPortfolio: null, // 1.0.12: {id, at} of a screenshot sent for analysis, until status.portfolio says done / error
   desktopInfo: null, // desktop only: last getSettings() (secrets_persistent, has_phone_token, ...)
   watch: [], // [{symbol, name?, exchange?}] (watchlist.js)
   nav: (hash) => {
@@ -287,6 +288,18 @@ export async function refreshStatus() {
       app.toast("המחשב לא הגיב לבקשה. בדוק שהתוכנה פועלת.");
     }
   }
+  // 1.0.12 "התיק שלי": progress of a screenshot analysis (status.portfolio), and its end
+  const pp = app.pendingPortfolio;
+  const pst = st && st.portfolio;
+  if (pp) {
+    const mine = pst && pst.id === pp.id;
+    if (mine && (pst.state === "done" || pst.state === "error")) app.pendingPortfolio = null;
+    else if (!mine && st.last_command_id !== pp.id && Date.now() - pp.at > 120000) {
+      app.pendingPortfolio = null;
+      app.toast("המחשב לא הגיב לבקשה. בדוק שהתוכנה פועלת.");
+    }
+  }
+  if (JSON.stringify(prev?.portfolio || null) !== JSON.stringify(pst || null) || (pp && !app.pendingPortfolio)) app.bus.emit("portfolio", pst || null);
   const restored = !!(prev && prev.restoring && !st.restoring); // the desktop finished restoring the history from GitHub
   const finished = (prev && prev.state === "scanning" && st.state !== "scanning") || restored;
   const changed = prev && prev.last_scan_at !== st.last_scan_at;
@@ -348,6 +361,46 @@ export async function requestUpdate() {
   }
 }
 
+/** The first program version that analyses a portfolio screenshot (older ones ignore the phone's request). */
+export const PORTFOLIO_MIN_PC = "1.0.12";
+
+/** On the phone: the PC program is known and too old for "התיק שלי" (its version, else null). */
+export function pcTooOldForPortfolio(status = app.status, mode = app.mode) {
+  if (mode.desktop || !status || pcState(status).kind === "offline") return null;
+  return versionAtLeast(status.app_version, PORTFOLIO_MIN_PC) ? null : String(status.app_version || "ישנה");
+}
+
+/**
+ * 1.0.12 "התיק שלי": send a screenshot {b64, mime} to the program (the window: directly; the phone: through GitHub).
+ * The program reads it with Claude and analyses the holdings; status.portfolio reports the progress.
+ */
+export async function submitPortfolio(image) {
+  if (phoneOffline()) {
+    app.toast("אין חיבור לאינטרנט");
+    return false;
+  }
+  if (!app.mode.desktop && pcState(app.status).kind === "offline") {
+    app.toast("המחשב לא מחובר. הניתוח רץ בתוכנה במחשב");
+    return false;
+  }
+  // an older program would leave the picture on GitHub and never answer: ask for the update instead
+  if (pcTooOldForPortfolio()) {
+    app.toast(`ניתוח תיק עובד מגרסה ${PORTFOLIO_MIN_PC} של התוכנה במחשב. עדכן אותה בהגדרות`);
+    return false;
+  }
+  if (typeof app.adapter?.submitPortfolio !== "function") return false;
+  try {
+    const r = await app.adapter.submitPortfolio(image);
+    app.pendingPortfolio = { id: r && r.id, at: Date.now() };
+    app.bus.emit("portfolio", null);
+    schedulePoll(1500);
+    return true;
+  } catch (e) {
+    app.toast(e?.message_he || "שליחת התמונה נכשלה");
+    return false;
+  }
+}
+
 /* ---------- polling: 3 s while scanning, otherwise 30 s while the page is visible ---------- */
 
 let timer = null;
@@ -356,7 +409,7 @@ export function schedulePoll(ms) {
   timer = setTimeout(async () => {
     if (!document.hidden) await refreshStatus();
     schedulePoll();
-  }, ms ?? (isScanning() || app.status?.restoring ? 3000 : 30000));
+  }, ms ?? (isScanning() || app.status?.restoring || app.pendingPortfolio ? 3000 : 30000));
 }
 
 export function startPolling() {

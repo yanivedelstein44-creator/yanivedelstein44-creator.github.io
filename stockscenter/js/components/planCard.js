@@ -2,7 +2,7 @@
 // 2, position size at the plan, the market regime and sector lines, and the "הסבר" toggle with how it is computed.
 import { h, ltr } from "../dom.js";
 import { app, loadMarket, onLive } from "../state.js";
-import { fmtPrice, fmtMoney, fmtPct, fmtInt, fmtCompact } from "../format.js";
+import { fmtPrice, fmtMoney, fmtPct, fmtInt, fmtCompact, priceParts } from "../format.js";
 import { planStatus, planPositionSize, ratioFromTo, tp1BasisHe, tp2BasisHe, whyLine, explainSections, PLAN_NOTE, TREND_HE } from "../plan.js";
 import { REGIME, sectorRow, rankedSectors, sectorRankHe } from "../markets.js";
 import { sectorHe } from "../risk.js";
@@ -11,6 +11,14 @@ const isNum = (x) => typeof x === "number" && Number.isFinite(x);
 let seq = 0;
 
 const pctHe = (r) => (isNum(r) ? fmtPct(r, { signed: true }) : "");
+
+/** A price column's box. Agorot (1.0.12) read "292.56 אג׳" right to left with a smaller, lighter unit, so the big price
+ * of a Tel Aviv stock still fits its third of the card; dollars keep "$292.56" left to right. */
+function priceBox(n, cur, cls) {
+  const p = priceParts(n, cur);
+  if (!p.rtl) return ltr(fmtPrice(n, cur), cls);
+  return h("bdi", { dir: "rtl", class: "num " + cls }, p.num, " ", h("span", { class: "px-unit" }, p.unit));
+}
 
 function cell(k, v, note, { cls = "", testid = null, unit = null } = {}) {
   return h(
@@ -23,6 +31,7 @@ function cell(k, v, note, { cls = "", testid = null, unit = null } = {}) {
 }
 
 function sizeCell(stock, settings, sheet) {
+  if (stock.currency && stock.currency !== "USD") return null; // 1.0.12: the portfolio size setting is in dollars
   const pos = planPositionSize(stock, settings);
   if (pos)
     return cell("גודל פוזיציה", fmtInt(pos.shares), `≈ ${fmtMoney(pos.value)} · סיכון ${fmtPct(settings.riskPct / 100)} מתיק ${fmtCompact(settings.portfolio)}`, { testid: "position-size", unit: pos.shares === 1 ? "מניה" : "מניות" });
@@ -84,12 +93,12 @@ export function planCard(stock, settings, sheet) {
     if (open && typeof explain.scrollIntoView === "function") requestAnimationFrame(() => explain.scrollIntoView({ block: "nearest", behavior: "smooth" }));
   });
 
-  const p = (k, v, note, cls = "") =>
-    h("div", { class: "plan__p " + cls }, h("span", { class: "plan__pk" }, k), ltr(v, "plan__pv"), note ? h("span", { class: "plan__pn" }, note) : null);
+  const p = (k, n, note, cls = "") =>
+    h("div", { class: "plan__p " + cls }, h("span", { class: "plan__pk" }, k), priceBox(n, stock.currency, "plan__pv"), note ? h("span", { class: "plan__pn" }, note) : null);
   const ctx = h("div", { class: "plan__ctx", hidden: true });
   const trend = TREND_HE[e.trend] || "";
   const isBreakout = st.key === "breakout";
-  const breakout = isNum(e.breakout) && !isBreakout ? h("p", { class: "plan__line", "data-testid": "plan-breakout" }, "כניסה בפריצה: סגירה יומית מעל ", ltr(fmtPrice(e.breakout)), ", עם סטופ ב-", ltr(fmtPrice(e.breakout - e.risk_per_share)), ".") : null;
+  const breakout = isNum(e.breakout) && !isBreakout ? h("p", { class: "plan__line", "data-testid": "plan-breakout" }, "כניסה בפריצה: סגירה יומית מעל ", ltr(fmtPrice(e.breakout, stock.currency)), ", עם סטופ ב-", ltr(fmtPrice(e.breakout - e.risk_per_share, stock.currency)), ".") : null;
 
   const el = h(
     "section",
@@ -98,17 +107,17 @@ export function planCard(stock, settings, sheet) {
     h(
       "div",
       { class: "plan__prices" },
-      p(isBreakout ? "קנייה מעל" : "מומלץ", fmtPrice(e.entry), null, "plan__p--main"),
-      p("מקסימום", fmtPrice(e.max_entry)),
-      p("עכשיו", fmtPrice(price), isNum(vsEntry) && Math.abs(vsEntry) >= 0.0005 ? `${pctHe(vsEntry)} ${isBreakout ? "ממחיר הקנייה" : "מהמומלץ"}` : null)
+      p(isBreakout ? "קנייה מעל" : "מומלץ", e.entry, null, "plan__p--main"),
+      p("מקסימום", e.max_entry),
+      p("עכשיו", price, isNum(vsEntry) && Math.abs(vsEntry) >= 0.0005 ? `${pctHe(vsEntry)} ${isBreakout ? "ממחיר הקנייה" : "מהמומלץ"}` : null)
     ),
     h("p", { class: "plan__why", "data-testid": "plan-why" }, [st.text, whyLine(e), trend ? `${trend}.` : ""].filter(Boolean).join(" ")),
     h(
       "div",
       { class: "sh-risk plan__grid", "data-testid": "risk-row" },
-      cell("סטופ", fmtPrice(e.stop), `${pctHe(ratioFromTo(e.entry, e.stop))} מהמומלץ · ${isNum(e.atr_mult) ? e.atr_mult.toLocaleString("he-IL") : "2"} × ATR`, { testid: "plan-stop" }),
-      cell("טייק פרופיט 1", fmtPrice(e.tp1), `${pctHe(ratioFromTo(e.entry, e.tp1))} · R:R ${isNum(e.rr1) ? e.rr1.toFixed(2) : "—"} · ${tp1BasisHe(e.tp1_basis)}`, { testid: "plan-tp1", cls: isNum(e.rr1) && e.rr1 < 2 ? "is-warn" : "" }),
-      cell("טייק פרופיט 2", fmtPrice(e.tp2), `${pctHe(ratioFromTo(e.entry, e.tp2))} · R:R ${isNum(e.rr2) ? e.rr2.toFixed(2) : "—"} · ${tp2BasisHe(e.tp2_basis)}`, { testid: "plan-tp2" }),
+      cell("סטופ", fmtPrice(e.stop, stock.currency), `${pctHe(ratioFromTo(e.entry, e.stop))} מהמומלץ · ${isNum(e.atr_mult) ? e.atr_mult.toLocaleString("he-IL") : "2"} × ATR`, { testid: "plan-stop" }),
+      cell("טייק פרופיט 1", fmtPrice(e.tp1, stock.currency), `${pctHe(ratioFromTo(e.entry, e.tp1))} · R:R ${isNum(e.rr1) ? e.rr1.toFixed(2) : "—"} · ${tp1BasisHe(e.tp1_basis)}`, { testid: "plan-tp1", cls: isNum(e.rr1) && e.rr1 < 2 ? "is-warn" : "" }),
+      cell("טייק פרופיט 2", fmtPrice(e.tp2, stock.currency), `${pctHe(ratioFromTo(e.entry, e.tp2))} · R:R ${isNum(e.rr2) ? e.rr2.toFixed(2) : "—"} · ${tp2BasisHe(e.tp2_basis)}`, { testid: "plan-tp2" }),
       sizeCell(stock, settings, sheet)
     ),
     breakout,

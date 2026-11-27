@@ -203,29 +203,48 @@ export function catCard(c, { testid = `category-row-${c.id}`, scanTestid = `scan
   return el;
 }
 
-/* ---------- "מחיר מומלץ" (1.0.9): a link with the counts of the latest scan ---------- */
+/* ---------- quick tiles: "מחיר מומלץ" (1.0.9) and "התיק שלי" (1.0.12), side by side ---------- */
 
-function buyTeaser() {
-  const sub = h("span", { class: "buyteaser__sub", "data-testid": "buy-teaser-sub" }, "מניות שהגיעו למחיר הקנייה המומלץ או קרובות אליו");
-  const count = h("span", { class: "buyteaser__count num", hidden: true });
+function qtile({ href, testid, iconName, tone = "", title, sub, subTestid }) {
+  const subEl = h("span", { class: "qtile__sub", "data-testid": subTestid }, sub);
   const el = h(
     "a",
-    { class: "card buyteaser", href: "#/buy", "data-testid": "buy-teaser" },
-    h("span", { class: "buyteaser__icon", "aria-hidden": "true" }, icon("target", 22, 2)),
-    h("span", { class: "buyteaser__txt" }, h("span", { class: "buyteaser__title" }, "מחיר מומלץ"), sub),
-    count,
-    h("span", { class: "buyteaser__go", "aria-hidden": "true" }, icon("chevron", 18, 2.2))
+    { class: "card qtile", href, "data-testid": testid },
+    h("span", { class: "qtile__icon" + (tone ? ` qtile__icon--${tone}` : ""), "aria-hidden": "true" }, icon(iconName, 21, 2)),
+    h("span", { class: "qtile__txt" }, h("span", { class: "qtile__title" }, title), subEl)
   );
+  return { el, subEl };
+}
+
+function buyTeaser() {
+  const t = qtile({ href: "#/buy", testid: "buy-teaser", iconName: "target", tone: "good", title: "מחיר מומלץ", sub: "מניות בטווח הקנייה", subTestid: "buy-teaser-sub" });
   loadUniverse().then(
     (u) => {
       const c = buyCounts(u.stocks);
-      count.hidden = !c.reached;
-      count.textContent = fmtInt(c.reached);
-      sub.textContent = c.reached || c.near ? `${c.reached === 1 ? "מניה אחת" : `${fmtInt(c.reached)} מניות`} בטווח הקנייה · ${c.near === 1 ? "אחת קרובה" : `${fmtInt(c.near)} קרובות`}` : "אין כרגע מניה בטווח הקנייה או קרובה אליו";
+      t.subEl.textContent = c.reached ? `${fmtInt(c.reached)} בטווח הקנייה` : c.near ? `${fmtInt(c.near)} קרובות לטווח` : "אין כרגע בטווח";
+      t.el.title = `${fmtInt(c.reached)} בטווח הקנייה · ${fmtInt(c.near)} קרובות`;
     },
     () => {}
   );
-  return el;
+  return t.el;
+}
+
+function portfolioTeaser() {
+  const t = qtile({ href: "#/portfolio", testid: "portfolio-teaser", iconName: "briefcase", title: "התיק שלי", sub: "ניתוח מצילום מסך", subTestid: "portfolio-teaser-sub" });
+  if (typeof app.adapter?.getPortfolio === "function")
+    app.adapter.getPortfolio().then(
+      (doc) => {
+        const s = doc && doc.summary;
+        if (!s) return;
+        t.subEl.textContent = typeof s.weighted_total === "number" ? `ציון משוקלל ${s.weighted_total}` : `${fmtInt(s.count)} אחזקות`;
+      },
+      () => {}
+    );
+  return t.el;
+}
+
+function quickTiles(never) {
+  return h("div", { class: "qtiles" + (never ? " qtiles--one" : "") }, never ? null : buyTeaser(), portfolioTeaser());
 }
 
 /* ---------- watchlist ("במעקב") ---------- */
@@ -357,7 +376,7 @@ export async function mount(root) {
     const body = h("div", { class: "home" + (wide ? " home--wide" : "") });
     root.append(body);
     body.append(marketBar()); // hidden until the markets page exists (SPEC §6.11)
-    if (!never) body.append(buyTeaser()); // 1.0.9: stocks at or near the plan's buy price
+    body.append(quickTiles(never)); // 1.0.9 "מחיר מומלץ" (after a scan) and 1.0.12 "התיק שלי"
     if (never && app.status?.restoring)
       body.append(
         h(

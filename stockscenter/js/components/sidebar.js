@@ -13,6 +13,7 @@ const NAV = [
   ["home", "#/home", "בית", "home"],
   ["combined", "#/combined", "דירוג משולב", "layers"],
   ["buy", "#/buy", "מחיר מומלץ", "target"], // 1.0.9: stocks at or near the plan's buy price
+  ["portfolio", "#/portfolio", "התיק שלי", "briefcase"], // 1.0.12: a broker screenshot analysed by the program
   ["markets", "#/markets", "שווקים", "markets"],
   ["history", "#/history", "היסטוריה", "history"],
   ["phone", "#/phone", "התקן בטלפון", "phone", "desktop"], // desktop window only: one QR installs and pairs the phone app

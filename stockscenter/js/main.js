@@ -81,6 +81,7 @@ const SCREENS = {
   combined: () => import("./screens/combined.js").then((m) => m.mount),
   markets: () => import("./screens/markets.js").then((m) => m.mount),
   buy: () => import("./screens/buy.js").then((m) => m.mount),
+  portfolio: () => import("./screens/portfolio.js").then((m) => m.mount),
   historyCombined: () => import("./screens/combined.js").then((m) => m.mount),
   history: () => import("./screens/history.js").then((m) => m.mountList),
   historyDay: () => import("./screens/history.js").then((m) => m.mountDay),

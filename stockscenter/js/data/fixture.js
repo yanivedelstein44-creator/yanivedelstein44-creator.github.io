@@ -6,6 +6,8 @@ const BASE = new URL("../../../fixtures/demo/", import.meta.url);
 const DEMO_NOW = Date.parse("2026-11-12T17:40:00Z"); // just after the fixture's last heartbeat -> stable screenshots
 const SCAN_MS = 6000;
 const STEPS = ["capturing", "enriching", "scoring", "report", "saving", "uploading"];
+const PORTFOLIO_MS = 5000; // 1.0.12: a fake screenshot analysis (?portfolio=none: no analysis yet; ?portfoliofail=1: it fails)
+const PORTFOLIO_STEPS = ["reading", "scoring", "writing"];
 const iso = (t) => new Date(t).toISOString().replace(/\.\d+Z$/, "Z");
 
 export class FixtureAdapter {
@@ -45,8 +47,11 @@ export class FixtureAdapter {
     if (this.lastScanAt) out.last_scan_at = this.lastScanAt;
     // 1.0.9: the program's own update; ?pcupdate=waiting shows a downloaded version that waits for the PC to be idle
     const upd = new URLSearchParams(location.search).get("pcupdate");
-    out.app_version = "1.0.9";
-    out.update = upd === "waiting" ? { state: "waiting", version: "1.0.10", checked_at: iso(clock.now() - 60 * 1000) } : { state: "none", version: null, checked_at: iso(this.updateAskedAt || clock.now() - 6 * 60 * 1000) };
+    // ?pcver=1.0.10: an older program on the PC (the phone then asks to update it before "התיק שלי")
+    out.app_version = new URLSearchParams(location.search).get("pcver") || "1.0.12";
+    out.update = upd === "waiting" ? { state: "waiting", version: "1.0.13", checked_at: iso(clock.now() - 60 * 1000) } : { state: "none", version: null, checked_at: iso(this.updateAskedAt || clock.now() - 6 * 60 * 1000) };
+    const pf = this._portfolioStatus();
+    if (pf) out.portfolio = pf;
     if (this.scan) {
       const { ids, t0, id } = this.scan;
       const total = ids.length;
@@ -98,6 +103,32 @@ export class FixtureAdapter {
   }
   async getImageUrl(path) {
     return new URL(path, BASE).href;
+  }
+  /* ---------- 1.0.12 "התיק שלי" ---------- */
+  _portfolioStatus() {
+    const q = new URLSearchParams(location.search);
+    const j = this.portfolioJob;
+    if (!j) return this.portfolioDone ? { id: this.portfolioDone.id, state: "done", source: "pwa", message_he: null, at: this.portfolioDone.at, count: 5, analyzed: 4 } : null;
+    const f = (Date.now() - j.t0) / PORTFOLIO_MS;
+    if (f >= 1) {
+      this.portfolioJob = null;
+      if (q.get("portfoliofail") === "1") return { id: j.id, state: "error", source: "pwa", message_he: "לא זיהיתי בתמונה טבלת אחזקות. צלם את מסך התיק כך שהשמות והכמויות ייראו", at: iso(clock.now()) };
+      this.portfolioDone = { id: j.id, at: iso(clock.now()) };
+      return this._portfolioStatus();
+    }
+    const state = f < 0.2 ? "queued" : PORTFOLIO_STEPS[Math.min(2, Math.floor(((f - 0.2) / 0.8) * 3))];
+    return { id: j.id, state, source: "pwa", message_he: null, at: iso(clock.now()) };
+  }
+  async getPortfolio() {
+    if (new URLSearchParams(location.search).get("portfolio") === "none" && !this.portfolioDone) return null;
+    const doc = await this._json("latest/portfolio.json");
+    return this.portfolioDone ? { ...doc, id: this.portfolioDone.id, analyzed_at: this.portfolioDone.at } : doc;
+  }
+  async submitPortfolio(image) {
+    if (!image || typeof image.b64 !== "string" || !image.b64) throw Object.assign(new Error("bad image"), { message_he: "התמונה לא תקינה" });
+    const id = `demo-portfolio-${++this.cmdSeq}`;
+    this.portfolioJob = { id, t0: Date.now() };
+    return { ok: true, id };
   }
   async requestUpdate() {
     this.updateAskedAt = clock.now();

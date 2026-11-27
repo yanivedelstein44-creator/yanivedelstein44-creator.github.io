@@ -50,7 +50,7 @@ function head(stock, total, ctx, sheet) {
       h(
         "p",
         { class: "sh-px" },
-        ltr(fmtPrice(stock.price), "sh-px__v"),
+        ltr(fmtPrice(stock.price, stock.currency), "sh-px__v"),
         hasChg ? " " : null,
         hasChg ? ltr(fmtPct(chg, { signed: true }), "sh-px__chg " + (chg > 0 ? "is-up" : chg < 0 ? "is-down" : "")) : null,
         ctx.asOf ? ` · ${ctx.asOf}` : null
@@ -75,9 +75,12 @@ function riskPanel(stock, settings, sheet) {
   const mult = isNum(r.atr_mult) ? r.atr_mult : 2;
   const basis = r.target_basis === "resistance" ? "התנגדות של 60 יום" : r.target_basis === "atr" ? "3 × ATR מעל המחיר" : null;
   const rrOk = isNum(r.rr) && r.rr >= 2;
-  const pos = positionSize(stock, settings);
+  const foreign = stock.currency && stock.currency !== "USD"; // 1.0.12: the portfolio size setting is in dollars
+  const pos = foreign ? null : positionSize(stock, settings);
   let posCell;
-  if (pos) {
+  if (foreign) {
+    posCell = null;
+  } else if (pos) {
     posCell = cell("גודל פוזיציה", fmtInt(pos.shares), `≈ ${fmtMoney(pos.value)} · סיכון ${fmtPct(settings.riskPct / 100)} מתיק ${fmtCompact(settings.portfolio)}`, { testid: "position-size", unit: pos.shares === 1 ? "מניה" : "מניות" });
   } else {
     const link = h("a", { class: "sh-risk__link", href: "#/settings", "data-testid": "set-portfolio-link" }, settings.portfolio ? "לא ניתן לחשב" : "הגדר גודל תיק בהגדרות");
@@ -90,8 +93,8 @@ function riskPanel(stock, settings, sheet) {
   return h(
     "div",
     { class: "sh-risk", "data-testid": "risk-row" },
-    cell("סטופ", fmtPrice(r.stop), `${mult.toLocaleString("he-IL")} × ATR מתחת למחיר`),
-    cell("טייק פרופיט", fmtPrice(r.target), basis),
+    cell("סטופ", fmtPrice(r.stop, stock.currency), `${mult.toLocaleString("he-IL")} × ATR מתחת למחיר`),
+    cell("טייק פרופיט", fmtPrice(r.target, stock.currency), basis),
     cell("סיכוי מול סיכון", isNum(r.rr) ? r.rr.toFixed(2) : "—", isNum(r.rr) ? (rrOk ? "2 ומעלה, תקין" : "מתחת ל-2, נמוך") : null, { cls: isNum(r.rr) && !rrOk ? "is-warn" : "" }),
     posCell
   );
