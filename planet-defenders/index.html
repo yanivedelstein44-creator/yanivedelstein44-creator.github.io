@@ -96,6 +96,23 @@
  }
  @media (max-width: 879px) { .col { display: contents; } }
  @media (prefers-reduced-motion: reduce) { .logo, .em-shield, .em-jet, .btn > span::after { animation: none; } }
+ /* a computer (a mouse, 1000px and wider; Windows' display scaling makes most of its screens 1280-1536 CSS px wide and
+    585-864 high under the tabs): a computer's proportions, the page as on a 1920x1080 screen scaled down with the
+    screen, to 76% at the least (--u: one CSS px of a maximized window there, 1920x950): the column, the logo, the
+    headings, the buttons, the icons and the gaps. Body text and small print keep their sizes, a button stays 48px high
+    and more; phones and tablets (touch) keep the rules above as they are */
+ @media (min-width: 1000px) and (hover: hover) and (pointer: fine) {
+  :root { --u: clamp(.76px, min(.0521vw, .105vh), 1px); }
+  main { width: min(100%, max(860px, calc(1040 * var(--u)))); gap: calc(20 * var(--u)) calc(24 * var(--u)); padding-top: calc(34 * var(--u)); padding-bottom: calc(34 * var(--u)); }
+  .hero { gap: calc(12 * var(--u)); } .logo-svg { width: calc(620 * var(--u)); } .tag { font-size: max(15.5px, calc(19 * var(--u))); }
+  .panel { padding: calc(16 * var(--u)); } .col { gap: calc(16 * var(--u)); } .get, .steps { gap: calc(12 * var(--u)); }
+  .app img { width: calc(84 * var(--u)); height: calc(84 * var(--u)); } .app .n { font-size: max(17px, calc(22 * var(--u))); }
+  .btn > span { min-height: max(48px, calc(60 * var(--u))); padding: calc(12 * var(--u)) calc(18 * var(--u)); font-size: max(16.5px, calc(21 * var(--u))); }
+  .btn.alt > span { min-height: max(48px, calc(50 * var(--u))); font-size: max(15px, calc(16.5 * var(--u))); }
+  .steps .btn > span { min-height: max(48px, calc(54 * var(--u))); font-size: max(15.5px, calc(18.5 * var(--u))); }
+  h2 { font-size: max(15px, calc(17 * var(--u))); }
+  .feat { gap: calc(10 * var(--u)); } .feat li { padding: calc(12 * var(--u)); } .feat .pi { width: calc(34 * var(--u)); height: calc(34 * var(--u)); } .feat b { font-size: max(14.5px, calc(15.5 * var(--u))); }
+ }
 </style>
 </head>
 <body><main>
