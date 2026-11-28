@@ -15,7 +15,7 @@
 window.LEGAL = {
   developer: 'Yaniv Edelstein',
   email: 'yanivedelstein33@gmail.com',
-  updated: '2026-11-26',
+  updated: '2026-11-28',
 };
 
 (function () {
