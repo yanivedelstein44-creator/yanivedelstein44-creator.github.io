@@ -328,6 +328,50 @@ async function desktopBlocks(rerender) {
     }
     keyBtn.disabled = false;
   });
+  // Claude Code (1.0.13): "התיק שלי" reads the screenshot with the subscription of this PC, no API key
+  const ccState = h("div", { class: "conn" }, h("span", { class: "conn__dot" }), h("span", {}, "בודק…"));
+  const setCc = (ok, text) => ccState.replaceChildren(h("span", { class: "conn__dot " + (ok ? "is-on" : "") }), h("span", { "data-testid": "cc-state" }, text));
+  const ccStatus = () =>
+    callBridge("claudeCodeStatus").then(
+      (r) => setCc(!!r.found, r.found ? "Claude Code נמצא במחשב" : "Claude Code לא נמצא במחשב"),
+      () => setCc(false, "Claude Code לא נמצא במחשב")
+    );
+  ccStatus();
+  const ccPath = input({ id: "cc-path", dir: "ltr", placeholder: "C:\\Users\\…\\.local\\bin\\claude.exe", value: cfg.claude_code_path || "", "data-testid": "cc-path" });
+  const ccSave = h("button", { class: "btn btn--secondary btn--pill", type: "button", "data-testid": "cc-path-save" }, "שמור מיקום");
+  ccSave.addEventListener("click", async () => {
+    ccSave.disabled = true;
+    try {
+      await callBridge("saveSettings", { claude_code_path: ccPath.value.trim() });
+      toast(ccPath.value.trim() ? "המיקום נשמר" : "התוכנה תחפש את Claude Code לבד");
+      ccStatus();
+    } catch (e) {
+      toast(e.message_he || "השמירה נכשלה");
+    }
+    ccSave.disabled = false;
+  });
+  const ccTest = h("button", { class: "btn btn--secondary btn--pill", type: "button", "data-testid": "cc-test" }, "בדוק את Claude Code");
+  ccTest.addEventListener("click", async () => {
+    ccTest.disabled = true;
+    setCc(false, "בודק… (עד דקה)");
+    try {
+      const r = await callBridge("claudeCodeTest");
+      setCc(!!r.works, r.message_he || (r.works ? "Claude Code עובד" : "הבדיקה נכשלה"));
+    } catch (e) {
+      setCc(false, e.message_he || "הבדיקה נכשלה");
+    }
+    ccTest.disabled = false;
+  });
+  out.push(
+    card(
+      "Claude Code במחשב (התיק שלי)",
+      h("p", { class: "field__help" }, "ניתוח צילום התיק רץ ב-Claude Code שמותקן במחשב, עם החשבון שמחובר אליו: מהמנוי שלך, בלי מפתח API. Haiku קורא את הצילום וכותב את הניתוח, ו-Sonnet קורא שוב רק אם Haiku לא הצליח."),
+      ccState,
+      field({ id: "cc-path", label: "המיקום של claude.exe", control: ccPath, help: "רק אם התוכנה לא מוצאת אותו לבד. ריק = חיפוש אוטומטי." }),
+      h("div", { class: "block__actions" }, ccSave, ccTest)
+    )
+  );
+
   out.push(
     card(
       "Claude (דוח לכל קטגוריה)",

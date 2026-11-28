@@ -1,0 +1,215 @@
+/* Charts of "התיק שלי": the analysis card (.pf-charts, .pfc-*) and the price range of a holding row (.pfr).
+   Rendered by js/components/portfolioCharts.js. Load after screens.css.
+
+   Sector colors (--pfc-cat-1..7): one fixed order, checked with the dataviz skill's validate_palette.js on the card
+   surface of each theme (light #FFFDF9, dark #131C31): lightness band, chroma floor, contrast >= 3:1, and for every
+   pair of neighbors, the pair that closes the ring included for any number of slices, color-blind separation >= 9.8
+   and normal-vision separation >= 15.3 (the targets are 8 and 15). "אחר" is a neutral gray; the legend names every slice.
+   Text never wears these colors: they are for marks only. */
+:root {
+  --pfc-cat-1: #3D5CA8;   /* blue */
+  --pfc-cat-2: #6B8E3A;   /* olive */
+  --pfc-cat-3: #A77BC6;   /* violet */
+  --pfc-cat-4: #C4623F;   /* terracotta */
+  --pfc-cat-5: #0F928C;   /* teal */
+  --pfc-cat-6: #B98A22;   /* ochre */
+  --pfc-cat-7: #C2557E;   /* rose */
+  --pfc-cat-other: #A8A395;
+
+  /* the map: bubbles by total-score tier (one blue in two steps, and the app's "low" red) */
+  --pfc-tier-good: var(--sc-data);
+  --pfc-tier-mid: #7888B6;
+  --pfc-tier-low: var(--sc-down);
+  --pfc-tier-none: #A8A395;
+  --pfc-plot: var(--sc-surface-2);
+  --pfc-grid-line: var(--sc-line);
+
+  /* buy-plan statuses (bar segments and chip dots) */
+  --pfc-buy-in_zone: #2F7D58;
+  --pfc-buy-breakout: var(--sc-data);
+  --pfc-buy-wait: #D08A1E;
+  --pfc-buy-extended: #9A5A1C;
+  --pfc-buy-no_room: #A8A395;
+  --pfc-buy-down: #6E7486;
+  --pfc-buy-none: #D4CDBD;
+  --pfc-zone: #2F7D58;    /* the buy zone on a price range */
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pfc-cat-1: #7C9BEA;
+    --pfc-cat-2: #86A84E;
+    --pfc-cat-3: #8653BD;
+    --pfc-cat-4: #DB7A55;
+    --pfc-cat-5: #1FAAA0;
+    --pfc-cat-6: #C0922F;
+    --pfc-cat-7: #D9709A;
+    --pfc-cat-other: #5C6780;
+
+    --pfc-tier-mid: #6A7BA8;
+    --pfc-tier-none: #5C6780;
+
+    --pfc-buy-in_zone: #5FC08F;
+    --pfc-buy-wait: #F0A43A;
+    --pfc-buy-extended: #B8702A;
+    --pfc-buy-no_room: #7C869C;
+    --pfc-buy-down: #56607A;
+    --pfc-buy-none: #34415F;
+    --pfc-zone: #5FC08F;
+  }
+}
+
+/* ----- the card ----- */
+.pf-charts { padding: var(--sc-s4); display: flex; flex-direction: column; gap: var(--sc-s3); }
+.pfc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--sc-s1) var(--sc-s3); }
+.pfc-head__note { font-size: var(--sc-fs-small); color: var(--sc-ink-3); }
+.pfc-grid { display: grid; grid-template-columns: minmax(0, 1fr); }
+.pfc-part { display: flex; flex-direction: column; gap: var(--sc-s3); min-width: 0; padding-block: var(--sc-s4); border-top: 1px solid var(--sc-line-soft); }
+.pfc-part:first-child { padding-top: var(--sc-s1); border-top: 0; }
+.pfc-part:last-child { padding-bottom: 0; }
+.pfc-h { font-size: var(--sc-fs-body); font-weight: 700; line-height: 1.3; letter-spacing: -0.005em; color: var(--sc-ink); }
+.pfc-note { font-size: var(--sc-fs-small); line-height: 1.45; color: var(--sc-ink-3); }
+
+/* ----- sectors: donut + legend ----- */
+.pfc-sectors { display: flex; flex-direction: column; align-items: center; gap: var(--sc-s3); }
+.pfc-donut { position: relative; width: 148px; height: 148px; flex: none; }
+.pfc-donut__svg { width: 100%; height: 100%; overflow: visible; }
+.pfc-donut__seg { fill: none; stroke-width: 18; transition: opacity var(--sc-dur) var(--sc-ease); }
+.pfc-donut__mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; pointer-events: none; }
+.pfc-donut__n { font-size: var(--sc-fs-masthead); font-weight: 700; line-height: 1; letter-spacing: -0.01em; font-variant-numeric: normal; font-feature-settings: normal; }
+.pfc-donut__l { font-size: var(--sc-fs-small); color: var(--sc-ink-3); line-height: 1.2; }
+.pfc-legend { list-style: none; margin: 0; padding: 0; align-self: stretch; display: flex; flex-direction: column; }
+.pfc-legend__i {
+  display: grid; grid-template-columns: 10px minmax(0, 1fr) auto 34px; align-items: center; column-gap: var(--sc-s2);
+  min-height: 36px; padding-block: 5px; border-top: 1px solid var(--sc-line-soft); transition: opacity var(--sc-dur) var(--sc-ease);
+}
+.pfc-legend__i:first-child { border-top: 0; }
+.pfc-legend__sw { width: 10px; height: 10px; border-radius: 3px; }
+.pfc-legend__name { font-size: var(--sc-fs-meta); line-height: 1.3; color: var(--sc-ink-2); overflow-wrap: anywhere; }
+.pfc-legend__w { font-size: var(--sc-fs-body); font-weight: 700; color: var(--sc-ink); text-align: end; }
+.pfc-legend .tbadge { width: 34px; height: 24px; border-radius: 8px; font-size: var(--sc-fs-meta); }
+.pfc-part--sectors.has-active .pfc-donut__seg:not(.is-active) { opacity: 0.3; }
+.pfc-part--sectors.has-active .pfc-legend__i:not(.is-active) { opacity: 0.5; }
+
+/* ----- the five scores: meters that fill from the reading side, like .hbars ----- */
+.pfc-bars { display: grid; gap: 10px; }
+.pfc-bars__row { display: grid; grid-template-columns: 68px minmax(0, 1fr) 28px; align-items: center; column-gap: var(--sc-s3); min-height: 20px; }
+.pfc-bars__label { font-size: var(--sc-fs-meta); color: var(--sc-ink-2); }
+.pfc-bars__track { height: 8px; border-radius: 4px; background: var(--sc-surface-3); overflow: hidden; }
+.pfc-bars__fill { display: block; height: 100%; border-radius: 4px; background: var(--sc-data); transform-origin: 0 50%; animation: pfc-grow 420ms var(--sc-ease) both; animation-delay: calc(var(--i, 0) * 40ms); }
+[dir="rtl"] .pfc-bars__fill { transform-origin: 100% 50%; }
+.pfc-bars__fill.is-weak { background: var(--sc-weak-dot); }
+.pfc-bars__num { font-size: var(--sc-fs-body); font-weight: 700; line-height: 1; text-align: end; color: var(--sc-ink); }
+.pfc-bars__num.is-null { color: var(--sc-ink-4); }
+@keyframes pfc-grow { from { transform: scaleX(0); } }
+
+/* ----- the map. A left-to-right box: momentum grows to the right, quality grows upward ----- */
+.pfc-map { display: flex; flex-direction: column; gap: var(--sc-s1); width: 100%; max-width: 440px; margin-inline: auto; }
+.pfc-map__ytitle, .pfc-map__xtitle { font-size: var(--sc-fs-small); font-weight: 600; line-height: 1.3; color: var(--sc-ink-3); }
+.pfc-map__ytitle { direction: rtl; text-align: left; padding-left: 24px; }
+.pfc-map__xtitle { text-align: center; padding-left: 24px; }
+.pfc-map__frame { display: grid; grid-template-columns: 24px minmax(0, 1fr); grid-template-rows: auto 16px; }
+.pfc-map__plot { position: relative; grid-column: 2; grid-row: 1; aspect-ratio: 272 / 234; border-radius: var(--sc-radius-tile); background: var(--pfc-plot); }
+.pfc-map__area { position: absolute; inset: 22px; margin: 0; padding: 0; list-style: none; }
+.pfc-map__line { position: absolute; background: var(--pfc-grid-line); }
+.pfc-map__line--v { left: 50%; top: 22px; bottom: 22px; width: 1px; }
+.pfc-map__line--h { top: 50%; left: 22px; right: 22px; height: 1px; }
+.pfc-map__q { position: absolute; font-size: var(--sc-fs-small); line-height: 16px; color: var(--sc-ink-4); white-space: nowrap; pointer-events: none; }
+.pfc-map__q--tr, .pfc-map__q--br { right: 8px; }
+.pfc-map__q--tl, .pfc-map__q--bl { left: 8px; }
+.pfc-map__q--tr.is-corner, .pfc-map__q--tl.is-corner { top: 5px; }
+.pfc-map__q--br.is-corner, .pfc-map__q--bl.is-corner { bottom: 5px; }
+.pfc-map__q--tr.is-inner, .pfc-map__q--tl.is-inner { bottom: calc(50% + 4px); }
+.pfc-map__q--br.is-inner, .pfc-map__q--bl.is-inner { top: calc(50% + 4px); }
+.pfc-map__ticks { position: relative; font-size: var(--sc-fs-small); line-height: 16px; color: var(--sc-ink-4); }
+.pfc-map__ticks > span { position: absolute; }
+.pfc-map__ticks--y { grid-column: 1; grid-row: 1; }
+.pfc-map__ticks--y > span { right: 6px; top: calc(22px + (100% - 44px) * (100 - var(--t)) / 100); transform: translateY(-50%); }
+.pfc-map__ticks--x { grid-column: 2; grid-row: 2; }
+.pfc-map__ticks--x > span { top: 2px; left: calc(22px + (100% - 44px) * var(--t) / 100); transform: translateX(-50%); }
+.pfc-map__pt { position: absolute; width: 0; height: 0; }
+.pfc-pt--good { background: var(--pfc-tier-good); }
+.pfc-pt--mid { background: var(--pfc-tier-mid); }
+.pfc-pt--low { background: var(--pfc-tier-low); }
+.pfc-pt--none { background: var(--pfc-tier-none); }
+.pfc-pt {
+  position: absolute; left: 0; top: 0; width: var(--d); height: var(--d); padding: 0; border: 0; border-radius: 50%;
+  outline: 2px solid var(--pfc-plot); /* the surface ring that keeps overlapping bubbles apart */
+  transform: translate(-50%, -50%); transition: transform var(--sc-dur) var(--sc-ease); -webkit-tap-highlight-color: transparent;
+}
+.pfc-pt::before { content: ""; position: absolute; inset: min(-4px, calc((var(--d) - 44px) / 2)); border-radius: 50%; } /* the touch target */
+.pfc-pt:hover { transform: translate(-50%, -50%) scale(1.08); }
+.pfc-pt:active { transform: translate(-50%, -50%) scale(0.94); }
+.pfc-pt:focus-visible { outline-color: var(--sc-surface); z-index: 2; }
+.pfc-pt__label {
+  position: absolute; font-size: var(--sc-fs-small); font-weight: 700; line-height: 15px; color: var(--sc-ink); white-space: nowrap; pointer-events: none;
+  text-shadow: 0 0 2px var(--pfc-plot), 0 0 2px var(--pfc-plot), 0 0 3px var(--pfc-plot);
+}
+.pfc-pt__label--t { bottom: calc(100% + 3px); left: 50%; transform: translateX(-50%); }
+.pfc-pt__label--b { top: calc(100% + 3px); left: 50%; transform: translateX(-50%); }
+.pfc-pt__label--r { left: calc(100% + 4px); top: 50%; transform: translateY(-50%); }
+.pfc-pt__label--l { right: calc(100% + 4px); top: 50%; transform: translateY(-50%); }
+.pfc-tip {
+  position: absolute; left: 0; top: 0; z-index: 3; display: flex; flex-direction: column; gap: 2px; padding: var(--sc-s2) var(--sc-s3);
+  border-radius: 12px; background: var(--sc-toast-bg); color: var(--sc-toast-fg); box-shadow: var(--sc-sh2);
+  font-size: var(--sc-fs-small); line-height: 1.4; white-space: nowrap; direction: rtl; pointer-events: none;
+}
+.pfc-tip__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sc-s3); }
+.pfc-tip__sym { font-size: var(--sc-fs-body); font-weight: 700; }
+.pfc-tip__total { font-weight: 600; }
+.pfc-tip__row b { font-weight: 700; }
+.pfc-keys { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sc-s1) var(--sc-s3); font-size: var(--sc-fs-small); line-height: 1.4; color: var(--sc-ink-2); }
+.pfc-keys__t { color: var(--sc-ink-3); }
+.pfc-keys__i { display: inline-flex; align-items: center; gap: 6px; }
+.pfc-keys__dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+
+/* ----- against the recommended buy price: one thin bar of all holdings, and a chip per status ----- */
+.pfc-buy__lead { font-size: var(--sc-fs-meta); line-height: 1.3; color: var(--sc-ink-2); }
+.pfc-buy__n { font-size: var(--sc-fs-headline); font-weight: 700; color: var(--sc-ink); letter-spacing: -0.01em; font-variant-numeric: normal; font-feature-settings: normal; }
+.pfc-seg { display: flex; gap: 2px; height: 8px; }
+.pfc-seg__s { flex: 1 1 0; min-width: 6px; border-radius: 2px; }
+.pfc-seg__s:first-child { border-start-start-radius: 4px; border-end-start-radius: 4px; }
+.pfc-seg__s:last-child { border-start-end-radius: 4px; border-end-end-radius: 4px; }
+.pfc-buy--in_zone { background: var(--pfc-buy-in_zone); }
+.pfc-buy--breakout { background: var(--pfc-buy-breakout); }
+.pfc-buy--wait { background: var(--pfc-buy-wait); }
+.pfc-buy--extended { background: var(--pfc-buy-extended); }
+.pfc-buy--no_room { background: var(--pfc-buy-no_room); }
+.pfc-buy--down { background: var(--pfc-buy-down); }
+.pfc-buy--none { background: var(--pfc-buy-none); }
+.pfc-buy__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sc-s2); }
+.pfc-buy__i { gap: 6px; min-height: 28px; }
+.pfc-buy__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.pfc-buy__c { font-weight: 800; margin-inline-start: 2px; }
+
+/* ----- a wide main column: sectors | map, then scores | buy statuses ----- */
+@container catmain (min-width: 640px) {
+  .pfc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sc-s6); }
+  .pfc-part--sectors { grid-column: 1; grid-row: 1; }
+  .pfc-part--map { grid-column: 2; grid-row: 1; }
+  .pfc-part--profile { grid-column: 1; grid-row: 2; }
+  .pfc-part--buy { grid-column: 2; grid-row: 2; }
+  .pfc-part--sectors, .pfc-part--map { padding-top: var(--sc-s1); border-top: 0; }
+  .pfc-part--profile, .pfc-part--buy { padding-bottom: 0; }
+}
+
+/* ----- the price range of one holding. A left-to-right box: the stop on the left, the target on the right ----- */
+.pfr {
+  display: grid; grid-template-rows: 14px 12px 14px; row-gap: 2px; width: 100%; min-width: 232px; max-width: 280px;
+  font-size: var(--sc-fs-small); line-height: 14px; color: var(--sc-ink-3);
+}
+.pfr__row { position: relative; height: 14px; }
+.pfr__row > * { position: absolute; top: 0; white-space: nowrap; }
+.pfr__a { left: 0; }
+.pfr__z { right: 0; }
+.pfr__m { left: var(--mid, 50%); transform: translateX(-50%); }
+.pfr__row--v { color: var(--sc-ink); font-weight: 600; }
+.pfr__track { position: relative; align-self: center; height: 6px; margin-inline: 6px; border-radius: 3px; background: var(--sc-surface-3); }
+.pfr__zone { position: absolute; top: 0; bottom: 0; left: var(--z1); width: max(var(--zw), 4px); border-radius: 3px; background: var(--pfc-zone); }
+.pfr__now { position: absolute; top: 50%; left: var(--now); width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--sc-ink); box-shadow: 0 0 0 2px var(--sc-surface); }
+.pfr.is-below .pfr__now { background: var(--sc-down); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pfc-bars__fill { animation: none; }
+  .pfc-pt, .pfc-donut__seg, .pfc-legend__i { transition: none; }
+  .pfc-pt:hover, .pfc-pt:active { transform: translate(-50%, -50%); }
+}

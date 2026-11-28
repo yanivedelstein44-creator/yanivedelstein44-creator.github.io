@@ -362,7 +362,7 @@ export async function requestUpdate() {
 }
 
 /** The first program version that analyses a portfolio screenshot (older ones ignore the phone's request). */
-export const PORTFOLIO_MIN_PC = "1.0.12";
+export const PORTFOLIO_MIN_PC = "1.0.13"; // 1.0.13: Claude Code on the PC (1.0.12 needed an API key)
 
 /** On the phone: the PC program is known and too old for "התיק שלי" (its version, else null). */
 export function pcTooOldForPortfolio(status = app.status, mode = app.mode) {

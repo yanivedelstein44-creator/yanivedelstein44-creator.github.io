@@ -48,7 +48,7 @@ export class FixtureAdapter {
     // 1.0.9: the program's own update; ?pcupdate=waiting shows a downloaded version that waits for the PC to be idle
     const upd = new URLSearchParams(location.search).get("pcupdate");
     // ?pcver=1.0.10: an older program on the PC (the phone then asks to update it before "התיק שלי")
-    out.app_version = new URLSearchParams(location.search).get("pcver") || "1.0.12";
+    out.app_version = new URLSearchParams(location.search).get("pcver") || "1.0.13";
     out.update = upd === "waiting" ? { state: "waiting", version: "1.0.13", checked_at: iso(clock.now() - 60 * 1000) } : { state: "none", version: null, checked_at: iso(this.updateAskedAt || clock.now() - 6 * 60 * 1000) };
     const pf = this._portfolioStatus();
     if (pf) out.portfolio = pf;
@@ -192,6 +192,7 @@ export function installDesktopMock(adapter) {
       pwa_url: "https://yanivedelstein44-creator.github.io/stockscenter/",
       atr_mult: 2,
       report_enabled: true,
+      claude_code_path: "",
       autostart: true,
       auto_update: true,
       ui_prefs: {},
@@ -263,6 +264,11 @@ export function installDesktopMock(adapter) {
           ? { ok: true, message_he: "החיבור תקין. נמצא מאגר פרטי ושני הענפים.", code_repo_ok: false, warning_he: `המפתח של המחשב לא רואה את מאגר הקוד ${state.settings.code_repo}, ולכן העדכונים האוטומטיים לא יעבדו. צור מפתח שכולל את שני המאגרים` }
           : { ok: true, message_he: "החיבור תקין. נמצא מאגר פרטי ושני הענפים.", code_repo_ok: true, warning_he: null }
       ),
+    // 1.0.13: Claude Code on the PC for "התיק שלי" (?claudecode=0: not installed)
+    claudeCodeStatus: () =>
+      wait(60, q.get("claudecode") === "0" ? { ok: true, found: false, path: null, configured: "" } : { ok: true, found: true, path: "C:\\Users\\demo\\.local\\bin\\claude.exe", configured: "" }),
+    claudeCodeTest: () =>
+      wait(700, q.get("claudecode") === "0" ? { ok: true, works: false, message_he: "לא נמצא Claude Code במחשב" } : { ok: true, works: true, message_he: "Claude Code עובד ומחובר לחשבון" }),
     // returns at once; the UI polls tvStatus
     async tvLogin() {
       tvLoginUntil = Date.now() + 1800;

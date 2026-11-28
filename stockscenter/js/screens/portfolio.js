@@ -3,7 +3,7 @@
 // row per holding. Desktop: the same in the main column, with the upload and "איך זה עובד" cards on the side.
 import { h, clear, isWide, icon, ltr } from "../dom.js";
 import { app, submitPortfolio, pcTooOldForPortfolio, PORTFOLIO_MIN_PC } from "../state.js";
-import { fmtPct, fmtInt, priceParts, timeAgo, clock, nyToday } from "../format.js";
+import { fmtPct, fmtInt, fmtPrice, priceParts, timeAgo, clock, nyToday } from "../format.js";
 import { skeleton, errorState } from "../components/states.js";
 import { topBar, masthead, metaLine, sectionHead, kicker } from "../components/chrome.js";
 import { totalBadge } from "../components/scoreRing.js";
@@ -11,7 +11,9 @@ import { tag } from "../components/flags.js";
 import { openStockSheet, asOfLabel } from "../components/stockSheet.js";
 import { disclaimer } from "../components/report.js";
 import { computeTotal } from "../scoring/total.js";
-import { TREND_HE } from "../plan.js";
+import { TREND_HE, planStatus } from "../plan.js";
+import { portfolioStats, holdingPlan } from "../portfolioStats.js";
+import { portfolioAnalysisCard, priceRange } from "../components/portfolioCharts.js";
 import { sectorHe } from "../risk.js";
 import { shrinkImage } from "../imageShrink.js";
 
@@ -30,7 +32,7 @@ const KIND_HE = { fund: "קרן נאמנות", bond: "אג״ח", option: "אופ
 const TREND_TONE = { up: "good", mixed: "muted", down: "danger" };
 export const ABOUT = [
   "מצלמים את מסך האחזקות בברוקר (אקסלנס, IBKR או כל ברוקר אחר) ומעלים אותו כאן.",
-  "התוכנה במחשב שולחת את הצילום ל-Claude עם המפתח שלך ומזהה את המניות. לכל מניה מחושבים הציונים של StocksCenter, סטופ מגן ויעד מהמחיר של היום, והתוכנית.",
+  "התוכנה במחשב קוראת את הצילום עם Claude Code שמותקן בו (המנוי שלך, בלי מפתח API) ומזהה את המניות. לכל מניה מחושבים הציונים של StocksCenter, סטופ מגן ויעד מהמחיר של היום, ומחיר הקנייה של התוכנית.",
   "מניות ישראליות מנותחות לפי הנתונים של Yahoo, והמחירים שלהן באגורות. קרנות, אג״ח ומזומן מוצגים בלי ניתוח.",
   "הצילום נמחק אחרי הקריאה. נשמרים רק האחזקות והניתוח.",
 ];
@@ -186,13 +188,19 @@ function holdingRow(hd, asOf) {
   if (isNum(pnl)) nums.push(h("span", { class: "pfrow__g" }, pnl >= 0 ? "רווח " : "הפסד ", h("b", { class: "num " + (pnl > 0 ? "is-up" : pnl < 0 ? "is-down" : ""), dir: "ltr" }, fmtPct(pnl, { signed: true }))));
   const n = (hd.lists || []).length;
   if (n) nums.push(h("span", { class: "pfrow__l" }, n === 1 ? "ברשימה אחת היום" : `ב-${n} רשימות היום`));
-  const risk = r && isNum(r.stop) ? h("span", { class: "pfrow__risk" }, pricePair("סטופ", r.stop, cur), isNum(r.target) ? pricePair("יעד", r.target, cur) : null) : null;
+  // 1.0.13: the plan bar (stop, the recommended buy price and zone, target, today's price); stop / target text without it
+  const plan = holdingPlan(st);
+  const range = plan ? priceRange(plan) : null;
+  const ps = planStatus(st);
+  const risk = !range && r && isNum(r.stop) ? h("span", { class: "pfrow__risk" }, pricePair("סטופ", r.stop, cur), isNum(r.target) ? pricePair("יעד", r.target, cur) : null) : null;
   const hit = h(
     "button",
     {
       class: "rrow__hit pfrow__hit",
       type: "button",
-      "aria-label": `${hd.symbol}${name ? ", " + name : ""}${isNum(hd.weight) ? `, משקל ${fmtPct(hd.weight, { digits: 0 })}` : ""}${isNum(total) ? `, ציון כולל ${total}` : ""}${trend ? ", " + TREND_HE[trend] : ""}`,
+      "aria-label": `${hd.symbol}${name ? ", " + name : ""}${isNum(hd.weight) ? `, משקל ${fmtPct(hd.weight, { digits: 0 })}` : ""}${isNum(total) ? `, ציון כולל ${total}` : ""}${trend ? ", " + TREND_HE[trend] : ""}${
+        ps ? `, ${ps.label}, מחיר קנייה ${fmtPrice(st.entry.entry, cur)}` : ""
+      }`,
     },
     h(
       "span",
@@ -203,7 +211,7 @@ function holdingRow(hd, asOf) {
         { class: "rrow__symline pfrow__symline" },
         h("bdi", { class: "rrow__sym", dir: "ltr" }, String(hd.symbol)),
         name ? h("span", { class: "pfrow__name", dir: "auto" }, name) : null,
-        trend ? tag({ tone: TREND_TONE[trend] || "muted", text: TREND_HE[trend] }) : null
+        ps ? tag({ tone: ps.tone, text: ps.label }) : trend ? tag({ tone: TREND_TONE[trend] || "muted", text: TREND_HE[trend] }) : null
       ),
       nums.length ? h("span", { class: "pfrow__nums" }, nums) : null,
       risk
@@ -211,9 +219,10 @@ function holdingRow(hd, asOf) {
     totalBadge(total, { testid: null })
   );
   const note = hd.note_he ? h("p", { class: "pfrow__note" }, hd.note_he) : null;
-  const el = h("article", { class: "rrow rrow--line pfrow", "data-testid": `portfolio-row-${hd.symbol}`, "data-symbol": hd.symbol }, hit, note);
+  const planBox = range ? h("div", { class: "pfrow__plan" }, range) : null;
+  const el = h("article", { class: "rrow rrow--line pfrow" + (range ? " has-plan" : ""), "data-testid": `portfolio-row-${hd.symbol}`, "data-symbol": hd.symbol }, hit, planBox, note);
   hit.addEventListener("click", () => openStockSheet(st, { asOf, opener: hit, note: hd.note_he || null }));
-  if (note) note.addEventListener("click", () => hit.click()); // the whole row opens the sheet, the note too
+  for (const part of [planBox, note]) if (part) part.addEventListener("click", () => hit.click()); // the whole row opens the sheet
   return el;
 }
 
@@ -226,6 +235,19 @@ function otherRow(hd) {
     h("span", { class: "pfother__why" }, why),
     isNum(hd.weight) ? h("span", { class: "pfother__w num" }, fmtPct(hd.weight, { digits: hd.weight < 0.1 ? 1 : 0 })) : null
   );
+}
+
+/** 1.0.13: sectors, the five scores, the momentum x quality map and the buy plans (portfolioCharts.js). */
+function analysisCard(doc) {
+  const asOf = asOfLabel(nyDate(doc.analyzed_at));
+  return portfolioAnalysisCard(portfolioStats(doc), {
+    onSelect: (symbol) => {
+      const hd = doc.holdings.find((x) => x.stock && String(x.symbol) === symbol);
+      // the bubble that was pressed has the focus: the sheet gives it back on close
+      const opener = typeof document !== "undefined" && document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      if (hd) openStockSheet(hd.stock, { asOf, opener, note: hd.note_he || null });
+    },
+  });
 }
 
 function holdingsSection(doc) {
@@ -288,7 +310,7 @@ export async function mount(root) {
     clear(root);
     drawSlot();
     const has = !!(doc && doc.holdings && doc.holdings.length);
-    const results = has ? [summaryCard(doc), ...holdingsSection(doc)].filter(Boolean) : [];
+    const results = has ? [summaryCard(doc), analysisCard(doc), ...holdingsSection(doc)].filter(Boolean) : [];
     if (wide) {
       root.append(masthead({ kicker: "PORTFOLIO", title: "התיק שלי", meta: meta() }));
       if (app.bannerBox) root.append(app.bannerBox);
