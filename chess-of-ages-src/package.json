@@ -1,7 +1,7 @@
 {
   "name": "chess-of-ages",
   "private": true,
-  "version": "1.6.7",
+  "version": "1.6.8",
   "type": "module",
   "description": "שחמט העידנים: ממלכות האיים — Chess of Ages: Island Realms (PWA + Capacitor)",
   "scripts": {
@@ -13,7 +13,8 @@
     "cap:add": "npx cap add android",
     "cap:sync": "vite build && npx cap sync android",
     "cap:open": "npx cap open android",
-    "publish:site": "bash scripts/publish-site.sh"
+    "publish:site": "bash scripts/publish-site.sh",
+    "test:ads": "node scripts/test-ads-switch.mjs"
   },
   "palace": {
     "minNativeVersion": "1.1.1"

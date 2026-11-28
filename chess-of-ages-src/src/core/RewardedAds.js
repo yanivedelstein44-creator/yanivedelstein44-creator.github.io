@@ -6,7 +6,9 @@
  * (עטיפת Play מגרסה 1003 ומעלה — android-wrapper/build-aab.sh). בדפדפן, ב-APK מהאתר ובעטיפות ישנות אין פרסומות:
  * הדולפין רק שוחה וקופץ (קישוט), בלי תג ובלי חלון. לבדיקות בדפדפן: ‎?fakeads (פרסומת מדומה של 5 שניות;
  * ‎?fakeads=eea מדמה את טופס ההסכמה האירופי, ‎?fakeads=nofill — אין פרסומת).
- * כש-ADS.live כבוי (config/AdsConfig.js), גם גרסת Play מציגה פרסומות בדיקה של Google ("Test Ad"). מ-1.6.7 הוא דולק.
+ * כש-ADS.live כבוי (config/AdsConfig.js), גם גרסת Play מציגה פרסומות בדיקה של Google ("Test Ad"). מ-1.6.7 הוא דולק,
+ * ומ-1.6.8 יש גם מתג מרחוק באתר (core/AdsSwitch.js): עד ההשקה הוא סגור, ואז מוצגות פרסומות בדיקה גם כשהדגל דולק.
+ * ביום ההגשה ל-production המתג נקבע לפתוח לבד ב-AAB של ההשקה (לפי versionCode).
  *
  * הזרימה (כל שלב רק אחרי לחיצה של השחקן):
  *  1. נגיעה בדולפין → חלון "פרסומת: צפה עד הסוף וקבל 20 יהלומים" (ui/AdOffer.js) עם "צפה בפרסומת" / "לא עכשיו".
@@ -21,8 +23,9 @@
  * שגם מאפס את ההסכמה של Google במכשיר (resetConsentInfo).
  */
 import { Capacitor, registerPlugin } from '@capacitor/core';
-import { isPlayBuild } from '../config/Store.js';
+import { isPlayBuild, UPDATE_BASE } from '../config/Store.js';
 import { ADS, ADMOB_IDS } from '../config/AdsConfig.js';
+import { adsSwitchOpen } from './AdsSwitch.js';
 import { t } from '../ui/i18n.js';
 import { adOffer, adChoice, adLoading, fakeAdShow, fakeConsentForm } from '../ui/AdOffer.js';
 
@@ -37,6 +40,14 @@ export const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMont
 export const mmss = (secs) => `${Math.floor(secs / 60)}:${String(Math.floor(secs % 60)).padStart(2, '0')}`;
 const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => { setTimeout(() => rej(new Error('timeout')), ms); })]);
 const offline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
+
+/** מספר הבנייה של האפליקציה (versionCode של ה-AAB), בשביל המתג מרחוק (core/AdsSwitch.js). 0 אם לא ידוע */
+async function nativeBuild() {
+  try {
+    const { App } = await import('@capacitor/app');
+    return parseInt((await App.getInfo()).build, 10) || 0;
+  } catch { return 0; }
+}
 
 function nativeAvailable() {
   try { return isPlayBuild() && !!Capacitor.isNativePlatform?.() && !!Capacitor.isPluginAvailable?.('AdMob'); } catch { return false; }
@@ -79,8 +90,10 @@ class NativeAds {
   }
   async load({ npa }) {
     await this.listen();
-    const real = ADS.live ? ADMOB_IDS.rewarded : '';
-    // עד ההשקה (ADS.live כבוי) או בלי מזהה אמיתי — יחידת הבדיקה של Google (פרסומות "Test Ad", בלי הכנסות ובלי סיכון לחשבון)
+    // יחידה אמיתית רק כשגם הקוד מוכן (ADS.live) וגם המתג באתר פתוח (core/AdsSwitch.js). אחרת, כמו עד ההשקה,
+    // יחידת הבדיקה של Google (פרסומות "Test Ad", בלי הכנסות ובלי סיכון לחשבון)
+    const open = ADS.live && await adsSwitchOpen({ base: UPDATE_BASE, file: ADS.remoteSwitch, build: await nativeBuild() });
+    const real = open ? ADMOB_IDS.rewarded : '';
     await this.p.prepareRewardVideoAd({ adId: real || ADMOB_IDS.testRewarded, isTesting: !real, npa: !!npa, immersiveMode: true });
   }
   show(h) {
